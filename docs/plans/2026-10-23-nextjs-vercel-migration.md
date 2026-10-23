@@ -476,7 +476,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 2 盤點去向 | 完成 | `check_inventory.py` exit 0（243＋29 列、20 項缺陷）；改一列為 TBD 時 exit 非 0；6 個計畫缺口已補進步驟 5、10、11、13 | `--residue` 要到步驟 14 才跑 | |
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
 | 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
-| 5 TS 端排程骨架 | 未開始 | | | |
+| 5 TS 端排程骨架 | 程式完成待驗收 | 正式專案部署；手動觸發（01:17）回 not due、shadow 無寫入；`vercel env ls production` 只有 4 個 key、無寄送憑證；Neon 傳輸量已量 | 2026-10-24 自然執行：08:30 morning timer、09:00 cron 寫一列、12:00 cron 回「已有 run」 | `199bef1`、`e6a299c` |
 | 6 試點 Jobicy／Remotive | 未開始 | | | |
 | 7 CryptoJobsList | 未開始 | | | |
 | 8 其餘免登入來源 | 未開始 | | | |
