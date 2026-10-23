@@ -319,6 +319,7 @@
     - 頁面沿用 `frontend/` 的元件。
     - 歷史核准失效保護依 D8。
     - 離線 demo 模式：PGlite 加 network guard，不讀任何 env。
+    - 讀取路徑瘦身（D13）：UI 的清單與分組回饋不再每次讀全表、重算全部評估。做法在本步決定（候選：寫入時存 identity key 與投影欄位，回饋只讀相關群組；清單用 SQL 篩選分頁）。每日摘要可以保留全表 `listIn`（每天 1 次），以維持和 Python 的逐位元比對。
   - 消費端：`inventory-surface.md` §3 的 47 個呼叫點；`rg -n "openapi-fetch|api\.d\.ts|contracts/" frontend scripts`；`frontend/tests/{smoke,manual-application-load,workbench}.mjs`。
   - 驗收：
     - 三支前端測試的等價版在 preview 上通過。
@@ -327,6 +328,7 @@
     - mutation：
       - 移除 revision 檢查，測試要失敗。
       - 在 demo 路徑加一個 `fetch`，network guard 要讓測試失敗。
+    - D13：以正式資料量級量測，一次 UI 清單請求與一次分組回饋各自從 Neon 讀取的位元組，換算「每天 20 次回饋＋20 次清單＋1 次摘要」的月用量，低於 1 GB；分組 token 與既有群組結果仍和全表算法一致（測試比對兩種算法）。
   - 完成後的狀態：preview 讀的是 shadow DB。
 
 - [ ] **12. 反向收斂腳本與切換演練**（被擋於：步驟 10、11、D6）
@@ -343,6 +345,7 @@
   - 需要人做的事：授權讀正式 DB 副本。
 
 - [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、D9；Will 明確授權）
+  - 前提：步驟 11 的 D13 驗收已過（Neon 免費方案超量會暫停 compute，每日摘要也會停）。
   - 前置決定（步驟 12 結束前交給 Will）：prod branch 是否分出 runtime 角色——migration 用擁有者角色，app 連線角色只拿 DML，並對 `proposal_draft_revisions`、`submission_events` `REVOKE UPDATE, DELETE, TRUNCATE`；trigger 保留當第二道防線。不分的話，任何拿到 app 連線字串的人都能 `DISABLE TRIGGER`。
   - 範圍：
     1. 在 Vercel 專案 Disable Cron Jobs，確認當天 TS 的 shadow run 已結束。
@@ -383,7 +386,7 @@
     - Python 值模型只留在雜湊與已存 JSON 的邊界（`web/src/platform/py/{json,unicode,url}.ts`）；業務模組改用 TS 原生型別與 `DomainError` 類別階層，移除 `PyError` 字串分類、C 版 `fromisoformat` 與 Python `round`／格式化的照抄。
     - `golden.json` 拆成兩份：雜湊相容（永久保留）與 Python 行為對照（刪除）。
     - 非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`，或寫出保留理由。
-    - `listIn` 全表讀取與重算：改成 SQL 篩選分頁或寫入時存投影；提前觸發條件是步驟 5 量到的單次 list 傳輸量讓 Neon 每月傳輸超過免費額度一半。
+    - `listIn` 全表讀取：UI 路徑已在步驟 11 改掉（D13）；這裡只剩每日摘要的全表讀取，D6 後若摘要不再需要和 Python 逐位元比對，再一起改。
   - 需要人做的事：
     - VM 退役。
     - 確認 Neon 與 Vercel 帳單。
@@ -456,7 +459,12 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
   - A：不搬，切換後停用這兩個來源；歷史資料照搬，`platform-connectivity.md` 標明原因——損失極小（3 筆）。（建議）
   - B：在 VM 或 Mac 保留一個只抓 PTT 的小程式，寫入 Neon——保住來源，但留下要維護的主機，和搬離 VM 的目標衝突。
 
-拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
+- **D13 Neon 傳輸量與讀取路徑**（狀態：已決 2026-10-24，Will 照建議；擋住步驟：11、13；事實：步驟 5 量到一次 `list`／分組回饋約 8.1 MB，Neon 免費方案每月 5 GB、超量暫停 compute）
+  - A：讀取路徑瘦身提前到步驟 11，列為切換前提。（建議，已選）
+  - B：維持步驟 14 才改——切換後每天約 20 次回饋就可能超額，摘要跟著停。
+  - C：升級 Neon 付費方案——每月 500 GB，但多一筆固定費用，且不解決每次讀 8 MB 的延遲。
+
+拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D13 於 2026-10-24 拍板（A）。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
 
 ## 進度
 
