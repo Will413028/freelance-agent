@@ -462,7 +462,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 1 Spike | 進行中 | 1a、1b、1e 成立；1c 合成 707/707；1d 連線成立（`spikes.md`） | 1c 正式副本、1d 實寄：待授權與憑證 | |
 | 2 盤點去向 | 完成 | `check_inventory.py` exit 0（243＋29 列、20 項缺陷）；改一列為 TBD 時 exit 非 0；6 個計畫缺口已補進步驟 5、10、11、13 | `--residue` 要到步驟 14 才跑 | |
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
-| 4 共用層 | 進行中（4a、4b 完成；4c、4d 程式完成待 VM 驗收） | 本機：`pnpm typecheck`、`pnpm boundaries`、`pnpm test`（4a schema 對照與 trigger、Python 對照基準全數相符、8 個 store 情境逐位元相同、收斂兩次報告相同、比對器自我比對 0 差異）、`pnpm build`；Python 與 TS 對同一份合成副本的 `list()`／分組輸出 150,835 位元組相同；mutation：拿掉 `draft_revision_immutable`、key 不排序、separators 改錯、收斂漏表、id 改 ICU collation、casefold 改 `toLowerCase` 都會失敗 | VM 副本排程與容器（待 Will 授權）；1c 正式副本驗證（待授權）；CI（待推送） | `a3de985`（4a、4b） |
+| 4 共用層 | 進行中（4a、4b 完成；4c、4d 程式完成待 VM 驗收） | 本機：`pnpm typecheck`、`pnpm boundaries`、`pnpm test`（4a schema 對照與 trigger、Python 對照基準全數相符、8 個 store 情境逐位元相同、收斂兩次報告相同、比對器自我比對 0 差異）、`pnpm build`；Python 與 TS 對同一份合成副本的 `list()`／分組輸出 150,835 位元組相同；mutation：拿掉 `draft_revision_immutable`、key 不排序、separators 改錯、收斂漏表、id 改 ICU collation、casefold 改 `toLowerCase` 都會失敗 ；本機用 `deploy/compose.shadow.yaml` 實跑容器 morning／after（合成資料）成立；CI run 39986551118：backend ✓、web ✓ | VM 副本排程與容器（待 Will 授權）；1c 正式副本驗證（待授權） | `a3de985`（4a、4b）、`e7b8c51`（4c、4d、審查修正） |
 | 5 TS 端排程骨架 | 未開始 | | | |
 | 6 試點 Jobicy／Remotive | 未開始 | | | |
 | 7 CryptoJobsList | 未開始 | | | |
