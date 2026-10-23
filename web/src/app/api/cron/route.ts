@@ -1,5 +1,4 @@
 import { start } from "workflow/api";
-import { SOURCES } from "@/modules/collection/registry";
 import { dailyWorkflow } from "@/workflows/daily";
 
 export async function GET(request: Request) {
@@ -7,6 +6,6 @@ export async function GET(request: Request) {
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return new Response("unauthorized", { status: 401 });
   }
-  const run = await start(dailyWorkflow, [Object.keys(SOURCES)]);
+  const run = await start(dailyWorkflow, []);
   return Response.json({ runId: run.runId });
 }

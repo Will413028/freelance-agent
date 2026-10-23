@@ -1,10 +1,12 @@
-import { getDb } from "@/db/client";
-import { listSourceHealth } from "@/modules/collection/source-health";
+import { getDb, readTransaction } from "@/db/client";
+import { sourceChecksIn } from "@/modules/collection/public";
+import { asDict } from "@/platform/py/value";
 
 export const dynamic = "force-dynamic";
 
+// Shadow-period status page; the real UI arrives in plan step 11.
 export default async function Page() {
-  const rows = await listSourceHealth(getDb());
+  const checks = await readTransaction(getDb(), (tx) => sourceChecksIn(tx));
   return (
     <main>
       <h1>來源狀態</h1>
@@ -13,8 +15,8 @@ export default async function Page() {
           <tr><th>來源</th><th>狀態</th><th>檢查時間（UTC）</th></tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.source}><td>{r.source}</td><td>{r.status}</td><td>{r.checkedAt}</td></tr>
+          {[...checks].map(([source, v]) => (
+            <tr key={source}><td>{source}</td><td>{String(asDict(v).at("status"))}</td><td>{String(asDict(v).at("checked_at") ?? "")}</td></tr>
           ))}
         </tbody>
       </table>
