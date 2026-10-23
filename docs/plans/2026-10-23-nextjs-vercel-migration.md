@@ -4,7 +4,7 @@
 
 **上層：** 主清單見本機個人脈絡檔（`AGENTS.local.md`）。本計畫暫代主計畫，所以保留下面的「全域約束與完成定義」。
 
-**附件：** `docs/plans/2026-10-23-nextjs-vercel-migration/`，快照 commit `d994cd2`。
+**附件：** `docs/plans/2026-10-23-nextjs-vercel-migration/`，快照 commit `d994cd2`（在 PRIVATE 的 `freelance-agent-archive`；2026-10-23 起公開 repo 從新歷史開始，本計畫引用的舊 SHA 都在 archive）。
 - `inventory-surface.md`：25 張表、42 個 API operation、47 個前端呼叫點、19 個 CLI、狀態機、測試、legacy。
 - `inventory-sources.md`：29 個來源 connector、共用收集機制、通知、submissions、外部相依、300 秒適配。
 - 兩份盤點的「去向」欄在步驟 2 填寫。
@@ -172,7 +172,7 @@
   - 不能動：盤點的原始事實欄位。
   - 驗收：`python3 docs/plans/2026-10-23-nextjs-vercel-migration/check_inventory.py` exit 0。mutation：把任一列改回 `TBD`，腳本要 exit 非 0。
 
-- [ ] **3. Walking skeleton：新 app、CI 與一條端到端路徑**（被擋於：步驟 2、D3）
+- [x] **3. Walking skeleton：新 app、CI 與一條端到端路徑**（被擋於：步驟 2、D3）
   - 範圍：
     - 依 D3 建立 `web/`。
     - Drizzle 連 Neon 的 dev branch，第一個 migration 建 `source_health`。
@@ -443,7 +443,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 |---|---|---|---|---|
 | 1 Spike | 進行中 | 1a、1b、1e 成立；1c 合成 707/707；1d 連線成立（`spikes.md`） | 1c 正式副本、1d 實寄：待授權與憑證 | |
 | 2 盤點去向 | 完成 | `check_inventory.py` exit 0（243＋29 列、20 項缺陷）；改一列為 TBD 時 exit 非 0；6 個計畫缺口已補進步驟 5、10、11、13 | `--residue` 要到步驟 14 才跑 | |
-| 3 Walking skeleton | 程式完成待驗收 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空 | CI 在 PR #1 沒啟動：GitHub Actions 帳務（付款失敗或花費上限），待 Will 處理後重跑 | `813df86` |
+| 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
 | 4 共用層 | 未開始 | | | |
 | 5 TS 端排程骨架 | 未開始 | | | |
 | 6 試點 Jobicy／Remotive | 未開始 | | | |
