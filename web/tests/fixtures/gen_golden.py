@@ -20,6 +20,13 @@ from freelance.bootstrap.store import SQLiteStore                      # noqa: E
 from freelance.modules.discovery import domain, rules, ranking         # noqa: E402
 from freelance.modules.collection.store import identity_hash           # noqa: E402
 from freelance.platform.sqlite import encode                           # noqa: E402
+from freelance.modules.collection import free_jobs                     # noqa: E402
+
+# free_jobs parses HTML with html.parser, whose behaviour changes between patch releases (3.13.13
+# closes '<!-->' differently). The ground truth is the production image's interpreter.
+PRODUCTION_PYTHON = (3, 13, 15)
+if sys.version_info[:3] != PRODUCTION_PYTHON:
+    sys.exit(f'gen_golden.py needs Python {PRODUCTION_PYTHON} (the production image), not {sys.version_info[:3]}')
 
 
 def tag(v):
@@ -355,6 +362,86 @@ SCENARIOS = {
 }
 
 
+HTML = [
+    '<p>Build an API</p>', 'plain', 'a &amp; b', '&ampx', '&amp', 'x &notin; y', '&notit;', '&notanentity;', '&Aacute', '&AMP;',
+    '&#65;&#x42;&#0;&#128;&#xD800;&#1114112;&#xFFFE;&#x1F600;', '&#', '&#;', '&#x;', 'tail &amp', 'tail &am', 'tail & x', 'tail &',
+    'a' * 40 + '&amp', '&amp' + 'b' * 40, 'a' * 40 + '&amp;', '\U0001f600' * 40 + '&amp', 'x' * 20 + '\U0001f600' * 15 + '&am',
+    'a<b', 'a < b', '<', 'x<', '<p', '<p class="a"', 'x <p class="a" y',
+    '<div>a</div><li>b</li><br>c<br/>d', '<script>x<p>y</script>z', '<SCRIPT>x</script >y', '<script>never closed', '<script>a</scriptx>b',
+    '<style>a{}</style>b', '<script/>visible', '<script><script></script>v', '<style><style></style>x', '</script>after',
+    '<!-- c -->t', '<!-->t', '<!--->t', '<!-->a-->b', '<!--->x<!-- y -->z', '<!-- x --!>t', '<!-- unterminated', '<!DOCTYPE html>t', '<!doctype>t', '<![CDATA[x]]>t',
+    '<![CDATA[x', '<?pi>t', '<?pi', '<!bogus>t', '<!bogus', '</>t', '</ x>t', '</1>t', '</p', '</p x="y>',
+    '<title>a &amp; b</title>', '<textarea><p>x &lt;</textarea>y', '<xmp><b>&amp;</b></xmp>', '<iframe>x</iframe>y',
+    '<noembed>x</noembed>', '<noscript><p>x</p></noscript>', '<plaintext><p>&amp;', '<a href="x>y">link</a>', "<a b='c'd>t",
+    '<a b="c"d>t', '<p/ >x', '<br/>x', '<img src=x />x', 'x\u00a0y\u3000z\x1c\x85w', '<P>Upper</P>', '<scr\u0130pt>x</scr\u0130pt>y',
+    '<div\n class=x>y</div\n>', '<a <b>c', '<<p>>', '<p>\U0001f600 &hearts; &#9829;</p>', '<li>one<li>two', '<a\tb>t',
+    '<p =x>t', '<p a=>t', '<p a= >t', "<p a='>'>t", '<p a="b"/>t', '<p/>t', '&lt;script&gt;x',
+    '<p>' + '&#' + '1' * 5000 + ';</p>', '<a href="&#' + '1' * 4301 + '">x</a>', '<a href="&#' + '1' * 4300 + '">x</a>',
+    '<a b=&#' + '1' * 4301 + ' !>x', '<a href="&amp=x&amp;y">t</a>', '<p>&#x' + 'f' * 50 + ';</p>', 'R&D &copy 2026', '&nbsp;&nbsp', '&#x20AC;&#8364&euro;',
+]
+
+
+def html_text(html):
+    t = free_jobs.Text()
+    t.feed(html)
+    return ''.join(t.parts)
+
+
+def rem(**changes):
+    """backend/tests/collection/test_free_jobs.py:rem"""
+    return dict(id=1, url='https://remotive.com/remote-jobs/software-dev/backend-1', title='Backend API engineer',
+                description='<p>Build an API</p>', job_type='part_time', publication_date='2026-09-18T12:00:00',
+                candidate_required_location='Worldwide') | changes
+
+
+def jobicy(**changes):
+    return dict(id=2, url='https://jobicy.com/jobs/2-python', jobTitle='Python API', jobDescription='<p>API</p>',
+                jobType=['contract'], jobGeo='Anywhere', pubDate='2026-09-18T12:00:00+00:00', salaryMin=100000,
+                salaryPeriod='yearly') | changes
+
+
+def without(d, key):
+    return {k: v for k, v in d.items() if k != key}
+
+
+NORMALIZE = [
+    ('remotive', rem()), ('jobicy', jobicy()), ('nope', rem()), ('remotive', []), ('remotive', None), ('jobicy', 'x'),
+    *[('remotive', rem(job_type=t)) for t in ('full_time', 'Full-Time', 'Part-Time', 'Freelance', 'contract', '', None,
+                                              'internship', 'Part Time', '\u03a3\u0391\u03a3', 'CONTRACT',
+                                              '\u1c89\ua7cb\ua7dc')],  # unassigned in Unicode 15.1, cased in Node's ICU
+    ('remotive', without(rem(), 'job_type')),
+    *[('remotive', rem(candidate_required_location=g)) for g in ('USA', ' usa ', 'Worldwide', None, 0, '', [], 5, 'Europe',
+                                                                 'United Kingdom', 'Taiwan', 'Canada\u3000', False, True)],
+    ('remotive', without(rem(), 'candidate_required_location')),
+    *[('remotive', rem(url=u)) for u in ('https://evil.example/', None, 'https://remotive.com/remote-jobs/x?utm=1#frag',
+                                         'https://www.remotive.com/remote-jobs/x', 'http://remotive.com/remote-jobs/x',
+                                         'https://remotive.com/jobs/x', 5, [], {}, 0, True, 'HTTPS://remotive.com/remote-jobs/x',
+                                         'https://remotive.com:443/remote-jobs/x', ' https://remotive.com/remote-jobs/x\t',
+                                         'https://remotive.com/remote-jobs/a?', 'https://remotive.com/remote-jobs/a#',
+                                         'https://[V1.a]/remote-jobs/x', 'https://remotive.com/remote-jobs/\u5f8c\u7aef')],
+    ('remotive', without(rem(), 'url')),
+    *[('remotive', rem(id=i)) for i in (0, -1, '1', 1.0, True, 2 ** 70, None)],
+    ('remotive', without(rem(), 'id')),
+    *[('remotive', rem(title=t)) for t in ('', 'x' * 501, 'x' * 500, None, '\u5f8c\u7aef API \U0001f600', '\U0001f600' * 500)],
+    *[('remotive', rem(description=d)) for d in (None, '<script>x</script>', '<p>&amp;</p>', '   ', '<p>\u5f8c\u7aef &eacute;</p>',
+                                                 'x' * 100001, '<p>a</p>' + 'b' * 99993, 'line1<br>line2\n\tline3')],
+    *[('remotive', rem(publication_date=d)) for d in ('2026-09-18T12:00:00Z', '2026-09-18', 'bad', None, '2026-09-18T12:00:00+05:30',
+                                                      'ZZ', '2026-09-18T12:00:00.5Z', '2026-09-18 12:00:00-0800', 20260918)],
+    *[('jobicy', jobicy(jobType=t)) for t in (['Full-Time', 'Contract'], 'contract', [1], [], None, ['part-time', 'Part_Time'])],
+    ('jobicy', without(jobicy(), 'jobType')),
+    ('jobicy', jobicy(url='https://jobicy.com/remote-jobs/2')), ('jobicy', jobicy(jobGeo='USA')), ('jobicy', jobicy(pubDate='2026-09-18 12:00:00')),
+    ('jobicy', jobicy(title='ignored', jobTitle=None)), ('jobicy', jobicy(description='ignored', jobDescription='')),
+]
+
+
+def normalize_case(source, payload):
+    def run():
+        j = free_jobs.normalize(source, payload)
+        aware = datetime.fromisoformat(payload['publication_date' if source == 'remotive' else 'pubDate'].replace('Z', '+00:00')).tzinfo
+        return dict(job=encode(without(j, 'received_at')), received_at=j['received_at'] if aware else None)
+    return dict(source=source, payload=tag(payload), expect=attempt(run))
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -370,6 +457,8 @@ def main():
                      for s in SETTINGS for j in qualify_corpus()],
         'recommendation': ranking_corpus(),
         'scenarios': {},
+        'html_text': [dict(input=h, expect=attempt(lambda: html_text(h))) for h in HTML],
+        'free_jobs_normalize': [normalize_case(src, pl) for src, pl in NORMALIZE],
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

@@ -1,10 +1,14 @@
 import type { Db } from "@/db/client";
+import { syncFreeJobs } from "./sources/free-jobs";
 import { REGISTRY, SOURCES } from "./source-catalog";
 
-export type SourceRunner = (db: Db) => Promise<void>;
+export type SourceRunner = (db: Db) => Promise<unknown>;
 
 /** TS connectors, added one by one from plan step 6. */
-export const RUNNERS: Record<string, SourceRunner> = {};
+export const RUNNERS: Record<string, SourceRunner> = {
+  jobicy: (db) => syncFreeJobs(db, "jobicy"),
+  remotive: (db) => syncFreeJobs(db, "remotive"),
+};
 
 // D12: Vercel's regions get a challenge from PTT; these stay in the catalog for their history only.
 export const DISABLED = new Set(["ptt_soho", "ptt_codejob"]);

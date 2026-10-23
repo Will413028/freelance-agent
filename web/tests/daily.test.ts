@@ -50,6 +50,6 @@ describe("daily run entry", () => {
   it("fans out only to implemented, enabled sources in catalog priority order", () => {
     const noop = async () => {};
     expect(enabledSources({ guru: noop, ptt_soho: noop, tasker: noop, jobicy: noop, nope: noop })).toEqual(["tasker", "jobicy", "guru"]);
-    expect(enabledSources()).toEqual([]);
+    expect(enabledSources()).toEqual(["jobicy", "remotive"]);
   });
 });

@@ -282,8 +282,9 @@ export function fromisoformat(s: unknown): PyDateTime {
       const [trv, th, tm, ts, tus] = parseHms(c, tz + 1, end);
       if (trv) throw invalid();
       const secs = sign * BigInt(th * 3600 + tm * 60 + ts);
-      // tzinfo_from_isoformat_results: a zero seconds offset is UTC even with microseconds.
-      offset = secs === 0n ? 0n : secs * 1_000_000n + sign * BigInt(tus);
+      // tzinfo_from_isoformat_results as of 3.13.15 (the production image): only a zero offset with
+      // zero microseconds is UTC; 3.13.13 also dropped the microseconds of a zero-second offset.
+      offset = secs * 1_000_000n + sign * BigInt(tus);
     }
   }
   return new PyDateTime(date[0], date[1], date[2], hour, minute, second, us, offset);

@@ -233,11 +233,29 @@ def ranges(pred):
 casefold = {cp: chr(cp).casefold() for cp in range(0x110000) if chr(cp).casefold() != chr(cp)}
 nfkc = {cp: unicodedata.normalize('NFKC', chr(cp)) for cp in range(0x110000)
         if not 0xD800 <= cp <= 0xDFFF and unicodedata.normalize('NFKC', chr(cp)) != chr(cp)}
+lower = {cp: chr(cp).lower() for cp in range(0x110000) if chr(cp).lower() != chr(cp)}
+# str.lower() maps U+03A3 by context (Final_Sigma); these two properties drive it. Probed through lower()
+# itself because CPython does not expose them: 'AΣ'+c+'A' and 'AΣ'+c tell ignorable / cased / neither apart.
+def sigma(s):
+    return s.lower()[1]
+case_ignorable = lambda c: sigma('A\u03a3' + c + 'A') == '\u03c3' and sigma('A\u03a3' + c) == '\u03c2'
+cased = lambda c: not case_ignorable(c) and sigma('A\u03a3' + c) == '\u03c3'
 tables = {'unidata': unicodedata.unidata_version,
           'unassigned': ranges(lambda c: unicodedata.category(c) == 'Cn'),
           'nonprintable': ranges(lambda c: not c.isprintable()),
           'space': ranges(lambda c: c.isspace()),
           'casefold': {str(k): v for k, v in casefold.items()},
-          'nfkc_single': {str(k): v for k, v in nfkc.items()}}
+          'nfkc_single': {str(k): v for k, v in nfkc.items()},
+          'lower': {str(k): v for k, v in lower.items()},
+          'case_ignorable': ranges(case_ignorable),
+          'cased': ranges(cased)}
 (HERE / 'unicode-tables.json').write_text(json.dumps(tables, ensure_ascii=True) + '\n')
 print(json.dumps({p['name']: len(p['cases']) for p in points}, indent=1))
+
+# ---------------------------------------------------------------- html.unescape tables (plan step 6)
+import html as _html
+# Only the TS port reads these, so they are written where it lives.
+(HERE.parents[3] / 'web' / 'src' / 'platform' / 'py' / 'html-tables.json').write_text(json.dumps({
+    'html5': _html.entities.html5,
+    'invalid_charrefs': {str(k): v for k, v in _html._invalid_charrefs.items()},
+    'invalid_codepoints': sorted(_html._invalid_codepoints)}, ensure_ascii=True, sort_keys=True) + '\n')

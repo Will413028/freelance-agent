@@ -27,8 +27,9 @@ function checkBracketedNetloc(netloc: string) {
     const port = e >= 0 ? rest.slice(e + 1) : "";
     if (port && !port.startsWith(":")) throw new PyError("ValueError", "Invalid IPv6 URL");
   } else host = hp.split(":")[0];
-  if (host.startsWith("v")) {
-    if (!/^v[a-fA-F0-9]+\..+$/s.test(host)) throw new PyError("ValueError", "IPvFuture address is invalid");
+  // 3.13.15 (the production image) also accepts an uppercase V; 3.13.13 did not.
+  if (host.startsWith("v") || host.startsWith("V")) {
+    if (!/^[vV][a-fA-F0-9]+\..+$/s.test(host)) throw new PyError("ValueError", "IPvFuture address is invalid");
   } else if (!isIPv6(host)) throw new PyError("ValueError", "Invalid IPv6 URL");
 }
 

@@ -79,6 +79,7 @@
 | 同一時間只有一個 writer 寫正式資料、對外寄信 | Huey 單一 consumer 與 `queue.lock`（`bootstrap/queue.py:24`）、SQLite `BEGIN IMMEDIATE`；TS：`daily_runs` row claim 加 Postgres advisory lock；切換程序（步驟 13） |
 | 草稿版本、submission 與其事件不可修改、不可刪除 | `draft_revision_immutable`／`draft_revision_retained`／`submission_immutable`／`submission_event_immutable`／`submission_event_retained`（`001_sqlite.sql:192-224`）；TS：Postgres 等價 trigger |
 | 參與雜湊或 snapshot 的欄位逐位元保存 | `opportunities.item`、`digest_outbox.snapshot`、`proposal_draft_revisions`、`submission_intents` 的 snapshot；TS：這些欄位用 `text` 不用 `jsonb`；序列化集中在 `web/src/platform/py/json.ts` |
+| 規格是正式映像的 CPython 3.13.15，不只是 Python 原始碼：`html.parser`、`fromisoformat`、`urlsplit` 在 3.13.13 與 3.13.15 之間行為不同（2026-10-24 量到） | `deploy/backend.Dockerfile` 的 `python:3.13-slim`（未釘小版本，重建就會換）；TS：`web/src/platform/py/*.ts` 註明的版本、`gen_golden.py` 開頭的版本檢查、本機 `backend/.venv`（3.13.15）。正式映像重建前要先確認版本，換了就用新版重跑 `gen_golden.py` 與差異 |
 | `(source, external_id)` 唯一；receipt ID 防重複匯入 | `opportunities`、`source_receipts`、各 connector 的 receipt 規則（`inventory-sources.md` §1）；TS：connector 共用的 `ingest` 與指紋函式庫 |
 | 未知欄位保留為未知 | `discovery/rules.py`、各 connector 的 envelope；TS：envelope 型別（unknown 是明確的值，不用 `null` 推定） |
 | 回饋與設定變更沿用呼叫端的交易，stale revision 被拒絕 | `preferences`、`discovery/settings.py`、`tracking_events` revision；TS：route handler／server action 的交易邊界 |
@@ -257,6 +258,9 @@
 
 - [ ] **6. 試點：Jobicy／Remotive**（被擋於：步驟 5）
   - 開始時啟用 VM 的 `freelance-shadow-after.timer`（10:30 比對）。步驟 5 的 TS 只寫 `daily_runs`、還沒有任何來源，比對只會把 Python 當天的寫入全報成差異。
+  - 實作狀態（2026-10-24，未部署）：`web/src/modules/collection/sources/free-jobs.ts`，`registry.ts` 已登記 jobicy、remotive。描述的 HTML 轉文字照 CPython 3.13.15 `html.parser` 逐行移植成 `web/src/platform/py/html.ts`，不用 htmlparser2／parse5：描述進 receipt 雜湊與指紋，tokenizer 不同就會讓每筆 receipt 都不同（盤點原本寫 parse5，這裡改掉）。另補 `pyLower`（`str.lower` 含 Final_Sigma；Node 的 ICU 是 Unicode 17，CPython 是 15.1）與 `platform/http.ts`（不跟 redirect、8 MB 上限、`json.loads(bytes)` 的編碼偵測）。對齊正式映像時發現 `fromisoformat`（零秒偏移帶微秒）、`urlsplit`（大寫 `V` 的 IPvFuture）在 3.13.13 與 3.13.15 不同，一併改成 3.13.15；本機 `backend/.venv` 改用 3.13.15，`gen_golden.py` 不是這個版本就拒跑。
+    - 驗證（本機）：golden 新增 98 個 HTML 片段與 96 個 normalize 案例（Python 3.13.15 產生），TS 全同；2026-10-24 抓的真實 feed 209 筆（Remotive＋Jobicy）兩邊 normalize 輸出逐位元組相同；6 個 Python 測試案例的 TS 版通過；`pnpm typecheck`、`boundaries`、`test`（97）、`build`，backend 629 個測試全綠。mutation：註解改回 3.13.13 的關閉順序、`pyLower` 換成 `toLowerCase`、receipt 改 `ensure_ascii=False`、正規化與寫入交錯、不對屬性值做 unescape（超過 4300 位數的 charref 在 Python 會讓整個來源失敗），各自讓測試失敗。獨立審查：正確性 subagent 差分模糊測試（HTML 285,000、unescape 45,000、normalize 80,000 組）只找到屬性值那一項，已修；設計審查 6 項，改 4（移到 `sources/`、`public.ts` 只匯出 `syncFreeJobs`、html 表直接寫到 `web/`、此處記錄）、記 2（步驟 10 的 `source_details`、步驟 14 的 `html.ts` 去向），正式映像釘版本交 Will（盤點缺陷 24）。
+    - 未跑：部署與 7 天比對（要 Will 授權部署，且等步驟 5 驗收完）；「改 receipt 規則、比對器要報差異」的 mutation 要在部署後對 shadow 跑。
   - 範圍：把 `collection/free_jobs.py`（80 行、6 個測試）改寫成 TS，在 shadow 模式每天跑。
   - 消費端：`rg -n "free_jobs|jobicy|remotive" backend/src frontend/src`。
   - 不能動：VM 上的 Python 來源照常跑，是唯一 writer。
@@ -303,6 +307,7 @@
     - 人工核對的 recovery 操作：改成受保護的頁面或 script，取代 `bootstrap/recovery.py`。
     - 手動寄出既有 pending 摘要的操作，取代 `gmail_smtp_cli`：要核對預覽 sha256（由 TS 自己算），不沿用 Python 算的值。
     - shadow 模式只建 snapshot，寄送 step 因為缺憑證而結構上無法執行。
+    - 來源結果帶進 `daily_runs.result.source_details`（2026-10-24 設計審查）：Python 把每個 connector 的整份回傳（`seen`、`jobs`、`scope`、失敗的 `reason`）寫進去，`notifications/store.py:32` 讀它建摘要；TS 的 runner 目前回傳這份 dict 但 `runSource` 只留 ok／failed。這一步把 runner 契約定成有型別的計數與 reason，一路帶到 `finishDailySources`；在那之前比對器的 `daily_runs.result` 差異是已知的。
   - 消費端：`inventory-surface.md` §5b–5c 的每個轉移；`rg -n "daily_tick|dispatch|digest_outbox|gmail_smtp" backend/src`。
   - 驗收：
     - 「不確定寄送不重試」「同日不重寄」「過期日期不執行」三組測試的 TS 版通過。
@@ -385,6 +390,7 @@
   - D6 窗口結束時處理（2026-10-24 設計審查記下的終局）：
     - Python 值模型只留在雜湊與已存 JSON 的邊界（`web/src/platform/py/{json,unicode,url}.ts`）；業務模組改用 TS 原生型別與 `DomainError` 類別階層，移除 `PyError` 字串分類、C 版 `fromisoformat` 與 Python `round`／格式化的照抄。
     - `golden.json` 拆成兩份：雜湊相容（永久保留）與 Python 行為對照（刪除）。
+    - `web/src/platform/py/html.ts` 與 `platform/http.ts` 的 `loadsBytes`（照抄 `json.detect_encoding` 的 UTF-16／32）：二選一，換成 WHATWG parser（parse5）並修盤點缺陷 23，接受所有描述來自 HTML 的來源一次性重算指紋；或永久保留移植。觸發：D6 窗口結束。
     - 非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`，或寫出保留理由。
     - `listIn` 全表讀取：UI 路徑已在步驟 11 改掉（D13）；這裡只剩每日摘要的全表讀取，D6 後若摘要不再需要和 Python 逐位元比對，再一起改。
   - 需要人做的事：
@@ -477,7 +483,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
 | 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
 | 5 TS 端排程骨架 | 程式完成待驗收 | 正式專案部署；手動觸發（01:17）回 not due、shadow 無寫入；`vercel env ls production` 只有 4 個 key、無寄送憑證；Neon 傳輸量已量 | 2026-10-24 自然執行：08:30 morning timer、09:00 cron 寫一列、12:00 cron 回「已有 run」 | `199bef1`、`e6a299c` |
-| 6 試點 Jobicy／Remotive | 未開始 | | | |
+| 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份 | 部署與 7 天比對、比對器 mutation（待授權部署，且步驟 5 先驗收） | |
 | 7 CryptoJobsList | 未開始 | | | |
 | 8 其餘免登入來源 | 未開始 | | | |
 | 9 信件來源 | 未開始 | | | |
