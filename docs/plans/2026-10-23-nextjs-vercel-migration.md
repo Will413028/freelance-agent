@@ -247,6 +247,8 @@
     - 同一天手動觸發兩次 cron，`daily_runs` 只有一列，第二次的 log 顯示「已有 run」。
     - `vercel env ls production` 不含寄送相關的 key。
     - mutation：拿掉 claim，「重複觸發只跑一次」的測試要失敗。
+    - Vercel env 加 `PORTFOLIO_CATEGORY_PROJECTS`（私人作品對應，盤點缺陷 22；非憑證但不進 repo）。
+    - 啟用 VM 的 `freelance-shadow-after.timer`（10:30 比對）；步驟 5 之前 TS 不在 shadow 上跑，比對沒有意義，只啟用 08:30 的 morning timer。
     - 量 Neon 傳輸量：一次 `list` 與一次分組回饋各傳多少位元組，換算每月用量（步驟 14「listIn」項的觸發條件用這個數字）。
   - 需要人做的事：授權第一次正式專案部署與 cron。
   - 回滾：在專案設定 Disable Cron Jobs，刪除正式專案。

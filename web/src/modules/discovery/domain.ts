@@ -1,6 +1,7 @@
 import { fromisoformat, type PyDateTime } from "@/platform/py/datetime";
 import { formatG, formatThousands0f } from "@/platform/py/format";
 import { isAscii } from "@/platform/py/unicode";
+import { portfolioIds } from "./portfolio";
 import { isNumber, num, pyCmp, pyEq, PyDict, PyError, truthy, type PyValue } from "@/platform/py/value";
 
 // Port of backend/src/freelance/modules/discovery/domain.py. Output text is stored in opportunity
@@ -10,12 +11,12 @@ export const DEFAULT_HOURS = 30n;
 
 export const number = isNumber;
 
-type Category = [name: string, score: bigint, terms: string[], portfolioIds: string[]];
+type Category = [name: string, score: bigint, terms: string[]];
 const CATEGORIES: Category[] = [
-  ["AI agent", 95n, ["ai agent", "agentic", "tool calling", "智能代理", "智慧代理"], ["agent-project", "team-product"]],
-  ["AI 整合／自動化", 85n, ["rag", "llm", "automation", "自動化", "自动化", "聊天機器人", "聊天机器人", "ai 整合"], ["agent-project", "team-product"]],
-  ["全端 MVP", 70n, ["fullstack", "full-stack", "mvp", "website", "全端", "全栈", "網站", "网站", "會員"], ["booking-demo", "side-project"]],
-  ["後端／API", 75n, ["backend", "api", "後端", "后端", "串接"], ["team-product"]],
+  ["AI agent", 95n, ["ai agent", "agentic", "tool calling", "智能代理", "智慧代理"]],
+  ["AI 整合／自動化", 85n, ["rag", "llm", "automation", "自動化", "自动化", "聊天機器人", "聊天机器人", "ai 整合"]],
+  ["全端 MVP", 70n, ["fullstack", "full-stack", "mvp", "website", "全端", "全栈", "網站", "网站", "會員"]],
+  ["後端／API", 75n, ["backend", "api", "後端", "后端", "串接"]],
 ];
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -41,7 +42,7 @@ export function qualify(job: PyDict, availableHours: PyValue, now: PyDateTime, m
   const matches = CATEGORIES.filter(([, , terms]) => terms.some(contains));
   let best: Category | null = null;
   for (const m of matches) if (!best || m[1] > best[1]) best = m;
-  const [category, score, , portfolioIds] = best ?? ["其他", 0n, [], []];
+  const [category, score] = best ?? ["其他", 0n, []];
 
   if (job.at("listing_closed") === true) reasons.push("來源已標示結案或已徵到");
   if (pyEq(job.at("compensation_evidence"), "unpaid_or_equity_only")) reasons.push("來源明示無薪或僅股權，不符合接案收入需求");
@@ -87,7 +88,7 @@ export function qualify(job: PyDict, availableHours: PyValue, now: PyDateTime, m
   if (job.at("complete") !== true) questions.push("取得完整需求；通知摘要不足以承諾報價與交期");
   return PyDict.of({
     status: reasons.length ? "excluded" : questions.length ? "needs_info" : "qualified",
-    category, score, reasons, questions, portfolio_ids: [...portfolioIds], method: "規則評估", available_hours: availableHours,
+    category, score, reasons, questions, portfolio_ids: best ? portfolioIds(category) : [], method: "規則評估", available_hours: availableHours,
   });
 }
 

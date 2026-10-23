@@ -138,3 +138,24 @@ describe("grouping order when one listing bridges two incompatible groups", () =
     expect(partition).toEqual(["id-0", "id-1,id-2"]);
   });
 });
+
+// The owner's real portfolio ids are personal data: production passes them as an env value.
+describe("portfolio ids", () => {
+  const ids = () => asList(qualify(job(), 30n, NOW, 3000n).req("portfolio_ids"));
+  const set = (v: string | undefined) => { if (v === undefined) delete process.env.PORTFOLIO_CATEGORY_PROJECTS; else process.env.PORTFOLIO_CATEGORY_PROJECTS = v; };
+  it("uses the synthetic ids without configuration, the configured ids otherwise, and refuses malformed values", () => {
+    try {
+      set(undefined);
+      expect(ids()).toEqual(["agent-project", "team-product"]);
+      set(JSON.stringify({ "AI agent": ["real-a", "real-b"] }));
+      expect(ids()).toEqual(["real-a", "real-b"]);
+      expect(asList(qualify(job({ title: "Backend API", description: "REST API" }), 30n, NOW, 3000n).req("portfolio_ids"))).toEqual([]);
+      set("{not json");
+      expect(() => ids()).toThrow("not valid JSON");
+      set(JSON.stringify({ Unknown: ["x"] }));
+      expect(() => ids()).toThrow("known categories");
+    } finally {
+      set(undefined);
+    }
+  });
+});
