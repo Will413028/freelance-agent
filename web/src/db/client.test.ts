@@ -29,3 +29,12 @@ describe("writeTransaction", () => {
     expect(await writeTransaction(db, async () => "after")).toBe("after");
   });
 });
+
+describe("strictSslUrl", () => {
+  it("pins verify-full for weaker or aliased modes and leaves others alone", async () => {
+    const { strictSslUrl } = await import("./client");
+    expect(strictSslUrl("postgres://u:p@h.example/db?sslmode=require&channel_binding=require")).toBe("postgres://u:p@h.example/db?sslmode=verify-full&channel_binding=require");
+    expect(strictSslUrl("postgres://u@localhost:5432/db")).toBe("postgres://u@localhost:5432/db");
+    expect(strictSslUrl("postgres://u@h/db?sslmode=disable")).toBe("postgres://u@h/db?sslmode=disable");
+  });
+});

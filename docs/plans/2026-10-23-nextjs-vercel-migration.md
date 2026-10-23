@@ -238,6 +238,8 @@
     - 已知、接受的比對差異：分組順序（盤點缺陷 21，Python 端受 hash seed 影響）；`sourcesIn` 對目錄外來源列依名稱排序（Python 依 SQLite rowid），只影響已退役來源的顯示順序。
 
 - [ ] **5. TS 端排程骨架（shadow 部署）**（被擋於：步驟 4、D2、D5）
+  - 實作狀態（2026-10-24，Will 授權部署）：`199bef1` 起正式專案部署（alias `freelance-agent-sigma.vercel.app`，Protection 未登入 302）；production env 只有 `DATABASE_URL`（shadow pooled）、`CRON_SECRET`、`DIGEST_RECIPIENT`、`PORTFOLIO_CATEGORY_PROJECTS`。來源啟用寫在程式（`web/src/modules/collection/registry.ts`），不放 `discovery_settings`：shadow 每天早上被正式副本覆蓋，Python 的設定契約也不收額外 key。手動觸發（01:17）回 `not due before 09:00 Asia/Taipei`，shadow 沒有寫入。
+  - Neon 傳輸量（量到）：一次 `list`／分組回饋讀約 8.1 MB（`opportunities.item` 2,226 筆 8,113,212 位元組）。Neon 免費方案每月 5 GB，超過會暫停 compute 到下個週期；300 次就到一半。shadow 期每日 VM 收斂回讀＋比對約 46 MB（推論）。
   - 範圍：
     - 依 D5 設定 cron。
     - 入口先做 `daily_runs` claim，重複觸發時第二次直接返回。
@@ -249,12 +251,12 @@
     - `vercel env ls production` 不含寄送相關的 key。
     - mutation：拿掉 claim，「重複觸發只跑一次」的測試要失敗。
     - Vercel env 加 `PORTFOLIO_CATEGORY_PROJECTS`（私人作品對應，盤點缺陷 22；非憑證但不進 repo）。
-    - 啟用 VM 的 `freelance-shadow-after.timer`（10:30 比對）；步驟 5 之前 TS 不在 shadow 上跑，比對沒有意義，只啟用 08:30 的 morning timer。
     - 量 Neon 傳輸量：一次 `list` 與一次分組回饋各傳多少位元組，換算每月用量（步驟 14「listIn」項的觸發條件用這個數字）。
   - 需要人做的事：授權第一次正式專案部署與 cron。
   - 回滾：在專案設定 Disable Cron Jobs，刪除正式專案。
 
 - [ ] **6. 試點：Jobicy／Remotive**（被擋於：步驟 5）
+  - 開始時啟用 VM 的 `freelance-shadow-after.timer`（10:30 比對）。步驟 5 的 TS 只寫 `daily_runs`、還沒有任何來源，比對只會把 Python 當天的寫入全報成差異。
   - 範圍：把 `collection/free_jobs.py`（80 行、6 個測試）改寫成 TS，在 shadow 模式每天跑。
   - 消費端：`rg -n "free_jobs|jobicy|remotive" backend/src frontend/src`。
   - 不能動：VM 上的 Python 來源照常跑，是唯一 writer。

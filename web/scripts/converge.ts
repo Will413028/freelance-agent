@@ -5,6 +5,7 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { Pool } from "pg";
+import { strictSslUrl } from "../src/db/client";
 import { converge } from "../src/ops/converge";
 
 const { values } = parseArgs({ options: { sqlite: { type: "string" }, "confirm-drop": { type: "string" }, report: { type: "string" } } });
@@ -13,7 +14,7 @@ if (!values.sqlite || !url) throw new Error("usage: SHADOW_DATABASE_URL=… conv
 const host = new URL(url).hostname || "localhost";
 if (values["confirm-drop"] !== host) throw new Error(`refusing to drop: --confirm-drop must name the target host (${host})`);
 
-const pool = new Pool({ connectionString: url, max: 2 });
+const pool = new Pool({ connectionString: strictSslUrl(url), max: 2 });
 try {
   const report = await converge(values.sqlite, pool, path.resolve(import.meta.dirname, "../drizzle"));
   const text = JSON.stringify(report, null, 1);

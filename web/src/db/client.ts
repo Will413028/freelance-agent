@@ -11,11 +11,23 @@ export type Executor = Db | Tx;
 
 let pool: Pool | undefined;
 
+/**
+ * Every Postgres URL goes through here (product and ops scripts). pg treats sslmode=require as
+ * verify-full today but will adopt libpq's weaker semantics in its next major version, so the
+ * certificate check is pinned explicitly instead of depending on the driver default.
+ */
+export function strictSslUrl(url: string): string {
+  const u = new URL(url);
+  const mode = u.searchParams.get("sslmode");
+  if (mode && ["prefer", "require", "verify-ca"].includes(mode)) u.searchParams.set("sslmode", "verify-full");
+  return u.toString();
+}
+
 export function getDb(): Db {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) throw new Error("DATABASE_URL is not set");
-    pool = new Pool({ connectionString, max: 5 });
+    pool = new Pool({ connectionString: strictSslUrl(connectionString), max: 5 });
     attachDatabasePool(pool);
   }
   return drizzle(pool, { schema });

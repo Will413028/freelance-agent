@@ -4,6 +4,7 @@ import { mkdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { Pool } from "pg";
+import { strictSslUrl } from "../src/db/client";
 import { compareShadow, summarize } from "../src/ops/compare";
 
 const { values } = parseArgs({ options: { start: { type: "string" }, python: { type: "string" }, out: { type: "string" }, day: { type: "string" } } });
@@ -13,7 +14,7 @@ const url = process.env.SHADOW_DATABASE_URL;
 if (!values.start || !values.python || !values.out || !url) throw new Error("usage: SHADOW_DATABASE_URL=… compare.ts --start <copy> --python <copy> --out <dir>");
 
 const taken = (file: string) => `${path.basename(file)} (mtime ${statSync(file).mtime.toISOString()})`;
-const pool = new Pool({ connectionString: url, max: 2 });
+const pool = new Pool({ connectionString: strictSslUrl(url), max: 2 });
 try {
   const report = await compareShadow({ start: values.start, python: values.python }, pool,
     { start: taken(values.start), python: taken(values.python), ts: `shadow at ${new Date().toISOString()}` });
