@@ -4,7 +4,7 @@ import { formatG, formatThousands0f, roundFloat, roundToInt } from "@/platform/p
 import { asciiHash, dumps, encode, identityHash, loads, sha256Hex, submissionDigest } from "@/platform/py/json";
 import { casefold, pyStr, pyStrip } from "@/platform/py/unicode";
 import { asDict, isDict, PyDict, PyError, type PyValue } from "@/platform/py/value";
-import { attempt, fixture, hashPoints as loadHashPoints, untag, type Tagged } from "./helpers/golden";
+import { attempt, fixture, hashPoints as loadHashPoints, untag, type Tagged } from "../../../tests/helpers/golden";
 
 const hashPoints = loadHashPoints();
 const golden = fixture("golden.json");

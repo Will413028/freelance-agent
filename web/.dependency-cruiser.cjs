@@ -4,7 +4,17 @@ module.exports = {
     { name: "no-circular", severity: "error", from: {}, to: { circular: true } },
     { name: "db-is-shared", severity: "error", from: { path: "^src/db" }, to: { path: "^src/(modules|workflows|app|platform)" } },
     { name: "platform-is-shared", severity: "error", from: { path: "^src/platform" }, to: { path: "^src/(modules|workflows|app|db)" } },
-    { name: "modules-not-app", severity: "error", from: { path: "^src/modules" }, to: { path: "^src/(app|workflows)" } },
+    { name: "modules-not-app", severity: "error", from: { path: "^src/modules" }, to: { path: "^src/(app|workflows|services)" } },
+    { name: "services-not-app", severity: "error", from: { path: "^src/services" }, to: { path: "^src/(app|workflows)" } },
+    {
+      name: "discovery-is-a-leaf",
+      comment: "Rules and settings are shared by collection, legacy and preferences; composing them belongs in src/services.",
+      severity: "error",
+      from: { path: "^src/modules/discovery/" },
+      to: { path: "^src/modules/(?!discovery/)" },
+    },
+    { name: "ops-stand-alone", comment: "Operations tooling reads tables, not product modules.", severity: "error", from: { path: "^src/ops" }, to: { path: "^src/(modules|workflows|app)" } },
+    { name: "product-not-ops", severity: "error", from: { path: "^src/(modules|workflows|app|db|platform)" }, to: { path: "^src/ops" } },
     { name: "workflows-not-app", severity: "error", from: { path: "^src/workflows" }, to: { path: "^src/app" } },
     {
       name: "modules-use-public-contracts",
@@ -14,5 +24,5 @@ module.exports = {
       to: { path: "^src/modules/[^/]+/", pathNot: ["^src/modules/$1/", "^src/modules/[^/]+/public\\.ts$"] },
     },
   ],
-  options: { parser: "swc", tsConfig: { fileName: "tsconfig.json" }, doNotFollow: { path: "node_modules" } },
+  options: { exclude: { path: "\\.test\\.ts$" }, parser: "swc", tsConfig: { fileName: "tsconfig.json" }, doNotFollow: { path: "node_modules" } },
 };

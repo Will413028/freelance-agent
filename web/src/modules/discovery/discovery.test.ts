@@ -5,8 +5,8 @@ import { evaluate, groupItems, identityKeys, novelty } from "@/modules/discovery
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, asList, PyDict, py, type PyValue } from "@/platform/py/value";
-import { job } from "./helpers/jobs";
-import { attempt, fixture, hashPoints as loadHashPoints, untag, type Tagged } from "./helpers/golden";
+import { job } from "../../../tests/helpers/jobs";
+import { attempt, fixture, hashPoints as loadHashPoints, untag, type Tagged } from "../../../tests/helpers/golden";
 
 const golden = fixture("golden.json");
 const hashPoints = loadHashPoints();

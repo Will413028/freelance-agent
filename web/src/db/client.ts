@@ -31,6 +31,10 @@ const WRITER_LOCK = 0x46_41_57_31;
  */
 export function writeTransaction<T>(db: Db, fn: (tx: Tx) => Promise<T>): Promise<T> {
   return db.transaction(async (tx) => {
+    // Bounded like the Python writer (sqlite3 timeout=5): a stuck writer fails the others fast
+    // instead of holding 27 parallel source steps until the 300 s function limit.
+    await tx.execute(sql`set local lock_timeout = '5s'`);
+    await tx.execute(sql`set local idle_in_transaction_session_timeout = '60s'`);
     await tx.execute(sql`select pg_advisory_xact_lock(${WRITER_LOCK})`);
     return fn(tx);
   });

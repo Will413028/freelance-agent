@@ -1,0 +1,7 @@
+[Unit]
+Description=freelance-agent shadow job (after)
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/freelance-agent/shadow-compose.env
+ExecStart=/usr/bin/docker compose -f ${SHADOW_CHECKOUT}/deploy/compose.shadow.yaml run --rm shadow after

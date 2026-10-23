@@ -1,0 +1,9 @@
+[Unit]
+Description=freelance-agent shadow job (after) at 10:30 Asia/Taipei
+
+[Timer]
+OnCalendar=*-*-* 10:30:00 Asia/Taipei
+Persistent=false
+
+[Install]
+WantedBy=timers.target

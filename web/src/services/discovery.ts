@@ -7,13 +7,11 @@ import { Conflict, InvalidAction } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, asList, cmpStr, isDict, pyEq, PyDict, PyError, type PyValue } from "@/platform/py/value";
-import { rankItems, recommendation } from "./ranking";
-import { evaluate, groupItems, project, PUBLIC_JOB_FIELDS } from "./rules";
-import { readSettings } from "./settings";
+import { evaluate, groupItems, project, PUBLIC_JOB_FIELDS, rankItems, readSettings, recommendation } from "@/modules/discovery/public";
 
 // Port of discovery/service.py: discovery queries and atomic group feedback shared by all entry
-// points. Composes legacy records, preferences, collection and applications, as the Python
-// facade does through injection.
+// points. It composes legacy records, preferences, collection and applications, so it lives above
+// the modules (the Python facade wires them by injection in bootstrap/store.py).
 
 const OBSERVATION_ONLY = new Set(["received_at", "receipt_id", "evidence_ref", "raw_evidence_ref"]);
 

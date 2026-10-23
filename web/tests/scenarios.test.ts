@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { existingSourceIds, ingest, setSourceHealth, sourceBatch, sourcesIn } from "@/modules/collection/public";
 import { readSettings, replaceSettings, settingsDict } from "@/modules/discovery/public";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
-import { feedback, list, memberVersions, track } from "@/modules/discovery/service";
+import { feedback, list, memberVersions, track } from "@/services/discovery";
 import { identityHash } from "@/platform/py/json";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";

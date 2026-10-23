@@ -78,7 +78,7 @@
 | 已有任何 daily run 就不重新呼叫來源或重寄；過期日期不執行 | `scheduler.daily_tick`（`docs/design.md:60`）；TS：cron handler 入口的 `daily_runs` claim。這條同時擋住 Vercel cron 重複觸發 |
 | 同一時間只有一個 writer 寫正式資料、對外寄信 | Huey 單一 consumer 與 `queue.lock`（`bootstrap/queue.py:24`）、SQLite `BEGIN IMMEDIATE`；TS：`daily_runs` row claim 加 Postgres advisory lock；切換程序（步驟 13） |
 | 草稿版本、submission 與其事件不可修改、不可刪除 | `draft_revision_immutable`／`draft_revision_retained`／`submission_immutable`／`submission_event_immutable`／`submission_event_retained`（`001_sqlite.sql:192-224`）；TS：Postgres 等價 trigger |
-| 參與雜湊或 snapshot 的欄位逐位元保存 | `opportunities.item`、`digest_outbox.snapshot`、`proposal_draft_revisions`、`submission_intents` 的 snapshot；TS：這些欄位用 `text` 不用 `jsonb`；序列化集中在 `web/src/shared/canonical-json.ts` |
+| 參與雜湊或 snapshot 的欄位逐位元保存 | `opportunities.item`、`digest_outbox.snapshot`、`proposal_draft_revisions`、`submission_intents` 的 snapshot；TS：這些欄位用 `text` 不用 `jsonb`；序列化集中在 `web/src/platform/py/json.ts` |
 | `(source, external_id)` 唯一；receipt ID 防重複匯入 | `opportunities`、`source_receipts`、各 connector 的 receipt 規則（`inventory-sources.md` §1）；TS：connector 共用的 `ingest` 與指紋函式庫 |
 | 未知欄位保留為未知 | `discovery/rules.py`、各 connector 的 envelope；TS：envelope 型別（unknown 是明確的值，不用 `null` 推定） |
 | 回饋與設定變更沿用呼叫端的交易，stale revision 被拒絕 | `preferences`、`discovery/settings.py`、`tracking_events` revision；TS：route handler／server action 的交易邊界 |
@@ -200,10 +200,10 @@
     - `source_batch`、`ingest`／`finish`、dedup 與分組。
     - filters／preferences、eligibility unknown。
     - legacy envelope codec：`records.py` 的 new_observation／refresh／feedback_changed／save，以及 `review_status` 的讀取。
-    - 指紋函式庫 `canonical-json.ts`（照 spike 1c 的結果）。
+    - 指紋函式庫 `web/src/platform/py/json.ts`（照 spike 1c 的結果；測試 `canonical-json.test.ts`）。
   - 4c 每日副本管道與 SQLite → Postgres 收斂腳本 v1：
     - 在 VM 上新增一個只讀正式 DB 的排程，每天 08:30 Asia/Taipei 用 SQLite backup API 做一致副本。
-    - 用收斂腳本 v1 把副本灌進 Neon 的 shadow branch：先清空，再全量載入。冪等鍵取自來源主鍵，重跑結果相同，中斷可續。
+    - 用收斂腳本 v1 把副本灌進 Neon 的 shadow branch：先清空，再全量載入。列保留來源主鍵；載入在單一交易內，中斷時整批回滾，重跑同一份副本得到相同結果。
     - 執行位置是 VM 上獨立的容器，不掛正式 DB 的寫入權限。
     - 副本檔在 VM 上保留 7 天。
   - 4d shadow 比對器：
@@ -222,10 +222,19 @@
     - 比對器對同一份副本與自己比較，輸出 0 差異。
     - mutation：
       - 拿掉 `draft_revision_immutable` 的等價 trigger，測試要失敗。
-      - `canonical-json.ts` 改成不排序 key，或 separators 改錯，1c 的合成期望值測試要失敗。
+      - `web/src/platform/py/json.ts` 改成不排序 key，或 separators 改錯，1c 的合成期望值測試要失敗。
       - 收斂腳本漏一張表，指紋報告要失敗。
   - 需要人做的事：授權在 VM 上新增副本排程與容器（改 VM 設定）。
   - 回滾：停用並刪除 VM 上的副本排程與容器；正式 DB 沒有被寫入。
+  - 實作狀態（2026-10-24，commit 見進度表）：
+    - 4a：`web/src/db/schema.ts`、`web/drizzle/0001`、`0002`。text 欄位一律 `COLLATE "C"`；JSON、時間與 0/1 旗標照 SQLite 存 text／integer，切換回滾窗口（D6）結束後再評估改型別。6 個 trigger 之外，兩張必須保留的表另擋 `TRUNCATE`（Postgres 的 TRUNCATE 不經過逐列 DELETE trigger）。
+    - 4b：Python 值模型與序列化在 `web/src/platform/py/`；模組在 `web/src/modules/{discovery,legacy,preferences,collection,applications}`，跨模組只經 `public.ts`（dependency-cruiser 擋）。寫入交易先取 advisory lock，等同 Python 的 `BEGIN IMMEDIATE` 單一寫入者；必要條件是收案、分組回饋與 token 檢查都是「讀、比對、再寫」。
+    - 對照基準：`web/tests/fixtures/gen_golden.py` 用真的 Python 函式產生 `golden.json`（evaluate、recommendation、fromisoformat、格式化、8 個 store 情境含資料表原始位元組）。切換前 Python 是規格：改 Python 規則時要重跑產生器。
+    - 4c：收斂腳本 `web/src/ops/converge.ts`（`pnpm converge`，先清空再全量載入，`--confirm-drop` 必須寫出目標 host）；一致快照 `web/scripts/snapshot.ts`（SQLite backup API，唯讀開啟、目標必須是新檔、保留 7 天）；VM 端檔案 `deploy/shadow.Dockerfile`、`deploy/compose.shadow.yaml`、`deploy/systemd/freelance-shadow-{morning,after}.{service,timer}`。timer 設 `Persistent=false`：漏跑的 08:30 不補，否則起點會晚於 Python 執行。尚未部署到 VM。
+    - 4d：比對器 `web/src/ops/compare.ts`（`pnpm compare`）。差異分三類：timing（來源列只有一邊有）、user_action（只在正式環境的人工操作，shadow 不重播）、logic（其餘，含兩邊都改但內容不同、刪除）；揮發欄位（牆鐘時間、隨機 id）不比。
+    - 1c 正式副本驗證用 `web/scripts/verify-fingerprints.ts`，在 VM 容器內對副本執行，只印通過數。
+    - 設計審查（2026-10-24，獨立 subagent）7 項：改 2 項——寫入交易加 `lock_timeout 5s`（同 Python 的 5 秒）與 `idle_in_transaction_session_timeout`，有測試；`discovery/service.ts` 移到 `web/src/services/discovery.ts`，消除 discovery↔legacy／collection 的模組循環，dependency-cruiser 規則 `discovery-is-a-leaf` 守住。記 5 項，處置寫在步驟 5、11、13、14。
+    - 已知、接受的比對差異：分組順序（盤點缺陷 21，Python 端受 hash seed 影響）；`sourcesIn` 對目錄外來源列依名稱排序（Python 依 SQLite rowid），只影響已退役來源的顯示順序。
 
 - [ ] **5. TS 端排程骨架（shadow 部署）**（被擋於：步驟 4、D2、D5）
   - 範圍：
@@ -238,6 +247,7 @@
     - 同一天手動觸發兩次 cron，`daily_runs` 只有一列，第二次的 log 顯示「已有 run」。
     - `vercel env ls production` 不含寄送相關的 key。
     - mutation：拿掉 claim，「重複觸發只跑一次」的測試要失敗。
+    - 量 Neon 傳輸量：一次 `list` 與一次分組回饋各傳多少位元組，換算每月用量（步驟 14「listIn」項的觸發條件用這個數字）。
   - 需要人做的事：授權第一次正式專案部署與 cron。
   - 回滾：在專案設定 Disable Cron Jobs，刪除正式專案。
 
@@ -295,6 +305,7 @@
     - mutation：讓寄送 step 允許重試，測試要失敗。
 
 - [ ] **11. UI、API、契約與離線 demo**（被擋於：步驟 4、D10；可以和步驟 6–10 並行）
+  - 錯誤模型（2026-10-24 設計審查）：route handler 與 server action 依 `Conflict`／`InvalidAction` 等錯誤類別（`instanceof`）對應 HTTP 狀態，不讀 `PyError.pyType` 字串；字串分類只服務 shadow 期的 Python 對照測試，D6 後移除（見步驟 14）。
   - 範圍：
     - 42 個 operation 依 D10 改成 route handler 或 server action，47 個前端呼叫點改成直接呼叫。
     - 移除 proxy 白名單。
@@ -327,6 +338,7 @@
   - 需要人做的事：授權讀正式 DB 副本。
 
 - [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、D9；Will 明確授權）
+  - 前置決定（步驟 12 結束前交給 Will）：prod branch 是否分出 runtime 角色——migration 用擁有者角色，app 連線角色只拿 DML，並對 `proposal_draft_revisions`、`submission_events` `REVOKE UPDATE, DELETE, TRUNCATE`；trigger 保留當第二道防線。不分的話，任何拿到 app 連線字串的人都能 `DISABLE TRIGGER`。
   - 範圍：
     1. 在 Vercel 專案 Disable Cron Jobs，確認當天 TS 的 shadow run 已結束。
     2. 確認 VM 當天的 `daily_runs` 已是 complete 或 failed，且 `digest_outbox` 沒有 pending、attempted 或 unknown（pending 要先在 VM 上寄出或人工結案，因為預覽 sha256 不跨語言沿用）。
@@ -353,7 +365,8 @@
     - `backend/`、`deploy/`、`frontend/`、`contracts/`。
     - `scripts/test_compose.py`、`test_installed.py`、`test_workbench_upgrade.py`、`verify_cutover.py`。
     - `scripts/check_boundaries.py`，由 dependency-cruiser 取代。
-    - VM 上 4c 的副本容器。
+    - VM 上 4c 的副本容器，以及 `web/src/ops/`、`web/scripts/{converge.ts,compare.ts,snapshot.ts,shadow-job.sh,verify-fingerprints.ts}`。
+    - `web/tests/fixtures/gen_golden.py`（依賴 `backend/`）；`golden.json` 保留。刪 `backend/` 前先把 `001_sqlite.sql` 凍結進 `web/tests/fixtures/`，改 `web/tests/helpers/db.ts` 的 `SQLITE_SCHEMA_PATH`。
   - 更新：
     - `AGENTS.md`：收斂遷移期規則與技術棧。
     - `README.md`。
@@ -361,6 +374,11 @@
   - 完成定義逐項核對；獨立設計審查（design-review skill）。
   - 長期檢查接進 CI：schema 漂移、trigger 測試、指紋相容測試、step 型別檢查。
   - 延後項附觸發條件，搬回主清單。
+  - D6 窗口結束時處理（2026-10-24 設計審查記下的終局）：
+    - Python 值模型只留在雜湊與已存 JSON 的邊界（`web/src/platform/py/{json,unicode,url}.ts`）；業務模組改用 TS 原生型別與 `DomainError` 類別階層，移除 `PyError` 字串分類、C 版 `fromisoformat` 與 Python `round`／格式化的照抄。
+    - `golden.json` 拆成兩份：雜湊相容（永久保留）與 Python 行為對照（刪除）。
+    - 非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`，或寫出保留理由。
+    - `listIn` 全表讀取與重算：改成 SQL 篩選分頁或寫入時存投影；提前觸發條件是步驟 5 量到的單次 list 傳輸量讓 Neon 每月傳輸超過免費額度一半。
   - 需要人做的事：
     - VM 退役。
     - 確認 Neon 與 Vercel 帳單。
@@ -444,7 +462,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 1 Spike | 進行中 | 1a、1b、1e 成立；1c 合成 707/707；1d 連線成立（`spikes.md`） | 1c 正式副本、1d 實寄：待授權與憑證 | |
 | 2 盤點去向 | 完成 | `check_inventory.py` exit 0（243＋29 列、20 項缺陷）；改一列為 TBD 時 exit 非 0；6 個計畫缺口已補進步驟 5、10、11、13 | `--residue` 要到步驟 14 才跑 | |
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
-| 4 共用層 | 未開始 | | | |
+| 4 共用層 | 進行中（4a、4b 完成；4c、4d 程式完成待 VM 驗收） | 本機：`pnpm typecheck`、`pnpm boundaries`、`pnpm test`（4a schema 對照與 trigger、Python 對照基準全數相符、8 個 store 情境逐位元相同、收斂兩次報告相同、比對器自我比對 0 差異）、`pnpm build`；Python 與 TS 對同一份合成副本的 `list()`／分組輸出 150,835 位元組相同；mutation：拿掉 `draft_revision_immutable`、key 不排序、separators 改錯、收斂漏表、id 改 ICU collation、casefold 改 `toLowerCase` 都會失敗 | VM 副本排程與容器（待 Will 授權）；1c 正式副本驗證（待授權）；CI（待推送） | `a3de985`（4a、4b） |
 | 5 TS 端排程骨架 | 未開始 | | | |
 | 6 試點 Jobicy／Remotive | 未開始 | | | |
 | 7 CryptoJobsList | 未開始 | | | |

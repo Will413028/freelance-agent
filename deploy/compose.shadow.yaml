@@ -1,0 +1,22 @@
+# Shadow job service (plan steps 4c/4d), run by the host timers in deploy/systemd/.
+#   docker compose -f deploy/compose.shadow.yaml run --rm shadow morning|after
+# SHADOW_ENV is a 0600 file holding SHADOW_DATABASE_URL (Neon shadow branch) and SHADOW_HOST.
+name: freelance-agent-shadow
+services:
+  shadow:
+    image: ${SHADOW_IMAGE:-freelance-agent-shadow:local}
+    build:
+      context: ..
+      dockerfile: deploy/shadow.Dockerfile
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/node
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    env_file: ${SHADOW_ENV:?set SHADOW_ENV}
+    volumes:
+      - ${DATA_DIR:?set DATA_DIR}:/data:ro
+      - ${SHADOW_DIR:?set SHADOW_DIR}:/shadow
