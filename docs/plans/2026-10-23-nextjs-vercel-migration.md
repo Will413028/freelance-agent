@@ -191,7 +191,7 @@
     - 手動觸發 cron 後，頁面出現假來源那一列。
     - mutation：把 handler 開頭「先標 failed」那行移除，再讓假來源丟例外，「失敗時 `source_health` 為 failed」的測試要失敗。
 
-- [ ] **4. 共用層**（被擋於：步驟 3、D4、D10、D11）
+- [x] **4. 共用層**（被擋於：步驟 3、D4、D10、D11）
   - 4a schema 與資料存取：
     - 25 張表與 6 個 trigger 的 Postgres 版本，用版本化 migration。
     - 參與雜湊或 snapshot 的欄位用 `text`。
@@ -233,6 +233,7 @@
     - 4c：收斂腳本 `web/src/ops/converge.ts`（`pnpm converge`，先清空再全量載入，`--confirm-drop` 必須寫出目標 host）；一致快照 `web/scripts/snapshot.ts`（SQLite backup API，唯讀開啟、目標必須是新檔、保留 7 天）；VM 端檔案 `deploy/shadow.Dockerfile`、`deploy/compose.shadow.yaml`、`deploy/systemd/freelance-shadow-{morning,after}.{service,timer}`。timer 設 `Persistent=false`：漏跑的 08:30 不補，否則起點會晚於 Python 執行。尚未部署到 VM。
     - 4d：比對器 `web/src/ops/compare.ts`（`pnpm compare`）。差異分三類：timing（來源列只有一邊有）、user_action（只在正式環境的人工操作，shadow 不重播）、logic（其餘，含兩邊都改但內容不同、刪除）；揮發欄位（牆鐘時間、隨機 id）不比。
     - 1c 正式副本驗證用 `web/scripts/verify-fingerprints.ts`，在 VM 容器內對副本執行，只印通過數。
+    - VM 部署（2026-10-24，Will 授權）：checkout `/opt/freelance-shadow`（獨立於 Python release），映像 `freelance-agent-shadow:<commit>`，副本與報告在 `/var/lib/freelance-shadow`（996:987、0700），連線字串在 `/etc/freelance-agent/shadow.env`（root 0600），timer 參數在 `/etc/freelance-agent/shadow-compose.env`。Neon shadow branch `br-still-mouse-b8vft0vp`。回滾：`systemctl disable --now freelance-shadow-morning.timer`，刪 `/etc/systemd/system/freelance-shadow-*`、`/opt/freelance-shadow`、`/var/lib/freelance-shadow` 與映像。
     - 設計審查（2026-10-24，獨立 subagent）7 項：改 2 項——寫入交易加 `lock_timeout 5s`（同 Python 的 5 秒）與 `idle_in_transaction_session_timeout`，有測試；`discovery/service.ts` 移到 `web/src/services/discovery.ts`，消除 discovery↔legacy／collection 的模組循環，dependency-cruiser 規則 `discovery-is-a-leaf` 守住。記 5 項，處置寫在步驟 5、11、13、14。
     - 已知、接受的比對差異：分組順序（盤點缺陷 21，Python 端受 hash seed 影響）；`sourcesIn` 對目錄外來源列依名稱排序（Python 依 SQLite rowid），只影響已退役來源的顯示順序。
 
@@ -461,10 +462,10 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
-| 1 Spike | 進行中 | 1a、1b、1e 成立；1c 合成 707/707；1d 連線成立（`spikes.md`） | 1c 正式副本、1d 實寄：待授權與憑證 | |
+| 1 Spike | 進行中 | 1a、1b、1e 成立；1c 合成 707/707；1c 正式副本（2026-10-24，VM 容器內）：職缺 ID 與指紋 2,226/2,226、信件內容版本 6/6、摘要 snapshot 37/37 round-trip（submission 0 筆，HP4 無列可驗）；1d 連線成立（`spikes.md`） | 1d 實寄：待憑證與步驟 10 | |
 | 2 盤點去向 | 完成 | `check_inventory.py` exit 0（243＋29 列、20 項缺陷）；改一列為 TBD 時 exit 非 0；6 個計畫缺口已補進步驟 5、10、11、13 | `--residue` 要到步驟 14 才跑 | |
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
-| 4 共用層 | 進行中（4a、4b 完成；4c、4d 程式完成待 VM 驗收） | 本機：`pnpm typecheck`、`pnpm boundaries`、`pnpm test`（4a schema 對照與 trigger、Python 對照基準全數相符、8 個 store 情境逐位元相同、收斂兩次報告相同、比對器自我比對 0 差異）、`pnpm build`；Python 與 TS 對同一份合成副本的 `list()`／分組輸出 150,835 位元組相同；mutation：拿掉 `draft_revision_immutable`、key 不排序、separators 改錯、收斂漏表、id 改 ICU collation、casefold 改 `toLowerCase` 都會失敗 ；本機用 `deploy/compose.shadow.yaml` 實跑容器 morning／after（合成資料）成立；CI run 39986551118：backend ✓、web ✓ | VM 副本排程與容器（待 Will 授權）；1c 正式副本驗證（待授權） | `a3de985`（4a、4b）、`e7b8c51`（4c、4d、審查修正） |
+| 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
 | 5 TS 端排程骨架 | 未開始 | | | |
 | 6 試點 Jobicy／Remotive | 未開始 | | | |
 | 7 CryptoJobsList | 未開始 | | | |
