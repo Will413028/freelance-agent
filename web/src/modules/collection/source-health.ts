@@ -1,8 +1,8 @@
 import { asc, sql } from "drizzle-orm";
-import type { Db } from "@/db/client";
+import type { Executor } from "@/db/client";
 import { sourceHealth, type SourceStatus } from "@/db/schema";
 
-export async function setSourceHealth(db: Db, source: string, status: SourceStatus) {
+export async function setSourceHealth(db: Executor, source: string, status: SourceStatus) {
   await db
     .insert(sourceHealth)
     .values({ source, status })
@@ -12,6 +12,6 @@ export async function setSourceHealth(db: Db, source: string, status: SourceStat
     });
 }
 
-export async function listSourceHealth(db: Db) {
+export async function listSourceHealth(db: Executor) {
   return db.select().from(sourceHealth).orderBy(asc(sourceHealth.source));
 }

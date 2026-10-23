@@ -8,6 +8,20 @@
       "when": 1792761707003,
       "tag": "0000_source_health",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792766580698,
+      "tag": "0001_shared_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792766596034,
+      "tag": "0002_immutability_triggers",
+      "breakpoints": true
     }
   ]
 }

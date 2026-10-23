@@ -1,20 +1,9 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import * as schema from "@/db/schema";
 import { runSource } from "@/modules/collection/run-source";
 import { listSourceHealth } from "@/modules/collection/source-health";
+import { db, pool, resetSchema } from "./helpers/db";
 
-const url = process.env.TEST_DATABASE_URL;
-if (!url) throw new Error("TEST_DATABASE_URL is required (a disposable Postgres database)");
-const pool = new Pool({ connectionString: url });
-const db = drizzle(pool, { schema });
-
-beforeAll(async () => {
-  await pool.query("drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public");
-  await migrate(db, { migrationsFolder: "drizzle" });
-});
+beforeAll(resetSchema);
 beforeEach(async () => { await pool.query("delete from source_health"); });
 afterAll(async () => { await pool.end(); });
 
