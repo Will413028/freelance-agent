@@ -1,0 +1,51 @@
+"use client";
+import { useCallback,useEffect,useRef,useState } from 'react';
+import { getProposal,getSubmissions,getSubmission,getSubmissionCapabilities,prepareSubmission,approveSubmission,dispatchSubmission,cancelSubmission,reconcileSubmission } from '../../shared/api/workbench';
+import type { Proposal,Submission,Capabilities } from '../../shared/api/workbench';
+import '../workbench/workbench.css';
+
+const statuses={prepared:'待核准',approved:'已核准，尚未送出',attempted:'已開始嘗試，結果待核對',accepted:'供應商已接受',rejected:'供應商明確拒絕',unknown:'送出結果不確定',cancelled:'已取消'};
+export default function SubmissionsPage(){
+  const [draft,setDraft]=useState<Proposal|null>(null),[version,setVersion]=useState(1),[rows,setRows]=useState<Submission[]>([]),[selected,setSelected]=useState<Submission|null>(null),[capabilities,setCapabilities]=useState<Capabilities|null>(null);
+  const [provider,setProvider]=useState<'email'|'freelancer'>('email'),[environment,setEnvironment]=useState<'live'|'sandbox'>('live'),[account,setAccount]=useState(''),[recipient,setRecipient]=useState(''),[subject,setSubject]=useState('');
+  const [project,setProject]=useState(''),[currencyId,setCurrencyId]=useState(''),[currencyCode,setCurrencyCode]=useState(''),[amount,setAmount]=useState(''),[period,setPeriod]=useState(''),[milestone,setMilestone]=useState('100'),[fees,setFees]=useState(''),[eligibility,setEligibility]=useState(false);
+  const [checked,setChecked]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[offset,setOffset]=useState(0),[total,setTotal]=useState(0),[note,setNote]=useState(''),[reference,setReference]=useState('');const request=useRef('');
+  const reload=useCallback(async()=>{const [list,caps]=await Promise.all([getSubmissions({offset,limit:20}),getSubmissionCapabilities()]);setRows(list.items);setTotal(list.total);setCapabilities(caps);},[offset]);
+  useEffect(()=>{request.current=crypto.randomUUID();const params=new URLSearchParams(window.location.search);const key=params.get('draft');setVersion(Number(params.get('version')||'1'));if(key)void getProposal(key).then(setDraft).catch(e=>setError(e.message));const intent=params.get('intent');if(intent)void getSubmission(intent).then(setSelected).catch(e=>setError(e.message));},[]);
+  useEffect(()=>{void reload().catch(e=>setError(e.message));},[reload]);
+  useEffect(()=>{if(!selected||!['approved','attempted'].includes(selected.status))return;let active=true;const timer=setInterval(()=>{void getSubmission(selected.id).then(row=>{if(active)setSelected(row);}).catch(e=>{if(active)setError(e.message);});},3000);return()=>{active=false;clearInterval(timer);};},[selected?.id,selected?.status]);
+  async function action(run:()=>Promise<Submission|void>){setBusy(true);setError('');try{const result=await run();if(result){setSelected(result);setChecked(false);}await reload();}catch(e){setError(e instanceof Error?e.message:'操作失敗');if(selected){setNotice(`請以這個送出紀錄核對結果：${selected.id}；不要建立另一筆盲重送。`);void getSubmission(selected.id).then(setSelected).catch(()=>{});}}finally{setBusy(false);}}
+  async function prepare(){if(!draft)return;await action(async()=>{const fields=provider==='email'?{'from':account,'to':recipient,subject}:{project_id:Number(project),bidder_id:Number(account),currency_id:Number(currencyId),currency_code:currencyCode,amount:Number(amount),period:Number(period),milestone_percentage:Number(milestone),fees,eligibility_confirmed:eligibility};const row=await prepareSubmission({request_id:request.current,draft_id:draft.id,draft_version:version,provider,environment,account,fields});request.current=crypto.randomUUID();return row;});}
+  const selectedDraftVersion=draft?.versions?.find(v=>v.version===version);
+  const cap=selected?capabilities?.[selected.snapshot.provider==='freelancer'?'freelancer':'email']:undefined;
+  const canDispatch=cap?.can_dispatch&&cap.account===selected?.snapshot.account&&cap.environment===selected?.snapshot.environment;
+  return <main className="workbench-page"><h1>外部送出</h1><p>完整內容核准與確認送出是兩個步驟；排隊不代表成功。</p>
+    {error&&<p role="alert" className="error">{error}；原內容及紀錄識別保留。</p>}{notice&&<p role="status">{notice}</p>}
+    <section aria-label="通道狀態"><h2>通道</h2><p>Email：{capabilities?.email.status||'載入中'} · Freelancer：{capabilities?.freelancer.status||'載入中'}</p><p className="hint">未配置的通道可準備內容，不能送出；sandbox與正式環境分開核准。</p></section>
+    {draft&&<form aria-label="送出準備表單" onSubmit={e=>{e.preventDefault();void prepare();}}><h2>準備：{draft.title} · 版本 {version}</h2><pre>{selectedDraftVersion?.body||'找不到所選版本'}</pre>
+      <label>送出通道<select aria-label="送出通道" value={provider} onChange={e=>{const p=e.target.value as 'email'|'freelancer';setProvider(p);setEnvironment(p==='email'?'live':'sandbox');setAccount('');}}><option value="email">Email</option><option value="freelancer">Freelancer 官方 API</option></select></label>
+      {provider==='email'?<><label>寄件者<input type="email" required value={account} onChange={e=>setAccount(e.target.value)}/></label><label>收件者<input type="email" required value={recipient} onChange={e=>setRecipient(e.target.value)}/></label><label>郵件主旨<input required maxLength={200} value={subject} onChange={e=>setSubject(e.target.value)}/></label></>:<>
+        <label>平台環境<select aria-label="平台環境" value={environment} onChange={e=>setEnvironment(e.target.value as 'sandbox'|'live')}><option value="sandbox">sandbox</option><option value="live">正式</option></select></label>
+        <label>本人 bidder ID<input type="number" min="1" required value={account} onChange={e=>setAccount(e.target.value)}/></label><label>Freelancer project ID<input type="number" min="1" required value={project} onChange={e=>setProject(e.target.value)}/></label>
+        <label>Currency ID<input type="number" min="1" required value={currencyId} onChange={e=>setCurrencyId(e.target.value)}/></label><label>幣別代碼<input required pattern="[A-Z]{3}" value={currencyCode} onChange={e=>setCurrencyCode(e.target.value)}/></label>
+        <label>投標金額<input type="number" min="0.01" step="0.01" required value={amount} onChange={e=>setAmount(e.target.value)}/></label><label>工作天數<input type="number" min="1" required value={period} onChange={e=>setPeriod(e.target.value)}/></label><label>Milestone 百分比<input type="number" min="1" max="100" required value={milestone} onChange={e=>setMilestone(e.target.value)}/></label>
+        <label>本人確認的平台費用<textarea required maxLength={1000} value={fees} onChange={e=>setFees(e.target.value)}/></label><label><input type="checkbox" required checked={eligibility} onChange={e=>setEligibility(e.target.checked)}/>本人已確認投標資格及費用</label>
+      </>}
+      <button disabled={busy||!selectedDraftVersion||!!draft.archived_at}>建立送出預覽</button></form>}
+    {selected&&<section aria-label="送出內容"><h2>核對完整送出內容</h2><p>紀錄：{selected.id}</p><p>狀態：<strong>{statuses[selected.status]}</strong></p>
+      <p>{String(selected.snapshot.provider)} · {String(selected.snapshot.environment)} · 帳號 {String(selected.snapshot.account)}</p>
+      {selected.snapshot.provider==='email'?<><p>寄件者：{String(selected.snapshot.from)}</p><p>收件者：{String(selected.snapshot.to)}</p><p>主旨：{String(selected.snapshot.subject)}</p></>:<><p>Project ID：{String(selected.snapshot.project_id)} · Bidder ID：{String(selected.snapshot.bidder_id)}</p><p>報價：{String(selected.snapshot.amount)} {String(selected.snapshot.currency_code)}（Currency ID {String(selected.snapshot.currency_id)}） · {String(selected.snapshot.period)} 天 · Milestone {String(selected.snapshot.milestone_percentage)}%</p><p>平台費用：{String(selected.snapshot.fees)}</p></>}
+      <pre data-testid="submission-body">{String(selected.snapshot.body)}</pre><p className="hint">內容識別：{selected.snapshot_hash}</p>
+      {selected.status==='prepared'&&<><label><input type="checkbox" checked={checked} onChange={e=>setChecked(e.target.checked)}/>我已核對這份內容、目的地及費用</label><button disabled={busy||!checked} onClick={()=>void action(()=>approveSubmission(selected.id,{revision:selected.revision,snapshot_hash:selected.snapshot_hash}))}>核准這份內容</button></>}
+      {selected.status==='approved'&&<><button disabled={busy||!canDispatch} onClick={()=>{if(window.confirm('依畫面完整內容，送至這個目的地？'))void action(async()=>{await dispatchSubmission(selected.id,selected.revision);setNotice(`已要求入列，請查看 ${selected.id} 的結果；未宣稱已送出。`);return getSubmission(selected.id);});}}>確認送出</button>{!canDispatch&&<p>通道尚未配置或帳號／環境不符；未送出。</p>}</>}
+      {['prepared','approved'].includes(selected.status)&&<button disabled={busy} onClick={()=>void action(()=>cancelSubmission(selected.id,selected.revision))}>取消未送出的紀錄</button>}
+      <button onClick={()=>void action(()=>getSubmission(selected.id))}>重新核對送出結果</button>
+      {selected.receipt&&<pre>接受證據：{JSON.stringify(selected.receipt,null,2)}</pre>}
+      {selected.status==='accepted'&&<><p className="hint">只代表供應商接受，尚未代表對方已讀或錄取。</p><a href={'/applications/new?submission='+selected.id}>記錄這次投案</a></>}
+      {['attempted','unknown'].includes(selected.status)&&<form aria-label="人工核對送出結果" onSubmit={e=>{e.preventDefault();void action(()=>reconcileSubmission(selected.id,{revision:selected.revision,outcome:'user_reported',note,reference}));}}><h3>記錄本人查證</h3><p>本人陳述與provider證據分開，原始不確定結果保留。</p><label>查證備註<textarea required maxLength={2000} value={note} onChange={e=>setNote(e.target.value)}/></label><label>查證參考<input required maxLength={500} value={reference} onChange={e=>setReference(e.target.value)}/></label><button disabled={busy}>儲存本人查證</button></form>}
+      {selected.reconciliation&&<><pre>查證：{JSON.stringify(selected.reconciliation,null,2)}</pre><a href={'/applications/new?submission='+selected.id}>依本人查證記錄投案</a></>}
+    </section>}
+    <section aria-label="送出紀錄"><h2>送出紀錄</h2>{rows.map(row=><article key={row.id}><button onClick={()=>{setSelected(row);setChecked(false);}}>{String(row.snapshot.subject||row.snapshot.project_id)} · {statuses[row.status]}</button><p>{row.created_at}</p></article>)}<div className="actions"><button disabled={!offset} onClick={()=>setOffset(Math.max(0,offset-20))}>上一頁送出紀錄</button><span>{Math.min(offset+20,total)} / {total}</span><button disabled={offset+20>=total} onClick={()=>setOffset(offset+20)}>下一頁送出紀錄</button></div></section>
+    {!draft&&<p><a href="/proposals">先選擇提案草稿版本 →</a></p>}
+  </main>;
+}

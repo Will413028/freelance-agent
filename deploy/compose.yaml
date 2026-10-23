@@ -1,0 +1,53 @@
+name: freelance-agent
+x-backend: &backend
+  image: ${BACKEND_IMAGE:-freelance-agent-backend:local}
+  build:
+    context: ..
+    dockerfile: deploy/backend.Dockerfile
+  user: "${APP_UID:-1000}:${APP_GID:-1000}"
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  volumes:
+    - ${DATA_DIR:-../runtime/data}:/data
+services:
+  worker:
+    <<: *backend
+    command: [freelance.bootstrap.worker, --queue, /queue/queue.sqlite, --config, /run/config/worker.json]
+    volumes:
+      - ${DATA_DIR:-../runtime/data}:/data
+      - ${QUEUE_DIR:-../runtime/queue}:/queue
+      - ${CONFIG_DIR:-../runtime/config}:/run/config:ro
+    restart: unless-stopped
+    stop_grace_period: 45s
+    healthcheck:
+      test: [CMD, python, -c, "from freelance.bootstrap.worker import worker_is_running; raise SystemExit(not worker_is_running('/queue/queue.lock'))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  api:
+    <<: *backend
+    profiles: [ui]
+    command: [freelance.bootstrap.api, --container, --mode, sqlite, --database, /data/freelance-agent.sqlite3]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8327/dashboard', timeout=5).read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  web:
+    profiles: [ui]
+    image: ${WEB_IMAGE:-freelance-agent-web:local}
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    environment:
+      FREELANCE_CONTAINER: "1"
+    ports: ["127.0.0.1:3327:3327"]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

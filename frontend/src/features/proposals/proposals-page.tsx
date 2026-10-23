@@ -1,0 +1,45 @@
+"use client";
+import { useCallback,useEffect,useRef,useState } from 'react';
+import { ApiError,getOpportunity } from '../../shared/api/client';
+import type { Item } from '../../shared/api/client';
+import { getProposals,getProposal,createProposal,appendProposal,applyProposalTemplate,archiveProposal,getTemplates,previewTemplate } from '../../shared/api/workbench';
+import type { Proposal,Template,PartySelection } from '../../shared/api/workbench';
+import { PartyPicker } from '../relationships';
+import { Templates } from './templates';
+import '../workbench/workbench.css';
+
+export default function ProposalsPage(){
+  const [rows,setRows]=useState<Proposal[]>([]),[offset,setOffset]=useState(0),[total,setTotal]=useState(0),[archived,setArchived]=useState(false);
+  const [selected,setSelected]=useState<Proposal|null>(null),[selectedVersion,setSelectedVersion]=useState(1),[editing,setEditing]=useState(''),[conflict,setConflict]=useState(false),[latest,setLatest]=useState<Proposal|null>(null);
+  const [title,setTitle]=useState(''),[body,setBody]=useState(''),[item,setItem]=useState<Item|null>(null),[initialClient,setInitialClient]=useState<string|undefined>(),[party,setParty]=useState<PartySelection|null>(null);
+  const [templates,setTemplates]=useState<Template[]>([]),[template,setTemplate]=useState<Template|null>(null),[values,setValues]=useState<Record<string,string>>({}),[preview,setPreview]=useState(''),[templateOffset,setTemplateOffset]=useState(0),[templateTotal,setTemplateTotal]=useState(0);
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[sourceReady,setSourceReady]=useState(false);const request=useRef(''),editRequest=useRef('');
+  const reload=useCallback(async()=>{const page=await getProposals({limit:20,offset,include_archived:archived});setRows(page.items);setTotal(page.total);},[offset,archived]);
+  useEffect(()=>{request.current=crypto.randomUUID();editRequest.current=crypto.randomUUID();const query=new URLSearchParams(window.location.search);setInitialClient(query.get('client')||undefined);
+    const key=query.get('opportunity');if(key)void getOpportunity(key).then(found=>{setItem(found);setTitle(found.job.title);setSourceReady(true);}).catch(e=>setError(e.message));else setSourceReady(true);
+    const draft=query.get('draft');if(draft)void open(draft).catch(e=>setError(e.message));
+  },[]);
+  useEffect(()=>{void reload().catch(e=>setError(e.message));},[reload]);
+  useEffect(()=>{void getTemplates({limit:20,offset:templateOffset}).then(page=>{setTemplates(page.items);setTemplateTotal(page.total);}).catch(e=>setError(e.message));},[templateOffset]);
+  async function open(key:string){const row=await getProposal(key);setSelected(row);const version=row.versions?.at(-1);setSelectedVersion(version?.version||1);setEditing(version?.body||'');setConflict(false);setLatest(null);editRequest.current=crypto.randomUUID();}
+  async function create(){setBusy(true);setError('');try{const row=await createProposal({request_id:request.current,title,body:template?null:body,template_id:template?.id||null,template_revision:template?.revision||null,values:template?values:{},versions:Object.fromEntries((item?.members||[]).map(m=>[m.id,m.token])),party});request.current=crypto.randomUUID();setTitle('');setBody('');setPreview('');await reload();await open(row.id);setNotice('草稿已建立；尚未投案。');}catch(e){setError(e instanceof Error?e.message:'建立失敗');}finally{setBusy(false);}}
+  async function save(){if(!selected)return;setBusy(true);setError('');try{const row=await appendProposal(selected.id,{revision:selected.revision,request_id:editRequest.current,body:editing});setSelected(row);setSelectedVersion(row.versions?.at(-1)?.version||1);editRequest.current=crypto.randomUUID();await reload();setNotice('已追加新版本，舊稿保留。');}catch(e){setError(e instanceof Error?e.message:'儲存失敗');setConflict(e instanceof ApiError&&e.status===409);}finally{setBusy(false);}}
+  async function reapply(){if(!selected||!template)return;setBusy(true);setError('');try{const row=await applyProposalTemplate(selected.id,{revision:selected.revision,request_id:editRequest.current,template_id:template.id,template_revision:template.revision,values});setSelected(row);setSelectedVersion(row.versions?.at(-1)?.version||1);setEditing(row.versions?.at(-1)?.body||'');editRequest.current=crypto.randomUUID();await reload();setNotice('模板已套用為新版本，舊稿保留。');}catch(e){setError(e instanceof Error?e.message:'套用失敗');setConflict(e instanceof ApiError&&e.status===409);}finally{setBusy(false);}}
+  const version=selected?.versions?.find(v=>v.version===selectedVersion);
+  return <main className="workbench-page"><h1>提案草稿</h1><p>本人撰寫、儲存版本；草稿與複製不代表投案。</p>{error&&<p role="alert" className="error">{error}；本人文字保留，結果不確定時先查看清單。</p>}{notice&&<p role="status">{notice}</p>}
+    <form aria-label="新提案表單" onSubmit={e=>{e.preventDefault();void create();}}><h2>準備新提案</h2>{item&&<p>關聯 {item.members.length} 個來源：{item.job.title}</p>}
+      <label>提案名稱<input required maxLength={200} value={title} onChange={e=>setTitle(e.target.value)}/></label><PartyPicker onChange={setParty} initialClient={initialClient}/>
+      <label>套用模板<select aria-label="套用模板" value={template?.id||''} onChange={e=>{setTemplate(templates.find(t=>t.id===e.target.value)||null);setPreview('');}}><option value="">直接撰寫</option>{template&&!templates.some(t=>t.id===template.id)&&<option value={template.id}>{template.name}</option>}{templates.map(t=><option key={t.id} value={t.id}>{t.name} · v{t.revision}</option>)}</select></label>
+      <div className="actions"><button type="button" disabled={!templateOffset} onClick={()=>setTemplateOffset(Math.max(0,templateOffset-20))}>上一頁可用模板</button><button type="button" disabled={templateOffset+20>=templateTotal} onClick={()=>setTemplateOffset(templateOffset+20)}>下一頁可用模板</button></div>
+      {template?<><p className="hint">各欄由本人填寫，未填值保留待填標記。</p>{[['opportunity_title','機會名稱'],['client_name','客戶稱呼'],['approach','合作方式'],['portfolio','本人作品'],['quote','本人報價']].map(([k,label])=><label key={k}>{label}<textarea maxLength={10000} value={values[k]||''} onChange={e=>{setValues({...values,[k]:e.target.value});setPreview('');}}/></label>)}<button type="button" onClick={()=>void previewTemplate({body:template.body,values}).then(r=>setPreview(r.body)).catch(e=>setError(e.message))}>預覽模板</button>{preview&&<pre>{preview}</pre>}</>:<label>提案正文<textarea required maxLength={20000} value={body} onChange={e=>setBody(e.target.value)}/></label>}
+      <button disabled={busy||!sourceReady}>建立草稿</button></form>
+    {selected&&<section aria-label="草稿詳情"><h2>{selected.title}</h2><p>{selected.party?.client_name||'未指定客戶'}{selected.archived_at?' · 已封存':''}</p>
+      <label>草稿版本<select aria-label="草稿版本" value={selectedVersion} onChange={e=>setSelectedVersion(Number(e.target.value))}>{selected.versions?.map(v=><option key={v.version} value={v.version}>版本 {v.version}</option>)}</select></label>
+      <pre data-testid="selected-body">{version?.body}</pre><div className="actions"><button onClick={()=>{if(version)void navigator.clipboard.writeText(version.body).then(()=>setNotice(`已複製版本 ${version.version}，尚未投案。`)).catch(()=>setError('無法複製，可直接選取正文'));}}>複製選中版本</button>{!selected.archived_at&&<a href={`/submissions?draft=${selected.id}&version=${selectedVersion}`}>準備外部送出</a>}<a href={`/applications/new?draft=${selected.id}&version=${selectedVersion}`}>已在原平台投案，記錄這個版本</a></div>
+      {!selected.archived_at&&<form aria-label="編輯草稿" onSubmit={e=>{e.preventDefault();void save();}}><label>編輯正文<textarea aria-label="編輯正文" required maxLength={20000} value={editing} onChange={e=>setEditing(e.target.value)}/></label><button disabled={busy||conflict}>儲存新版本</button>{template&&<button type="button" disabled={busy||conflict} onClick={()=>void reapply()}>將上方模板及欄位套用為新版本</button>}</form>}
+      {conflict&&<div><p>原紀錄已更新，編輯文字保留。</p>{!latest?<button onClick={()=>void getProposal(selected.id).then(setLatest).catch(e=>setError(e.message))}>讀取最新草稿版本</button>:<><pre>{latest.versions?.at(-1)?.body}</pre><button onClick={()=>{setSelected(latest);setConflict(false);setLatest(null);editRequest.current=crypto.randomUUID();}}>已核對，保留我的正文繼續編輯</button></>}</div>}
+    </section>}
+    <section aria-label="草稿清單"><h2>已存草稿</h2><label><input type="checkbox" checked={archived} onChange={e=>{setArchived(e.target.checked);setOffset(0);}}/>包含封存草稿</label>{rows.map(row=><article key={row.id}><button onClick={()=>void open(row.id).catch(e=>setError(e.message))}>{row.title}</button> · v{row.revision}{row.archived_at?' · 已封存':''}{!row.archived_at&&<button disabled={busy} onClick={()=>{if(window.confirm('封存草稿？版本與送出歷史保留。'))void archiveProposal(row.id,row.revision).then(async()=>{await reload();if(selected?.id===row.id)await open(row.id);}).catch(e=>setError(e.message));}}>封存草稿</button>}</article>)}<div className="actions"><button disabled={!offset} onClick={()=>setOffset(Math.max(0,offset-20))}>上一頁草稿</button><span>{Math.min(offset+20,total)} / {total}</span><button disabled={offset+20>=total} onClick={()=>setOffset(offset+20)}>下一頁草稿</button></div></section>
+    <Templates/>
+  </main>;
+}

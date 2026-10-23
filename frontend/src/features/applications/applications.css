@@ -1,0 +1,13 @@
+.applications-page{margin:auto;max-width:1100px;padding-bottom:40px}
+.applications-page h1{margin-top:24px}
+.application-form{background:white;border:1px solid var(--line);border-radius:10px;padding:22px;margin:20px 0}
+.application-form label{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+.application-form input,.application-form select{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:6px;background:white;color:var(--ink);font:inherit}
+.application-form textarea{min-height:110px}
+.application-card{background:white;border:1px solid var(--line);border-radius:10px;padding:20px;margin:18px 0;overflow-wrap:anywhere}
+.application-card h2{font-size:18px;margin:0 0 10px}
+.application-card a,.applications-page .topbar a{text-decoration:underline;text-underline-offset:3px}
+.application-note{white-space:pre-wrap;overflow-wrap:anywhere}
+.applications-page .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.applications-page .search-tools{align-items:center;flex-wrap:wrap}
+@media(max-width:650px){.applications-page .metrics{grid-template-columns:1fr}.applications-page .metrics>div{border:0}.application-form{padding:16px}.applications-page .topbar{gap:14px}}

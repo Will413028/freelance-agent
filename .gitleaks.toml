@@ -1,0 +1,8 @@
+# Extend the default rules. The spike-1c fixture holds sha256 outputs computed
+# from synthetic input by gen_expected.py; they are not credentials.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "synthetic hash fixture"
+paths = ['''docs/plans/2026-10-23-nextjs-vercel-migration/spike-1c/expected\.json''']

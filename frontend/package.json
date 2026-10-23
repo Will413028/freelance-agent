@@ -1,0 +1,26 @@
+{
+  "name": "freelance-agent-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3327",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1 --port 3327",
+    "typecheck": "tsc --noEmit",
+    "contracts:generate": "pnpm --filter freelance-contracts generate",
+    "contracts:check": "pnpm --filter freelance-contracts check"
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "openapi-fetch": "^0.17.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.5.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,10 @@
+# Explicit opt-in only, after private account/environment verification.
+services:
+  api:
+    command: [freelance.bootstrap.api, --container, --mode, sqlite, --database, /data/freelance-agent.sqlite3, --queue, /queue/queue.sqlite, --submissions-config, /run/config/submissions.json]
+    volumes:
+      - ${DATA_DIR:-../runtime/data}:/data
+      - ${QUEUE_DIR:-../runtime/queue}:/queue
+      - ${CONFIG_DIR:-../runtime/config}:/run/config:ro
+  worker:
+    command: [freelance.bootstrap.worker, --queue, /queue/queue.sqlite, --config, /run/config/worker.json, --submissions-config, /run/config/submissions.json]

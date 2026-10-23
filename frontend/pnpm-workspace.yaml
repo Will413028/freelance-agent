@@ -1,0 +1,4 @@
+packages:
+  - tools/contracts
+# The generator requires the TypeScript 5 compiler API; the app uses 7.
+resolvePeersFromWorkspaceRoot: false
