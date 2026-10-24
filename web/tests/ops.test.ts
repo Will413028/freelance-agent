@@ -130,6 +130,24 @@ describe("shadow comparator v1", () => {
     expect(by("logic")).toEqual(["clients:only_ts", "opportunities:different"]);
   });
 
+  it("compares only the sources in scope and counts what it leaves out", async () => {
+    await converge(base, pool, migrations);
+    const python = copy("python-scoped.sqlite3", (lite) => {
+      lite.prepare("insert into opportunities values ('o4','guru','o4','{}')").run();
+      lite.prepare("insert into opportunities values ('o6','jobicy','o6','{\"python\": 1}')").run();
+      lite.prepare("update daily_runs set status = 'failed'").run();
+    });
+    await pool.query("insert into opportunities values ('o6','jobicy','o6','{\"ts\": 1}')");
+    await pool.query("insert into clients values ('c2','x','',1,'c','u',null,'q9','{}')");
+    const report = await compareShadow({ start: base, python }, pool, labels, ["jobicy"]);
+    expect(report.diffs.map((d) => `${d.table}:${d.kind}:${d.class}`).sort()).toEqual(["clients:only_ts:logic", "opportunities:different:logic"]);
+    expect(report.outOfScope).toEqual({ opportunities: 1, daily_runs: 1 });
+    expect(report.scope).toEqual(["jobicy"]);
+    const all = await compareShadow({ start: base, python }, pool, labels);
+    expect(all.diffs.map((d) => `${d.table}:${d.kind}`).sort()).toEqual(["clients:only_ts", "daily_runs:only_python", "opportunities:different", "opportunities:only_python"]);
+    expect(all.outOfScope).toEqual({});
+  });
+
   it("reports rows a side deleted as logic", async () => {
     await converge(base, pool, migrations);
     const python = path.join(dir, "python-deleted.sqlite3");

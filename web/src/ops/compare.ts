@@ -12,13 +12,21 @@ import { TABLES, type TableSpec } from "./tables";
 // - user_action: production-only writes by Will (UI/API); the shadow never replays them (acceptable).
 // - logic: anything else — both changed a row differently, or a row only one side produced where
 //   fetch time cannot explain it (unacceptable until explained).
+//
+// Scope: while TS runs only some sources (plan steps 6–10), rows of a table with a source column
+// count only for the sources TS runs, and run tables without one (daily_runs, digest_outbox) are
+// left out until TS owns them. What is left out is still counted in outOfScope, never dropped silently.
 
 export type DiffClass = "timing" | "user_action" | "logic";
 export type Diff = { table: string; key: string; class: DiffClass; kind: "only_python" | "only_ts" | "different" | "deleted" };
 export type CompareReport = {
   labels: { start: string; python: string; ts: string };
+  /** Sources compared; null compares every row. */
+  scope: string[] | null;
   counts: Record<DiffClass, number>;
   tables: Record<string, { python: number; ts: number; agree: number }>;
+  /** Rows either side added, changed or deleted that the scope leaves out, per table. */
+  outOfScope: Record<string, number>;
   diffs: Diff[];
 };
 
@@ -44,15 +52,32 @@ function classify(spec: TableSpec, kind: Diff["kind"]): DiffClass {
   return "logic";
 }
 
-export async function compareShadow(paths: { start: string; python: string }, ts: Pool, labels: CompareReport["labels"]): Promise<CompareReport> {
+/** Splits rows into those the scope compares and those it leaves out. */
+function scoped(spec: TableSpec, columns: Column[], scope: Set<string> | null) {
+  const at = columns.findIndex((c) => c.name === "source");
+  if (!scope) return (_row: Row) => true;
+  if (at < 0) return () => spec.owner !== "run";
+  return (row: Row) => {
+    const cell = row[at];
+    return cell !== null && "s" in cell && scope.has(cell.s);
+  };
+}
+
+export async function compareShadow(paths: { start: string; python: string }, ts: Pool, labels: CompareReport["labels"], scope: string[] | null = null): Promise<CompareReport> {
   const start = openSqlite(paths.start), python = openSqlite(paths.python);
-  const report: CompareReport = { labels, counts: { timing: 0, user_action: 0, logic: 0 }, tables: {}, diffs: [] };
+  const inScope = scope && new Set(scope);
+  const report: CompareReport = { labels, scope, counts: { timing: 0, user_action: 0, logic: 0 }, tables: {}, outOfScope: {}, diffs: [] };
   try {
     for (const spec of TABLES) {
       const columns = await pgColumns(ts, spec.name);
-      const base = index(spec, columns, readSqliteRows(start, spec, columns));
-      const py = increment(base, index(spec, columns, readSqliteRows(python, spec, columns)));
-      const tsInc = increment(base, index(spec, columns, await readPgRows(ts, spec, columns)));
+      const keep = scoped(spec, columns, inScope);
+      const sides = [readSqliteRows(start, spec, columns), readSqliteRows(python, spec, columns), await readPgRows(ts, spec, columns)];
+      const part = (want: boolean) => sides.map((rows) => index(spec, columns, rows.filter((r) => keep(r) === want)));
+      const [base, pyAll, tsAll] = part(true);
+      const py = increment(base, pyAll), tsInc = increment(base, tsAll);
+      const [outBase, outPy, outTs] = part(false);
+      const left = [increment(outBase, outPy), increment(outBase, outTs)].reduce((n, x) => n + x.changed.size + x.deleted.length, 0);
+      if (left) report.outOfScope[spec.name] = left;
       const add = (key: string, kind: Diff["kind"]) => {
         const diff: Diff = { table: spec.name, key, kind, class: kind === "deleted" ? "logic" : classify(spec, kind) };
         report.diffs.push(diff);
@@ -79,8 +104,10 @@ export async function compareShadow(paths: { start: string; python: string }, ts
 export function summarize(r: CompareReport): string {
   const lines = [
     `start copy: ${r.labels.start}`, `python copy: ${r.labels.python}`, `ts shadow: ${r.labels.ts}`,
+    `scope: ${r.scope ? r.scope.join(", ") : "all sources"}`,
     `logic ${r.counts.logic} · timing ${r.counts.timing} · user_action ${r.counts.user_action}`,
   ];
   for (const [table, t] of Object.entries(r.tables)) if (t.python || t.ts) lines.push(`${table}: python ${t.python}, ts ${t.ts}, agree ${t.agree}`);
+  for (const [table, n] of Object.entries(r.outOfScope)) lines.push(`${table}: ${n} out of scope`);
   return lines.join("\n");
 }
