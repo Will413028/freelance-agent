@@ -265,7 +265,8 @@
     - 比對範圍（2026-10-24 補）：比對器 v1 比全部資料表，TS 只跑兩個來源時每天都會有其他來源與 `daily_runs`／`digest_outbox` 的邏輯差異，驗收無從判讀。`compareShadow` 加 `scope`：有 `source` 欄的表只比範圍內來源，沒有 `source` 欄的 run 表（`daily_runs`、`digest_outbox`）先不比；範圍外的變動列在 `outOfScope` 計數，不靜默丟掉。`scripts/compare.ts` 的範圍取 `enabledSources()`（跟 TS 排程同一份清單），`--all-sources` 比全部。測試 `ops.test.ts`「compares only the sources in scope」；mutation 把範圍篩選拿掉，該測試失敗。
     - 真實資料演練（2026-10-24，本機可拋棄 Postgres，資料用完即刪）：08:30 副本載入後跑 TS 的 Jobicy／Remotive，與 13:13 的正式副本（Python 當天已跑）比對。範圍內：logic 0、timing 0，opportunities 3／3、source_receipts 3／3 相同；範圍外 opportunities 65、source_receipts 65、mail 21、run 表 3 筆列為 out of scope。沒設 `PORTFOLIO_CATEGORY_PROJECTS` 時 4 筆 opportunity 只差 `portfolio_ids`（合成值），設了就 0，與步驟 4 的盤點缺陷 22 一致。
     - receipt mutation（同一套演練，量到）：receipt 改成 `source:id:x<hash>`，比對器報 3 筆 logic（Jobicy 新職缺的 opportunity，因為 `job.receipt_id` 在 item 裡），receipt 本身一邊有的列仍歸 timing。弱點：當天沒有新職缺、只有重看到的舊職缺時，receipt 規則壞掉只會出現 timing，不會被報出。7 天比對時同時看 source_receipts 的 timing 筆數；要補時的做法是 receipt 改用 `source:id` 當比對 key，雜湊不同就算 different。
-    - 未跑：7 天比對（第一份報告 10-25）；VM shadow 映像要換到含範圍篩選的 commit 才會用新比對器。
+    - VM shadow（2026-10-24 13:5x）：`/opt/freelance-shadow` checkout `afa8b10`，`SHADOW_IMAGE=freelance-agent-shadow:afa8b10`（回滾改回 `:13d991c`）；映像內 `enabledSources()` 為 jobicy、remotive。
+    - 未跑：7 天比對（第一份報告 10-25 10:30）。
   - 範圍：把 `collection/free_jobs.py`（80 行、6 個測試）改寫成 TS，在 shadow 模式每天跑。
   - 消費端：`rg -n "free_jobs|jobicy|remotive" backend/src frontend/src`。
   - 不能動：VM 上的 Python 來源照常跑，是唯一 writer。
