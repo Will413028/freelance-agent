@@ -11,7 +11,7 @@ import { urlsplit, urlunsplit } from "@/platform/py/url";
 import { cmpStr, PyDict, PyError } from "@/platform/py/value";
 import { xmlFind, xmlFindAll, xmlFindText, xmlFromBytes, type XmlElement } from "@/platform/py/xml";
 import { sourceBatch } from "../ingest";
-import { published, text } from "./public-feeds";
+import { published, text } from "./text";
 
 // Port of collection/cryptojobslist.py: the official advertised RSS, without API keys or account access.
 

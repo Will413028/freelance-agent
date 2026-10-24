@@ -9,7 +9,7 @@ import { pyLen, pyStr } from "@/platform/py/unicode";
 import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { isDict, isInt, isList, PyDict, PyError, pyEq, pyGet, pySubscript, truthy, type PyValue } from "@/platform/py/value";
 import { sourceBatch } from "../ingest";
-import { text } from "./public-feeds";
+import { text } from "./text";
 
 // Port of collection/getonboard.py: the official public Get on Board API; paginated remote
 // discovery, never applications.

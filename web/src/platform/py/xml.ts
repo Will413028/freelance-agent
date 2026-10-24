@@ -1,7 +1,8 @@
 import { SaxesParser } from "saxes";
+import { decodeStrict } from "./codecs";
 import { PyError } from "./value";
 
-// xml.etree.ElementTree.fromstring(bytes) and the find/findall/findtext paths the RSS sources use.
+// xml.etree.ElementTree.fromstring (bytes or str) and the find/findall/findtext paths the RSS sources use.
 // CPython parses with expat; saxes is also a strict XML 1.0 + namespaces parser, so a feed one
 // rejects the other rejects too. Callers reject DOCTYPE/ENTITY before parsing, so no DTD is ever read.
 // Accepted residuals (2026-10-24 differential fuzz, ~300k cases; none occurs in the real feed):
@@ -43,7 +44,7 @@ function decode(raw: Uint8Array): string {
 }
 const strict = (label: string, b: Uint8Array) => {
   try {
-    return new TextDecoder(label, { fatal: true, ignoreBOM: true }).decode(b);
+    return decodeStrict(label, b);
   } catch {
     throw parseError("not well-formed (invalid token)");
   }
@@ -51,9 +52,16 @@ const strict = (label: string, b: Uint8Array) => {
 const utf8 = (b: Uint8Array) => strict("utf-8", b);
 
 /** ET.fromstring(raw) */
-export function xmlFromBytes(raw: Uint8Array): XmlElement {
-  const text = decode(raw);
-  // decode() has consumed the one BOM expat honours; saxes would also skip a second one, expat rejects it.
+export const xmlFromBytes = (raw: Uint8Array): XmlElement => parseDecoded(decode(raw));
+
+/**
+ * ET.fromstring(str): pyexpat feeds the UTF-8 encoding of the string and forces UTF-8, so a declared
+ * encoding is ignored, whatever it names (measured on 3.13.15), and one leading BOM is skipped.
+ */
+export const xmlFromString = (s: string): XmlElement => parseDecoded(s.startsWith("\ufeff") ? s.slice(1) : s);
+
+function parseDecoded(text: string): XmlElement {
+  // The one BOM expat honours is gone; saxes would also skip a second one, expat rejects it.
   if (text.startsWith("\ufeff")) throw parseError("not well-formed (invalid token)");
   // expat reads every document as XML 1.0; saxes would otherwise honour version="1.1" (NEL as newline, &#1;).
   const parser = new SaxesParser({ xmlns: true, defaultXMLVersion: "1.0", forceXMLVersion: true });
@@ -66,6 +74,9 @@ export function xmlFromBytes(raw: Uint8Array): XmlElement {
     if (top && !top.children.length && s) top.text = (top.text ?? "") + s;
   };
   parser.on("error", (e) => { error ??= e; });
+  // Every caller rejects DOCTYPE/ENTITY before parsing, as the Python sources do; this backstop keeps
+  // a DTD from ever being read if one forgets. It changes no outcome: a document with a DOCTYPE never gets here.
+  parser.on("doctype", () => { error ??= parseError("DTD forbidden"); });
   parser.on("opentag", (node) => {
     const attrib = new Map<string, string>();
     for (const a of Object.values(node.attributes)) {

@@ -1,3 +1,4 @@
+import { decodeStrict } from "./py/codecs";
 import { loads } from "./py/json";
 import { PyError, type PyValue } from "./py/value";
 
@@ -62,13 +63,7 @@ function decodeUtf32(b: Uint8Array, littleEndian: boolean): string {
  */
 export function loadsBytes(b: Uint8Array): PyValue {
   const encoding = detectEncoding(b);
-  const decode = (label: string, bytes: Uint8Array) => {
-    try {
-      return new TextDecoder(label, { fatal: true, ignoreBOM: true }).decode(bytes);
-    } catch {
-      throw new PyError("UnicodeDecodeError");
-    }
-  };
+  const decode = decodeStrict;
   let text: string;
   if (encoding === "utf-8") text = decode("utf-8", b);
   else if (encoding === "utf-8-sig") text = decode("utf-8", b.subarray(3));

@@ -7,7 +7,8 @@ import { encode } from "@/platform/py/json";
 import { PyDict, type PyValue } from "@/platform/py/value";
 import { qualify } from "@/modules/discovery/public";
 import { attempt, fixture, untag, type Expect, type Tagged } from "../../../../tests/helpers/golden";
-import { htmlText, normalize } from "./free-jobs";
+import { normalize } from "./free-jobs";
+import { htmlText } from "./text";
 
 // Plan step 6: collection/free_jobs.py against the ground truth gen_golden.py wrote with the
 // production image's Python (3.13.15), plus the six cases of backend/tests/collection/test_free_jobs.py

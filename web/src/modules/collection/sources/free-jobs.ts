@@ -2,12 +2,12 @@ import type { Db } from "@/db/client";
 import { qualifyForIntake } from "@/modules/discovery/public";
 import { getCapped, loadsBytes } from "@/platform/http";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
-import { htmlFeed } from "@/platform/py/html";
 import { asciiHash } from "@/platform/py/json";
 import { pyLen, pyLower, pySplit, pyStrip } from "@/platform/py/unicode";
 import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { cmpStr, isInt, isList, PyDict, PyError, pyGet, truthy, type PyValue } from "@/platform/py/value";
 import { ingest, setSourceHealth } from "../ingest";
+import { htmlText } from "./text";
 
 // Port of collection/free_jobs.py: free public job-board discovery, preserving attribution and
 // manual application links.
@@ -16,26 +16,6 @@ export const ENDPOINTS: Record<string, string> = {
   remotive: "https://remotive.com/api/remote-jobs?category=software-dev&limit=200",
   jobicy: "https://jobicy.com/api/v2/remote-jobs?count=200",
 };
-
-/** free_jobs.Text: visible text of an HTML fragment, block tags as spaces, script/style dropped. */
-export function htmlText(html: string): string {
-  const parts: string[] = [];
-  let hidden = 0;
-  htmlFeed(html, {
-    starttag(tag) {
-      if (tag === "script" || tag === "style") hidden++;
-      if (tag === "p" || tag === "div" || tag === "br" || tag === "li") parts.push(" ");
-    },
-    endtag(tag) {
-      if (tag === "script" || tag === "style") hidden = Math.max(0, hidden - 1);
-      if (tag === "p" || tag === "div" || tag === "li") parts.push(" ");
-    },
-    data(data) {
-      if (!hidden) parts.push(data);
-    },
-  });
-  return parts.join("");
-}
 
 const get = pyGet;
 

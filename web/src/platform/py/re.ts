@@ -15,6 +15,7 @@ export function wordsIgnoreCase(alternatives: string[]): RegExp {
 const W = `[${PY_WORD_CLASS}]`;
 const BOUNDARY = `(?:(?<=${W})(?!${W})|(?<!${W})(?=${W}))`;
 const CLASS_ESCAPES: Record<string, string> = { s: PY_SPACE_CLASS, d: PY_DECIMAL_CLASS, w: PY_WORD_CLASS };
+const CONTROL_ESCAPES: Record<string, string> = { n: "\\n", t: "\\t", r: "\\r", f: "\\f", v: "\\v" };
 const NEGATED: Record<string, string> = { S: "s", D: "d", W: "w" };
 
 class Unsupported extends Error {}
@@ -27,12 +28,13 @@ function literal(ch: string, ignoreCase: boolean, inClass: boolean): string {
 }
 
 /**
- * Translates the subset of Python re syntax the sources use: literals, groups, alternation, greedy
- * and lazy quantifiers, '.', '^', '$', character classes, and the \b \s \S \d \D \w \W escapes.
+ * Translates the subset of Python re syntax the sources use: literals, groups, lookaheads,
+ * alternation, greedy and lazy quantifiers, '.', '^', '$', character classes, the \b \s \S \d \D
+ * \w \W escapes and \n \t \r \f \v; dotAll is re.S.
  * Anything else (backreferences, inline flags, letter ranges under IGNORECASE) throws, so a pattern
  * this cannot translate exactly fails at load instead of matching differently.
  */
-export function translate(pattern: string, ignoreCase = false): string {
+export function translate(pattern: string, ignoreCase = false, dotAll = false): string {
   const cps = codePoints(pattern).map((c) => String.fromCodePoint(c));
   let out = "";
   for (let i = 0; i < cps.length; i++) {
@@ -43,15 +45,16 @@ export function translate(pattern: string, ignoreCase = false): string {
       if (e === "b") out += BOUNDARY;
       else if (CLASS_ESCAPES[e]) out += `[${CLASS_ESCAPES[e]}]`;
       else if (NEGATED[e]) out += `[^${CLASS_ESCAPES[NEGATED[e]]}]`;
+      else if (CONTROL_ESCAPES[e]) out += CONTROL_ESCAPES[e];
       else if (/[A-Za-z0-9]/.test(e)) throw new Unsupported(`\\${e}`);
       else out += literal(e, ignoreCase, false);
-    } else if (ch === ".") out += "[^\\n]";
+    } else if (ch === ".") out += dotAll ? "[^]" : "[^\\n]";
     else if (ch === "^") out += "^";
     else if (ch === "$") out += "(?=\\n?$)";
     else if (ch === "(") {
       if (cps[i + 1] === "?") {
-        if (cps[i + 2] !== ":") throw new Unsupported("(?");
-        out += "(?:";
+        if (cps[i + 2] !== ":" && cps[i + 2] !== "=" && cps[i + 2] !== "!") throw new Unsupported("(?");
+        out += "(?" + cps[i + 2];
         i += 2;
       } else out += "(";
     } else if (ch === ")" || ch === "|" || ch === "*" || ch === "+" || ch === "?") out += ch;
@@ -70,6 +73,7 @@ export function translate(pattern: string, ignoreCase = false): string {
         if (c === "\\") {
           const e = cps[++j];
           if (CLASS_ESCAPES[e]) body += CLASS_ESCAPES[e];
+          else if (CONTROL_ESCAPES[e]) body += CONTROL_ESCAPES[e];
           else if (/[A-Za-z0-9]/.test(e)) throw new Unsupported(`[\\${e}]`);
           else body += literal(e, ignoreCase, true);
         } else if (cps[j + 1] === "-" && cps[j + 2] !== undefined && cps[j + 2] !== "]") {
@@ -87,8 +91,41 @@ export function translate(pattern: string, ignoreCase = false): string {
   return out;
 }
 
-/** re.compile(pattern, re.I if ignoreCase else 0), for search(), findall() and sub(). */
-export const pyRe = (pattern: string, ignoreCase = false, global = false) => new RegExp(translate(pattern, ignoreCase), global ? "gu" : "u");
+/** re.compile(pattern, re.I if ignoreCase else 0 | re.S if dotAll else 0), for search(), findall() and sub(). */
+export const pyRe = (pattern: string, ignoreCase = false, global = false, dotAll = false) =>
+  new RegExp(translate(pattern, ignoreCase, dotAll), global ? "gu" : "u");
+
+// Python and JS step past an empty match differently; no ported pattern can match empty, so one throws.
+function* matches(re: RegExp, s: string): Generator<RegExpExecArray> {
+  const g = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
+  for (let m = g.exec(s); m; m = g.exec(s)) {
+    if (!m[0]) throw new Error(`empty match of ${re.source}`);
+    yield m;
+  }
+}
+
+/** re.findall: whole matches without groups, group 1 ('' when it did not take part) with one. */
+export function pyFindall(re: RegExp, s: string): string[] {
+  return [...matches(re, s)].map((m) => {
+    if (m.length > 2) throw new Error("findall with several groups returns tuples");
+    return m.length === 2 ? m[1] ?? "" : m[0];
+  });
+}
+
+/** re.sub with a function replacement (a fixed string is `() => s`, without template escapes). */
+export function pySub(re: RegExp, s: string, repl: (m: RegExpExecArray) => string): string {
+  let out = "", last = 0;
+  for (const m of matches(re, s)) out += s.slice(last, m.index) + repl(m), (last = m.index + m[0].length);
+  return out + s.slice(last);
+}
+
+/** re.split: the pieces with every group's text between them (None for a group that did not take part). */
+export function pyReSplit(re: RegExp, s: string): (string | null)[] {
+  const out: (string | null)[] = [];
+  let last = 0;
+  for (const m of matches(re, s)) out.push(s.slice(last, m.index), ...m.slice(1).map((g) => g ?? null)), (last = m.index + m[0].length);
+  return [...out, s.slice(last)];
+}
 
 /** re.fullmatch(pattern, s): the match array, or null. */
 export const pyFullmatch = (pattern: string, s: string, ignoreCase = false) =>

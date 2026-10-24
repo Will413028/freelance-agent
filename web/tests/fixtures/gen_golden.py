@@ -942,6 +942,184 @@ def xml_attrib_case(doc):
     return dict(input=doc, expect=attempt(run))
 
 
+
+# ---------------------------------------------------------------- public_feeds (step 8, batch 2)
+def pf_remote(**changes):
+    """backend/tests/collection/test_public_feeds.py:remote, with a fixed date"""
+    return dict(id='123', position='Contract Backend API engineer', description='<p>Build API integrations.</p>',
+                url='https://remoteOK.com/remote-jobs/remote-api-123', tags=['contract', 'backend'],
+                date='2026-09-18T12:00:00+00:00', location='', salary_min=0, salary_max=0) | changes
+
+
+def pf_nomad(**changes):
+    return dict(url='https://www.workingnomads.com/job/go/123/', title='Contract AI agent engineer',
+                description='<p>Build an AI agent and API.</p>', pub_date='2026-09-18T12:00:00+00:00',
+                tags='python,agent', location='Anywhere', category_name='Development') | changes
+
+
+def pf_rss_entry(**changes):
+    return dict(title='Part-time Backend API developer', description='<p>Build API integrations.</p>',
+                url='https://www.realworkfromanywhere.com/jobs/backend-123', date='Fri, 18 Sep 2026 12:00:00 GMT',
+                location=None, tags=[]) | changes
+
+
+WWR = 'https://weworkremotely.com/remote-jobs/company-ai-agent-123'
+PF_NORMALIZE = [
+    *[('remoteok', e) for e in (
+        pf_remote(), [], None, 'x', pf_remote(id=123), pf_remote(id=True), pf_remote(id=False), pf_remote(id=1.0), pf_remote(id=-1),
+        pf_remote(id='١٢٣'), pf_remote(id='²'), pf_remote(id=''), pf_remote(id=None), pf_remote(id=[1]), pf_remote(id='12a'),
+        without(pf_remote(), 'id'), pf_remote(position=None), pf_remote(position='x' * 501), pf_remote(position='<b>x</b>' * 60),
+        pf_remote(position='Full-time Contract API'), pf_remote(position='API engineer', tags=['backend']),
+        pf_remote(position='Smart Contract API engineer', tags=['blockchain'], description='Build smart contracts and API integrations.'),
+        pf_remote(position='API engineer', tags=[], description='Employment type: Part-time. Build APIs.'),
+        pf_remote(position='API engineer', tags=[], description='Job Type： freelance; remote'),
+        pf_remote(position='API engineer', tags=[], description='This position is offered on a contractor basis.'),
+        pf_remote(position='API engineer', tags=[], description='The role is a part time basis role'),
+        pf_remote(position='API engineer', tags=[], description='The job is offered on a freelance basis, full time hours'),
+        pf_remote(position='API engineer', tags=[], description='work type:\ncontract'),
+        pf_remote(position='API engineer', tags=['smart-contract']), pf_remote(position='API engineer', tags=['smart  contracts dev']),
+        pf_remote(position='API engineer', tags=['part_time']), pf_remote(position='API engineer', tags=['FULL_TIME', 'contract']),
+        pf_remote(position='API engineer', tags=['ſmart contract']), pf_remote(position='API engineer', tags=['contractors']),
+        pf_remote(tags='contract'), pf_remote(tags=None), pf_remote(tags=[1]), without(pf_remote(), 'tags'),
+        pf_remote(employment_type='Contract', tags=[]), pf_remote(employment_type=5, tags=[]), pf_remote(employment_type={'a': 1.5}, tags=[]),
+        pf_remote(employment_type=['part', 'time'], tags=[]), pf_remote(employment_type=0, tags=[]), pf_remote(employment_type=True),
+        pf_remote(closed=True), pf_remote(closed=1), pf_remote(closed='true'), pf_remote(status='filled'), pf_remote(status=['closed']),
+        pf_remote(description='<p>This position is closed.</p>'), pf_remote(position='Job filled: contract API'),
+        pf_remote(description='The listing  expired'), pf_remote(description='job is filledx'),
+        pf_remote(location='Worldwide'), pf_remote(location=5), pf_remote(location=0), pf_remote(location=['US']), pf_remote(location=None),
+        pf_remote(salary_min=50000, salary_max=80000.5, salary_period='year'), pf_remote(salary_min='', salary_max=None),
+        pf_remote(salary_min={'x': [1]}), pf_remote(description=None), pf_remote(description=''), pf_remote(description='<script>x</script>'),
+        pf_remote(description='x' * 200001),
+        pf_remote(url=None), pf_remote(url=5), pf_remote(url='https://evil.example/remote-jobs/123'), pf_remote(url='https://remoteok.com/remote-jobs/'),
+        pf_remote(url='http://remoteok.com/remote-jobs/x'), pf_remote(url='https://remoteok.com/jobs/x'), pf_remote(url='https://REMOTEOK.COM/remote-jobs/x?a=1#f'),
+        pf_remote(url='https://remoteok.com:443/remote-jobs/x'), pf_remote(url='https://user@remoteok.com/remote-jobs/x'),
+        pf_remote(url='https://[::1/remote-jobs/x'), pf_remote(url=' https://remoteok.com/remote-jobs/x\t'), pf_remote(url='https://remoteok.com/remote-jobs/\U0001f600'),
+        pf_remote(url='HTTPS://remoteok.com/remote-jobs/x'), pf_remote(url='https://remoteok.com/remote-jobs/x/../y'), pf_remote(url='https://remoteoK.com/remote-jobs/x'),
+        pf_remote(url='https://remoteok.comİ/remote-jobs/x'), pf_remote(url='https://remoteo\u212a.com/remote-jobs/x'),
+        pf_remote(date=None), pf_remote(date=5), pf_remote(date='2026-09-18'), pf_remote(date='2026-09-18T12:00:00'), pf_remote(date='2026-09-18T12:00:00Z'),
+        pf_remote(date='Fri, 18 Sep 2026 12:00:00 GMT'), pf_remote(date='Fri, 18 Sep 2026 12:00:00 -0000'), pf_remote(date='bad'),
+        pf_remote(date='0001-01-01T00:00:00+01:00'), pf_remote(date='9999-12-31T23:59:59-01:00'), pf_remote(date='2026-09-18T12:00:00.123456+05:30'),
+    )],
+    *[('workingnomads', e) for e in (
+        pf_nomad(), pf_nomad(tags=' python , ,agent,'), pf_nomad(tags=''), pf_nomad(tags=['x']), pf_nomad(tags=5), pf_nomad(tags='　a　,b'),
+        pf_nomad(url='https://www.workingnomads.com/job/go/12a/'), pf_nomad(url='https://www.workingnomads.com/job/go/123'),
+        pf_nomad(url='https://www.workingnomads.com/job/go/١٢٣/'), pf_nomad(url='https://www.workingnomads.com/job/go/123/?utm=1'),
+        pf_nomad(url='https://workingnomads.com/job/go/123/'), pf_nomad(url='https://evil.example/job/go/124/'),
+        pf_nomad(pub_date=None), without(pf_nomad(), 'pub_date'), pf_nomad(date='2026-09-18T12:00:00+00:00', pub_date=None),
+        pf_nomad(title='Full time engineer'), pf_nomad(id='999'), pf_nomad(location=''),
+    )],
+    *[(src, e) for src in ('realworkfromanywhere', 'weworkremotely') for e in (
+        pf_rss_entry(), pf_rss_entry(url=WWR), pf_rss_entry(tags=['Programming', '']), pf_rss_entry(location='Anywhere in the World'),
+        pf_rss_entry(title=None), pf_rss_entry(description=None), pf_rss_entry(date=None), pf_rss_entry(date=''), pf_rss_entry(url=None),
+        pf_rss_entry(url='https://www.realworkfromanywhere.com/jobs/'), pf_rss_entry(date='Fri, 18 Sep 2026 12:00:00'),
+    )],
+]
+
+
+def pf_normalize_case(source, entry):
+    # parse_batch counts ValueError/TypeError as one rejected listing; anything else fails the source.
+    try:
+        expect = {'ok': encode(public_feeds.normalize(source, entry))}
+    except (ValueError, TypeError):
+        expect = {'error': 'rejected'}
+    except Exception as exc:
+        expect = {'error': type(exc).__name__}
+    return dict(source=source, entry=tag(entry), expect=expect)
+
+
+def pf_rss(*items, head='<?xml version="1.0" encoding="UTF-8"?>', channel=True):
+    body = ''.join(items)
+    return head + ('<rss version="2.0"><channel><title>Jobs</title>' + body + '</channel></rss>' if channel else '<rss>' + body + '</rss>')
+
+
+def pf_item(title='<![CDATA[Part-time Backend API developer]]>', description='<![CDATA[<p>Build API integrations.</p>]]>',
+            link='https://www.realworkfromanywhere.com/jobs/backend-123', date='Fri, 18 Sep 2026 12:00:00 GMT', extra=''):
+    return (f'<item>\n<title>{title}</title><description>{description}</description>\n<link>{link}</link>'
+            f'<guid>{link}</guid><pubDate>{date}</pubDate>{extra}</item>')
+
+
+PF_BATCH = [
+    *[('remoteok', d) for d in (
+        jbytes([{'legal': 'Link to Remote OK'}, pf_remote()]), jbytes([pf_remote()]), jbytes([{'legal': 'x', 'id': '1'}, pf_remote()]),
+        jbytes([{'legal': 'x'}]), jbytes(['legal', pf_remote()]), b'', b' \t\r\n\x0b\x0c', b'{}', b'[]', b'[{"id": 1},', b'[{}', b'null',
+        jbytes([pf_remote(id=str(i)) for i in range(205)]), jbytes([pf_remote(id=str(i)) for i in range(200)]), jbytes([pf_remote(id=str(i)) for i in range(201)]), jbytes([pf_remote(), pf_remote(id='2', url='https://remoteok.com/remote-jobs/')]),
+        jbytes([pf_remote(), pf_remote(date='9999-12-31T23:59:59-01:00')]), jbytes([pf_remote()] * 2), b'\xef\xbb\xbf' + jbytes([pf_remote()]),
+        jbytes([pf_remote()]).decode().encode('utf-16'), b' ' * 8000001, b'[' + b'1' * 4301 + b']', b'[NaN]',
+        jbytes([pf_remote(salary_min=float('nan'))]), b'\x85[]',
+    )],
+    *[('workingnomads', d) for d in (jbytes([pf_nomad()]), jbytes([{'legal': 'x'}, pf_nomad()]), jbytes({'jobs': []}))],
+    *[('realworkfromanywhere', d.encode() if isinstance(d, str) else d) for d in (
+        pf_rss(pf_item()), pf_rss(pf_item(), head=''), pf_rss(pf_item(), channel=False), pf_rss(),
+        pf_rss(pf_item(description='<![CDATA[<p>R&D API &amp; automation</p>]]>', extra='<enclosure url="https://example.org/logo?s=200&v=4" />')),
+        pf_rss(pf_item(extra='<enclosure type="image/png" url="https://e.org/l?a=1&b=2&c" length="1"/>')),
+        pf_rss(pf_item(extra='<enclosure url="https://e.org/l?a=1&amp;b=2"/>')),
+        pf_rss(pf_item(extra='<!-- <enclosure url="https://e.org/l?a=1&b=2"/> --><enclosure url="x&y=1"/>')),
+        pf_rss(pf_item(description='<![CDATA[<enclosure url="a&b=1"> ok]]>', extra='<enclosure url="a&b=1"/>')),
+        pf_rss(pf_item(extra='<enclosure url="a&b"/>')), pf_rss(pf_item(extra='<enclosureX url="a&b=1"/>')),
+        pf_rss(pf_item(extra='<enclosure\nurl="a&_b.c-d=1"/>')), pf_rss(pf_item(extra='<enclosure data-url="a&b=1"/>')),
+        pf_rss(pf_item(extra='<region>Anywhere in the World</region><category>Programming</category><category/>')),
+        pf_rss(pf_item(extra='<region></region>')), pf_rss(pf_item(title='')), pf_rss(pf_item(title='A<b>x</b>tail')),
+        pf_rss(pf_item(description='a &amp;lt;b&amp;gt; c')),
+        pf_rss(pf_item()).replace('<rss', '<!DOCTYPE rss [<!ENTITY x "boom">]><rss', 1), pf_rss(pf_item()).replace('</item>', '</wrong>'),
+        pf_rss(pf_item()).replace('<pubDate>', '<pubDate>&undefined;'), pf_rss(pf_item()).replace('<rss', '<!　doctype x><rss'),
+        pf_rss(pf_item()).replace('<rss', '<!-- <!ENTITY --><rss'), pf_rss(pf_item(), head='<?xml version="1.0" encoding="ISO-8859-1"?>'),
+        pf_rss(pf_item(), head='<?xml version="1.0" encoding="bogus"?>'), '﻿' + pf_rss(pf_item()), '﻿﻿' + pf_rss(pf_item()),
+        pf_rss(pf_item()).encode('latin-1') + b'\xff', pf_rss(pf_item(title='後端 \U0001f600 contract')), pf_rss(*[pf_item(link=f'https://www.realworkfromanywhere.com/jobs/x{i}') for i in range(201)]),
+        pf_rss(pf_item(), pf_item(link='https://evil.example/jobs/x')), pf_rss(*[pf_item(link=f'https://www.realworkfromanywhere.com/jobs/x{i}') for i in range(200)]),
+        pf_rss(pf_item(description='<![CDATA[<p>a\n<enclosure url="a&b=1">\nb</p>]]>', extra='<!--\n<enclosure url="c&d=1"/>\n--><enclosure url="e&f=1"/>')), pf_rss(pf_item(extra='<x:y xmlns:x="urn:x"/>')),
+        pf_rss(pf_item()).replace('<channel>', '<channel xmlns="urn:d">'), '<rss/>', 'not xml', pf_rss(pf_item(title='<![CDATA[a]]>b<![CDATA[c]]>')),
+    )],
+]
+
+
+def pf_batch_case(source, raw):
+    def run():
+        jobs, truncated, rejected = public_feeds.parse_batch(source, raw)
+        return dict(jobs=[encode(j) for j in jobs], truncated=truncated, rejected=rejected)
+    return dict(source=source, input=raw.decode('latin-1'), expect=attempt(run))
+
+
+PF_RES = [
+    (r'(?:employment|job|work|position)\s*type\s*[:：]\s*([^\n.;]+)', re.I, 0),
+    (r'(?:position|role|job)\s+(?:is\s+)?(?:offered\s+)?(?:on\s+)?(?:a\s+)?(?:part[ -]time|freelance|contract(?:or)?)(?:\s+basis)?\b', re.I, 0),
+    (r'\bsmart[ -]+contracts?\b', re.I, 0), (r'\bfull[\s_-]*time\b', re.I, 0), (r'\b(?:part[\s_-]*time|freelance|contract(?:or)?)\b', re.I, 0),
+    (r'\b(?:position|job|listing)\s+(?:is\s+)?(?:closed|filled|expired)\b', re.I, 0), (r'<!\s*(?:DOCTYPE|ENTITY)\b', re.I, 0),
+    (r'(<!\[CDATA\[.*?\]\]>|<!--.*?-->)', re.S, 1), (r'(<enclosure\b[^>]*\burl=")([^"]*)(")', 0, 0), (r'&(?=[A-Za-z_][A-Za-z0-9_.-]*=)', 0, 0),
+    (r'/job/go/\d+/', 0, 0),
+]
+PF_RE_TEXT = RE_TEXT + [
+    'Employment type: Part-time. More', 'JOB TYPE：freelance;x', 'work  type :\n contract', 'Position type: ', 'positiontype:x', 'work type: a\nb',
+    'job type: 　x', 'The position is offered on a contract basis', 'role part-time', 'job is a contractor', 'job contractors', 'position\nis\noffered\non\na\nfreelance',
+    'smart contract', 'Smart  -contracts!', 'smartcontracts', 'ſmart contract', 'full time', 'FULL_TIME', 'full-_ time', 'full\ttime', 'fulltimer', 'ﬀull time',
+    'part_time', 'Part - time', 'contractor', 'Freelance', 'the job is closed', 'Listing expired', 'position  is filled.', 'jobs closed',
+    '<!DOCTYPE x>', '<! doctype', '<!　ENTİTY x', '<!ENTITYx', '<!-- x -->', '<![CDATA[a]]>b<![CDATA[\nc\n]]>', '<!-- a\n-- b -->', '<![CDATA[x',
+    '<enclosure url="a&b=1&c">', '<enclosure x="1" url="a&b=1"/><enclosure url="c&d=2"/>', '<enclosure\turl="">', '<enclosureurl="a">',
+    'a&b=1&c&_d.e-f=2&1=x&é=1', '&=', '/job/go/123/', '/job/go/١٢٣/', '/job/go/123/x', '/job/go//',
+]
+
+
+def pf_re_case(pattern, flags, has_group, s):
+    m = re.search(pattern, s, flags)
+    return dict(pattern=pattern, ignorecase=bool(flags & re.I), dotall=bool(flags & re.S), input=s,
+                search=None if m is None else dict(span=list(m.span()), groups=list(m.groups())),
+                findall=re.findall(pattern, s, flags) if pattern.count('(') - pattern.count('(?') <= 1 else None,
+                sub=re.sub(pattern, '', s, flags=flags), split=re.split(pattern, s, flags=flags))
+
+
+def pf_xml_str_case(doc):
+    import xml.etree.ElementTree as ET
+    def run():
+        return [[e.tag, e.text] for e in ET.fromstring(doc).iter()]
+    return dict(input=doc, expect=attempt(run))
+
+
+XML_STR = ['<?xml version="1.0" encoding="ISO-8859-1"?><r>é</r>', '<?xml version="1.0" encoding="UTF-16"?><r>é</r>',
+           '<?xml version="1.0" encoding="cp1252"?><r>é</r>', '<?xml version="1.0" encoding="bogus"?><r>é</r>',
+           '<?xml version="1.0" encoding="US-ASCII"?><r>é</r>', '﻿<r>a</r>', '﻿﻿<r>a</r>', '<r>\x00</r>',
+           '<?xml version="1.1"?><r>\x85</r>', '<?xml version="1.0" encoding="UTF-8"?>﻿<r/>', ' <?xml version="1.0"?><r/>',
+           '<r>\U0001f600</r>', '<r>￾</r>', '<r>&#x1F600;</r>', '<?xml version="1.0" encoding=""?><r/>']
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -976,6 +1154,10 @@ def main():
         'v2ex_jobs': [v2ex_case(d, d.encode('utf-8')) for d in V2EX],
         'hn_fetch': [hn_fetch_case(p) for p in HN_FETCH],
         'xml_attrib': [xml_attrib_case(d) for d in XML_ATTRIB],
+        'xml_str': [pf_xml_str_case(d) for d in XML_STR],
+        'pf_re': [pf_re_case(p, f, g, s) for p, f, g in PF_RES for s in PF_RE_TEXT],
+        'public_feeds_normalize': [pf_normalize_case(src, e) for src, e in PF_NORMALIZE],
+        'public_feeds_batch': [pf_batch_case(src, raw) for src, raw in PF_BATCH],
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

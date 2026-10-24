@@ -7,7 +7,7 @@ import { pyFloat, pyIntToFloat, pyLen, pyLower, pySplit, pyStrip } from "@/platf
 import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { isDict, isList, or, PyDict, PyError, pyGet, type PyValue } from "@/platform/py/value";
 import { ingest, setSourceHealth } from "../ingest";
-import { htmlText } from "./free-jobs";
+import { htmlText } from "./text";
 
 // Port of collection/himalayas.py: bounded, daily public Himalayas searches; listings remain
 // manual-review candidates.

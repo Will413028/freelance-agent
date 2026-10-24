@@ -6,7 +6,7 @@ import { pyInt } from "@/platform/py/unicode";
 import { PyDict } from "@/platform/py/value";
 import { attempt, fixture, untag, type Expect, type Tagged } from "../../../../tests/helpers/golden";
 import { parse } from "./cryptojobslist";
-import { published, text } from "./public-feeds";
+import { published, text } from "./text";
 
 // Plan step 7: collection/cryptojobslist.py and the public_feeds helpers it imports, against the
 // ground truth gen_golden.py wrote with the production image's Python (3.13.15).

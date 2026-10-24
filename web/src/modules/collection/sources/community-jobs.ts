@@ -10,7 +10,7 @@ import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { isDict, isInt, isList, PyDict, PyError, pyEq, pyGet, pySubscript, truthy, type PyValue } from "@/platform/py/value";
 import { xmlFindAll, xmlFindText, xmlFromBytes, xmlGet } from "@/platform/py/xml";
 import { ingest, setSourceHealth } from "../ingest";
-import { htmlText } from "./free-jobs";
+import { htmlText } from "./text";
 
 // Port of collection/community_jobs.py: public community hiring leads. No accounts, messaging, or
 // employer-link fetching.

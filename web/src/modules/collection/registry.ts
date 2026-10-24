@@ -4,6 +4,7 @@ import { syncCryptoJobsList } from "./sources/cryptojobslist";
 import { syncFreeJobs } from "./sources/free-jobs";
 import { syncGetOnBoard } from "./sources/getonboard";
 import { syncHimalayas } from "./sources/himalayas";
+import { syncPublicFeed } from "./sources/public-feeds";
 import { REGISTRY, SOURCES } from "./source-catalog";
 
 export type SourceRunner = (db: Db) => Promise<unknown>;
@@ -17,6 +18,10 @@ export const RUNNERS: Record<string, SourceRunner> = {
   getonboard: (db) => syncGetOnBoard(db),
   hackernews: (db) => syncCommunity(db, "hackernews"),
   v2ex: (db) => syncCommunity(db, "v2ex"),
+  remoteok: (db) => syncPublicFeed(db, "remoteok"),
+  realworkfromanywhere: (db) => syncPublicFeed(db, "realworkfromanywhere"),
+  weworkremotely: (db) => syncPublicFeed(db, "weworkremotely"),
+  workingnomads: (db) => syncPublicFeed(db, "workingnomads"),
 };
 
 /**
