@@ -9,7 +9,10 @@ import { PyError } from "./value";
 // names), trims namespace URIs and accepts '}' in them, and this decoder rejects single-byte codecs
 // other than ISO-8859-1/US-ASCII, BOM-less UTF-16 and a latin-1 declaration after a UTF-8 BOM.
 
-export type XmlElement = { tag: string; text: string | null; children: XmlElement[] };
+/** attrib keys as ElementTree names them: 'local' without a prefix, '{uri}local' with one; no xmlns declarations. */
+export type XmlElement = { tag: string; text: string | null; attrib: Map<string, string>; children: XmlElement[] };
+
+const XMLNS = "http://www.w3.org/2000/xmlns/";
 
 const parseError = (message: string) => new PyError("ParseError", message);
 
@@ -40,7 +43,7 @@ function decode(raw: Uint8Array): string {
 }
 const strict = (label: string, b: Uint8Array) => {
   try {
-    return new TextDecoder(label, { fatal: true }).decode(b);
+    return new TextDecoder(label, { fatal: true, ignoreBOM: true }).decode(b);
   } catch {
     throw parseError("not well-formed (invalid token)");
   }
@@ -50,6 +53,8 @@ const utf8 = (b: Uint8Array) => strict("utf-8", b);
 /** ET.fromstring(raw) */
 export function xmlFromBytes(raw: Uint8Array): XmlElement {
   const text = decode(raw);
+  // decode() has consumed the one BOM expat honours; saxes would also skip a second one, expat rejects it.
+  if (text.startsWith("\ufeff")) throw parseError("not well-formed (invalid token)");
   // expat reads every document as XML 1.0; saxes would otherwise honour version="1.1" (NEL as newline, &#1;).
   const parser = new SaxesParser({ xmlns: true, defaultXMLVersion: "1.0", forceXMLVersion: true });
   const stack: XmlElement[] = [];
@@ -62,7 +67,12 @@ export function xmlFromBytes(raw: Uint8Array): XmlElement {
   };
   parser.on("error", (e) => { error ??= e; });
   parser.on("opentag", (node) => {
-    const el: XmlElement = { tag: node.uri ? `{${node.uri}}${node.local}` : node.local!, text: null, children: [] };
+    const attrib = new Map<string, string>();
+    for (const a of Object.values(node.attributes)) {
+      if (a.uri === XMLNS) continue;
+      attrib.set(a.prefix ? `{${a.uri}}${a.local}` : a.local, a.value);
+    }
+    const el: XmlElement = { tag: node.uri ? `{${node.uri}}${node.local}` : node.local!, text: null, attrib, children: [] };
     stack.at(-1)?.children.push(el);
     if (!stack.length) root = el;
     stack.push(el);
@@ -86,6 +96,9 @@ export function xmlFindAll(el: XmlElement, path: string): XmlElement[] {
   return level;
 }
 export const xmlFind = (el: XmlElement, path: string): XmlElement | null => xmlFindAll(el, path)[0] ?? null;
+/** Element.get(key): None when absent. */
+export const xmlGet = (el: XmlElement, key: string): string | null => el.attrib.get(key) ?? null;
+
 /** Element.findtext(path): None when absent, '' when present without text. */
 export function xmlFindText(el: XmlElement, path: string): string | null {
   const hit = xmlFind(el, path);

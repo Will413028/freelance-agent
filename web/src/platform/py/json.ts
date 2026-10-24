@@ -138,7 +138,10 @@ export function loads(text: string): PyValue {
     const m = /^(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?/.exec(text.slice(i));
     if (!m) fail();
     i += m![0].length;
-    return m![2] || m![3] ? Number(m![0]) : BigInt(m![1]);
+    if (m![2] || m![3]) return Number(m![0]);
+    // int() of a JSON integer has CPython's 4300-digit limit; past it the whole document fails.
+    if (m![1].replace("-", "").length > 4300) throw new PyError("ValueError", "Exceeds the limit (4300 digits) for integer string conversion");
+    return BigInt(m![1]);
   };
   const result = value();
   ws();

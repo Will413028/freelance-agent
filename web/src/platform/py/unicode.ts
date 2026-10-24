@@ -136,12 +136,46 @@ export function pyInt(s: string): bigint {
   return BigInt(m[1] + digits);
 }
 
+/**
+ * float(s) for a str: the same digit and space transform as int(), single underscores between
+ * digits, then PyOS_string_to_double's grammar (inf, infinity and nan in any case; no hex).
+ */
+export function pyFloat(s: string): number {
+  let ascii = "";
+  for (const cp of codePoints(s)) {
+    if (cp < 0x80) ascii += String.fromCodePoint(cp);
+    else if (SPACE.has(cp)) ascii += " ";
+    else ascii += decimalValue(cp) ?? "?";
+  }
+  const invalid = () => new PyError("ValueError", `could not convert string to float: ${reprStr(s)}`);
+  if (/(?<![0-9])_|_(?![0-9])/.test(ascii)) throw invalid();
+  const m = /^[ \t\n\v\f\r]*([+-]?)(?:([0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?|\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(inf(?:inity)?)|(nan))[ \t\n\v\f\r]*$/i
+    .exec(ascii.replaceAll("_", ""));
+  if (!m) throw invalid();
+  if (m[4]) return NaN;
+  if (m[3]) return m[1] === "-" ? -Infinity : Infinity;
+  return Number(m[1] + m[2]);
+}
+
+/** float(int): correctly rounded, OverflowError past the double range. */
+export function pyIntToFloat(n: bigint): number {
+  const x = Number(n);
+  if (!Number.isFinite(x)) throw new PyError("OverflowError", "int too large to convert to float");
+  return x;
+}
+
 /** str.upper(), exact only where the result is ASCII letters (enough to compare with ASCII names). */
 export const pyUpperAscii = (s: string) => codePoints(s).map((cp) => T.upper_ascii[cp] ?? String.fromCodePoint(cp)).join("");
 
 const cls = (cps: [number, number][]) => cps.map(([a, b]) => (a === b ? `\\u{${a.toString(16)}}` : `\\u{${a.toString(16)}}-\\u{${b.toString(16)}}`)).join("");
 /** Body of a /u character class matching re's \w for str patterns. */
 export const PY_WORD_CLASS = cls(T.word);
+/** Body of a /u character class matching re's \s for str patterns (str.isspace). */
+export const PY_SPACE_CLASS = cls(T.space);
+/** Body of a /u character class matching re's \d for str patterns (str.isdecimal). */
+export const PY_DECIMAL_CLASS = cls(T.decimal.map(([a, b]) => [a, b]));
+/** Whether re.IGNORECASE can change what this code point matches (Unicode Cased, 15.1). */
+export const pyIsCased = (cp: number) => inRanges(T.cased, cp);
 /** Body of a /u character class matching what an ASCII letter matches under re.IGNORECASE. */
 export const pyIgnoreCaseClass = (letter: string) => cls((T.ignorecase_ascii[letter.toLowerCase()] ?? [letter.codePointAt(0)!]).map((c) => [c, c]));
 

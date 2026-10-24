@@ -44,6 +44,18 @@ export const isList = (v: PyValue | undefined): v is PyValue[] => Array.isArray(
 export const isInt = (v: PyValue | undefined): v is bigint => typeof v === "bigint";
 export const isFloat = (v: PyValue | undefined): v is number => typeof v === "number";
 
+/** d.get(key, fallback) on an untrusted JSON value: anything but a dict has no .get (AttributeError). */
+export function pyGet(d: PyValue | undefined, key: string, fallback: PyValue = null): PyValue {
+  if (!(d instanceof PyDict)) throw new PyError("AttributeError", "object has no attribute 'get'");
+  return d.has(key) ? (d.get(key) as PyValue) : fallback;
+}
+
+/** d[key] on an untrusted JSON value; a missing key or a non-dict fails (KeyError or TypeError in Python). */
+export function pySubscript(d: PyValue | undefined, key: string): PyValue {
+  if (!(d instanceof PyDict) || !d.has(key)) throw new PyError("KeyError", key);
+  return d.get(key) as PyValue;
+}
+
 export function asDict(v: PyValue | undefined): PyDict {
   if (!isDict(v)) throw new PyError("AttributeError", "not a dict");
   return v;

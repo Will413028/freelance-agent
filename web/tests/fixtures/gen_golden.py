@@ -22,7 +22,10 @@ from freelance.modules.collection.store import identity_hash           # noqa: E
 from freelance.platform.sqlite import encode                           # noqa: E402
 from freelance.modules.collection import free_jobs                     # noqa: E402
 from freelance.modules.collection import cryptojobslist, public_feeds   # noqa: E402
+from freelance.modules.collection import community_jobs, getonboard, himalayas  # noqa: E402
 from email.utils import parsedate_to_datetime                          # noqa: E402
+from unittest.mock import patch                                        # noqa: E402
+import re                                                              # noqa: E402
 
 # free_jobs parses HTML with html.parser, whose behaviour changes between patch releases (3.13.13
 # closes '<!-->' differently). The ground truth is the production image's interpreter.
@@ -561,6 +564,384 @@ def cjl_case(doc, raw):
     return dict(input=doc, expect=attempt(run))
 
 
+# ---------------------------------------------------------------- plan step 8, batch 1
+FLOATS = ['8', ' 8 ', '8.0', '+8', '-5.5', '1_0', '1__0', '_1', '1_', '1e1_0', '1_e1', '1._5', '.5', '5.', '.', '', ' ', 'inf',
+          '-Infinity', 'nan', 'NaN', '+nan', '-nan', 'infinit', 'iNf', 'infinityy', '0x10', '1e400', '-1e400', '1e', 'e5', '١٢',
+          '８', '　 7 　', '\x1c5', '5\x85', '1.5e-3', '00012', '1,5', '٫5', '²', '1_000.000_1', '0_0', '+-1', '1e+5',
+          '1E-5', '9' * 400, '9' * 400 + '.5', '1e-400', '4.9e-324', '2.5e-324', '0.1', '1.7976931348623157e308',
+          '1.7976931348623159e308', '+.5e1', '- 1', '1 2', '١.٢', '1 ']
+
+FROMTS = [0, -1, 253402300799, 253402300800, -62135596800, -62135596801, 10 ** 17, 67767976233532799, 67767976233532800,
+          67768036191676799, 67768036191676800, -67768040609740800, -67768040609740801, -67768100567971200, 2 ** 63 - 1,
+          2 ** 63, -2 ** 63, -2 ** 63 - 1, 1.5e17, 9.3e18, 1e19, -9.3e18, 253402300799.9999996, 0.5, -0.5, 1e-7, 1.0000005,
+          float('nan'), float('inf'), float('-inf'), 1789746632, 1789746632.25]
+
+COMMUNITY_RES = [
+    (r'^(seeking work|for hire|looking for work)\b', re.I),
+    (r'\b(no contractors?|no freelance|full[ -]?time only|part[ -]?time not available)\b', re.I),
+    (r'\b(part[ -]?time|contract(?:or|ing)?|freelance|fractional)\b', re.I),
+    (r'\b(?:USA?|UK|EU|Europe|Canada|Australia)\s+only\b|REMOTE\s*\((?:EU|US|USA|UK|Europe)\)|\b(?:Poland|Romania|Romanian)(?: or (?:Poland|Romania|Romanian))? residents only', re.I),
+    (r'承接|接单|接單|接活|自荐|自薦|作品展示|出售|广告联盟|廣告聯盟|假如|如果', 0),
+    (r'招聘|寻找|尋找|求助|需求|外包|找.{0,20}(开发|開發|工程师|工程師|大佬)|有.{0,20}项目', 0),
+    (r'\b(?:LATAM|Latin America|US[- ]only|EU[- ]only)\b', re.I),
+    (r'[a-z0-9_-]{1,250}', 0), (r'/t/(\d+)', 0),
+    (r'\s+', 0), (r'\S+', 0), (r'\w+', 0), (r'\W', 0), (r'\D+', 0), (r'a.b', 0), (r'x$', 0), (r'^\d{2,}', 0), (r'[^\s]+', 0),
+    (r'k', re.I), (r's', re.I), (r'i', re.I), (r'[ks]+', re.I), (r'[^k]', re.I), (r'\bword\b', 0), (r'a{,2}b', 0), (r'a{2}', 0),
+    (r'\(x\)', 0), (r'a|b|c', 0), (r'[\d.]+', 0), (r'[-a]+', 0), (r'[a-]+', 0), (r'x{', 0), (r'(a)(b)?', 0), (r'a+?', 0),
+    (r'[\]x]+', 0), (r'\.\*', 0),
+]
+RE_TEXT = ['Seeking work as dev', 'seeking workers', 'SEEKING WORK', 'for hire', 'We are hiring part-time', 'part time', 'parttime',
+           'Part Time', 'PART-TIME', 'contracting', 'Contractor', 'contracts', 'freelancer', 'fractional CTO', 'no contractors',
+           'No Contractor please', 'full-time only', 'FULLTIME ONLY', 'part time not available', 'US only', 'USA  only', 'UK only',
+           'EU　only', 'Europe\nonly', 'Canada only!', 'Australiaonly', 'REMOTE (EU)', 'remote(us)', 'REMOTE  (USA)',
+           'Poland residents only', 'Romania or Poland residents only', 'Romanian or Romanian residents only', 'polish residents only',
+           'ſeeking work', 'Part-tİme', 'contractıng', 'K', 'k', 'K', 'ſ', 'S', 'İ', 'ı', 'i', 'I', 'café part-time',
+           'éUS only', 'US onlyé', '_US only', 'US only_', 'US onlý', '招聘 Python 工程师', '找一位開發', '找' + 'x' * 20 + '开发',
+           '找' + 'x' * 21 + '开发', '找\n开发', '找\r开发', '找 开发', '有个小项目', '有 项目', '承接外包', '如果招聘', 'LATAM',
+           'latam remote', 'Latin  America', 'us-only', 'eu only', '/t/123', '/t/١٢٣', '/t/', '/t/12a', '/t/12\n', '/t/\U0001d7ce',
+           'abc-def_1', 'ABC', 'a' * 251, 'x\n', 'x', 'x\n\n', 'a\nb', 'a b', 'a\rb', 'aab', 'b', '(x)', '12345', '١٢',
+           '\U0001d7ce\U0001d7cf', ' \t\x1c\x85 ', 'word', 'sword', 'wordy', 'word²', '\U0001f600 part-time \U0001f600', '',
+           'part‐time', 'part­time', '1.2.3', 'x{', 'a]x]', '.*', '-a-', 'kKſsSK', 'İı']
+
+
+def re_case(pattern, flags, s):
+    def span(m):
+        return None if m is None else dict(span=list(m.span()), groups=list(m.groups()))
+    return dict(pattern=pattern, ignorecase=bool(flags), input=s,
+                search=span(re.search(pattern, s, flags)), fullmatch=span(re.fullmatch(pattern, s, flags)))
+
+
+class FakeResponse:
+    def __init__(self, status, body):
+        self.status, self.body = status, body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self, n=-1):
+        return self.body if n < 0 else self.body[:n]
+
+
+class FakeOpener:
+    """A urllib opener over a fixed {url: (status, body)} map; an unknown URL fails like a network error."""
+    def __init__(self, pages):
+        self.pages = pages
+
+    def open(self, request, timeout=None):
+        if request.full_url not in self.pages:
+            raise OSError('unknown url ' + request.full_url)
+        return FakeResponse(*self.pages[request.full_url])
+
+
+def limited_body(response, deadline):
+    if len(response.body) > 2000000:
+        raise ValueError('Response limit')
+    return response.body
+
+
+class FixedNow(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return NOW if tz is not None else NOW.replace(tzinfo=None)
+
+
+def wire(pages):
+    return {url: [status, body.decode('latin-1')] for url, (status, body) in pages.items()}
+
+
+def jbytes(v):
+    return json.dumps(v).encode()
+
+
+def hima(**changes):
+    """backend/tests/collection/test_himalayas.py:listing"""
+    return dict(title='AI agent backend engineer', description='<p>Build AI agents and APIs</p>',
+                employmentType='Contractor', locationRestrictions=[], timezoneRestrictions=[],
+                pubDate=1789746632, expiryDate=1893456000,
+                applicationLink='https://himalayas.app/companies/example/jobs/engineer',
+                guid='https://himalayas.app/companies/example/jobs/engineer') | changes
+
+
+HIMALAYAS = [
+    hima(), [], None, 'x', hima(pubDate=1789746632000), hima(pubDate='2026-09-18T12:00:00Z'), hima(pubDate='2026-09-18T12:00:00'),
+    hima(pubDate='2026-09-18T12:00:00+05:30'), hima(pubDate=True), hima(pubDate=None), hima(pubDate=1.5), hima(pubDate=float('nan')),
+    hima(pubDate=100000000000), hima(pubDate=100000000001), hima(pubDate=1e12), hima(pubDate=1789746632000.5), hima(pubDate=-5),
+    hima(pubDate=253402300800), hima(pubDate='bad'), hima(pubDate=[1]),
+    hima(expiryDate=None), without(hima(), 'expiryDate'), hima(expiryDate=1), hima(expiryDate='2027-01-01T00:00:00Z'),
+    hima(expiryDate='bad'), hima(expiryDate=True), hima(expiryDate='2027-01-01'),
+    *[hima(locationRestrictions=v) for v in ([{'alpha2': 'US', 'name': 'United States'}], ['Taiwan'], [' TW '],
+                                            [{'alpha2': '', 'name': 'Taiwan'}], [{'name': 'TAIWAN, PROVINCE OF CHINA'}], [{}], [5],
+                                            [''], ['  '], None, 'US', [{'alpha2': 'US'}, 'Taiwan'], ['ΣΑΣ'], [{'alpha2': None, 'name': 'tw'}],
+                                            [{'alpha2': 0, 'name': 'Japan'}], ['Taiwan　'], ['İstanbul'])],
+    *[hima(timezoneRestrictions=v) for v in ([8], [8.0], ['8'], [' 8 '], ['+8.0'], [-5, 0], [True], [False], [None], [[8]], [{}],
+                                            ['inf'], ['nan'], [14], [14.0000001], [-12], ['-12'], ['1_4'], ['８'], [2 ** 1100], ['abc'],
+                                            None, 8, [8, -5], [7.999999999999999], ['８.0'], ['　 8'])],
+    *[hima(employmentType=v) for v in ('Part Time', 'Full Time', 'Intern', None, 5, 'contractor')],
+    *[hima(applicationLink=v) for v in ('https://evil.example/', None, 5, [], 'https://himalayas.app/companies/x/jobs/y?utm=1#f',
+                                       'https://himalayas.app/jobs/y', 'https://himalayas.app/companies/x', 'http://himalayas.app/companies/x/jobs/y',
+                                       'HTTPS://himalayas.app/companies/x/jobs/y', 'https://www.himalayas.app/companies/x/jobs/y', '', 0)],
+    *[hima(title=v) for v in ('', 'x' * 501, None, '後端 \U0001f600', 'x' * 500)],
+    *[hima(description=v) for v in ('', '<script>x</script>', '<p>a &amp; b</p>', None, 'x' * 100001, '<p>後端</p>')],
+    *[hima(guid=v) for v in ('', None, 5, 'x' * 2001, '後端')],
+]
+
+
+def hima_fetch_case(pages):
+    def run():
+        with patch.object(himalayas, 'build_opener', lambda *a: FakeOpener(pages)), patch.object(himalayas.time, 'sleep', lambda s: None):
+            return [encode(himalayas.normalize(p)) for p in himalayas.fetch()]
+    return dict(pages=wire(pages), expect=attempt(run))
+
+
+def hima_urls():
+    from urllib.parse import urlencode
+    return ['https://himalayas.app/jobs/api/search?' + urlencode(dict(q=q, employment_type=e, country='TW', sort='recent', page=1))
+            for q in himalayas.QUERIES for e in ('Contractor', 'Part Time')]
+
+
+def hima_pages(*overrides, default=None):
+    urls = hima_urls()
+    pages = {u: (200, jbytes({'jobs': []} if default is None else default)) for u in urls}
+    for i, value in overrides:
+        pages[urls[i]] = value
+    return pages
+
+
+A, B = 'https://himalayas.app/companies/a/jobs/a', 'https://himalayas.app/companies/b/jobs/b'
+HIMALAYAS_FETCH = [
+    hima_pages(), hima_pages(default={'jobs': [hima()]}),
+    hima_pages((0, (200, jbytes({'jobs': [hima(guid=A, applicationLink=A)]}))), (3, (200, jbytes({'jobs': [hima(guid=B, applicationLink=B)]}))),
+               (5, (200, jbytes({'jobs': [hima(guid=A, applicationLink=A, title='Updated title')]})))),
+    hima_pages((2, (200, jbytes({'jobs': [hima(guid=str(n), applicationLink=A) for n in range(21)]})))),
+    hima_pages((2, (200, jbytes({'jobs': [hima(guid=str(n), applicationLink=A) for n in range(20)]})))),
+    hima_pages((1, (200, jbytes([])))), hima_pages((1, (500, b'{}'))), hima_pages((1, (200, b'not json'))),
+    hima_pages((1, (200, jbytes({'jobs': None})))), hima_pages((1, (200, jbytes({'jobs': [without(hima(), 'guid')]})))),
+    hima_pages((1, (200, jbytes({'jobs': [hima(guid=5)]})))), hima_pages((1, (200, jbytes({'jobs': ['x']})))),
+    hima_pages((1, (200, b' ' * 8000001))), hima_pages((1, (200, b'{"jobs": [], "x": ' + b'1' * 4301 + b'}'))),
+    hima_pages((1, (200, b'{"jobs": [], "x": -' + b'1' * 4300 + b'}'))), hima_pages((1, (200, jbytes({'jobs': [hima(description='')]})))),
+    {u: v for u, v in list(hima_pages().items())[:7]},
+]
+
+
+def gob(**changes):
+    """backend/tests/collection/test_getonboard.py:listing, with a fixed publication time."""
+    attrs = dict(title='Part time AI agent backend engineer', description='<p>Build an AI agent and API.</p>',
+                 modality={'data': {'id': 42}}, remote=True, remote_modality='fully_remote',
+                 countries=['Remote'], published_at=1789746632,
+                 category_name='Programming', lang='en', min_salary=1000, max_salary=2000) | changes
+    return dict(id='acme-ai-agent', attributes=attrs, links={'public_url': 'https://www.getonbrd.com/jobs/acme-ai-agent'})
+
+
+def gob_item(**changes):
+    return gob() | changes
+
+
+MOD = {'42': 'part_time', '43': 'full_time', '44': 'freelance', '45': 'internship', '46': None, '47': ['x'], '42.0': 'part_time', 'None': 'freelance'}
+GETONBOARD = [
+    gob(), [], None, gob_item(id='ACME'), gob_item(id='a' * 251), gob_item(id=5), gob_item(id=None), gob_item(id='a b'), gob_item(id='acme\n'),
+    gob_item(attributes=None), gob_item(attributes=[]), without(gob(), 'links'), gob_item(links=None), gob_item(links={'public_url': None}),
+    gob_item(links={'public_url': 5}), gob_item(links={'public_url': []}), gob_item(links={}), gob_item(links={'public_url': 'https://www.getonbrd.com/jobs/other'}),
+    gob_item(links={'public_url': 'https://www.getonbrd.com/jobs/acme-ai-agent?x=1#f'}), gob_item(links={'public_url': 'https://getonbrd.com/jobs/acme-ai-agent'}),
+    *[gob(title=v) for v in (None, '', '<b>x</b> &amp; y', 'Backend LATAM', 'latam', 'US-only role', 'EU only', 'Latin  America', 'x' * 501,
+                             'Latin Americá', 'ſome US only', 'Remote (US Only)')],
+    *[gob(description=v) for v in (None, '', '<p>a</p>' * 3, 'x' * 100001)],
+    gob(projects='<p>p</p>'), gob(functions=0), gob(desirable=5), gob(benefits=[]), gob(benefits=['x']), gob(projects='p', benefits='<li>b</li>'),
+    gob(projects='x' * 99990),
+    *[gob(published_at=v) for v in (0, -1, True, '1789746632', 1.5e9, 2 ** 63, 10 ** 17, 253402300800, 253402300799)],
+    *[gob(modality=v) for v in ({'data': {'id': '42'}}, {'data': {'id': 42.0}}, None, {}, {'data': None}, {'data': {'id': [42]}},
+                                {'data': {'id': 43}}, {'data': {'id': 44}}, {'data': {'id': 45}}, {'data': {'id': 46}}, {'data': {'id': 47}},
+                                {'data': {'id': True}}, {'data': {'id': 99}}, [])],
+    *[gob(countries=v) for v in (None, [5], [], ['Chile', 'Remote'], 'Chile')],
+    gob(remote=1), gob(remote='true'), gob(remote_modality=None), gob(category_name=['x']), gob(lang=None), gob(min_salary=1.5, max_salary=None),
+    gob(title='後端 \U0001f600 工程師'), gob(extra={'nested': [1, 2.5, None]}),
+]
+
+
+def gob_fetch_case(pages):
+    def run():
+        with patch.object(getonboard, 'build_opener', lambda *a: FakeOpener(pages)), patch.object(getonboard, 'read_body', limited_body), \
+                patch.object(getonboard.time, 'sleep', lambda s: None):
+            r = getonboard.fetch()
+        return dict(result=encode({k: v for k, v in r.items() if k != 'jobs'}), jobs=[encode(j) for j in r['jobs']])
+    return dict(pages=wire(pages), expect=attempt(run))
+
+
+def gob_pages(taxonomy=None, *pages):
+    from urllib.parse import urlencode
+    root = getonboard.ROOT
+    out = {root + 'modalities?' + urlencode({'per_page': 120, 'page': 1}):
+           (200, jbytes(taxonomy if taxonomy is not None else {'data': [{'id': '42', 'attributes': {'locale_key': 'part_time'}}], 'meta': {'total_pages': 1}}))}
+    for n, page in enumerate(pages, 1):
+        out[root + 'search/jobs?' + urlencode({'remote': 'true', 'per_page': 120, 'page': n})] = page if isinstance(page, tuple) else (200, jbytes(page))
+    return out
+
+
+def gpage(n, total, *items):
+    return {'data': list(items), 'meta': {'page': n, 'total_pages': total}}
+
+
+GETONBOARD_FETCH = [
+    gob_pages(None, gpage(1, 1, gob(), gob(title=None))), gob_pages(None, gpage(1, 2, gob()), gpage(2, 2)),
+    gob_pages({'data': [], 'meta': {'total_pages': 2}}, gpage(1, 1)), gob_pages({'data': [], 'meta': {'total_pages': 1.0}}, gpage(1, 1, gob())),
+    gob_pages({'data': [{'id': 42, 'attributes': {'locale_key': 'part_time'}}], 'meta': {'total_pages': True}}, gpage(1, 1, gob())),
+    gob_pages({'data': [], 'meta': None}, gpage(1, 1)), gob_pages({'data': []}, gpage(1, 1)),
+    gob_pages(None, gpage(2, 1)), gob_pages(None, {'data': [], 'meta': {'page': '1', 'total_pages': 1}}), gob_pages(None, {'data': [], 'meta': {'page': 1.0, 'total_pages': 1}}),
+    gob_pages(None, gpage(1, True)), gob_pages(None, gpage(1, -1)), gob_pages(None, gpage(1, 0, gob())), gob_pages(None, gpage(1, 1.0)),
+    gob_pages(None, *[gpage(n, 20, gob_item(id=f'job-{n}', links={'public_url': f'https://www.getonbrd.com/jobs/job-{n}'})) for n in range(1, 11)]),
+    gob_pages(None, {'data': [gob()] * 121, 'meta': {'page': 1, 'total_pages': 1}}), gob_pages(None, gpage(1, 1, gob(), gob())),
+    gob_pages({'data': [{'id': '42'}], 'meta': {'total_pages': 1}}, gpage(1, 1)), gob_pages({'data': ['x'], 'meta': {'total_pages': 1}}, gpage(1, 1)),
+    gob_pages({'data': [{'id': '42', 'attributes': {'locale_key': 'a'}}, {'id': 42, 'attributes': {'locale_key': 'part_time'}}], 'meta': {'total_pages': 1}}, gpage(1, 1, gob())),
+    gob_pages(None, gpage(1, 1, gob(published_at=10 ** 17))), gob_pages(None, gpage(1, 1, gob(published_at=253402300800))),
+    gob_pages(None, (500, b'{}')), gob_pages(None, (200, b'nope')), gob_pages(None, (200, b'[]')), gob_pages(None, (200, b' ' * 2000001)),
+    gob_pages(None, gpage(1, 1, 'x', 5, None, gob())), gob_pages(None, {'data': None, 'meta': {'page': 1, 'total_pages': 1}}),
+    gob_pages(None, {'meta': {'page': 1, 'total_pages': 1}, 'data': [], 'extra': 1}), gob_pages(None, {'data': [], 'meta': []}),
+]
+
+HN_COMMENT = dict(id=1001, time=1789746632, type='comment', parent=900,
+                  text='<p>Acme | Part-time contract | Remote</p><p>Build an AI agent API.</p>')
+
+
+def hn(**changes):
+    return HN_COMMENT | changes
+
+
+HN = [
+    (hn(), 900), (hn(), 900.0), (hn(), 901), (hn(), True), (None, 900), ([], 900), (hn(deleted=True), 900), (hn(dead=1), 900), (hn(dead=0), 900),
+    (hn(type='story'), 900), (without(hn(), 'type'), 900), (hn(parent=900.0), 900), (without(hn(), 'parent'), None), (hn(text=None), 900), (hn(text=5), 900),
+    (hn(id='1001'), 900), (hn(id=True), 900), (hn(time=1.5), 900), (hn(time=None), 900), (hn(time=10 ** 17), 900), (hn(time=253402300800), 900),
+    *[(hn(text=t), 900) for t in RE_TEXT],
+    (hn(text='Location: Taipei\nRemote: yes\nWilling to relocate: no\nfreelance'), 900), (hn(text='Location: x freelance Willing to relocate: y'), 900),
+    (hn(text='x Location: y Willing to relocate: freelance'), 900), (hn(text='<p>Seeking work</p> freelance'), 900),
+    (hn(text='Acme | contract | ' + '\U0001f600' * 200), 900), (hn(text='part-time ' + 'x' * 100001), 900), (hn(text='<p></p>'), 900),
+    (hn(text='Acme | Part-time | USA only'), 900), (hn(text='Acme | contract | REMOTE (EU)'), 900),
+    (hn(text='Acme | freelance | Romania or Poland residents only'), 900), (hn(text='Acme | freelance | &lt;b&gt; &amp; caf&eacute;'), 900),
+    (hn(text='<script>part-time</script>contract'), 900), (hn(id=2 ** 70), 900), (hn(), [900]), (hn(), {'a': 1}),
+]
+
+
+def hn_case(p, parent):
+    def run():
+        j = community_jobs.hn_job(p, parent)
+        return None if j is None else encode(j)
+    return dict(p=tag(p), parent=tag(parent), expect=attempt(run))
+
+
+ATOM_NS = 'http://www.w3.org/2005/Atom'
+
+
+def entry(title='招聘 Python 工程师', href='https://www.v2ex.com/t/123456#reply3', rel='alternate', published='2026-09-27T12:00:00Z',
+          content='&lt;p&gt;需要 API 開發&lt;/p&gt;', links=None, extra=''):
+    parts = []
+    if title is not None:
+        parts.append(f'<title>{title}</title>')
+    if links is None:
+        links = [f'<link rel="{rel}" type="text/html" href="{href}"/>'] if href is not None else [f'<link rel="{rel}"/>']
+    parts.extend(links)
+    if published is not None:
+        parts.append(f'<published>{published}</published>')
+    if content is not None:
+        parts.append(f'<content type="html">{content}</content>')
+    return '<entry>' + ''.join(parts) + extra + '</entry>'
+
+
+def atom(*entries, head='<?xml version="1.0" encoding="UTF-8"?>', ns=ATOM_NS):
+    return f'{head}<feed xmlns="{ns}"><title>V2EX</title>{"".join(entries)}</feed>'
+
+
+V2EX = [
+    atom(entry()), atom(), atom(entry(), entry(href='https://www.v2ex.com/t/2')), atom(entry(title='承接外包')), atom(entry(title='如果招聘')),
+    atom(entry(title='hello')), atom(entry(title='找一個 Python 開發')), atom(entry(title='找' + 'x' * 21 + '開發')), atom(entry(title='有小项目')),
+    atom(entry(title=None)), atom(entry(title='')), atom(entry(title='招聘 &amp; 外包')), atom(entry(title='招聘' + 'x' * 600)),
+    atom(entry(links=[])), atom(entry(links=['<link rel="alternate" href="https://www.v2ex.com/t/1"/>', '<link rel="alternate" href="https://www.v2ex.com/t/2"/>'])),
+    atom(entry(rel='self')), atom(entry(href=None)), atom(entry(links=['<link rel="self" href="https://x/"/>', '<link rel="alternate" href="https://www.v2ex.com/t/9"/>'])),
+    *[atom(entry(href=h)) for h in ('http://www.v2ex.com/t/1', 'https://v2ex.com/t/1', 'https://www.v2ex.com/t/abc', 'https://www.v2ex.com/t/١٢٣',
+                                    'https://www.v2ex.com/t/123/', 'https://www.v2ex.com/t/1?a=1&amp;b=2', 'https://www.v2ex.com/t/1&#10;',
+                                    'https://www.v2ex.com/t/1&#9;x', ' https://www.v2ex.com/t/1', 'HTTPS://www.v2ex.com/t/1', 'https://www.v2ex.com/t/')],
+    *[atom(entry(published=d)) for d in (None, '', '2026-09-27T12:00:00', '2026-06-01T00:00:00Z', '2026-06-30T01:00:00Z', '2026-06-30T00:59:59Z',
+                                         '2026-09-27T12:00:00+08:00', 'bad', '2026-10-30T00:00:00Z')],
+    atom(entry(published='2026-01-01T00:00:00Z', href='https://evil/')), atom(entry(content=None)), atom(entry(content='')),
+    atom(entry(content='<div xmlns="http://www.w3.org/1999/xhtml">x<p>y</p></div>')), atom(entry(content='lead<b>x</b>tail')),
+    atom(entry(content='&lt;script&gt;x&lt;/script&gt;')), atom(entry(content='x' * 100001)),
+    atom(entry(links=['<link xmlns:a="urn:a" a:rel="alternate" rel="alternate" a:href="https://evil/" href="https://www.v2ex.com/t/5"/>'])),
+    atom(entry(links=['<link rel=" alternate" href="https://www.v2ex.com/t/5"/>'])), atom(entry(links=['<link rel="alternate" href="https://www.v2ex.com/t/5" href2="x"/>'])),
+    atom(entry(links=['<a:link xmlns:a="urn:other" rel="alternate" href="https://www.v2ex.com/t/6"/>', '<link rel="alternate" href="https://www.v2ex.com/t/7"/>'])),
+    atom(entry(links=["<link rel='alternate' href='https://www.v2ex.com/t/8'/>"])),
+    atom(entry(), ns='http://example.com/'), '<rss><channel/></rss>', '<!DOCTYPE feed>' + atom(entry()), '<!doctype feed>' + atom(entry()),
+    atom(entry()).replace('<feed', '<!eNtItY x "y"><feed'), '<feed', atom(entry()) + 'trailing', atom(*[entry(href=f'https://www.v2ex.com/t/{n}') for n in range(100)]),
+    atom(*[entry(title='hello') for _ in range(101)]), atom(entry(title='hello', content='x' * 2000000)), '\ufeff\ufeff' + atom(entry()),
+    '﻿' + atom(entry()), atom(entry(title='招聘 café'), head='<?xml version="1.0" encoding="ISO-8859-1"?>'),
+    atom(entry(extra='<title>second 招聘</title>')), f'<feed xmlns="{ATOM_NS}"><entry><title>招聘</title><link rel="alternate" href="https://www.v2ex.com/t/1"/><published>2026-09-27T12:00:00Z</published></entry></feed>',
+    f'<a:feed xmlns:a="{ATOM_NS}"><a:entry><a:title>招聘</a:title><a:link rel="alternate" href="https://www.v2ex.com/t/3"/><a:published>2026-09-27T12:00:00Z</a:published></a:entry></a:feed>',
+]
+
+
+def v2ex_case(doc, raw):
+    def run():
+        with patch.object(community_jobs, 'datetime', FixedNow):
+            return [encode(j) for j in community_jobs.v2ex_jobs(raw)]
+    return dict(input=doc, expect=attempt(run))
+
+
+HN_ROOT = 'https://hacker-news.firebaseio.com/v0/'
+DAY = 86400
+T0 = int(NOW.timestamp())
+
+
+def story(i, title='Ask HN: Who is hiring? (September 2026)', age=5, kids=(), **changes):
+    return dict(id=i, by='whoishiring', type='story', title=title, time=T0 - age * DAY, kids=list(kids) if isinstance(kids, (list, tuple)) else kids) | changes
+
+
+def comment(i, parent, text='Acme | Part-time contract | Remote. Build an AI agent API.', **changes):
+    return dict(id=i, by='someone', type='comment', parent=parent, time=T0 - DAY, text=text) | changes
+
+
+def hn_pages(submitted, *items, user=None):
+    pages = {HN_ROOT + 'user/whoishiring.json': (200, jbytes(user if user is not None else {'id': 'whoishiring', 'submitted': submitted}))}
+    for i, item in items:
+        pages[HN_ROOT + f'item/{i}.json'] = item if isinstance(item, tuple) else (200, jbytes(item))
+    return pages
+
+
+HN_FETCH = [
+    hn_pages([1, 2, 3], (1, story(1, kids=[11, 12])), (2, story(2, title='Ask HN: Freelancer? Seeking freelancer? (September 2026)', kids=[21])),
+             (3, story(3, age=70)), (11, comment(11, 1)), (12, comment(12, 1, text='Full-time only, no contractors')), (21, comment(21, 2, text='Freelance React dev wanted'))),
+    hn_pages([1, 2, 3], (1, story(1, kids=[11])), (2, story(2, kids=[21])), (3, story(3, kids='bad')), (11, comment(11, 1)), (21, comment(21, 2))),
+    hn_pages([1], (1, story(1, age=70))), hn_pages([1], (1, story(1, age=62))), hn_pages([1], (1, story(1, age=61))), hn_pages([], user=None),
+    hn_pages(None, user={'id': 'x'}), hn_pages(None, user=[]), hn_pages([1], (1, story(1, title=None))), hn_pages([1], (1, story(1, by='other', title=None))),
+    hn_pages([1], (1, without(story(1), 'time'))), hn_pages([1], (1, story(1, time='x'))), hn_pages([1], (1, story(1, time=True))),
+    hn_pages([1], (1, story(1, time=float(T0)))), hn_pages([1], (1, story(1, kids=None))), hn_pages([1], (1, without(story(1), 'kids'))),
+    hn_pages([1], (1, story(1, kids=['x']))), hn_pages([1], (1, story(1, kids=[0]))), hn_pages([1], (1, story(1, kids=[11])), (11, (200, b'null'))),
+    hn_pages([1], (1, story(1, kids=[11])), (11, comment(11, 1, deleted=True))), hn_pages([True], (1, story(1))), hn_pages(['1'], (1, story(1))),
+    hn_pages([1, 2, 3, 4, 5, 6, 'bad'], *[(n, story(n, kids=[])) for n in range(1, 7)]), hn_pages([1, 2, 3, 4, 5, 6, 7], *[(n, story(n, kids=[])) for n in range(1, 7)]),
+    hn_pages([1], (1, story(1, kids=list(range(100, 205)))), *[(n, comment(n, 1, text=f'Contract role {n}')) for n in range(100, 205)]),
+    hn_pages([1], (1, without(story(1, kids=[]), 'id'))), hn_pages([1], (1, without(story(1, kids=[11]), 'id')), (11, comment(11, 1))),
+    hn_pages([1], (1, story(1, kids=[11])), (11, (500, b'{}'))), hn_pages([1], (1, story(1, kids=[11])), (11, (200, b' ' * 2000001))),
+    hn_pages([1], (1, story(1, kids=[11])), (11, comment(11, 1, id=11.0))), hn_pages([1], (1, story(1, deleted=True))),
+    hn_pages([1, 2], (1, 'x'), (2, story(2, kids=[]))), hn_pages([1], (1, story(1, type='job', kids=[]))),
+]
+
+
+def hn_fetch_case(pages):
+    def run():
+        with patch.object(community_jobs, 'build_opener', lambda *a: FakeOpener(pages)), patch.object(community_jobs, 'datetime', FixedNow):
+            return [encode(j) for j in community_jobs.fetch('hackernews')]
+    return dict(pages=wire(pages), expect=attempt(run))
+
+
+XML_ATTRIB = ['<a x="1" y=\'2\'/>', '<a xmlns="urn:d" x="1"/>', '<a xmlns:p="urn:p" p:x="1" x="2"/>', '<a x="a&amp;b&#10;c&#9;d\n e"/>',
+              '<a x=" sp  aced "/>', '<a><b k="v"/><c/></a>', '<a xml:lang="en"/>', '<a xmlns:p="urn:p"><p:b p:k="1" k="2"/></a>']
+
+
+def xml_attrib_case(doc):
+    import xml.etree.ElementTree as ET
+    def run():
+        return [[e.tag, list(e.attrib.items())] for e in ET.fromstring(doc.encode()).iter()]
+    return dict(input=doc, expect=attempt(run))
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -583,6 +964,18 @@ def main():
         'published': [dict(input=s, expect=attempt(lambda: public_feeds.published(s).isoformat())) for s in PARSEDATE],
         'py_int': [dict(input=s, expect=attempt(lambda: str(int(s)))) for s in INTS],
         'cryptojobslist_parse': [cjl_case(d, d.encode('utf-8')) for d in RSS] + [dict(cjl_case(d, d.encode('latin-1')), latin1=True) for d in RSS_BYTES],
+        'py_float': [dict(input=s, expect=attempt(lambda: repr(float(s)))) for s in FLOATS],
+        'fromtimestamp': [dict(input=tag(t), expect=attempt(lambda: datetime.fromtimestamp(t, timezone.utc).isoformat())) for t in FROMTS],
+        'py_re': [re_case(p, f, s) for p, f in COMMUNITY_RES for s in RE_TEXT],
+        'himalayas_normalize': [dict(payload=tag(p), expect=attempt(lambda: encode(himalayas.normalize(p)))) for p in HIMALAYAS],
+        'himalayas_fetch': [hima_fetch_case(p) for p in HIMALAYAS_FETCH],
+        'getonboard_normalize': [dict(item=tag(i), expect=attempt(lambda: encode(getonboard.normalize(i, MOD)))) for i in GETONBOARD],
+        'getonboard_modalities': tag(MOD),
+        'getonboard_fetch': [gob_fetch_case(p) for p in GETONBOARD_FETCH],
+        'hn_job': [hn_case(p, parent) for p, parent in HN],
+        'v2ex_jobs': [v2ex_case(d, d.encode('utf-8')) for d in V2EX],
+        'hn_fetch': [hn_fetch_case(p) for p in HN_FETCH],
+        'xml_attrib': [xml_attrib_case(d) for d in XML_ATTRIB],
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

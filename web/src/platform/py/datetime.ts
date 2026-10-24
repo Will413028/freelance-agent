@@ -56,22 +56,35 @@ export class PyDateTime {
     return new PyDateTime(y, m, d, hour, minute, second, Number(rest % 1_000_000n), 0n);
   }
 
-  /** datetime.fromtimestamp(t, tz=timezone.utc), rounding half-even like _PyTime_ObjectToTimeval. */
+  /**
+   * datetime.fromtimestamp(t, tz=timezone.utc), rounding half-even like _PyTime_ObjectToTimeval. The
+   * error follows CPython on Linux and macOS (measured 2026-10-24): outside time_t is OverflowError,
+   * a year gmtime cannot store in tm_year is OSError, and any other year outside 1..9999 is ValueError.
+   */
   static fromTimestamp(t: number | bigint): PyDateTime {
     let whole: bigint, us: bigint;
     if (typeof t === "bigint") { whole = t; us = 0n; }
     else {
-      if (!Number.isFinite(t)) throw new PyError("ValueError", "Invalid value NaN (not a number)");
+      if (Number.isNaN(t)) throw new PyError("ValueError", "Invalid value NaN (not a number)");
+      if (!Number.isFinite(t)) throw new PyError("OverflowError", "timestamp out of range for platform time_t");
       const intpart = Math.trunc(t);
       let frac = roundHalfEven((t - intpart) * 1e6), ip = intpart;
       if (frac >= 1e6) { frac -= 1e6; ip += 1; } else if (frac < 0) { frac += 1e6; ip -= 1; }
+      if (Math.abs(ip) > 2 ** 63) throw new PyError("OverflowError", "timestamp out of range for platform time_t");
       whole = BigInt(ip); us = BigInt(frac);
     }
-    try {
-      return PyDateTime.fromUtcMicros(whole * 1_000_000n + us);
-    } catch {
-      throw new PyError("OverflowError", "timestamp out of range for platform time_t");
-    }
+    if (whole < -(2n ** 63n) || whole >= 2n ** 63n) throw new PyError("OverflowError", "timestamp out of range for platform time_t");
+    const days = whole >= 0n ? whole / 86_400n : -((-whole + 86_399n) / 86_400n);
+    const [year] = ordToYmd(EPOCH_ORD + Number(days));
+    if (year - 1900 > 2 ** 31 - 1 || year - 1900 < -(2 ** 31)) throw new PyError("OSError", "Value too large for defined data type");
+    return PyDateTime.fromUtcMicros(whole * 1_000_000n + us);
+  }
+
+  /** fromtimestamp for a JSON value: bool counts as int; anything else non-numeric is a TypeError. */
+  static fromTimestampValue(v: unknown): PyDateTime {
+    if (typeof v === "boolean") return PyDateTime.fromTimestamp(v ? 1n : 0n);
+    if (typeof v === "bigint" || typeof v === "number") return PyDateTime.fromTimestamp(v);
+    throw new PyError("TypeError", "'str' object cannot be interpreted as an integer");
   }
 
   get aware() { return this.offset !== null; }

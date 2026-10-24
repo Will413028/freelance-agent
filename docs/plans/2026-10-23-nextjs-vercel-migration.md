@@ -279,7 +279,7 @@
 - [ ] **7. 第二個試點：CryptoJobsList（驗證 `source_batch`）**（被擋於：步驟 6）
   - 範圍與驗收：同步驟 6。
   - 另加：批次中途失敗時整批不寫入的測試。mutation：把交易邊界移到逐筆寫入，測試要失敗。
-  - 實作狀態（2026-10-24，未部署；部署等步驟 6 的 7 天比對）：`web/src/modules/collection/sources/cryptojobslist.ts`，`registry.ts` 已登記（排程範圍隨之變成 jobicy、remotive、cryptojobslist；VM 比對器跟著 `enabledSources()`，換映像時一起生效）。共用件：
+  - 實作狀態（2026-10-24，未部署；部署等步驟 6 的 7 天比對）：`web/src/modules/collection/sources/cryptojobslist.ts`，`registry.ts` 的 `RUNNERS` 已登記；排程要等部署時把它加進 `SCHEDULED`（見步驟 8「排程開關」），VM 比對器範圍跟著 `enabledSources()`，換映像時一起生效。共用件：
     - `platform/py/xml.ts`：`ElementTree.fromstring(bytes)` 與 find／findall／findtext，建在 `saxes`（嚴格 XML 1.0＋namespace 解析器），不用盤點推測的 fast-xml-parser：expat 嚴格、fast-xml-parser 寬鬆，同一份壞 feed 會一邊整個來源失敗、一邊成功。編碼照 expat：BOM、宣告編碼（UTF-8、US-ASCII、ISO-8859-1；BOM 與宣告不符報錯）；pyexpat 另接受的單位元組 codec（如 cp1252）TS 報錯，現有 XML 來源都送 UTF-8。後續步驟 8 的 4 個 XML 來源（community_jobs、nodesk、taiwanjobs、public_feeds）共用。
     - `platform/py/email.ts`：`email.utils.parsedate_to_datetime` 逐行移植；`unicode.ts` 補 `int(str)`（Unicode 十進位數字、底線、4300 位上限）、`str.isdigit`、`str.splitlines`、`str.upper` 的 ASCII 結果；`re.ts` 補 `\b`（Unicode 字元類）與 IGNORECASE（`i`／`k`／`s` 也配 `İ`、`ı`、`K`、`ſ`）。表由 `spike-1c/gen_expected.py` 以 3.13.15 產生。
     - `html.ts` 的 `htmlFeed` 加 `close`（goahead(1)）並把屬性交給 starttag；`sources/public-feeds.ts` 放 `text`、`published`（步驟 8 的 public_feeds 來源共用）。
@@ -300,6 +300,18 @@
     - `re.ts` 的 `wordsIgnoreCase` 只涵蓋「單字邊界＋備選字」；`public_feeds.py:138-147` 用到 `\s`、`findall`、`sub`，要更通用的轉譯，同樣以 3.13.15 產生字元表。
   - 寫入鎖與 fan-out（2026-10-24 步驟 7 設計審查；同日 Will 決定改依序執行）：`sourceBatch` 照 Python 用一個交易包住整批寫入，全程握 `writeTransaction` 的全域 advisory lock（`lock_timeout` 5 秒）；Python 依序跑來源（`collection/service.py:10-20`），TS 的 workflow 平行 fan-out（`workflows/daily.ts`）。一個大批次握鎖超過 5 秒，同時在跑的其他來源寫入就會失敗。shadow 現況（量到）：freelancer 1,579 筆、jobicy 53、remotive 4、cryptojobslist 1、taiwanjobs 1，所以步驟 7 不受影響，步驟 8 的 Freelancer 會。
     - 已改：`workflows/in-order.ts` 的 `syncInOrder` 一個來源跑完才跑下一個（每個來源仍是獨立 step，失敗的來源記 failed、後面照跑），和 Python 相同，鎖衝突從結構上消失。代價是每日 run 的總時間變成各來源時間相加（未量）。測試 `daily.test.ts`「runs sources one at a time」量同時執行數；mutation 改回 `Promise.allSettled`，測試失敗。helper 放在不依賴 Node 模組的獨立檔，因為 workflow 函式不能引用會帶入 `pg` 的模組（build 量到）。尚未部署，隨步驟 7 一起上。
+  - 排程開關（2026-10-25）：`registry.ts` 的 `RUNNERS` 收全部已移植的來源，排程只跑 `SCHEDULED` 清單（`enabledSources()`，VM 比對器範圍同一份）；現在是 jobicy、remotive，也就是已授權部署的那些。原本步驟 7 的 cryptojobslist 直接登記就會排程，步驟 6 比對期間若為別的原因部署 main，它會提前啟動；改成部署哪一批就在那個 commit 把它加進 `SCHEDULED`。測試 `daily.test.ts`「fans out only to implemented, enabled sources」。
+  - 批次（2026-10-25 定）：第 1 批 himalayas、hackernews、v2ex；getonboard 程式已完成，但它有分頁上限、時間上限與 partial 映射，照本步驟的排序併入後面那批（與 freelancer、arbeitnow 同類）。
+  - 第 1 批實作狀態（2026-10-25，未排程、未部署）：`sources/himalayas.ts`、`getonboard.ts`、`community-jobs.ts`（hackernews、v2ex）。共用件：
+    - `re.ts` 的 `translate`／`pyRe`／`pyFullmatch`：Python str pattern 的子集（`\b`、`\s`、`\d`、`\w` 用 unicodedata 15.1 的表、`.` 不配 `\n`、`$` 可配結尾換行、IGNORECASE 的 ASCII 字母含 `İ ı K ſ`）；不支援的語法在載入時拋錯，不會默默配錯。步驟 8 後面的 public_feeds 也用。
+    - `unicode.ts` 的 `pyFloat`（`float(str)`）、`pyIntToFloat`；`datetime.ts` 的 `fromTimestamp` 錯誤型別照 CPython（time_t 外 OverflowError、tm_year 放不下 OSError、其餘年份 ValueError；Linux `python:3.13.15-slim` 與 macOS 量到相同），加 `fromTimestampValue`（bool 當 int）。getonboard 逐筆只接 ValueError／TypeError／AttributeError／OverflowError，OSError 會讓整個 fetch 失敗，所以類別要對。
+    - `url.ts` 的 `urlsplitValue`（自 free-jobs.ts 移入）；`value.ts` 的 `pyGet`／`pySubscript`（四個來源共用）；`xml.ts` 的元素屬性 `attrib`／`xmlGet`（ElementTree 的鍵名：無前綴用 local、有前綴用 `{uri}local`、不含 xmlns 宣告）；deadline 用 `performance.now()`。
+    - 差分測試找到、已修：`xml.ts` 第二個 BOM（expat 判 not well-formed，原本 TextDecoder 與 saxes 各會再吃掉一個）；`json.ts` 的 `loads` 補 4300 位整數上限（Python 整份文件失敗，原本 TS 成功）。
+  - 第 1 批驗證（本機，2026-10-25）：golden 新增 float 59、fromtimestamp 32、regex 3,744 組、ElementTree 屬性 8、himalayas normalize 105／fetch 17、getonboard normalize 79／fetch 30、hn_job 140、v2ex 66、HN fetch 33（Python 3.13.15 產生），TS 全同；2026-10-24 23:0x 實抓的回應（himalayas 8 個、getonboard 3 個、HN 207 個、v2ex 1 個）餵給兩邊，輸出逐位元組相同（60、196、16、14 筆）；Python store 案例的 TS 版 9 個通過；`pnpm typecheck`、`boundaries`、`test`（140）、`build`，backend 629 個測試全綠。mutation：`\b` 改 JS 原生、`.` 改 JS 原生、`$` 改 JS 原生、拿掉 float 底線檢查、拿掉 OSError、taxonomy 的 `total_pages` 改嚴格相等、分頁 `>=` 改 `>`、時區 8 改 9、標題改 UTF-16 切、屬性不排除 xmlns、v2ex 拿掉 90 天、HN 拿掉 `[:2]`、getonboard 的 partial 不看 truncated，各自讓測試失敗。
+  - 獨立審查：差分模糊測試（subagent，6 個 seed）regex 約 290 萬組加全 code point 掃描約 1.33 億次判斷、float 48.6 萬、fromtimestamp 24.3 萬、三個 normalize 各 12 萬、v2ex 6.5 萬：0 筆行為差異，另找到上面已修的 2 類。設計審查 8 項：改 4（排程開關、共用 helper 與單調時鐘、getonboard 移到後面的批次、本段與步驟 14 的紀錄）、記 3（下面三條）、駁回 1：「`mapPool` 第一個失敗時其餘請求沒取消」——Python 的 `with ThreadPoolExecutor` 離開時 `shutdown(wait=True)`，已送出的請求同樣會跑完，請求量相同。
+    - 記：golden 在每個函式都比 Python 例外類別，逼 TS 仿出外面看不到的類別。後面的來源只在呼叫端依類別分支的地方比類別（像 getonboard 逐筆的 catch），其餘只比成功或失敗；已寫好的保留。
+    - 記：himalayas、community 從 `./free-jobs` 取 `htmlText`，getonboard 從 `./public-feeds` 取 `text`，照 Python 的 import。觸發：移植 public_feeds 來源那批時，把兩個轉文字 helper 移到 `sources/` 的共用檔，來源之間不互相 import。
+    - 記：himalayas 照 Python 沒有整體 deadline，最壞約 8×25 秒＋4.8 秒≈205 秒，再加最多 160 筆 ingest（推論，未量）。加整體 deadline 會讓 Python 成功的慢速情況在 TS 失敗，所以切換前不加。觸發：shadow 上 himalayas 單次超過 150 秒，或步驟 8 停止條件的 300 秒有風險時，交 Will 決定。
   - 消費端：附件 §1.1 每列的檔案。
   - 驗收：
     - 每批的 Python 測試案例 TS 版通過。
@@ -416,6 +428,7 @@
     - `golden.json` 拆成兩份：雜湊相容（永久保留）與 Python 行為對照（刪除）。
     - `web/src/platform/py/html.ts` 與 `platform/http.ts` 的 `loadsBytes`（照抄 `json.detect_encoding` 的 UTF-16／32）：二選一，換成 WHATWG parser（parse5）並修盤點缺陷 23，接受所有描述來自 HTML 的來源一次性重算指紋；或永久保留移植。觸發：D6 窗口結束。
     - 步驟 7 的 Python 行為照抄（`platform/py/email.ts` 的 `parsedate_to_datetime`、`re.ts` 的 `\b`＋IGNORECASE、`unicode.ts` 的 `pyInt`／`pyIsDigit`／`pyUpperAscii` 與 `decimal`／`digit`／`word`／`ignorecase_ascii`／`upper_ascii` 表、`xml.ts` 照 expat 的編碼判斷）：它們決定 `published_at`、`taiwan_eligible`、`remote_evidence`，這些欄位進 receipt 雜湊，所以切換前必須和 Python 一致。D6 後二選一：換標準實作（RFC 5322 日期解析、原生 `/iu`、`BigInt`／`Number` 解析），接受這類來源一次性重算 receipt；或永久保留並寫出理由。觸發：D6 窗口結束。（2026-10-24 步驟 7 設計審查）
+    - 步驟 8 第 1 批的照抄（`re.ts` 的 `translate`、`unicode.ts` 的 `pyFloat`／`pyIntToFloat`／`space` 與 `cased` 表、`datetime.ts` 的 `fromTimestamp` 錯誤分類、`json.ts` 的 4300 位上限、`xml.ts` 的 `attrib` 與第二個 BOM）：決定 `taiwan_eligible`、`timezone_compatible`、來源成敗與 receipt 雜湊。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 設計審查）
     - 非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`，或寫出保留理由。
     - `listIn` 全表讀取：UI 路徑已在步驟 11 改掉（D13）；這裡只剩每日摘要的全表讀取，D6 後若摘要不再需要和 Python 逐位元比對，再一起改。
   - 需要人做的事：
@@ -510,7 +523,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 5 TS 端排程骨架 | 完成 | 正式專案部署；手動觸發（01:17）回 not due、shadow 無寫入；`vercel env ls production` 只有 4 個 key、無寄送憑證；Neon 傳輸量已量；2026-10-24 自然執行：08:31 morning `converge ok`、09:14 cron 寫唯一一列 `complete`、12:53 cron log「已有 run」 | | `199bef1`、`e6a299c` |
 | 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份 | 7 天比對（10-25 起）、比對器 mutation；2026-10-24 已部署、after timer 已 enable | |
 | 7 CryptoJobsList | 程式完成（未部署） | 本機：golden（RSS 123、text 127、日期 126、int 26）、真實 feed 100 筆逐位元組相同、4 個 Python 案例、交易邊界 mutation | 部署與比對（等步驟 6 的 7 天比對通過）；fan-out 已改依序執行（未部署） | |
-| 8 其餘免登入來源 | 未開始 | | | |
+| 8 其餘免登入來源 | 進行中 | 第 1 批（himalayas、hackernews、v2ex）與 getonboard 程式完成：golden、真實回應逐位元組相同、9 個 store 案例、13 個 mutation、差分模糊測試與設計審查 | 部署與 3 天比對（等步驟 7）；其餘來源未移植 | |
 | 9 信件來源 | 未開始 | | | |
 | 10 摘要與寄送 | 未開始 | | | |
 | 11 UI、API、demo | 未開始 | | | |

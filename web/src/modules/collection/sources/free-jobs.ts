@@ -5,8 +5,8 @@ import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
 import { htmlFeed } from "@/platform/py/html";
 import { asciiHash } from "@/platform/py/json";
 import { pyLen, pyLower, pySplit, pyStrip } from "@/platform/py/unicode";
-import { urlsplit, urlunsplit } from "@/platform/py/url";
-import { cmpStr, isDict, isInt, isList, PyDict, PyError, truthy, type PyValue } from "@/platform/py/value";
+import { urlsplitValue, urlunsplit } from "@/platform/py/url";
+import { cmpStr, isInt, isList, PyDict, PyError, pyGet, truthy, type PyValue } from "@/platform/py/value";
 import { ingest, setSourceHealth } from "../ingest";
 
 // Port of collection/free_jobs.py: free public job-board discovery, preserving attribution and
@@ -37,18 +37,7 @@ export function htmlText(html: string): string {
   return parts.join("");
 }
 
-const get = (p: PyValue, key: string, fallback: PyValue = null): PyValue => {
-  if (!isDict(p)) throw new PyError("AttributeError", "'list' object has no attribute 'get'");
-  return p.has(key) ? p.at(key) : fallback;
-};
-
-/** urlsplit's argument coercion: falsy non-str becomes b'', a list or dict is unhashable (lru_cache). */
-function splitArg(url: PyValue): string {
-  if (typeof url === "string") return url;
-  if (isList(url) || isDict(url)) throw new PyError("TypeError", "unhashable type");
-  if (truthy(url)) throw new PyError("AttributeError", "object has no attribute 'decode'");
-  return "";
-}
+const get = pyGet;
 
 // Generic worldwide labels do not establish citizenship, payroll or timezone eligibility.
 const EXCLUDED_GEO = new Set(["usa", "us", "united states", "uk", "united kingdom", "canada", "europe", "eu", "australia"]);
@@ -64,7 +53,7 @@ export function normalize(source: string, p: PyValue, now: PyDateTime = PyDateTi
   }
   description = pySplit(htmlText(description)).join(" ");
   if (!description) throw new PyError("ValueError", "Empty description");
-  const u = urlsplit(splitArg(get(p, "url")));
+  const u = urlsplitValue(get(p, "url"));
   if (u.scheme !== "https" || u.netloc !== source + ".com" || !u.path.startsWith(remotive ? "/remote-jobs/" : "/jobs/")) {
     throw new PyError("ValueError", "Invalid job URL");
   }

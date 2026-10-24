@@ -1,6 +1,6 @@
 import { isIPv6 } from "node:net";
 import { nfkc } from "./unicode";
-import { PyError } from "./value";
+import { isDict, isList, PyError, truthy, type PyValue } from "./value";
 
 // urllib.parse.urlsplit / SplitResult.geturl semantics of CPython 3.13 (spike 1c rule 8). WHATWG URL
 // would lowercase the host, add "/" and percent-encode, which changes stored identity keys.
@@ -69,6 +69,17 @@ export function urlsplit(input: string): SplitResult {
   if (q >= 0) { query = url.slice(q + 1); url = url.slice(0, q); }
   checkNetloc(netloc);
   return { scheme, netloc, path: url, query, fragment };
+}
+
+/**
+ * urlsplit(value) for a value read from untrusted JSON: a falsy non-str splits to empty bytes, whose
+ * parts never equal a str; a list or dict is unhashable (lru_cache); other truthy values lack decode().
+ */
+export function urlsplitValue(value: PyValue | undefined): SplitResult {
+  if (typeof value === "string") return urlsplit(value);
+  if (isList(value) || isDict(value)) throw new PyError("TypeError", "unhashable type");
+  if (truthy(value)) throw new PyError("AttributeError", "object has no attribute 'decode'");
+  return urlsplit("");
 }
 
 /** SplitResult.hostname, used only for truthiness by the ported code. */
