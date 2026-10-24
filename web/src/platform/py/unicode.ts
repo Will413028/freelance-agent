@@ -1,5 +1,5 @@
 import { floatRepr } from "./json";
-import { isDict, truthy, type PyValue } from "./value";
+import { isDict, PyError, truthy, type PyValue } from "./value";
 import tables from "./unicode-tables.json";
 
 // String behaviour frozen to CPython's unicodedata 15.1 (spike 1c rule 7). Node's ICU is newer:
@@ -10,7 +10,8 @@ import tables from "./unicode-tables.json";
 type Ranges = [number, number][];
 const T = tables as unknown as {
   unassigned: Ranges; nonprintable: Ranges; space: Ranges; casefold: Record<string, string>; lower: Record<string, string>;
-  case_ignorable: Ranges; cased: Ranges;
+  case_ignorable: Ranges; cased: Ranges; decimal: [number, number, number][]; digit: Ranges; upper_ascii: Record<string, string>;
+  word: Ranges; ignorecase_ascii: Record<string, number[]>;
 };
 
 const CASEFOLD = new Map(Object.entries(T.casefold).map(([k, v]) => [Number(k), v]));
@@ -91,6 +92,58 @@ export function pySplit(s: string): string[] {
   if (cur.length) out.push(fromCps(cur));
   return out;
 }
+
+const LINE_BREAKS = new Set([0x0a, 0x0b, 0x0c, 0x0d, 0x1c, 0x1d, 0x1e, 0x85, 0x2028, 0x2029]);
+
+/** str.splitlines() without keepends. */
+export function pySplitlines(s: string): string[] {
+  const cps = codePoints(s), out: string[] = [];
+  let start = 0;
+  for (let i = 0; i < cps.length; i++) {
+    if (!LINE_BREAKS.has(cps[i])) continue;
+    out.push(fromCps(cps.slice(start, i)));
+    if (cps[i] === 0x0d && cps[i + 1] === 0x0a) i++;
+    start = i + 1;
+  }
+  if (start < cps.length) out.push(fromCps(cps.slice(start)));
+  return out;
+}
+
+function decimalValue(cp: number): number | null {
+  for (const [a, b, v] of T.decimal) if (cp >= a && cp <= b) return v + cp - a;
+  return null;
+}
+
+/** str.isdigit() of one code point. */
+export const pyIsDigit = (cp: number) => inRanges(T.digit, cp);
+
+/**
+ * int(s) for a str in base 10: Unicode decimal digits and whitespace, one optional sign, single
+ * underscores between digits, at most 4300 digits.
+ */
+export function pyInt(s: string): bigint {
+  let ascii = "";
+  for (const cp of codePoints(s)) {
+    // Only non-ASCII characters are transformed; ASCII \x1c-\x1f stay and are not int() whitespace.
+    if (cp < 0x80) ascii += String.fromCodePoint(cp);
+    else if (SPACE.has(cp)) ascii += " ";
+    else ascii += decimalValue(cp) ?? "?";
+  }
+  const m = /^[ \t\n\v\f\r]*([+-]?)([0-9](?:_?[0-9])*)[ \t\n\v\f\r]*$/.exec(ascii);
+  if (!m) throw new PyError("ValueError", `invalid literal for int() with base 10: ${reprStr(s)}`);
+  const digits = m[2].replaceAll("_", "");
+  if (digits.length > 4300) throw new PyError("ValueError", "Exceeds the limit (4300 digits) for integer string conversion");
+  return BigInt(m[1] + digits);
+}
+
+/** str.upper(), exact only where the result is ASCII letters (enough to compare with ASCII names). */
+export const pyUpperAscii = (s: string) => codePoints(s).map((cp) => T.upper_ascii[cp] ?? String.fromCodePoint(cp)).join("");
+
+const cls = (cps: [number, number][]) => cps.map(([a, b]) => (a === b ? `\\u{${a.toString(16)}}` : `\\u{${a.toString(16)}}-\\u{${b.toString(16)}}`)).join("");
+/** Body of a /u character class matching re's \w for str patterns. */
+export const PY_WORD_CLASS = cls(T.word);
+/** Body of a /u character class matching what an ASCII letter matches under re.IGNORECASE. */
+export const pyIgnoreCaseClass = (letter: string) => cls((T.ignorecase_ascii[letter.toLowerCase()] ?? [letter.codePointAt(0)!]).map((c) => [c, c]));
 
 /** str.strip() with no arguments. */
 export function pyStrip(s: string): string {

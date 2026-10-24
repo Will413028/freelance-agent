@@ -7,6 +7,7 @@ Writes expected.json and unicode-tables.json next to this file.
 from hashlib import sha256
 from pathlib import Path
 import json
+import re
 import sys
 import unicodedata
 
@@ -240,6 +241,16 @@ def sigma(s):
     return s.lower()[1]
 case_ignorable = lambda c: sigma('A\u03a3' + c + 'A') == '\u03c3' and sigma('A\u03a3' + c) == '\u03c2'
 cased = lambda c: not case_ignorable(c) and sigma('A\u03a3' + c) == '\u03c3'
+def decimal_runs():
+    out = []
+    for a, b in ranges(lambda c: c.isdecimal()):
+        for cp in range(a, b + 1):
+            v = unicodedata.decimal(chr(cp))
+            if out and out[-1][1] == cp - 1 and out[-1][2] + (cp - out[-1][0]) == v:
+                out[-1][1] = cp
+            else:
+                out.append([cp, cp, v])
+    return out
 tables = {'unidata': unicodedata.unidata_version,
           'unassigned': ranges(lambda c: unicodedata.category(c) == 'Cn'),
           'nonprintable': ranges(lambda c: not c.isprintable()),
@@ -248,8 +259,21 @@ tables = {'unidata': unicodedata.unidata_version,
           'nfkc_single': {str(k): v for k, v in nfkc.items()},
           'lower': {str(k): v for k, v in lower.items()},
           'case_ignorable': ranges(case_ignorable),
-          'cased': ranges(cased)}
-(HERE / 'unicode-tables.json').write_text(json.dumps(tables, ensure_ascii=True) + '\n')
+          'cased': ranges(cased),
+          # int(str) (plan step 7): decimal runs as [first, last, value of first]; str.isdigit; and the
+          # code points whose str.upper() is ASCII letters, enough to match email.utils' zone names.
+          'decimal': decimal_runs(),
+          'digit': ranges(lambda c: c.isdigit()),
+          # re with str patterns (plan step 7): \w / \b word characters, and what re.IGNORECASE lets
+          # each ASCII letter match.
+          'word': ranges(lambda c: re.fullmatch(r'\w', c) is not None),
+          'ignorecase_ascii': {l: [cp for cp in range(0x110000) if re.fullmatch(l, chr(cp), re.I)] for l in 'abcdefghijklmnopqrstuvwxyz'},
+          'upper_ascii': {str(cp): chr(cp).upper() for cp in range(0x110000)
+                          if chr(cp).upper() != chr(cp) and chr(cp).upper().isascii() and chr(cp).upper().isalpha()}}
+# The spike keeps its copy as the measurement record; the TS runtime reads the one under web/, written
+# here too so the two cannot drift.
+for target in (HERE, HERE.parents[3] / 'web' / 'src' / 'platform' / 'py'):
+    (target / 'unicode-tables.json').write_text(json.dumps(tables, ensure_ascii=True) + '\n')
 print(json.dumps({p['name']: len(p['cases']) for p in points}, indent=1))
 
 # ---------------------------------------------------------------- html.unescape tables (plan step 6)

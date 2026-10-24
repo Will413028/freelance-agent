@@ -224,9 +224,12 @@ function parseHms(c: Cursor, start: number, end: number): [number, number, numbe
     [p, vals[i]] = r;
     const ch = c.at(p++);
     if (i === 0) hasSep = ch === 0x3a;
-    if (p >= end) return [ch !== 0 ? 1 : 0, vals[0], vals[1], vals[2], 0];
+    // 3.13.15 checks the decimal mark first: a mark with no digit after it is an error.
+    if (ch === 0x2e || ch === 0x2c) {
+      if (p >= end) return [-3, 0, 0, 0, 0];
+      break;
+    } else if (p >= end) return [ch !== 0 ? 1 : 0, vals[0], vals[1], vals[2], 0];
     else if (hasSep && ch === 0x3a) continue;
-    else if (ch === 0x2e || ch === 0x2c) break;
     else if (!hasSep) --p;
     else return [-4, 0, 0, 0, 0];
   }

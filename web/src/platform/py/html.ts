@@ -51,7 +51,8 @@ export function unescapeAttrValue(s: string): string {
 }
 
 export type HtmlHandler = {
-  starttag?(tag: string): void;
+  /** attrs as HTMLParser passes them: lowercased names, unescaped values, null for a bare name. */
+  starttag?(tag: string, attrs: [string, string | null][]): void;
   endtag?(tag: string): void;
   data?(data: string): void;
 };
@@ -89,12 +90,14 @@ function backFromEnd(s: string, count: number): number {
 }
 
 /**
- * One HTMLParser().feed(data) on a fresh parser (convert_charrefs=True), without close(): input
- * the parser holds back at the end (an unterminated tag or comment, an unclosed script, a trailing
- * '&name') is dropped, exactly as in the Python callers.
+ * One HTMLParser().feed(data) on a fresh parser (convert_charrefs=True), followed by close() when
+ * `close` is set. Without close() the input the parser holds back at the end (an unterminated tag
+ * or comment, an unclosed script, a trailing '&name') is dropped, as in free_jobs.Text; close()
+ * flushes it the way goahead(1) does.
  */
-export function htmlFeed(rawdata: string, h: HtmlHandler): void {
-  const n = rawdata.length;
+export function htmlFeed(input: string, h: HtmlHandler, close = false): void {
+  let rawdata = input;
+  let n = rawdata.length;
   let cdataElem: string | null = null;
   let escapable = true;
   let interesting: RegExp | null = null;
@@ -120,14 +123,16 @@ export function htmlFeed(rawdata: string, h: HtmlHandler): void {
     const t = matchAt(TAGFIND, rawdata, i + 1)!;
     let k = t.index + t[0].length;
     const tag = pyLower(t[1]);
+    const attrs: [string, string | null][] = [];
     while (k < endpos) {
       const a = matchAt(ATTRFIND, rawdata, k);
       if (!a) break;
-      // Attribute values are unused, but unescaping one can raise (a decimal ref over 4300 digits),
-      // which fails the whole Python source.
-      let value = a[2] ? a[3] : "";
-      if ((value[0] === "'" && value.at(-1) === "'") || (value[0] === '"' && value.at(-1) === '"')) value = value.slice(1, -1);
-      if (value) unescapeAttrValue(value);
+      // Unescaping runs even when the caller ignores attributes: a decimal ref over 4300 digits
+      // raises, which fails the whole Python source.
+      let value: string | null = a[2] ? a[3] : null;
+      if (value !== null && ((value[0] === "'" && value.at(-1) === "'") || (value[0] === '"' && value.at(-1) === '"'))) value = value.slice(1, -1);
+      if (value) value = unescapeAttrValue(value);
+      attrs.push([pyLower(a[1]), value]);
       k = a.index + a[0].length;
     }
     const end = pyStrip(rawdata.slice(k, endpos));
@@ -136,10 +141,10 @@ export function htmlFeed(rawdata: string, h: HtmlHandler): void {
       return endpos;
     }
     if (end.endsWith("/>")) {
-      h.starttag?.(tag);
+      h.starttag?.(tag, attrs);
       h.endtag?.(tag);
     } else {
-      h.starttag?.(tag);
+      h.starttag?.(tag, attrs);
       if (CDATA_CONTENT.has(tag) || tag === "plaintext") setCdata(tag, false);
       else if (RCDATA_CONTENT.has(tag)) setCdata(tag, true);
     }
@@ -175,39 +180,52 @@ export function htmlFeed(rawdata: string, h: HtmlHandler): void {
     return bogusComment(i);
   };
 
-  let i = 0;
-  while (i < n) {
-    let j: number;
-    if (!cdataElem) {
-      j = rawdata.indexOf("<", i);
-      if (j < 0) {
-        const amppos = rawdata.lastIndexOf("&");
-        if (amppos >= Math.max(i, backFromEnd(rawdata, 34)) && !/[\t\n\r\f ;]/.test(rawdata.slice(amppos))) break;
-        j = n;
+  const goahead = (end: boolean) => {
+    let i = 0;
+    n = rawdata.length;
+    while (i < n) {
+      let j: number;
+      if (!cdataElem) {
+        j = rawdata.indexOf("<", i);
+        if (j < 0) {
+          const amppos = rawdata.lastIndexOf("&");
+          if (amppos >= Math.max(i, backFromEnd(rawdata, 34)) && !/[\t\n\r\f ;]/.test(rawdata.slice(amppos))) break;
+          j = n;
+        }
+      } else {
+        interesting!.lastIndex = i;
+        const m = interesting!.exec(rawdata);
+        if (!m) break;
+        j = m.index;
       }
-    } else {
-      interesting!.lastIndex = i;
-      const m = interesting!.exec(rawdata);
-      if (!m) break;
-      j = m.index;
+      if (i < j) data(escapable ? unescape(rawdata.slice(i, j)) : rawdata.slice(i, j));
+      i = j;
+      if (i === n) break;
+      // Only '<' is interesting with convert_charrefs, so the '&' branches of goahead never run.
+      let k: number;
+      if (matchAt(STARTTAGOPEN, rawdata, i)) k = parseStarttag(i);
+      else if (rawdata.startsWith("</", i)) k = parseEndtag(i);
+      else if (rawdata.startsWith("<!--", i)) k = parseComment(i);
+      else if (rawdata.startsWith("<?", i)) {
+        const gt = rawdata.indexOf(">", i + 2);
+        k = gt === -1 ? -1 : gt + 1;
+      } else if (rawdata.startsWith("<!", i)) k = parseDeclaration(i);
+      else if (i + 1 < n || end) {
+        data("<");
+        k = i + 1;
+      } else break;
+      if (k < 0) {
+        if (!end) break;
+        // goahead(1) on an unterminated construct: only a bare trailing "</" reaches handle_data; tags,
+        // comments, declarations and processing instructions go to handlers the callers do not use.
+        if (!matchAt(STARTTAGOPEN, rawdata, i) && rawdata.startsWith("</", i) && i + 2 === n) data("</");
+        k = n;
+      }
+      i = k;
     }
-    if (i < j) data(escapable ? unescape(rawdata.slice(i, j)) : rawdata.slice(i, j));
-    i = j;
-    if (i === n) break;
-    // Only '<' is interesting with convert_charrefs, so the '&' branches of goahead never run.
-    let k: number;
-    if (matchAt(STARTTAGOPEN, rawdata, i)) k = parseStarttag(i);
-    else if (rawdata.startsWith("</", i)) k = parseEndtag(i);
-    else if (rawdata.startsWith("<!--", i)) k = parseComment(i);
-    else if (rawdata.startsWith("<?", i)) {
-      const gt = rawdata.indexOf(">", i + 2);
-      k = gt === -1 ? -1 : gt + 1;
-    } else if (rawdata.startsWith("<!", i)) k = parseDeclaration(i);
-    else if (i + 1 < n) {
-      data("<");
-      k = i + 1;
-    } else break;
-    if (k < 0) break;
-    i = k;
-  }
+    if (end && i < n) data(escapable ? unescape(rawdata.slice(i)) : rawdata.slice(i));
+    rawdata = rawdata.slice(i);
+  };
+  goahead(false);
+  if (close) goahead(true);
 }

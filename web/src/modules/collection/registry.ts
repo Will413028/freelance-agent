@@ -1,4 +1,5 @@
 import type { Db } from "@/db/client";
+import { syncCryptoJobsList } from "./sources/cryptojobslist";
 import { syncFreeJobs } from "./sources/free-jobs";
 import { REGISTRY, SOURCES } from "./source-catalog";
 
@@ -8,6 +9,7 @@ export type SourceRunner = (db: Db) => Promise<unknown>;
 export const RUNNERS: Record<string, SourceRunner> = {
   jobicy: (db) => syncFreeJobs(db, "jobicy"),
   remotive: (db) => syncFreeJobs(db, "remotive"),
+  cryptojobslist: (db) => syncCryptoJobsList(db),
 };
 
 // D12: Vercel's regions get a challenge from PTT; these stay in the catalog for their history only.

@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { enabledSources, sourcesIn } from "@/modules/collection/public";
 import { getDailyRun } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
-import { asDict } from "@/platform/py/value";
+import { asDict, PyDict } from "@/platform/py/value";
 import { beginDailyRun, finishDailySources, syncDailySource } from "@/services/daily";
 import { db, pool, resetSchema } from "./helpers/db";
 
@@ -47,9 +47,19 @@ describe("daily run entry", () => {
     expect(asDict(row!.result).dict("source_details").dict("guru").req("status")).toBe("failed");
   });
 
+  it("treats a partial source as a failed day, as collection/service.py does", async () => {
+    const begin = await beginDailyRun(db, at(1));
+    const partial = await syncDailySource(db, "guru", { guru: async () => PyDict.of({ status: "partial", jobs: 1n }) });
+    const ok = await syncDailySource(db, "tasker", { tasker: async () => PyDict.of({ status: "ok" }) });
+    expect([partial, ok]).toEqual(["partial", "ok"]);
+    expect(await finishDailySources(db, begin.localDate, { guru: partial, tasker: ok }, at(1, 30))).toBe("failed");
+    const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
+    expect(asDict(row!.result).dict("source_details").dict("guru").req("status")).toBe("partial");
+  });
+
   it("fans out only to implemented, enabled sources in catalog priority order", () => {
     const noop = async () => {};
     expect(enabledSources({ guru: noop, ptt_soho: noop, tasker: noop, jobicy: noop, nope: noop })).toEqual(["tasker", "jobicy", "guru"]);
-    expect(enabledSources()).toEqual(["jobicy", "remotive"]);
+    expect(enabledSources()).toEqual(["jobicy", "remotive", "cryptojobslist"]);
   });
 });

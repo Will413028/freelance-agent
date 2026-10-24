@@ -21,6 +21,7 @@
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "saxes": "6.0.0",
     "workflow": "5.2.3"
   },
   "devDependencies": {

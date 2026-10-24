@@ -1,5 +1,5 @@
 import type { Db } from "@/db/client";
-import { enabledSources, runSource, RUNNERS, type SourceRunner } from "@/modules/collection/public";
+import { enabledSources, runSource, RUNNERS, type SourceOutcome, type SourceRunner } from "@/modules/collection/public";
 import { claimDailyRun, dailyRecipient, finishDailyRun, taipeiLocal } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
 import { PyDict } from "@/platform/py/value";
@@ -21,7 +21,7 @@ export function dailySources(): string[] {
   return enabledSources();
 }
 
-export async function syncDailySource(db: Db, source: string, runners: Record<string, SourceRunner> = RUNNERS): Promise<"ok" | "failed"> {
+export async function syncDailySource(db: Db, source: string, runners: Record<string, SourceRunner> = RUNNERS): Promise<SourceOutcome> {
   const runner = runners[source];
   return runner ? runSource(db, source, runner) : "failed";
 }

@@ -5,5 +5,5 @@ export {
 } from "./ingest";
 export { isSource, REGISTRY, SOURCES } from "./source-catalog";
 export { DISABLED, enabledSources, RUNNERS, type SourceRunner } from "./registry";
-export { runSource } from "./run-source";
+export { runSource, type SourceOutcome } from "./run-source";
 export { syncFreeJobs } from "./sources/free-jobs";

@@ -21,6 +21,8 @@ from freelance.modules.discovery import domain, rules, ranking         # noqa: E
 from freelance.modules.collection.store import identity_hash           # noqa: E402
 from freelance.platform.sqlite import encode                           # noqa: E402
 from freelance.modules.collection import free_jobs                     # noqa: E402
+from freelance.modules.collection import cryptojobslist, public_feeds   # noqa: E402
+from email.utils import parsedate_to_datetime                          # noqa: E402
 
 # free_jobs parses HTML with html.parser, whose behaviour changes between patch releases (3.13.13
 # closes '<!-->' differently). The ground truth is the production image's interpreter.
@@ -72,7 +74,7 @@ def job(**changes):
 
 # ---------------------------------------------------------------- scalar corpora
 ISO = [
-    '2099-01-01', '2026-09-16', '2026-09-17T08:00:00Z', '2026-09-17 08:00:00', '2026-09-17T08:00:00+08:00',
+    '2026-10-24T07:50:03.+00:00', '2026-10-24T07:50:03.', '2026-10-24T07.+00:00', '2026-10-24T07:50,+08', '2099-01-01', '2026-09-16', '2026-09-17T08:00:00Z', '2026-09-17 08:00:00', '2026-09-17T08:00:00+08:00',
     '20260917', '2026-W38-4', '2026W384', '2026-W38', '2026W38', '2026-09-17T08', '2026-09-17T0800',
     '2026-09-17T080000', '2026-09-17T08:00:00.5+00:00', '2026-09-17T08:00:00,123456789+05:30',
     '2026-09-17T08:00:00.1234567', '2026-13-01', '2026-02-30', '2024-02-29', 'not a date', '', '2026-09-1',
@@ -442,6 +444,123 @@ def normalize_case(source, payload):
     return dict(source=source, payload=tag(payload), expect=attempt(run))
 
 
+# ---------------------------------------------------------------- plan step 7: CryptoJobsList
+TEXT = HTML + [
+    '<p>a</p><p>b</p>', '<h1>T</h1>x<h3>y</h3><tr>z', 'a\r\nb\rc\x0bd\x0ce\x1cf\x1dg\x1eh\x85i j k', '  \n\t ',
+    '<p>  spaced   out  </p>\n\n\n<p>x</p>', '<script>a', '<style>a', '<title>a &amp', '<p', '</', 'x</', '<!--', '<!', '<?', 'a<b',
+    '<textarea>a &lt; b', 'x &amp', 'x &#38', '&#x', '<![CDATA[', '<!doctype', '<a href="x', 'a</p', 'y' * 200001, ' ', '',
+    None, 5, '<p>\U0001f600</p>',
+]
+
+PARSEDATE = [
+    'Sat, 24 Oct 2026 07:50:03 GMT', 'Sat, 24 Oct 2026 07:50:03 +0000', 'Sat, 24 Oct 2026 07:50:03 -0000', '24 Oct 2026 07:50:03 +0530',
+    'Sat,24 Oct 2026 07:50:03 GMT', 'Sat, 24 Oct 26 07:50:03 EST', 'Sat, 24 Oct 69 07:50 PDT', 'Sat, 24 Oct 68 07:50:03 Z',
+    'Saturday, 24-Oct-26 07:50:03 GMT', '24 October 2026 07:50:03 GMT', 'Oct 24 2026 07:50:03 GMT', '24 Oct 2026 07.50.03 GMT',
+    '24 Oct 2026 07.50 GMT', '24 Oct 2026 07 GMT', '24 Oct 2026 07:50:03:01 GMT', '24 Oct 2026 07:50:03+0100', '24 Oct 2026 07:50:03-0100',
+    '24 Oct 2026, 07:50:03 GMT', '24 Oct, 2026 07:50:03 GMT', '24, Oct 2026 07:50:03 GMT', '24 Oct 2026 07:50:03, GMT', '24 Oct , 07:50 GMT',
+    '24 Oct 2026 07:50:03 XYZ', '24 Oct 2026 07:50:03 +9999', '24 Oct 2026 07:50:03 +2400', '24 Oct 2026 07:50:03 +2359', '24 Oct 2026 07:50:03 -2359',
+    '24 Oct 2026 07:50:03 +0000000000000000000099', '24 Oct 2026 07:50:03 1_00', '24 Oct 2026 07:50:03 gmt', '24 Oct 2026 07:50:03 ıst',
+    '24 Oct 2026 07:50:03 EſT', '24 Oct 2026 07:50:03 ﬅ', '24 Oct 2026 07:50:03 ＋0100', '24 Oct 2026 07:50:03 ٠١٠٠',
+    '٢٤ Oct ٢٠٢٦ ٠٧:50:03 GMT', '24 Oct ²026 07:50:03 GMT', '24 Oct 2026 07:5_0:03 GMT',
+    '24 OCT 2026 07:50:03 GMT', '24 oct 2026 07:50:03 GMT', '24 Oc 2026 07:50:03 GMT', '32 Oct 2026 07:50:03 GMT', '29 Feb 2025 07:50:03 GMT',
+    '24 Oct 10000 07:50:03 GMT', '24 Oct 0 07:50:03 GMT', '24 Oct 99999999999999999999 07:50:03 GMT', '24 Oct 2026 24:00:00 GMT',
+    '24 Oct 2026 07:60:00 GMT', '24 Oct 2026 07:50:60 GMT', '24 Oct 2026 -1:50:00 GMT', '', '   ', 'garbage', 'Mon,', 'Mon, 24',
+    '1 Jan 0001 00:00:00 +0100', '31 Dec 9999 23:59:59 -0100', '2026-10-24T07:50:03.+00:00', '2026-10-24T07:50:03.Z',
+    '2026-10-24T07:50:03,Z', '2026-10-24T07:50.+00:00', '2026-10-24T07.+00:00', '0001-01-01\u300007:50:03.+08', '2026-10-24T07:50:03.', 'Sat, 24 Oct 2026 07:50:03 GMT extra words', '24　Oct　2026　07:50:03　GMT',
+    'Mon 24 Oct 2026 07:50:03', 'mon, 24 Oct 2026 07:50:03 GMT', 'Fri, 24 Oct 2026 07:50:03 +0000', '2026-10-24T07:50:03Z',
+]
+
+INTS = ['0', '-1', '+1', ' 12 ', '1_000', '_1', '1_', '1__0', '١٢', '²', '１', '1.0', '', ' ', '　 7 　', '0x10', '00012',
+        '+-1', '๑๒', '\U0001d7ce', '1' * 4300, '1' * 4301, '--1', '+', '١_٢', '\x1c5\x1f']
+
+MRSS = 'http://search.yahoo.com/mrss/'
+
+
+def item(link='https://cryptojobslist.com/jobs/backend-engineer-acme', title='Backend Engineer',
+         desc='<p>Tags: <a href="https://cryptojobslist.com/part-time">Part-time</a> <a href="https://cryptojobslist.com/remote">Remote</a></p><p>Build things.</p>',
+         canonical=None, location='Remote', pub='Sat, 24 Oct 2026 07:50:03 GMT', cdata=True, extra=''):
+    parts = []
+    if link is not None:
+        parts.append(f'<link>{link}</link>')
+    if title is not None:
+        parts.append(f'<title><![CDATA[{title}]]></title>' if cdata else f'<title>{title}</title>')
+    if desc is not None:
+        parts.append(f'<description><![CDATA[{desc}]]></description>' if cdata else f'<description>{desc}</description>')
+    if canonical is not None:
+        parts.append(f'<media:canonical>{canonical}</media:canonical>')
+    if location is not None:
+        parts.append(f'<media:location>{location}</media:location>')
+    if pub is not None:
+        parts.append(f'<pubDate>{pub}</pubDate>')
+    return '<item>' + ''.join(parts) + extra + '</item>'
+
+
+def rss(*items, head='<?xml version="1.0" encoding="UTF-8"?>', built='Sat, 24 Oct 2026 07:50:03 GMT'):
+    b = f'<lastBuildDate>{built}</lastBuildDate>' if built is not None else ''
+    return f'{head}<rss xmlns:media="{MRSS}" version="2.0"><channel><title>CJL</title>{b}{"".join(items)}</channel></rss>'
+
+
+TAGS = '<p>Tags: <a href="https://cryptojobslist.com/{}">x</a></p>'
+RSS = [
+    rss(item()), rss(item(), item()), rss(item(), item(link='https://cryptojobslist.com/jobs/other-1')),
+    rss(item(desc=TAGS.format('full-time') + TAGS.format('part-time'))), rss(item(desc='<p>Tags: <a href="https://cryptojobslist.com/full-time">a</a> <a href="https://cryptojobslist.com/freelance">b</a></p>')),
+    rss(item(desc='<p>Tags: <a href="https://cryptojobslist.com/contract">smart contract</a></p><p>x</p>')),
+    rss(item(desc='<p>No label <a href="https://cryptojobslist.com/part-time">a</a></p>')),
+    rss(item(desc='<p>Tags: <a href="https://cryptojobslist.com/part-time">a</a></p><p><a href="https://cryptojobslist.com/remote">late</a></p>')),
+    rss(item(desc='<h2>x</h2><p>Tags: <a href="https://cryptojobslist.com/part-time">a</a></p>')),
+    rss(item(desc='<p>Tags:<h3>h</h3><a href="https://cryptojobslist.com/part-time">a</a></p>')),
+    rss(item(desc='<p>Tags: <a href="http://cryptojobslist.com/part-time">a</a><a href="https://www.cryptojobslist.com/remote">b</a><a>c</a><a href>d</a><a href="https://cryptojobslist.com//x/y//">e</a></p>')),
+    rss(item(desc='<p>Tags: <a href="https://[bad/part-time">a</a></p>')), rss(item(desc='<p>Tags: <a HREF="https://cryptojobslist.com/part-time" href="https://cryptojobslist.com/remote">a</a></p>')),
+    rss(item(desc='<p>Tags: <a href="https://cryptojobslist.com/part&#45;time">a</a></p>')), rss(item(desc='  <p>  Tags: <a href="https://cryptojobslist.com/freelance">a</a>')),
+    rss(item(desc='<div><p>Tags: <a href="https://cryptojobslist.com/freelance">a</a></p></div>')), rss(item(desc='<p>Tags: <a href="https://cryptojobslist.com/freelance">a</a>')),
+    rss(item(desc='<script>x</script>')), rss(item(desc='')), rss(item(desc=None)), rss(item(desc='x' * 100001)), rss(item(desc='<p>a</p>' + 'b' * 99999)),
+    rss(item(title='')), rss(item(title=None)), rss(item(title='t' * 501)), rss(item(title='<b>Bold</b> &amp; title', cdata=False)),
+    rss(item(title='A &amp;amp; B', cdata=False)), rss(item(title='後端 \U0001f600')),
+    *[rss(item(link=l)) for l in (None, '', 'https://cryptojobslist.com/jobs/x', 'https://cryptojobslist.com/jobs/ab', 'https://cryptojobslist.com/jobs/AB-c',
+                                  'https://cryptojobslist.com/jobs/a_b', 'https://cryptojobslist.com/jobs/ab?ref=1#f', 'https://cryptojobslist.com/jobs/ab/',
+                                  'http://cryptojobslist.com/jobs/ab', 'https://cryptojobslist.com:443/jobs/ab', ' https://cryptojobslist.com/jobs/ab ',
+                                  'https://cryptojobslist.com/jobs/-ab', 'https://cryptojobslist.com/jobs/éb', 'HTTPS://cryptojobslist.com/jobs/ab',
+                                  'https://cryptojobslist.com/jobs/ab\n', 'https://cryptojobslist.com/jobs/a\tb')],
+    *[rss(item(canonical=c)) for c in ('', 'https://cryptojobslist.com/jobs/backend-engineer-acme', 'https://cryptojobslist.com/jobs/backend-engineer-acme?x=1',
+                                       'https://cryptojobslist.com/jobs/other', 'https://evil.example/jobs/x')],
+    *[rss(item(location=l)) for l in (None, '', '   ', 'US only', 'us ONLY', 'USA only, remote', 'United States', 'Europe only', 'UK only', 'Remote (US only)',
+                                      'US onlyx', 'xUS only', 'Uſ only', 'Unİted States', 'Unıted States', 'éUS only', 'US onlyé', 'remote',
+                                      'REMOTE', 'Remote-first', 'remoteness', 'ſremote', 'Remoté', 'Taipei', '_remote', 'remote_')],
+    *[rss(item(pub=d)) for d in (None, '', '2026-10-24T07:50:03Z', '2026-10-24T07:50:03', '2026-10-24', 'Sat, 24 Oct 2026 07:50:03 -0000', 'nonsense',
+                                 'Sat, 24 Oct 2026 07:50:03 +0530', '1 Jan 0001 00:30:00 +0100', '31 Dec 9999 23:59:59 -0100', '2026-10-24T07:50:03.5+00:00')],
+    rss(item(), built=None), rss(item(), built=''),
+    rss(item(location='Remote', desc='<p>Tags: <a href="https://cryptojobslist.com/part-time">a</a></p><p>x &amp; y &lt;b&gt;</p>', cdata=False)),
+    rss(item(extra='<unknown>z</unknown>')), rss(item(extra='<media:location>second</media:location>')),
+    rss(item(link='https://cryptojobslist.com/jobs/ab', extra='<link>https://cryptojobslist.com/jobs/cd</link>')),
+    rss(), rss(*[item(link=f'https://cryptojobslist.com/jobs/j{n}') for n in range(3)]),
+    '<rss><channel/></rss>', '<feed><channel><item/></channel></feed>', '<rss/>', '<rss><item/></rss>', '<rss><channel><item/></channel></rss>',
+    '<!DOCTYPE rss><rss/>', '<!  entity x>', '<!doctypex', '<rss><channel>' + item() + '</channel>', '<rss><channel>' + item() + '</channel></rss>trailing',
+    '<rss><channel>' + item() + '</channel></rss><!-- c -->', '<rss xmlns:media="x"><channel>' + item() + '</channel></rss>',
+    '<rss><channel>' + item() + '</channel></rss>', '<rss><channel>' + item().replace('&', '&') + '&nbsp;</channel></rss>',
+    '﻿' + rss(item()), '<?xml version="1.0" encoding="ISO-8859-1"?><rss><channel>' + item(title='café') + '</channel></rss>',
+    '<?xml version="1.0" encoding="us-ascii"?><rss><channel>' + item() + '</channel></rss>', rss(item(title='a\r\nb\rc')),
+    '<rss version="2.0"><channel><item><link>https://cryptojobslist.com/jobs/ab</link><title>t</title><description>&lt;p&gt;d&lt;/p&gt;</description></item></channel></rss>',
+    '<a:rss xmlns:a="u"><channel/></a:rss>', '<rss xmlns="http://default/"><channel>' + item() + '</channel></rss>',
+    '<rss><channel>' + item(title='x&#0;y', cdata=False) + '</channel></rss>', '<rss><channel>' + item(title='x&#x1F600;y', cdata=False) + '</channel></rss>',
+    '<rss><channel>' + item(title='x\x01y') + '</channel></rss>',
+    '<?xml version="1.1"?><rss><channel>' + item(link='https://cryptojobslist.com/jobs/ab\x85') + '</channel></rss>',
+    '<?xml version="1.1"?><rss><channel>' + item(title='a&#1;b', cdata=False) + '</channel></rss>',
+]
+# Raw byte documents the str corpus cannot express, as latin-1 strings.
+RSS_BYTES = [
+    rss(item(title='café')).encode('utf-8')[:-30].decode('latin-1'), 'abc', '',
+    '<?xml version="1.0" encoding="UTF-8"?><rss><channel>' + item(title='caf\xe9') + '</channel></rss>',
+    '\xff\xfe' + rss(item()).encode('utf-16-le').decode('latin-1'),
+]
+
+
+def cjl_case(doc, raw):
+    def run():
+        r = cryptojobslist.parse(raw, now=NOW)
+        return dict(result=encode({k: v for k, v in r.items() if k != 'jobs'}), jobs=[encode(j) for j in r['jobs']])
+    return dict(input=doc, expect=attempt(run))
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -459,6 +578,11 @@ def main():
         'scenarios': {},
         'html_text': [dict(input=h, expect=attempt(lambda: html_text(h))) for h in HTML],
         'free_jobs_normalize': [normalize_case(src, pl) for src, pl in NORMALIZE],
+        'public_text': [dict(input=tag(h), expect=attempt(lambda: public_feeds.text(h))) for h in TEXT],
+        'parsedate': [dict(input=s, expect=attempt(lambda: parsedate_to_datetime(s).isoformat())) for s in PARSEDATE],
+        'published': [dict(input=s, expect=attempt(lambda: public_feeds.published(s).isoformat())) for s in PARSEDATE],
+        'py_int': [dict(input=s, expect=attempt(lambda: str(int(s)))) for s in INTS],
+        'cryptojobslist_parse': [cjl_case(d, d.encode('utf-8')) for d in RSS] + [dict(cjl_case(d, d.encode('latin-1')), latin1=True) for d in RSS_BYTES],
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)
