@@ -4,6 +4,7 @@ import { getDailyRun } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
 import { asDict, PyDict } from "@/platform/py/value";
 import { beginDailyRun, finishDailySources, syncDailySource } from "@/services/daily";
+import { syncInOrder } from "@/workflows/in-order";
 import { db, pool, resetSchema } from "./helpers/db";
 
 // Plan step 5: the daily entry claims daily_runs first; a second trigger the same day returns.
@@ -55,6 +56,22 @@ describe("daily run entry", () => {
     expect(await finishDailySources(db, begin.localDate, { guru: partial, tasker: ok }, at(1, 30))).toBe("failed");
     const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
     expect(asDict(row!.result).dict("source_details").dict("guru").req("status")).toBe("partial");
+  });
+
+  it("runs sources one at a time and keeps going after a failed one", async () => {
+    let running = 0, peak = 0;
+    const order: string[] = [];
+    const statuses = await syncInOrder(["a", "b", "c"], async (source) => {
+      peak = Math.max(peak, ++running);
+      await new Promise((r) => setTimeout(r, 5));
+      order.push(source);
+      running--;
+      if (source === "b") throw new Error("down");
+      return "ok";
+    });
+    expect(peak).toBe(1);
+    expect(order).toEqual(["a", "b", "c"]);
+    expect(statuses).toEqual({ a: "ok", b: "failed", c: "ok" });
   });
 
   it("fans out only to implemented, enabled sources in catalog priority order", () => {

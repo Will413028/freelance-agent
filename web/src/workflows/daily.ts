@@ -1,5 +1,6 @@
 import { getDb } from "@/db/client";
 import { beginDailyRun, dailySources, finishDailySources, syncDailySource } from "@/services/daily";
+import { syncInOrder } from "./in-order";
 
 // D2-A: one Vercel Cron trigger per slot (D5: 09:00 and 12:00 Asia/Taipei), a durable workflow, one
 // step per source. Step inputs and outputs carry only dates, source ids and statuses (plan invariant).
@@ -11,8 +12,7 @@ export async function dailyWorkflow() {
     return { ...begin, sources: {} };
   }
   const sources = await sourcesStep();
-  const settled = await Promise.allSettled(sources.map((source) => syncStep(source)));
-  const statuses = Object.fromEntries(sources.map((s, i) => [s, settled[i].status === "fulfilled" ? (settled[i] as PromiseFulfilledResult<string>).value : "failed"]));
+  const statuses = await syncInOrder(sources, syncStep);
   const status = await finishStep(begin.localDate, statuses);
   return { ...begin, status, sources: statuses };
 }

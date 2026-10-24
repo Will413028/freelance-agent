@@ -245,7 +245,7 @@
   - 範圍：
     - 依 D5 設定 cron。
     - 入口先做 `daily_runs` claim，重複觸發時第二次直接返回。
-    - fan-out 到各來源的 step。
+    - fan-out 到各來源的 step（2026-10-24 改為依序執行，見步驟 8「寫入鎖與 fan-out」）。
     - 來源 registry 與啟用規則：沿用 `source_catalog.py` 的來源清單與優先序，加上 `discovery_settings` 的啟用開關；ptt_soho、ptt_codejob 標為停用（D12）。
     - 第一次部署 Vercel 正式專案，DB 指向 shadow branch，env 不含寄送憑證。
   - 驗收：
@@ -289,7 +289,7 @@
       - `fromisoformat` 的小數點檢查順序（步驟 4 的 `datetime.ts`，free_jobs 也用）：`07:50:03.+00:00` 這種「小數點後沒有數字」3.13.15 判無效，TS 原本接受；年份下溢時還會從單筆被拒變成整個來源失敗。照 3.13.15 C 原始碼修，golden 加 7 個案例；mutation 改回舊順序，golden 失敗。
       - `xml.ts` 強制照 XML 1.0 解析（saxes 原本遵守 `version="1.1"`，把 NEL 當換行）。
       - 記 5（LOW，寫在 `xml.ts` 開頭）：非 ASCII 元素名稱的字元表版本、命名空間 URI 的 trim 與 `}`、單位元組 codec、無 BOM 的 UTF-16、UTF-8 BOM 後宣告 latin-1；另有一類只是例外類別不同（兩邊都失敗）。
-    - 設計審查（獨立 subagent）7 項：改 4（上面的來源結果；Python 例外繼承集中到 `platform/errors.ts` 的 `pyIsInstance`；`gen_expected.py` 直接寫 web/ 的 `unicode-tables.json`；`public.ts` 不匯出 `syncCryptoJobsList`）、記 2（步驟 14 的照抄去向、步驟 8 的共用件）、提 1（寫入鎖與平行 fan-out，見步驟 8）。
+    - 設計審查（獨立 subagent）7 項：改 4（上面的來源結果；Python 例外繼承集中到 `platform/errors.ts` 的 `pyIsInstance`；`gen_expected.py` 直接寫 web/ 的 `unicode-tables.json`；`public.ts` 不匯出 `syncCryptoJobsList`）、記 2（步驟 14 的照抄去向、步驟 8 的共用件）、提 1（寫入鎖與平行 fan-out，Will 決定改依序執行，見步驟 8）。
   - 驗證（本機）：golden 新增 RSS 解析 123 份、`text` 127、`parsedate_to_datetime` 63、`published` 63、`int` 26（Python 3.13.15 產生），TS 全同；2026-10-24 抓的真實 feed（100 筆）兩邊 parse 輸出逐位元組相同（當天 0 筆符合收案條件）；Python 4 個測試案例的 TS 版通過；整批失敗不寫入的測試通過。mutation：改成每筆各自一個交易，該測試失敗（`expected 1 to be +0`）。另一種寫法「在批次交易外逐筆寫入」會卡在全域寫入鎖而整體失敗，測不出交易邊界，所以不採用。
 
 - [ ] **8. 其餘免登入來源（API、RSS、HTML；正式啟用、扣除試點的那些，清單以附件 §1.1 為準）**（被擋於：步驟 7）
@@ -298,7 +298,8 @@
     - `platform/py/xml.ts` 目前只有 bytes 入口、元素沒有屬性與 tail。nodesk（`nodesk.py:30`）、public_feeds（`:172`）、taiwanjobs（`:30`）先 decode 再 `fromstring(str)`，要補 str 入口（str 輸入時 expat 對宣告編碼的處理要另外量）；community_jobs 讀 `get('href')`／`get('rel')`（`:64`），taiwanjobs 讀 `attrib`、`len(child)`（`:43,46`），要補屬性與子元素數。
     - `xml.ts` 不接受 pyexpat 另外支援的單位元組 codec（如 cp1252）。觸發：比對器或 source_health 出現「TS 失敗、Python 成功」且原因是編碼，就補上該 codec。
     - `re.ts` 的 `wordsIgnoreCase` 只涵蓋「單字邊界＋備選字」；`public_feeds.py:138-147` 用到 `\s`、`findall`、`sub`，要更通用的轉譯，同樣以 3.13.15 產生字元表。
-  - 寫入鎖與平行 fan-out（2026-10-24 步驟 7 設計審查，交 Will 決定）：`sourceBatch` 照 Python 用一個交易包住整批寫入，全程握 `writeTransaction` 的全域 advisory lock（`lock_timeout` 5 秒）；Python 依序跑來源（`collection/service.py:10-20`），TS 的 workflow 平行 fan-out（`workflows/daily.ts`）。一個大批次握鎖超過 5 秒，同時在跑的其他來源寫入就會失敗。shadow 現況（量到）：freelancer 1,579 筆、jobicy 53、remotive 4、cryptojobslist 1、taiwanjobs 1，所以步驟 7 不受影響，步驟 8 的 Freelancer 會。
+  - 寫入鎖與 fan-out（2026-10-24 步驟 7 設計審查；同日 Will 決定改依序執行）：`sourceBatch` 照 Python 用一個交易包住整批寫入，全程握 `writeTransaction` 的全域 advisory lock（`lock_timeout` 5 秒）；Python 依序跑來源（`collection/service.py:10-20`），TS 的 workflow 平行 fan-out（`workflows/daily.ts`）。一個大批次握鎖超過 5 秒，同時在跑的其他來源寫入就會失敗。shadow 現況（量到）：freelancer 1,579 筆、jobicy 53、remotive 4、cryptojobslist 1、taiwanjobs 1，所以步驟 7 不受影響，步驟 8 的 Freelancer 會。
+    - 已改：`workflows/in-order.ts` 的 `syncInOrder` 一個來源跑完才跑下一個（每個來源仍是獨立 step，失敗的來源記 failed、後面照跑），和 Python 相同，鎖衝突從結構上消失。代價是每日 run 的總時間變成各來源時間相加（未量）。測試 `daily.test.ts`「runs sources one at a time」量同時執行數；mutation 改回 `Promise.allSettled`，測試失敗。helper 放在不依賴 Node 模組的獨立檔，因為 workflow 函式不能引用會帶入 `pg` 的模組（build 量到）。尚未部署，隨步驟 7 一起上。
   - 消費端：附件 §1.1 每列的檔案。
   - 驗收：
     - 每批的 Python 測試案例 TS 版通過。
@@ -508,7 +509,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
 | 5 TS 端排程骨架 | 完成 | 正式專案部署；手動觸發（01:17）回 not due、shadow 無寫入；`vercel env ls production` 只有 4 個 key、無寄送憑證；Neon 傳輸量已量；2026-10-24 自然執行：08:31 morning `converge ok`、09:14 cron 寫唯一一列 `complete`、12:53 cron log「已有 run」 | | `199bef1`、`e6a299c` |
 | 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份 | 7 天比對（10-25 起）、比對器 mutation；2026-10-24 已部署、after timer 已 enable | |
-| 7 CryptoJobsList | 程式完成（未部署） | 本機：golden（RSS 123、text 127、日期 126、int 26）、真實 feed 100 筆逐位元組相同、4 個 Python 案例、交易邊界 mutation | 部署與比對（等步驟 6 的 7 天比對通過）；寫入鎖與平行 fan-out 交 Will（步驟 8 前） | |
+| 7 CryptoJobsList | 程式完成（未部署） | 本機：golden（RSS 123、text 127、日期 126、int 26）、真實 feed 100 筆逐位元組相同、4 個 Python 案例、交易邊界 mutation | 部署與比對（等步驟 6 的 7 天比對通過）；fan-out 已改依序執行（未部署） | |
 | 8 其餘免登入來源 | 未開始 | | | |
 | 9 信件來源 | 未開始 | | | |
 | 10 摘要與寄送 | 未開始 | | | |
