@@ -261,7 +261,8 @@
   - 開始時啟用 VM 的 `freelance-shadow-after.timer`（10:30 比對）。步驟 5 的 TS 只寫 `daily_runs`、還沒有任何來源，比對只會把 Python 當天的寫入全報成差異。
   - 實作狀態（2026-10-24，未部署）：`web/src/modules/collection/sources/free-jobs.ts`，`registry.ts` 已登記 jobicy、remotive。描述的 HTML 轉文字照 CPython 3.13.15 `html.parser` 逐行移植成 `web/src/platform/py/html.ts`，不用 htmlparser2／parse5：描述進 receipt 雜湊與指紋，tokenizer 不同就會讓每筆 receipt 都不同（盤點原本寫 parse5，這裡改掉）。另補 `pyLower`（`str.lower` 含 Final_Sigma；Node 的 ICU 是 Unicode 17，CPython 是 15.1）與 `platform/http.ts`（不跟 redirect、8 MB 上限、`json.loads(bytes)` 的編碼偵測）。對齊正式映像時發現 `fromisoformat`（零秒偏移帶微秒）、`urlsplit`（大寫 `V` 的 IPvFuture）在 3.13.13 與 3.13.15 不同，一併改成 3.13.15；本機 `backend/.venv` 改用 3.13.15，`gen_golden.py` 不是這個版本就拒跑。
     - 驗證（本機）：golden 新增 98 個 HTML 片段與 96 個 normalize 案例（Python 3.13.15 產生），TS 全同；2026-10-24 抓的真實 feed 209 筆（Remotive＋Jobicy）兩邊 normalize 輸出逐位元組相同；6 個 Python 測試案例的 TS 版通過；`pnpm typecheck`、`boundaries`、`test`（97）、`build`，backend 629 個測試全綠。mutation：註解改回 3.13.13 的關閉順序、`pyLower` 換成 `toLowerCase`、receipt 改 `ensure_ascii=False`、正規化與寫入交錯、不對屬性值做 unescape（超過 4300 位數的 charref 在 Python 會讓整個來源失敗），各自讓測試失敗。獨立審查：正確性 subagent 差分模糊測試（HTML 285,000、unescape 45,000、normalize 80,000 組）只找到屬性值那一項，已修；設計審查 6 項，改 4（移到 `sources/`、`public.ts` 只匯出 `syncFreeJobs`、html 表直接寫到 `web/`、此處記錄）、記 2（步驟 10 的 `source_details`、步驟 14 的 `html.ts` 去向），正式映像釘版本由 Will 決定釘 3.13.15（盤點缺陷 24）。
-    - 未跑：部署與 7 天比對（要 Will 授權部署，且等步驟 5 驗收完）；「改 receipt 規則、比對器要報差異」的 mutation 要在部署後對 shadow 跑。
+    - 部署（2026-10-24 13:0x，Will 授權）：`ea55963` 部署到正式專案（`freelance-agent-ev0or1o5n`，alias 不變）；`vercel env ls production` 仍是同樣 4 個 key、`/api/cron` 未登入 302。VM `freelance-shadow-after.timer` 已 enable，第一次 10-25 10:30。
+    - 未跑：7 天比對（第一份報告 10-25）；「改 receipt 規則、比對器要報差異」的 mutation 要對 shadow 跑。比對器 v1 比全部資料表、不分來源，TS 目前只跑兩個來源，所以其他來源的 Python 寫入與 `daily_runs` 的結果（TS 還沒有摘要）會出現在報告裡；驗收要只看 Jobicy、Remotive 的列，第一份報告出來時確認能不能從 key 切出來，不能就先補來源篩選。
   - 範圍：把 `collection/free_jobs.py`（80 行、6 個測試）改寫成 TS，在 shadow 模式每天跑。
   - 消費端：`rg -n "free_jobs|jobicy|remotive" backend/src frontend/src`。
   - 不能動：VM 上的 Python 來源照常跑，是唯一 writer。
@@ -484,7 +485,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
 | 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
 | 5 TS 端排程骨架 | 完成 | 正式專案部署；手動觸發（01:17）回 not due、shadow 無寫入；`vercel env ls production` 只有 4 個 key、無寄送憑證；Neon 傳輸量已量；2026-10-24 自然執行：08:31 morning `converge ok`、09:14 cron 寫唯一一列 `complete`、12:53 cron log「已有 run」 | | `199bef1`、`e6a299c` |
-| 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份 | 部署與 7 天比對、比對器 mutation（Will 已授權在步驟 5 驗收後部署） | |
+| 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份 | 7 天比對（10-25 起）、比對器 mutation；2026-10-24 已部署、after timer 已 enable | |
 | 7 CryptoJobsList | 未開始 | | | |
 | 8 其餘免登入來源 | 未開始 | | | |
 | 9 信件來源 | 未開始 | | | |
