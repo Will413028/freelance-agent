@@ -32,17 +32,23 @@ export async function getDigest(db: Db, id: string): Promise<DigestRow> {
 }
 
 /**
- * create_digest after list_in: candidates whose novelty keys a sent, attempted or unknown digest
- * already carried are suppressed, so an uncertain delivery is never repeated by the next day's mail.
+ * The selection inside create_digest: grouped candidates, and those whose novelty keys no sent,
+ * attempted or unknown prior digest (`priorSnapshots`, their stored text) already carried, so an
+ * uncertain delivery is never repeated by the next day's mail. Pure, so its cost is tested alone.
  */
-export async function insertDigestIn(tx: Executor, allItems: PyDict[], sources: PyDict, localDate: string, recipient: string, now: PyDateTime): Promise<DigestRow> {
+export function selectUnseen(allItems: PyDict[], priorSnapshots: string[]): { candidates: PyDict[]; fresh: PyDict[] } {
   const candidates = groupItems(allItems).filter(isCandidate);
   const seen = new TupleSet();
+  for (const text of priorSnapshots) for (const item of asList(loadsDict(text).req("items"))) for (const key of novelty(asDict(item)).values()) seen.add(key);
+  const known = seenIds(seen);
+  return { candidates, fresh: candidates.filter((item) => unseen(item, seen, known)) };
+}
+
+/** create_digest after list_in: select, then store the immutable snapshot. */
+export async function insertDigestIn(tx: Executor, allItems: PyDict[], sources: PyDict, localDate: string, recipient: string, now: PyDateTime): Promise<DigestRow> {
   const prior = await tx.select({ snapshot: digestOutbox.snapshot }).from(digestOutbox)
     .where(and(eq(digestOutbox.recipient, recipient), inArray(digestOutbox.status, ["sent", "attempted", "unknown"])));
-  for (const row of prior) for (const item of asList(loadsDict(row.snapshot).req("items"))) for (const key of novelty(asDict(item)).values()) seen.add(key);
-  const known = seenIds(seen);
-  const fresh = candidates.filter((item) => unseen(item, seen, known));
+  const { candidates, fresh } = selectUnseen(allItems, prior.map((row) => row.snapshot));
   const items = fresh.map((item) => publicItem(item).update({ fingerprint: item.req("fingerprint"), novelty_keys: item.req("novelty_keys") }));
   const snapshot = PyDict.of({
     items, candidate_count: BigInt(candidates.length), unseen_count: BigInt(fresh.length), suppressed_count: BigInt(candidates.length - fresh.length),
