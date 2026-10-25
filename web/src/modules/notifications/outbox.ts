@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { readTransaction, writeTransaction, type Db, type Executor } from "@/db/client";
 import { digestOutbox, utcNowText } from "@/db/schema";
-import { groupItems, isCandidate, novelty, publicItem, unseen } from "@/modules/discovery/public";
+import { groupItems, isCandidate, novelty, publicItem, seenIds, unseen } from "@/modules/discovery/public";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { pyStrip } from "@/platform/py/unicode";
@@ -41,7 +41,8 @@ export async function insertDigestIn(tx: Executor, allItems: PyDict[], sources: 
   const prior = await tx.select({ snapshot: digestOutbox.snapshot }).from(digestOutbox)
     .where(and(eq(digestOutbox.recipient, recipient), inArray(digestOutbox.status, ["sent", "attempted", "unknown"])));
   for (const row of prior) for (const item of asList(loadsDict(row.snapshot).req("items"))) for (const key of novelty(asDict(item)).values()) seen.add(key);
-  const fresh = candidates.filter((item) => unseen(item, seen));
+  const known = seenIds(seen);
+  const fresh = candidates.filter((item) => unseen(item, seen, known));
   const items = fresh.map((item) => publicItem(item).update({ fingerprint: item.req("fingerprint"), novelty_keys: item.req("novelty_keys") }));
   const snapshot = PyDict.of({
     items, candidate_count: BigInt(candidates.length), unseen_count: BigInt(fresh.length), suppressed_count: BigInt(candidates.length - fresh.length),

@@ -107,13 +107,18 @@ export function groupItems(items: PyDict[]): PyDict[] {
   const grouped = new Map<number, number[]>(items.map((_, i) => [i, [i]]));
   const jobs = items.map((item) => item.dict("job"));
 
-  // Conflicting known conditions remain separate cards for human inspection.
-  const compatible = (left: PyDict, right: PyDict) => {
-    for (const field of ["title", "company", "kind", "currency", "budget_min", "budget_max", "weekly_hours",
-      "taiwan_eligible", "timezone_compatible", "listing_closed"]) {
-      const a = left.at(field), b = right.at(field);
-      if (a !== null && b !== null && a !== "" && b !== "" && text(a) !== text(b)) return false;
-    }
+  // Conflicting known conditions remain separate cards for human inspection. A merge compares every
+  // member pair of the two groups, so each job's normalized fields are computed once (text() is
+  // NFKC plus casefold, cheap in CPython's C code but not here); null stands for an unknown field.
+  const COMPAT = ["title", "company", "kind", "currency", "budget_min", "budget_max", "weekly_hours",
+    "taiwan_eligible", "timezone_compatible", "listing_closed"];
+  const known = jobs.map((job) => COMPAT.map((field) => {
+    const v = job.at(field);
+    return v === null || v === "" ? null : text(v);
+  }));
+  const compatible = (left: number, right: number) => {
+    const a = known[left], b = known[right];
+    for (let f = 0; f < COMPAT.length; f++) if (a[f] !== null && b[f] !== null && a[f] !== b[f]) return false;
     return true;
   };
   const root = (index: number) => {
@@ -133,7 +138,7 @@ export function groupItems(items: PyDict[]): PyDict[] {
     for (const key of identityKeys(jobs[index])) {
       for (const prior of keys.get(key) ?? []) {
         const left = root(index), right = root(prior);
-        if (left !== right && grouped.get(left)!.every((a) => grouped.get(right)!.every((b) => compatible(jobs[a], jobs[b])))) {
+        if (left !== right && grouped.get(left)!.every((a) => grouped.get(right)!.every((b) => compatible(a, b)))) {
           parents[left] = right;
           grouped.get(right)!.push(...grouped.get(left)!);
           grouped.delete(left);
@@ -212,8 +217,10 @@ export function negate(v: PyValue): PyValue {
   throw new PyError("TypeError", "bad operand type for unary -");
 }
 
-export function unseen(item: PyDict, seen: TupleSet): boolean {
-  const knownIds = new Set([...seen.values()].map(([id]) => id));
+/** The ids `seen` holds; unseen() needs them for every candidate, so a caller looping computes them once. */
+export const seenIds = (seen: TupleSet) => new Set([...seen.values()].map(([id]) => id));
+
+export function unseen(item: PyDict, seen: TupleSet, knownIds: Set<string> = seenIds(seen)): boolean {
   const members = item.has("members") ? asList(item.get("members")!).map(asDict) : [item];
   const changed = members.some((m) => knownIds.has(m.str("id")) && asList(m.has("observation_fingerprints")
     ? m.get("observation_fingerprints")! : [m.req("fingerprint")]).some((fp) => !seen.has([m.str("id"), String(fp)])));
