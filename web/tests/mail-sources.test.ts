@@ -19,7 +19,7 @@ import { attemptAsync, fixture, untag, type Expect, type Tagged } from "./helper
 type Pages = Record<string, [number, string]>;
 type Run = { pages: Pages; max_messages: number; limits: { max_pages?: number; max_seconds?: number }; ticks: number[] | null; recipient: string; expect: Expect<string>; calls: string[] };
 type Scenario = { source: string; setup: { op: string; job?: Tagged; receipt_id?: string; message_id?: string; status?: string; reason?: string; state?: Tagged }[]; runs: Run[]; tables: Record<string, unknown[][]> };
-const golden = fixture<{ now: string; mail_sync: Record<string, Scenario> }>("golden.json");
+const golden = fixture<{ now: string; mail_sync: Record<string, Scenario>; mail_sync_9b: Record<string, Scenario> }>("golden.json");
 const NOW = fromisoformat(golden.now);
 const TARGET = "test@inbox.resend.app";
 
@@ -71,8 +71,9 @@ beforeEach(resetSchema);
 afterAll(() => pool.end());
 
 describe("Resend sync scenarios (Python ground truth)", () => {
-  it.each(Object.keys(golden.mail_sync))("%s", async (name) => {
-    const s = golden.mail_sync[name];
+  const all = { ...golden.mail_sync, ...golden.mail_sync_9b };
+  it.each(Object.keys(all))("%s", async (name) => {
+    const s = all[name];
     const got = await replay(s);
     expect(got.runs).toEqual(s.runs.map((r) => ({ expect: r.expect, calls: r.calls })));
     expect(got.tables).toEqual(s.tables);

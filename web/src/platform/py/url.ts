@@ -173,3 +173,20 @@ export function urljoin(base: string, url: string): string {
   if (segments.at(-1) === "." || segments.at(-1) === "..") resolved.push("");
   return urlunparse({ ...u, netloc, path: resolved.join("/") || "/", params, query });
 }
+
+export type QueryOptions = { keepBlankValues?: boolean; strictParsing?: boolean; maxNumFields?: number };
+
+/**
+ * parse_qs(qs, ...).get(key, []) for the mail link checks. Only Python's two rejections are kept:
+ * max_num_fields counts '&'-separated fields, and strict_parsing refuses an empty field or one
+ * without '='. Decoding is URLSearchParams' (as in plan step 8): every caller then requires an ASCII
+ * id or URL, which both decoders produce or fail to produce alike (golden canonical cases).
+ */
+export function queryValues(qs: string, key: string, o: QueryOptions = {}): string[] {
+  if (!qs) return [];
+  const fields = qs.split("&");
+  if (o.maxNumFields !== undefined && o.maxNumFields < fields.length) throw new PyError("ValueError", "Max number of fields exceeded");
+  if (o.strictParsing && fields.some((f) => !f.includes("="))) throw new PyError("ValueError", "bad query field");
+  const values = new URLSearchParams(qs).getAll(key);
+  return o.keepBlankValues ? values : values.filter(Boolean);
+}

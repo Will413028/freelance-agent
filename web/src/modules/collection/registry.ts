@@ -41,6 +41,10 @@ export const RUNNERS: Record<string, SourceRunner> = {
   freelancer: (db) => syncFreelancer(db),
   tasker: (db) => syncMailSource(db, "tasker"),
   linkedin: (db) => syncMailSource(db, "linkedin"),
+  cake: (db) => syncMailSource(db, "cake"),
+  jobbank104: (db) => syncMailSource(db, "jobbank104"),
+  talent: (db) => syncMailSource(db, "talent"),
+  glassdoor: (db) => syncMailSource(db, "glassdoor"),
 };
 
 /**

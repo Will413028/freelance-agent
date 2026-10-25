@@ -55,6 +55,8 @@ export type HtmlHandler = {
   starttag?(tag: string, attrs: [string, string | null][]): void;
   endtag?(tag: string): void;
   data?(data: string): void;
+  /** handle_comment: the text of a comment or bogus comment, as CPython reports it. */
+  comment?(data: string): void;
 };
 
 const STARTTAGOPEN = /<[a-zA-Z]/y;
@@ -114,7 +116,9 @@ export function htmlFeed(input: string, h: HtmlHandler, close = false): void {
   };
   const bogusComment = (i: number) => {
     const pos = rawdata.indexOf(">", i + 2);
-    return pos === -1 ? -1 : pos + 1;
+    if (pos === -1) return -1;
+    h.comment?.(rawdata.slice(i + 2, pos));
+    return pos + 1;
   };
   const parseStarttag = (i: number) => {
     const m = matchAt(LOCATETAGEND, rawdata, i + 1)!;
@@ -161,11 +165,14 @@ export function htmlFeed(input: string, h: HtmlHandler, close = false): void {
     return j;
   };
   const parseComment = (i: number) => {
-    const abrupt = matchAt(COMMENTABRUPTCLOSE, rawdata, i + 4);
-    if (abrupt) return abrupt.index + abrupt[0].length;
-    COMMENTCLOSE.lastIndex = i + 4;
-    const m = COMMENTCLOSE.exec(rawdata);
-    return m ? m.index + m[0].length : -1;
+    let m = matchAt(COMMENTABRUPTCLOSE, rawdata, i + 4);
+    if (!m) {
+      COMMENTCLOSE.lastIndex = i + 4;
+      m = COMMENTCLOSE.exec(rawdata);
+      if (!m) return -1;
+    }
+    h.comment?.(rawdata.slice(i + 4, m.index));
+    return m.index + m[0].length;
   };
   const parseDeclaration = (i: number) => {
     if (rawdata.startsWith("<!--", i)) return parseComment(i);
@@ -216,9 +223,27 @@ export function htmlFeed(input: string, h: HtmlHandler, close = false): void {
       } else break;
       if (k < 0) {
         if (!end) break;
-        // goahead(1) on an unterminated construct: only a bare trailing "</" reaches handle_data; tags,
-        // comments, declarations and processing instructions go to handlers the callers do not use.
-        if (!matchAt(STARTTAGOPEN, rawdata, i) && rawdata.startsWith("</", i) && i + 2 === n) data("</");
+        // goahead(1) on an unterminated construct: a bare trailing "</" reaches handle_data, comments
+        // and bogus comments reach handle_comment; tags, declarations and processing instructions go
+        // to handlers no caller uses.
+        if (matchAt(STARTTAGOPEN, rawdata, i)) {
+          // an unterminated start tag is dropped
+        } else if (rawdata.startsWith("</", i)) {
+          if (i + 2 === n) data("</");
+          else if (!matchAt(ENDTAGOPEN, rawdata, i)) h.comment?.(rawdata.slice(i + 2));
+        } else if (rawdata.startsWith("<!--", i)) {
+          let j = n;
+          const rest = rawdata.slice(i + 4);
+          for (const suffix of ["--!", "--", "-"]) {
+            if (rest.endsWith(suffix)) {
+              j -= suffix.length;
+              break;
+            }
+          }
+          h.comment?.(rawdata.slice(i + 4, j));
+        } else if (!rawdata.startsWith("<![CDATA[", i) && pyLower(rawdata.slice(i, i + 9)) !== "<!doctype" && rawdata.startsWith("<!", i)) {
+          h.comment?.(rawdata.slice(i + 2));
+        }
         k = n;
       }
       i = k;

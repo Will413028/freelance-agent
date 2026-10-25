@@ -2321,6 +2321,283 @@ def mail_golden():
 
 
 
+# ---------------------------------------------------------------- step 9b: Cake, 104, Talent.com and Glassdoor
+from freelance.modules.collection import cake_mail, jobbank104_mail, talent_mail, glassdoor_mail   # noqa: E402
+from urllib.parse import urlencode as _urlencode   # noqa: E402
+from html.parser import HTMLParser as _HTMLParser                     # noqa: E402
+import base64 as _base64                                              # noqa: E402
+import zlib as _zlib                                                  # noqa: E402
+
+class EventParser(_HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.events = []
+
+    def handle_starttag(self, tag, attrs):
+        self.events.append(['start', tag, [list(a) for a in attrs]])
+
+    def handle_endtag(self, tag):
+        self.events.append(['end', tag])
+
+    def handle_data(self, data):
+        self.events.append(['data', data])
+
+    def handle_comment(self, data):
+        self.events.append(['comment', data])
+
+
+def html_events(doc, close):
+    p = EventParser()
+    p.feed(doc)
+    if close:
+        p.close()
+    return p.events
+
+
+HTML_EVENTS = ['<!-- Title -->x', '<!---->', '<!--->', '<!-->', '<!-- a -- b -->', '<!-- a --!>', '<!-- unterminated', '<!-- unterminated --', '<!-- unterminated -',
+               '<!-- unterminated --!', '<!bogus>', '<!bogus', '</ bogus>', '</ bogus', '</>', '</', '<![CDATA[x]]>', '<![CDATA[x', '<!DOCTYPE html>', '<!doctype', '<?pi?>',
+               '<a href="x"><!-- Location --><td>T</td></a>', '<p>a<!--c-->b</p>', '<!--a--><!--b-->', '<script><!-- not a comment --></script>', '<a href>x</a>',
+               '<a href="1" href="2">x</a>', '<br/>', '<p>&amp; &lt;b&gt;</p>', 'text &amp', '<!-- \t Title \n -->', '<!-- <a> -->', '<!--x--!>y', '<!--x--y-->z']
+
+
+def cake_tracked(value, extra=None):
+    """backend/tests/collection/test_cake_mail.py:tracked"""
+    raw = _urlencode(extra if extra is not None else {'d': 'example', 'l': value, 't': 'synthetic-private-token'})
+    return 'https://email.no-reply.cake.me/c/' + _base64.urlsafe_b64encode(_zlib.compress(raw.encode())).decode().rstrip('=')
+
+
+def cake_token(raw):
+    return 'https://email.no-reply.cake.me/c/' + _base64.urlsafe_b64encode(raw).decode().rstrip('=')
+
+
+CAKE_URL = 'https://www.cake.me/companies/example/jobs/backend-api'
+CAKE_CANONICAL = [
+    CAKE_URL, CAKE_URL + '/', CAKE_URL + '#fragment', CAKE_URL + '?x=1', 'https://cake.me/companies/example/jobs/backend-api', 'https://www.cake.me/companies/ex-ample/jobs/a_b//',
+    *[cake_tracked(u) for u in (CAKE_URL + '?tracking=private', 'https://evil.test/companies/example/jobs/test', 'http://www.cake.me/companies/example/jobs/test',
+                                'https://www.cake.me@evil.test/companies/example/jobs/test', 'https://www.cake.me/settings/account', CAKE_URL + '/../../settings',
+                                'https://www.cake.me/companies/example/jobs/%2fsettings', CAKE_URL)],
+    cake_token(_zlib.compress(b'l=' + b'A' * 100000)), 'https://email.no-reply.cake.me/c/invalid', cake_tracked(CAKE_URL) + '?redirect=other', cake_tracked(CAKE_URL) + '#x',
+    cake_tracked(None, {'l': CAKE_URL, 'x': 'y'}), cake_tracked(None, {'x': 'y'}), cake_tracked(None, [('l', CAKE_URL), ('l', CAKE_URL)]), cake_tracked(None, {'l': ''}),
+    cake_token(_zlib.compress(b'l=&l=' + CAKE_URL.encode())), cake_token(_zlib.compress(b'l=' + CAKE_URL.encode() + b'&l=')), cake_token(_zlib.compress(b'l=' + CAKE_URL.encode() + b'&&x=1')), cake_token(_zlib.compress(b'l=' + CAKE_URL.encode() + b'&x')),
+    cake_token(_zlib.compress(b'&'.join([b'l=' + CAKE_URL.encode()] + [b'x=1'] * 19))), cake_token(_zlib.compress(b'&'.join([b'l=' + CAKE_URL.encode()] + [b'x=1'] * 20))),
+    cake_token(_zlib.compress(b'l=' + CAKE_URL.encode()) + b'xx'), cake_token(_zlib.compress(b'l=' + CAKE_URL.encode())[:-2]), cake_token(b''),
+    cake_token(_zlib.compress(b'l=' + CAKE_URL.encode() + b'&p=' + b'a' * (8192 - 3 - len(CAKE_URL) - 3))),
+    cake_token(_zlib.compress(b'l=' + CAKE_URL.encode() + b'&p=' + b'a' * (8193 - 3 - len(CAKE_URL) - 3))),
+    cake_token(_zlib.compress(b'l=' + CAKE_URL.encode() + b'&p=\xff')), cake_token(_zlib.compress(b'\xef\xbb\xbfl=' + CAKE_URL.encode())),
+    cake_token(_zlib.compress('l=https://www.cake.me/companies/例/jobs/x'.encode())), cake_token(_zlib.compress(b'l=' + _urlencode({'x': CAKE_URL})[2:].encode())),
+    'https://email.no-reply.cake.me/c/' + 'A' * 5, 'https://email.no-reply.cake.me/c/' + 'A' * 8193, 'https://email.no-reply.cake.me/c/a+b', 'https://email.no-reply.cake.me/c/',
+    cake_tracked(CAKE_URL).replace('https://', 'http://'), 'https://www.cake.me/companies/example/jobs/', 'https://www.cake.me/companies//jobs/x', 'https://www.cake.me/companies/例/jobs/x',
+    # A token one character past a whole base64 group: Python's strict decode fails, a lenient one drops it.
+    next(t + 'A' for n in range(60) for t in [cake_tracked(None, {'l': CAKE_URL, 'p': 'x' * n})] if len(t.rsplit('/', 1)[1]) % 4 == 0),
+    'x' * 8193, None, 5, CAKE_URL + '\n', 'https://[www.cake.me/companies/a/jobs/b', cake_token(_zlib.compress(b'l=https://[x/companies/a/jobs/b')),
+]
+
+
+def cake_message(body=None, **kw):
+    body = body if body is not None else '<p>Personal greeting</p><a href="' + cake_tracked(CAKE_URL + '?tracking=private') + '"><span>了解詳情</span></a>'
+    kw = dict(sender=cake_mail.SENDER, subject='您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師', mid='test', received='2026-09-26T03:00:00+00:00') | kw
+    return message(body, **kw)
+
+
+CAKE_LINK = '<a href="' + CAKE_URL + '">了解詳情</a>'
+CAKE_MESSAGES = [
+    cake_message(), cake_message(CAKE_LINK, mid='another', received='2026-09-27T00:00:00+00:00'), cake_message(sender='attacker@cake.me'), cake_message(subject='New message'),
+    cake_message('<a href="' + CAKE_URL + '">取消訂閱</a>'), cake_message(cake_message().body + '<a href="' + CAKE_URL + '-other">了解詳情</a>'),
+    cake_message(CAKE_LINK + CAKE_LINK), cake_message(CAKE_LINK + '<a href="' + CAKE_URL + '/">了解詳情</a>'), cake_message('<a href="' + CAKE_URL + '"> 了解詳情 </a>'),
+    cake_message('<a href="' + CAKE_URL + '">了解<b>詳情</b></a>'), cake_message('<a href="' + CAKE_URL + '"><a>了解詳情</a></a>'), cake_message('<a href="' + CAKE_URL + '">了解詳情'),
+    cake_message('<a href>了解詳情</a>' + CAKE_LINK), cake_message('<a href><a href="x">y</a>' + CAKE_LINK), cake_message('<a>了解詳情</a>'),
+    cake_message('<a href="https://evil.test/x">了解詳情</a>' + CAKE_LINK), cake_message('<a href="https://evil.test/x">其他</a>' + CAKE_LINK),
+    cake_message('<a href="' + CAKE_URL + '" href="https://evil.test/x">了解詳情</a>'), cake_message('<a href="https://evil.test/x" href="' + CAKE_URL + '">了解詳情</a>'),
+    cake_message('<a href="' + CAKE_URL + '">了解&#35443;情</a>'), cake_message(CAKE_LINK, is_html=False), cake_message(CAKE_LINK, received='2026-09-26'),
+    *[cake_message(CAKE_LINK, subject=s) for s in ('您追蹤的 Example 刊登了一筆新職缺 - 全職 Backend', '您追蹤的 Example 刊登了一筆新職缺 - Full-time Backend', '您追蹤的 Example 刊登了一筆新職缺 - 接案 API',
+                                                  '您追蹤的 Example 刊登了一筆新職缺 - freelance dev', '您追蹤的 Example 刊登了一筆新職缺 - Contractor', '您追蹤的 Example 刊登了一筆新職缺 - Backend',
+                                                  '您追蹤的 A 刊登了一筆新職缺 - B 刊登了一筆新職缺 - C', '您追蹤的  刊登了一筆新職缺 - B', '您追蹤的 A 刊登了一筆新職缺 - ', '您追蹤的 A 刊登了一筆新職缺 - B\n',
+                                                  '您追蹤的 A\nB 刊登了一筆新職缺 - C', '您追蹤的 ' + 'x' * 301 + ' 刊登了一筆新職缺 - B', '您追蹤的 A 刊登了一筆新職缺 - ' + 'x' * 501)],
+]
+JB_CARD = ('<a href="https://www.104.com.tw/job/{id}?tracking=private">兼職 Backend API 工程師</a>'
+           '<a href="https://www.104.com.tw/company/company1">Example</a>'
+           '<p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p>'
+           '<a href="https://104app.onelink.me/zB8j/apply?private=token">我要應徵</a>')
+
+
+def jb_card(ident='abc123', **repl):
+    c = JB_CARD.replace('{id}', ident)
+    for a, b in repl.items():
+        c = c.replace(a, b)
+    return c
+
+
+def jb_message(body=None, **kw):
+    """backend/tests/collection/test_jobbank104_mail.py:message"""
+    body = body if body is not None else '<p>私人稱呼</p>' + jb_card() + '<h2>適合你大展身手的工作</h2>' + jb_card('recommend')
+    kw = dict(sender=jobbank104_mail.SENDER, subject='測試09/26的配對日報，符合職缺1筆', mid='test', received='2026-09-26T03:00:00+00:00') | kw
+    return message(body, **kw)
+
+
+JB_TAIL = '<h2>適合你大展身手的工作</h2>'
+JB_MESSAGES = [
+    jb_message(), jb_message(sender='imposter@104.com.tw'), jb_message(is_html=False), jb_message(subject='驗證通知'), jb_message(received='2026-09-26'),
+    jb_message(subject='測試09/26的配對日報，符合職缺2筆'), jb_message(jb_message().body.replace('適合你大展身手的工作', '新版格式')),
+    jb_message(jb_message().body.replace('https://www.104.com.tw/job/', 'https://evil.test/job/')),
+    jb_message(jb_message().body.replace('https://www.104.com.tw/company/', 'http://www.104.com.tw/company/')), jb_message(jb_message().body.replace('我要應徵', '未完整')),
+    jb_message(jb_card() + jb_message().body, subject='測試09/26的配對日報，符合職缺2筆'), jb_message(received='2026-09-27T00:00:00Z', mid='next', body=jb_message().body.replace('tracking=private', 'tracking=other')),
+    jb_message(jb_card('a1') + jb_card('b2') + JB_TAIL, subject='x09/26的配對日報，符合職缺2筆'), jb_message(jb_card('a1') + jb_card('a1') + JB_TAIL, subject='x09/26的配對日報，符合職缺2筆'),
+    jb_message(jb_card(**{'<a href="https://www.104.com.tw/company/company1">Example</a>': ''}) + JB_TAIL),
+    jb_message(jb_card(**{'<p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p>': ''}) + JB_TAIL),
+    jb_message(jb_card(**{'<a href="https://www.104.com.tw/company/company1">Example</a>': '<a href="https://www.104.com.tw/company/c1">A</a><a href="https://www.104.com.tw/company/c2">B</a>'}) + JB_TAIL),
+    jb_message(jb_card(**{'兼職 Backend API 工程師': ''}) + JB_TAIL), jb_message(jb_card(**{'兼職 Backend': '全職 Backend'}) + JB_TAIL), jb_message(jb_card(**{'兼職 Backend': 'Part-time Backend'}) + JB_TAIL),
+    jb_message(jb_card(**{'兼職 Backend': '接案 Backend'}) + JB_TAIL), jb_message(jb_card(**{'兼職 Backend': 'Contract Backend'}) + JB_TAIL), jb_message(jb_card(**{'兼職 Backend': 'Backend'}) + JB_TAIL),
+    jb_message(jb_card(**{'/job/abc123': '/job/ABC123'}) + JB_TAIL), jb_message(jb_card(**{'/job/abc123': '/job/abc123/'}) + JB_TAIL), jb_message(jb_card(**{'>兼職 Backend API 工程師<': '><b>兼職</b> Backend <i>API</i><'}) + JB_TAIL),
+    jb_message(jb_card(**{'<p>台北市': '<p>  台北市  '}) + JB_TAIL), jb_message(jb_card(**{'<a href="https://www.104.com.tw/job/abc123?tracking=private">': '<a href="https://www.104.com.tw/job/abc123?tracking=private"><a>'}) + JB_TAIL),
+    jb_message(jb_card() + JB_TAIL + '<a href="https://www.104.com.tw/job/zz9">兼職</a>'), jb_message(jb_card() + '<a href="https://[bad">x</a>' + JB_TAIL),
+    jb_message(jb_card() + JB_TAIL + '<a href="https://[bad">x</a>'), jb_message('<a href>x</a>' + jb_card() + JB_TAIL), jb_message(jb_card() + JB_TAIL + '<a href="x">unclosed'),
+    jb_message(jb_card(**{'我要應徵': ' 我要應徵 '}) + JB_TAIL), jb_message(jb_card() + JB_TAIL, subject='測試09/26的配對日報，符合職缺０1筆'),
+    jb_message(jb_card() + JB_TAIL, subject='測試09/26的配對日報，符合職缺01筆'), jb_message(JB_TAIL, subject='測試09/26的配對日報，符合職缺0筆'),
+    jb_message(jb_card() + '<p>適合你大展身手的工作</p>'), jb_message(jb_card() + '<p> 適合你大展身手的工作 </p>'), jb_message(jb_card() + '<a href="x">適合你大展身手的工作</a>'),
+]
+TL_CARD = '''<a href="https://tw.talent.com/redirect?id=abcdef123456">
+<!-- Title --><a class="job__link" href="https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private">Backend API Engineer</a>
+<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>
+<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>'''
+TL_ENGLISH = '''<!-- Job cards -->
+<tr><td><a href="https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private">
+  <table>
+    <tr><td><a href="https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title">Backend API Engineer</a></td></tr>
+    <tr><td>Taipei, TW</td></tr>
+    <tr><td>Example Company</td></tr>
+    <tr><td></td></tr>
+  </table>
+</a></td></tr>
+<!-- View more jobs button -->'''
+TL_EN_SUBJECT = "Software Engineer jobs you don't want to miss"
+
+
+def tl_message(body=TL_CARD, **kw):
+    """backend/tests/collection/test_talent_mail.py:setUp"""
+    kw = dict(sender=talent_mail.SENDER, subject='更多职位，例如Software Engineer', mid='test', received='2026-09-26T10:17:15+00:00') | kw
+    return message(body, **kw)
+
+
+TALENT_CANONICAL = ['https://tw.talent.com/redirect?id=abcdef123456', 'https://tw.talent.com/redirect?id=abcdef123456&user_id=x', 'https://evil.test/redirect?id=abcdef123456',
+                    'https://tw.talent.com/redirect?id=abcdef123456&id=123456abcdef', 'https://tw.talent.com/unsubscribe?id=abcdef123456', 'https://tw.talent.com/redirect?id=1',
+                    'http://tw.talent.com/redirect?id=abcdef123456', 'https://tw.talent.com/redirect?id=ABCDEF123456', 'https://tw.talent.com/redirect?id=abcdef123456#x',
+                    'https://tw.talent.com/redirect?id=abcdef12345%36', 'https://tw.talent.com/redirect?i%64=abcdef123456', 'https://tw.talent.com/redirect?id=&id=abcdef123456',
+                    'https://tw.talent.com/redirect?' + '&'.join(['x=1'] * 29) + '&id=abcdef123456', 'https://tw.talent.com/redirect?' + '&'.join(['x=1'] * 30) + '&id=abcdef123456',
+                    'https://tw.talent.com/redirect?id=abcdef123456\n', None, 'x' * 8193, 'https://[tw.talent.com/redirect?id=abcdef123456', 'https://tw.talent.com/redirect?id+=abcdef123456']
+TALENT_MESSAGES = [
+    tl_message(), tl_message(TL_CARD.replace('private', 'new-tracker'), mid='later', received='2026-09-27T00:00:00Z'),
+    tl_message(TL_ENGLISH, subject=TL_EN_SUBJECT), tl_message(TL_ENGLISH.replace('private', 'new-tracker'), subject=TL_EN_SUBJECT),
+    tl_message(TL_ENGLISH.replace('Example Company', ''), subject=TL_EN_SUBJECT),
+    *[tl_message(TL_ENGLISH, subject=s) for s in ("Software Engineer - Open Source Contributions - Remote jobs you don't want to miss", "software engineer jobs you don't want to miss",
+                                                 'Verify your account', "Marketing jobs you don't want to miss", "Software Engineer jobs you don't want to miss\nPrivate",
+                                                 "SOFTWARE ENGINEER JOBS YOU DON'T WANT TO MISS", "Software Engineer -  jobs you don't want to miss")],
+    *[tl_message(b, subject=TL_EN_SUBJECT) for b in (TL_ENGLISH.replace('<!-- Job cards -->', ''), TL_ENGLISH.replace('<!-- View more jobs button -->', ''),
+                                                       TL_ENGLISH.replace('Backend API Engineer', ''), TL_ENGLISH.replace('click_type=title', 'id=bad'),
+                                                       TL_ENGLISH.replace('feedface1234&amp;click_type=title', 'abcdef123456'), TL_ENGLISH + TL_ENGLISH,
+                                                       TL_ENGLISH.replace('<!-- View more jobs button -->', '').rstrip() + TL_ENGLISH.replace('<!-- Job cards -->', '').replace('feedface1234', 'feedface9999'),
+                                                       TL_ENGLISH.replace('Taipei, TW', 'Part-time, TW'), TL_ENGLISH.replace('Backend API Engineer', 'Full-time Engineer'),
+                                                       TL_ENGLISH.replace('<tr><td></td></tr>', '<tr><td>Extra</td></tr>'), TL_ENGLISH.replace('</a></td></tr>\n<!-- View', '</td></tr>\n<!-- View'),
+                                                       TL_ENGLISH.replace('<tr><td>Taipei, TW</td></tr>', '<tr><td>Taipei, <b>TW</b></td></tr>'), TL_ENGLISH.replace('<table>', '<table><tr>'),
+                                                       '<!-- Job cards --></tr><!-- View more jobs button -->', '<!-- Job cards --><!-- View more jobs button -->',
+                                                       TL_ENGLISH.replace('&amp;user_id=private', ''), TL_ENGLISH.replace('<!-- Job cards -->', '<!--Job cards-->'))],
+    tl_message(sender='other@talent.com'), tl_message(subject='驗證信'), tl_message(is_html=False), tl_message(TL_CARD[:-4]), tl_message(TL_CARD * 2),
+    tl_message(TL_CARD.replace('<!-- Company -->', '')), tl_message(received='2026-09-26'),
+    tl_message(TL_CARD + TL_CARD.replace('abcdef123456', '111111222222')), tl_message(TL_CARD + TL_CARD.replace('abcdef123456', '111111222222').replace('Backend API Engineer', 'Full-time X')),
+    tl_message(TL_CARD.replace('Contractor building', 'Building')), tl_message(TL_CARD.replace('<td></td>', '<td>NT$ 1,000</td>')), tl_message(TL_CARD.replace('<td>Taiwan</td>', '<td></td>')),
+    tl_message(TL_CARD.replace('<!-- Location -->', '<!--Location-->')), tl_message(TL_CARD.replace('<!-- Location -->', '<!-- Salary -->')),
+    tl_message(TL_CARD.replace('class="job__link"', 'class="x job__link y"')), tl_message(TL_CARD.replace('class="job__link"', 'class')),
+    tl_message(TL_CARD.replace('class="job__link"', '')), tl_message(TL_CARD.replace('<!-- Title -->', '<!-- Title --><!-- Title -->')),
+    tl_message('<!-- Title -->' + TL_CARD), tl_message(TL_CARD + '</a>'), tl_message(TL_CARD.replace('</a>\n<!-- Location', '\n<!-- Location')),
+    tl_message(TL_CARD.replace('Example', 'Ex&amp;mple')), tl_message(TL_CARD.replace('<td>Taiwan</td>', '<td>  Tai\n wan </td>')),
+    tl_message('<p>header</p>' + TL_CARD + '<p>footer</p>'), tl_message(TL_CARD + '<a>'), tl_message(TL_CARD + '<a class>x</a>'), tl_message('<a class>x</a>' + TL_CARD), tl_message(TL_CARD + '<a href="x">trailing'), tl_message(TL_CARD, subject='更多职位，例如'), tl_message(TL_CARD, subject='更多职位，例如x\n'),
+]
+GD_URL = 'https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749'
+GD_CARD = '<a href="' + GD_URL + '&tracking=private"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>'
+GD_SUBJECT = 'All the top jobs for Software Engineer in Taiwan. Ready to apply?'
+
+
+def gd_message(body=GD_CARD, **kw):
+    """backend/tests/collection/test_glassdoor_mail.py:setUp"""
+    kw = dict(sender=glassdoor_mail.SENDER, subject=GD_SUBJECT, mid='synthetic', received='2026-09-26T13:12:00+00:00') | kw
+    return message(body, **kw)
+
+
+GLASSDOOR_CANONICAL = [GD_URL, GD_URL + '&tracking=private', GD_URL.replace('https:', 'http:'), GD_URL.replace('.com/', '.com.evil/'), GD_URL + '&jobListingId=1010273135827',
+                       GD_URL + '#tracking', GD_URL.replace('1010273135749', 'not-an-id'), GD_URL.replace('www.glassdoor.com', 'user@www.glassdoor.com'),
+                       GD_URL.replace('1010273135749', '123456789'), GD_URL.replace('1010273135749', '1' * 21), GD_URL.replace('1010273135749', '１010273135749'),
+                       GD_URL.replace('jobListingId', 'jobListingI%64'), GD_URL + '&' + '&'.join(['x=1'] * 48), GD_URL + '&' + '&'.join(['x=1'] * 49), None, 'x' * 8193,
+                       'https://www.glassdoor.com/partner/jobListing.htm', 'https://www.glassdoor.com/Job/jobListing.htm?jobListingId=1010273135749']
+GD_BODY_EDGES = [GD_CARD * 2, GD_CARD[:-4], 'No jobs', GD_CARD.replace('<p>AI Agent Engineer</p>', ''), GD_CARD.replace('2d', 'yesterday'), GD_CARD.replace('</span></span>', '</span>'),
+                 GD_CARD.replace('Example Co', '<script>bad</script>'), GD_CARD.replace('<p>2d', '<p>Unexpected field</p><p>2d'), GD_CARD.replace('<p>2d', '<p>Easy Apply</p><p>2d'),
+                 GD_CARD.replace('2d', '7h'), GD_CARD.replace('2d', 'Just posted'), GD_CARD.replace('2d', '１2d'), GD_CARD.replace('2d', '1000d'), GD_CARD.replace('2d', ' 2d '),
+                 GD_CARD + '<a href="https://example.com/private">Unsubscribe</a>', GD_CARD.replace('AI Agent Engineer', 'Full-time AI Agent Engineer'),
+                 GD_CARD.replace('AI Agent Engineer', 'Contract AI Engineer'), GD_CARD + GD_CARD.replace('1010273135749', '1010273135827'),
+                 GD_CARD.replace('<table>', '<table>stray'), GD_CARD.replace('Example Co', 'Example <b>Co</b>'), GD_CARD.replace('<p>AI', '<p><p>AI'), GD_CARD.replace('</table>', '</p></table>'),
+                 GD_CARD.replace('<a href', '<a href="x"><a href'), GD_CARD.replace(GD_URL + '&tracking=private', 'https://example.com/jobListing'), '<a href>x</a>' + GD_CARD,
+                 GD_CARD.replace('<span><span>', '<span><span><style>x</style>'), GD_CARD.replace('Example Co', 'x' * 501), GD_CARD.replace('AI Agent Engineer', 'x' * 1001),
+                 GD_CARD.replace('</span></span>', '</span></span></span>'), (GD_CARD.replace('1010273135749', '%d') * 101) % tuple(1010273135000 + i for i in range(101)),
+                 GD_CARD.replace('<p>2d</p>', '<p>Easy Apply</p><p>Easy Apply</p><p>2d</p>'), GD_CARD.replace('<p>2d</p>', ''), GD_CARD.replace('Example Co', '  ')]
+GLASSDOOR_MESSAGES = [gd_message(), *[gd_message(b) for b in GD_BODY_EDGES],
+                      gd_message(sender='other@example.com'), gd_message(subject='Welcome to Glassdoor'), gd_message(is_html=False), gd_message(received='2026-09-26'),
+                      gd_message(subject='Software Engineer at Example and 6 more jobs in Taiwan for you. Apply Now.'),
+                      gd_message(subject='Software Engineer at Example and 6 more jobs in Taiwan for you. Apply Now.', mid='other', received='2026-09-30T00:00:00+00:00'),
+                      gd_message(received='2026-09-26T13:12:00Z'), gd_message(subject='All the top jobs for . Ready to apply?'), gd_message(subject='A at B and 1000 more jobs in C for you. Apply Now.')]
+MATCH_9B = [{'from': f, 'subject': s} for f in ('Talent <no-reply@alerts.talent.com>', 'noreply@glassdoor.com', 'NoReply@Glassdoor.com', 'attacker@example.com')
+            for s in ('更多职位，例如Engineer', TL_EN_SUBJECT, 'Verify your account', GD_SUBJECT, 'Software Engineer at Example and 6 more jobs in Taiwan for you. Apply Now.',
+                      'Welcome to Glassdoor', None, '')]
+
+
+def received_for(source, body, title, **changes):
+    return received_mail(**{'from': rp.SENDERS[source]}, subject=title, html=body) | changes
+
+
+MAIL9B = {
+    'cake': (cake_message().body, cake_message().subject), 'jobbank104': (jb_message().body, jb_message().subject),
+    'talent': (TL_CARD, '更多职位，例如Engineer'), 'glassdoor': (GD_CARD, GD_SUBJECT),
+}
+READ_9B = [(s, received_for(s, b, subj, **ch)) for s, (b, subj) in MAIL9B.items() for ch in (
+    {}, {'to': ['other@example.test'], 'received_for': []}, {'from': 'imposter@example.com'}, {'html': None, 'text': 'Unsupported private message'}, {'subject': 'Private account notice'})]
+
+
+def sync9b(source, body, subject):
+    first = received_for(source, body, subject)
+    replay = received_for(source, body, subject, created_at='2026-09-27T00:00:00Z')
+    bad = received_for(source, body, subject, id=mail_id(0x22222222), html='<p>unsupported</p>')
+    return dict(source=source, runs=[
+        dict(pages=listing_page([])), dict(pages=listing_page([first]) | bodies(first)), dict(pages=listing_page([first]) | bodies(replay)),
+        dict(pages=listing_page([bad, first]) | bodies(bad))])
+
+
+MAIL_SCENARIOS_9B = {f'{s}_waiting_ok_replay_quarantine': sync9b(s, b, subj) for s, (b, subj) in MAIL9B.items()}
+MAIL_SCENARIOS_9B['talent_card_without_company_once'] = dict(source='talent', runs=[
+    dict(pages=listing_page([received_for('talent', TL_ENGLISH.replace('Example Company', ''), TL_EN_SUBJECT)]) |
+         bodies(received_for('talent', TL_ENGLISH.replace('Example Company', ''), TL_EN_SUBJECT)))] * 2)
+MAIL_SCENARIOS_9B['glassdoor_bad_then_good'] = dict(source='glassdoor', runs=[
+    dict(pages=listing_page([received_for('glassdoor', GD_CARD[:-4], GD_SUBJECT, id=mail_id(0x22222222)), received_for('glassdoor', GD_CARD, GD_SUBJECT)]) |
+         bodies(received_for('glassdoor', GD_CARD[:-4], GD_SUBJECT, id=mail_id(0x22222222)), received_for('glassdoor', GD_CARD, GD_SUBJECT)))])
+
+
+def parse_case(fn, m):
+    return dict(message=tag_message(m), expect=attempt(lambda: encode(fn(m))))
+
+
+def mail9b_golden():
+    return {
+        'html_events': [dict(input=d, close=c, expect=html_events(d, c)) for d in HTML_EVENTS for c in (False, True)],
+        'cake_canonical': [dict(input=tag(u), expect=attempt(lambda: cake_mail.canonical(u))) for u in CAKE_CANONICAL],
+        'talent_canonical': [dict(input=tag(u), expect=attempt(lambda: list(talent_mail.canonical(u)))) for u in TALENT_CANONICAL],
+        'glassdoor_canonical': [dict(input=tag(u), expect=attempt(lambda: list(glassdoor_mail.canonical(u)))) for u in GLASSDOOR_CANONICAL],
+        'cake_parse': [parse_case(cake_mail.parse_cake, m) for m in CAKE_MESSAGES],
+        'jobbank104_parse': [parse_case(jobbank104_mail.parse_104, m) for m in JB_MESSAGES],
+        'talent_parse': [parse_case(talent_mail.parse_talent, m) for m in TALENT_MESSAGES],
+        'glassdoor_parse': [parse_case(glassdoor_mail.parse_glassdoor, m) for m in GLASSDOOR_MESSAGES],
+        'resend_matches_9b': [dict(entry=tag(e), source=s, expect=bool(rp.matches(e, s))) for e in MATCH_9B for s in ('talent', 'glassdoor')],
+        'read_notification_9b': [rn_case(s, m) for s, m in READ_9B],
+        'mail_sync_9b': {name: run_mail_scenario(sc) for name, sc in MAIL_SCENARIOS_9B.items()},
+    }
+
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -2362,6 +2639,7 @@ def main():
         **batch3_golden(),
         **batch4_golden(),
         **mail_golden(),
+        **mail9b_golden(),
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

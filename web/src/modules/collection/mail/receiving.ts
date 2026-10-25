@@ -2,10 +2,13 @@ import { qualify, DEFAULT_HOURS } from "@/modules/discovery/public";
 import { urlopenRead, loadsBytes } from "@/platform/http";
 import { getaddresses } from "@/platform/py/email";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
-import { pyFullmatch } from "@/platform/py/re";
 import { casefold, pyStr } from "@/platform/py/unicode";
 import { isDict, isList, pyEq, pyGet, pySubscript, PyDict, PyError, truthy, type PyValue } from "@/platform/py/value";
+import { isJobSubject as isCakeSubject, parseCake } from "./cake";
+import { isJobSubject, parseGlassdoor } from "./glassdoor";
+import { isJobSubject as is104Subject, parse104 } from "./jobbank104";
 import { parseLinkedin, isAdministrativeNotice } from "./linkedin";
+import { parseTalent, subjectFormat } from "./talent";
 import { parseTasker } from "./tasker";
 
 // Port of collection/resend_preview.py: bounded reads of Resend Receiving. GET only, so a shadow run
@@ -118,12 +121,14 @@ export class ReceivingClient {
   }
 }
 
-/** Subject gates beyond the sender, per source; sources whose parser is not ported have none yet. */
+/** Subject gates beyond the sender, per source; Indeed has none because its parser is not ported (plan: deferred). */
 const SUBJECT_GATES: Record<string, (subject: string) => boolean> = {
   tasker: () => true,
   linkedin: (subject) => !casefold(subject).includes("has been created"),
-  jobbank104: (subject) => pyFullmatch(".{1,100}\\d{2}/\\d{2}的配對日報，符合職缺\\d{1,3}筆", subject) !== null,
-  cake: (subject) => subject.includes("刊登了一筆新職缺"),
+  jobbank104: is104Subject,
+  cake: isCakeSubject,
+  talent: (subject) => subjectFormat(subject) !== null,
+  glassdoor: (subject) => isJobSubject(subject),
 };
 
 export function matches(entry: PyDict, source: string): boolean {
@@ -141,7 +146,9 @@ export class NotificationError extends PyError {
   }
 }
 
-const PARSERS: Record<string, (message: MailMessage) => PyDict[]> = { tasker: parseTasker, linkedin: parseLinkedin };
+const PARSERS: Record<string, (message: MailMessage) => PyDict[]> = {
+  tasker: parseTasker, linkedin: parseLinkedin, cake: parseCake, jobbank104: parse104, talent: parseTalent, glassdoor: parseGlassdoor,
+};
 
 /** True when str.encode() (strict UTF-8) of s would exceed `limit` bytes; lone surrogates throw like UnicodeEncodeError. */
 export function utf8Length(s: string): number {
