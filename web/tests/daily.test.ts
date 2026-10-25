@@ -77,9 +77,8 @@ describe("daily run entry", () => {
   it("fans out only to implemented, enabled sources in catalog priority order", () => {
     const noop = async () => {};
     expect(enabledSources({ guru: noop, ptt_soho: noop, tasker: noop, jobicy: noop, nope: noop }, null)).toEqual(["tasker", "jobicy", "guru"]);
-    // Ported but undeployed sources (step 7, step 8 batches) stay off the schedule until their own deploy.
-    expect(enabledSources()).toEqual(["jobicy", "remotive"]);
-    expect(enabledSources(undefined, null)).toEqual(["jobicy", "remotive", "himalayas", "hackernews", "v2ex", "remoteok", "realworkfromanywhere", "weworkremotely", "workingnomads", "nodesk", "getonboard", "justremote", "cryptojobslist", "dynamitejobs", "jobbank518", "chickpt"]);
+    // Ported sources stay off the schedule until their own deploy (steps 7 and 8 batches 1–3 added 2026-10-25).
+    expect(enabledSources()).toEqual(["jobicy", "remotive", "himalayas", "hackernews", "v2ex", "remoteok", "realworkfromanywhere", "weworkremotely", "workingnomads", "nodesk", "getonboard", "justremote", "cryptojobslist", "dynamitejobs", "jobbank518", "chickpt"]);
     expect(enabledSources({ guru: noop, jobicy: noop }, new Set(["guru", "remotive"]))).toEqual(["guru"]);
   });
 });

@@ -1415,6 +1415,8 @@ def jb_detail(data=None, *, update='<time>更新日期:2026-09-26</time>', extra
     return (update + '<script type="application/ld+json">' + json.dumps([data or jb_post(), {'@type': 'BreadcrumbList'}] + (extra or [])) + '</script>').encode()
 
 
+# 518's live index carried an ld+json with a raw control character (2026-10-25); only detail pages decode it.
+JB_BAD_SCRIPTS = [b'{"@type": "ItemList", "name": "a\x01b"}', b'{"@type": "ItemList",', b'', b'[{"@type": "JobPosting"}] x']
 JB_INDEXES = [
     jb_index(empty=True), b'<h1>No data</h1>', jb_index(), jb_index(JB_URL, empty=True), jb_index(JB_URL).replace('兼職'.encode(), '全職'.encode()),
     jb_index(JB_URL, JB_URL, 'https://www.tasker.com.tw/job-Ab1234.html'), jb_index(JB_URL, '/job-Ab1235.html?x=1', 'job-index.html', '#top'),
@@ -1424,6 +1426,7 @@ JB_INDEXES = [
     jb_index(JB_URL) + b'<script>var t = "\xe6\x8a\xb1\xe6\xad\x89\xe6\xb2\x92\xe6\x9c\x89\xe6\x90\x9c\xe5\x88\xb0\xe9\x81\xa9\xe5\x90\x88\xe7\x9a\x84\xe8\x81\xb7\xe7\xbc\xba";</script>',
     jb_index(empty=True) + b'<a href>bare</a>', b'<title>Just a moment</title>' + jb_index(JB_URL), jb_index(JB_URL) + b'\xff',
     jb_index('HTTPS://www.518.com.tw/job-Ab1234.html', 'https://www.518.com.tw/job-Ab12.html'),
+    *[jb_index(JB_URL) + b'<script type="application/ld+json">' + s + b'</script>' for s in JB_BAD_SCRIPTS],
 ]
 JB_ARTICLES = [
     jb_detail(), jb_detail(jb_post(url=JB_URL.replace('Ab1234', 'Ab1235'))), jb_detail(jb_post(description='')), jb_detail(jb_post(employmentType=None)),
@@ -1439,6 +1442,7 @@ JB_ARTICLES = [
     ('<script type="application/ld+json">' + json.dumps(jb_post()) + '</script>').encode(),
     ('<script type="application/ld+json">' + json.dumps([1, 'x', None]) + '</script>').encode(), b'<h1>Removed</h1>',
     b'<title>Access denied</title>' + jb_detail(), jb_detail(jb_post(title='x' * 501)),
+    *[jb_detail() + b'<script type="application/ld+json">' + s + b'</script>' for s in JB_BAD_SCRIPTS],
 ]
 
 

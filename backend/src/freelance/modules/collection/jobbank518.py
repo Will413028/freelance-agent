@@ -56,7 +56,7 @@ def date_value(value):
 class Page(HTMLParser):
     def __init__(self):
         super().__init__()
-        self.urls = []; self.jobs = []; self.heading = []
+        self.urls = []; self.scripts = []; self.heading = []
         self.in_heading = False; self.in_script = False; self.parts = []
 
     def handle_starttag(self, tag, attrs):
@@ -75,10 +75,17 @@ class Page(HTMLParser):
     def handle_endtag(self, tag):
         if tag == 'h1': self.in_heading = False
         if tag == 'script' and self.in_script:
-            self.in_script = False
-            value = json.loads(''.join(self.parts))
-            values = value if isinstance(value, list) else [value]
-            self.jobs.extend(v for v in values if isinstance(v, dict) and v.get('@type') == 'JobPosting')
+            self.in_script = False; self.scripts.append(''.join(self.parts))
+
+
+def postings(scripts):
+    # Only detail pages decode metadata: an index page's unrelated ld+json can be malformed (518, 2026-10-25).
+    jobs = []
+    for script in scripts:
+        value = json.loads(script)
+        values = value if isinstance(value, list) else [value]
+        jobs.extend(v for v in values if isinstance(v, dict) and v.get('@type') == 'JobPosting')
+    return jobs
 
 
 def parse_index(raw):
@@ -97,8 +104,9 @@ def parse_index(raw):
 def parse_article(raw, url):
     url = canonical(url); html = page_text(raw)
     page = Page(); page.feed(html); page.close()
-    if len(page.jobs) != 1: raise ValueError('Expected one JobPosting')
-    data = page.jobs[0]
+    jobs = postings(page.scripts)
+    if len(jobs) != 1: raise ValueError('Expected one JobPosting')
+    data = jobs[0]
     if canonical(data.get('url')) != url: raise ValueError('Mismatched job URL')
     title, body = text(data.get('title')), text(data.get('description'))
     if len(title) > 500 or len(body) > 100_000: raise ValueError('Oversize job')

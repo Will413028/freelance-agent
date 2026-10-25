@@ -39,7 +39,10 @@ export const RUNNERS: Record<string, SourceRunner> = {
  * batch ships in its own deploy with its own shadow comparison, so a deploy of main for any other
  * reason must not start a ported source early. Add a source here in the commit that deploys it.
  */
-export const SCHEDULED: ReadonlySet<string> = new Set(["jobicy", "remotive"]);
+export const SCHEDULED: ReadonlySet<string> = new Set([
+  "jobicy", "remotive", "cryptojobslist", "himalayas", "getonboard", "hackernews", "v2ex", "remoteok", "realworkfromanywhere",
+  "weworkremotely", "workingnomads", "nodesk", "justremote", "dynamitejobs", "jobbank518", "chickpt",
+]);
 
 // D12: Vercel's regions get a challenge from PTT; these stay in the catalog for their history only.
 export const DISABLED = new Set(["ptt_soho", "ptt_codejob"]);

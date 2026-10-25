@@ -254060,6 +254060,38 @@ true
 "https://www.518.com.tw/job-Ab1234.html"
 ]
 }
+},
+{
+"input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\">{\"@type\": \"ItemList\", \"name\": \"a\u0001b\"}</script>",
+"expect": {
+"ok": [
+"https://www.518.com.tw/job-Ab1234.html"
+]
+}
+},
+{
+"input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\">{\"@type\": \"ItemList\",</script>",
+"expect": {
+"ok": [
+"https://www.518.com.tw/job-Ab1234.html"
+]
+}
+},
+{
+"input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\"></script>",
+"expect": {
+"ok": [
+"https://www.518.com.tw/job-Ab1234.html"
+]
+}
+},
+{
+"input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\"}] x</script>",
+"expect": {
+"ok": [
+"https://www.518.com.tw/job-Ab1234.html"
+]
+}
 }
 ],
 "jobbank518_article": [
@@ -254299,6 +254331,30 @@ true
 },
 {
 "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+"expect": {
+"error": "rejected"
+}
+},
+{
+"input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\">{\"@type\": \"ItemList\", \"name\": \"a\u0001b\"}</script>",
+"expect": {
+"error": "rejected"
+}
+},
+{
+"input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\">{\"@type\": \"ItemList\",</script>",
+"expect": {
+"error": "rejected"
+}
+},
+{
+"input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\"></script>",
+"expect": {
+"error": "rejected"
+}
+},
+{
+"input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\"}] x</script>",
 "expect": {
 "error": "rejected"
 }

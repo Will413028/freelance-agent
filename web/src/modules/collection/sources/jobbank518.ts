@@ -33,9 +33,9 @@ export function dateValue(value: PyValue): string {
   return published(value).isoformat();
 }
 
-/** jobbank518.Page: job links, JobPosting metadata (a list or one object per script) and the h1 text. */
+/** jobbank518.Page: job links, raw ld+json scripts and the h1 text. */
 function parsePage(html: string) {
-  const urls: string[] = [], jobs: PyDict[] = [], heading: string[] = [];
+  const urls: string[] = [], scripts: string[] = [], heading: string[] = [];
   let inHeading = false, inScript = false, parts: string[] = [];
   htmlFeed(html, {
     starttag(tag, attrs) {
@@ -58,13 +58,23 @@ function parsePage(html: string) {
       if (tag === "h1") inHeading = false;
       if (tag === "script" && inScript) {
         inScript = false;
-        const value = loads(parts.join(""));
-        const values = Array.isArray(value) ? value : [value];
-        jobs.push(...values.filter((v): v is PyDict => isDict(v) && get(v, "@type") === "JobPosting"));
+        scripts.push(parts.join(""));
       }
     },
   }, true);
-  return { urls, jobs, heading: heading.join("") };
+  return { urls, scripts, heading: heading.join("") };
+}
+
+/** jobbank518.postings: JobPosting metadata (a list or one object per script); only detail pages decode it, since an
+ * index page's unrelated ld+json can be malformed (518, 2026-10-25). */
+function postings(scripts: string[]): PyDict[] {
+  const jobs: PyDict[] = [];
+  for (const script of scripts) {
+    const value = loads(script);
+    const values = Array.isArray(value) ? value : [value];
+    jobs.push(...values.filter((v): v is PyDict => isDict(v) && get(v, "@type") === "JobPosting"));
+  }
+  return jobs;
 }
 
 /** jobbank518.parse_index: the distinct job links; an explicit empty result is [] and anything unrecognized fails. */
@@ -86,8 +96,9 @@ export const regexes = () => ({ UPDATED, CATEGORY });
 export function parseArticle(raw: Uint8Array, pageUrl: string): PyDict {
   const url = canonical(pageUrl), html = pageText(raw);
   const page = parsePage(html);
-  if (page.jobs.length !== 1) throw new PyError("ValueError", "Expected one JobPosting");
-  const data = page.jobs[0];
+  const jobs = postings(page.scripts);
+  if (jobs.length !== 1) throw new PyError("ValueError", "Expected one JobPosting");
+  const data = jobs[0];
   if (canonical(get(data, "url")) !== url) throw new PyError("ValueError", "Mismatched job URL");
   const title = text(get(data, "title")), body = text(get(data, "description"));
   if (pyLen(title) > 500 || pyLen(body) > 100_000) throw new PyError("ValueError", "Oversize job");

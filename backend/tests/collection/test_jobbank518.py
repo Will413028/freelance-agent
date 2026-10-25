@@ -41,6 +41,12 @@ class Jobbank518Tests(TestCase):
         self.assertEqual(self.store.sources()['jobbank518'], 'ok')
         self.assertEqual(self.store.list(), [])
 
+    def test_malformed_index_metadata_is_ignored_but_fails_a_detail(self):
+        # 518's live index carried an ld+json with a raw control character (2026-10-25).
+        bad = '<script type="application/ld+json">{"@type": "ItemList", "name": "a\x01b"}</script>'.encode()
+        self.assertEqual(parse_index(index(URL) + bad), [URL])
+        with self.assertRaises(ValueError): parse_article(detail() + bad, URL)
+
     def test_strict_urls_dedupe_and_external_ads_excluded(self):
         self.assertEqual(canonical(URL+'?tracking=x#apply'), URL)
         self.assertEqual(parse_index(index(URL, URL, 'https://www.tasker.com.tw/job-Ab1234.html')), [URL])
