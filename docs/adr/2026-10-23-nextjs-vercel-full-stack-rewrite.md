@@ -73,8 +73,13 @@ The owner is the only developer and the only user. He wants to stop maintaining 
 - Vercel or Neon cost on the chosen plan exceeds about USD 25 a month. Re-evaluate B.
 - After the pilot (plan step 6), the remaining port is estimated at more than twice the plan's size. Re-evaluate whether to stop at E.
 
+## Amendment (2026-10-26)
+
+D0's requirement that each source "must match Python's output before the single production cutover" and D4's permanent byte compatibility are replaced by `docs/adr/2026-10-26-digest-ledger-shared-read-model-native-port.md`. The port is native; shadow differences are reviewed and accepted rather than forbidden. Stored hash algorithms change only after the D6 window, through versioning, and v1 stays available to verify old rows. Option C and every other decision here still hold.
+
 ## Related
 
 - Plan and inventories: `docs/plans/2026-10-23-nextjs-vercel-migration.md` and its directory (snapshot `d994cd2`).
+- Amended by: `docs/adr/2026-10-26-digest-ledger-shared-read-model-native-port.md` (D0 parity, D4 byte compatibility).
 - Superseded once cutover is complete: `docs/design.md` §現行部署：Docker Compose＋Huey＋SQLite (2026-09-28).
 - Source: owner decision on 2026-10-23 after two independent critiques of the option brief, one plan review, and two independent ADR drafts. Both drafts recommended A or B; their arguments are answered under Rationale.

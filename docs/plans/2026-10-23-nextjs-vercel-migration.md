@@ -79,7 +79,7 @@
 | 同一時間只有一個 writer 寫正式資料、對外寄信 | Huey 單一 consumer 與 `queue.lock`（`bootstrap/queue.py:24`）、SQLite `BEGIN IMMEDIATE`；TS：`daily_runs` row claim 加 Postgres advisory lock；切換程序（步驟 13） |
 | 草稿版本、submission 與其事件不可修改、不可刪除 | `draft_revision_immutable`／`draft_revision_retained`／`submission_immutable`／`submission_event_immutable`／`submission_event_retained`（`001_sqlite.sql:192-224`）；TS：Postgres 等價 trigger |
 | 參與雜湊或 snapshot 的欄位逐位元保存 | `opportunities.item`、`digest_outbox.snapshot`、`proposal_draft_revisions`、`submission_intents` 的 snapshot；TS：這些欄位用 `text` 不用 `jsonb`；序列化集中在 `web/src/platform/py/json.ts` |
-| 規格是正式映像的 CPython 3.13.15，不只是 Python 原始碼：`html.parser`、`fromisoformat`、`urlsplit` 在 3.13.13 與 3.13.15 之間行為不同（2026-10-24 量到） | `deploy/backend.Dockerfile` 釘 `python:3.13.15-slim`（2026-10-24 Will 決定；執行中的 `d994cd2` 映像本來就是 3.13.15，下次重建才生效）；TS：`web/src/platform/py/*.ts` 註明的版本、`gen_golden.py` 開頭的版本檢查、本機 `backend/.venv`（3.13.15）。要升 Python 時，Dockerfile、`gen_golden.py` 的版本檢查、本機 venv 一起改，並用新版重跑 `gen_golden.py` 與差異 |
+| （D17，2026-10-26 起只限 v1 雜湊邊界：canonical JSON、opportunity id、fingerprint、receipt id、novelty key、核准雜湊，以及產生它們輸入的解析，到 D6 窗口結束；其他程式改原生，不再以 Python 輸出為規格）規格是正式映像的 CPython 3.13.15，不只是 Python 原始碼：`html.parser`、`fromisoformat`、`urlsplit` 在 3.13.13 與 3.13.15 之間行為不同（2026-10-24 量到） | `deploy/backend.Dockerfile` 釘 `python:3.13.15-slim`（2026-10-24 Will 決定；執行中的 `d994cd2` 映像本來就是 3.13.15，下次重建才生效）；TS：`web/src/platform/py/*.ts` 註明的版本、`gen_golden.py` 開頭的版本檢查、本機 `backend/.venv`（3.13.15）。要升 Python 時，Dockerfile、`gen_golden.py` 的版本檢查、本機 venv 一起改，並用新版重跑 `gen_golden.py` 與差異 |
 | `(source, external_id)` 唯一；receipt ID 防重複匯入 | `opportunities`、`source_receipts`、各 connector 的 receipt 規則（`inventory-sources.md` §1）；TS：connector 共用的 `ingest` 與指紋函式庫 |
 | 未知欄位保留為未知 | `discovery/rules.py`、各 connector 的 envelope；TS：envelope 型別（unknown 是明確的值，不用 `null` 推定） |
 | 回饋與設定變更沿用呼叫端的交易，stale revision 被拒絕 | `preferences`、`discovery/settings.py`、`tracking_events` revision；TS：route handler／server action 的交易邊界 |
@@ -118,7 +118,6 @@
   - Indeed、Guru，因為正式未啟用。
   - 修 2026-10-16 起的來源失敗，那是既有缺陷，另開工作。
 - **延後：**
-  - novelty 抑制改讀獨立的 key 表，不再每天解析全部歷史 snapshot（觸發條件：`scale.test.ts` 的抑制段超過 2 秒，或正式 `digest_outbox` 超過 365 列，或摘要 step 超過 60 秒；現況 39 列、11.2 MB，每天約增加 290 KB，2026-10-26 量到）。
   - Submission 送出改寫（觸發條件：Will 決定要配置 Email 或 Freelancer 通道）。
   - VM 上本專案資源的退役與 SQLite 檔刪除（觸發條件：D6 窗口結束，且期間每天的自然排程都寄出）。
   - Indeed、Guru 接入（觸發條件：`platform-connectivity.md` 把它們改成可啟用）。
@@ -384,7 +383,7 @@
   - 消費端：`inventory-surface.md` §5b–5c 的每個轉移；`rg -n "daily_tick|dispatch|digest_outbox|gmail_smtp" backend/src`。
   - 驗收：
     - 「不確定寄送不重試」「同日不重寄」「過期日期不執行」三組測試的 TS 版通過。
-    - shadow 7 天的候選清單與 Python 實寄的 snapshot 在同一起點下比對一致。
+    - shadow 7 天的候選清單與 Python 實寄的 snapshot 在同一起點下比對一致；10e 之後（D17）改成差異逐項列在 replay 報告、每項有解釋並經 Will 接受。
     - mutation：讓寄送 step 允許重試，測試要失敗。
   - 子步驟（2026-10-25 拆，一個 session 做不完；各自有驗收，依序做）：
     - 10a 來源結果帶進 `daily_runs.result`：runner 契約定成 `SourceDetail`（`status`、`reason`、`scope` 是字串，其餘只能是非負整數、布林或 null；正文與清單不能進來，因為它是 step 的回傳值）。`runSource` 回傳整份 detail，runner 丟例外時記 `{status: failed, reason: source_unavailable}`（Python 的同一情況是整個 `collect_sources` 中止、只記一筆頂層 `source_unavailable`；TS 依 D2 逐來源隔離，這個差異是既定的）。`finishDailySources` 寫出和 Python `collect_sources` 同形的 `source_details`：頂層 `status`、`reason`（`one_or_more_sources_failed` 或 null），加上每個來源一個 dict。`ranSources` 改成只取值是 dict 的 key，頂層的 `status`、`reason` 不算來源。驗收：`runSource` 保留 runner 的計數、例外記 `source_unavailable`、非計數欄位被擋；`ranSources` 對 Python 同形的 result 只回來源名稱。mutation：`ranSources` 不過濾非 dict、`runSource` 丟掉計數，測試各自失敗。
@@ -398,7 +397,9 @@
     - 10a＋10b 上 shadow（2026-10-25 23:2x，Will 授權部署與 VM 設定）：`a5b2e6c`（CI run 40206008208 綠）部署到正式專案（`freelance-agent-8h6bndpwp`，alias 不變；`vercel env ls production` 仍是白名單 6 個名稱；`/api/cron` 未登入 302）。先前同晚部署的 `3add463`（`ecohqwuzp`）被它取代。VM：`/opt/freelance-shadow` checkout `a5b2e6c`，`SHADOW_IMAGE=freelance-agent-shadow:a5b2e6c`（回滾改回 `:82cd89d`，備份 `shadow-compose.env.bak-3add463`、`.bak-82cd89d`）；`/etc/freelance-agent/shadow.env` 新增 `PORTFOLIO_CATEGORY_PROJECTS`（值由本機 `portfolio.json` 的 `category_projects` 經管線寫入、未顯示，備份 `shadow.env.bak-a5b2e6c`），replay 需要它才會算出和 Python 相同的 `portfolio_ids`。驗收：新映像加新 env 對 10-25 副本跑 `replay-digest.ts` → same（104 對 104 筆），整個 job 35 秒（量到）。shadow 第一次自然建摘要是 10-26，replay 與候選清單的 7 天比對從 10-26 起算。回滾：Vercel 重新部署 `2cqsaiyx1`；VM 把 `SHADOW_IMAGE` 改回 `:82cd89d`、`shadow.env` 換回備份。
     - 10b 設計審查（fresh subagent）9 項：改 5（replay 的 user 表 inconclusive；`finished_at` 用實際時間；reused 分支的註解改成實際觸發條件——TS 裡只有人工刪掉 run 列、或副本有 digest 沒有 run 時才會走到，claim 之後崩潰會停在 running、隔天是 already_run；render 呼叫的註解寫明理由與移除時機（10c 把組信接進 `finishDaily` 時由組信取代）；replay 從 ops 層移到獨立的 verify 層，不在 ops 規則上開單檔例外）、記 3（下一條）、盤點更新 1（§4、§5b、§5c 與測試列的去向改成實際路徑）。
     - 記：reused 時 `source_details` 只有 `{status: <tasker 的健康狀態>}`，是 Python 只有 Tasker 一個來源時期的寫法（`daily.py:46`），`ranSources` 讀這天會得到零個來源而 fail closed；切換前照規格保留，步驟 14 刪 `backend/` 時改成從 snapshot 的 `sources` 重建 `collect_sources` 同形的 dict。`FAILURE_REASON` 和 runner 分兩處維護：漂移由 golden `failure_reasons` 守住，新增來源時測試會要求補上；步驟 14 的 D6 終局把 reason 併進 runner spec（`RUNNERS[source] = { run, failureReason }`）。replay 的 pg_temp 前提見上一條；若之後 Drizzle 設定改成帶 schema（`pgSchema`），replay 要改用獨立的資料庫（Neon branch 或步驟 11 的 PGlite）。
+    - 10b2 已通知帳本（D15，2026-10-26 新增，排在 10c 前）：表 `digest_novelty(digest_id, key, fingerprint)`，和 snapshot 同一個交易、由同一批 items 推導、寫入後不改；選取時 join `digest_outbox.status in ('sent','attempted','unknown')`。舊 snapshot 回填用同一個推導，那 483 筆沒存 `novelty_keys` 的走移植版 `novelty()`，回填前先在 VM 證明這 483 筆的 key 和 Python 算的相同。converge 載入後重建帳本、replay 在暫存表裡重建、反向腳本排除它（Python 不讀）；`TABLES` 以外的衍生表要有自己的清單，converge 的表集合檢查不能把它當成多出來的表。另留一支「從 snapshot 重建帳本再比對」的檢查，步驟 14 刪 replay 後仍可跑。驗收：帳本選取與掃 snapshot 選取在 golden 情境、`scale.test.ts` 與每天的 replay 都相同；`scale.test.ts` 的抑制段改量帳本路徑。mutation：拿掉 status join（pending 也抑制）、回填跳過 483 筆、replay 不在暫存表重建帳本，測試各自失敗。
     - 10c 寄送路徑（shadow 結構上不能寄）：`claimDigest`／`finishDigest`／`dispatch`（`scheduler.py`），寄送 step `maxRetries = 0`；MIME 由 TS 自己組（multipart/alternative、utf-8、固定 boundary 與 Message-ID，同一 snapshot 永遠是同一串位元組），預覽 sha256 由 TS 算，不沿用 Python 的值；SMTP 用 nodemailer 只當傳輸層（`raw` 寄出我們組好的位元組，Node 沒有內建 SMTP client），連 `smtp.gmail.com:465`、驗憑證。寄送憑證的 env 名稱在步驟 13 才存入，缺 env 時寄送 step 回 `not_configured`、不 claim。驗收：「不確定寄送不重試」（sender 丟例外、沒有 receipt、程序在 claim 後中斷，三種都留在 `attempted`／`unknown`，再跑一次不會寄）、sha256 不符拒寄、snapshot 改變拒寄、`existing_snapshot_requires_review`。mutation：寄送 step 允許重試、`finishDigest` 接受非 `attempted` 的列，測試各自失敗。1d 實寄（合成信）在這一步做，需要 Will 把 SMTP 憑證存進 spike 專案的 env。
+    - 10e 共用讀取模型（D16，2026-10-26 新增，排在 10c 後）：取代全表 `listIn`，UI 與摘要都讀它。寫入時存跟內容有關的值（identity key、關鍵字類別、評估要讀的欄位）與群組成員；設定變更依 settings revision 重新投影；和時間有關的值（截止、新鮮度、排名）讀取時算；分組改成和輸入順序無關的規則，才能用 identity key 索引增量維護（D17 允許和 Python 的分組不同，差異列進 replay 報告並由 Will 接受）。驗收：投影結果等於全表重算（測試用兩種算法比對同一份資料）；正式量級下一次清單與一次回饋的 Neon 讀取量、摘要耗時；replay 報告的每項差異都有解釋。mutation：設定變更不重新投影、分組依輸入順序，測試各自失敗。
     - 10d 受保護的操作頁（被擋於：步驟 11 的 Origin 檢查與 body 上限）：`/ops/recovery`（列出隔離信件與卡住的 `running`；把一封 rejected 標回 `retry_pending`，取代 `bootstrap/recovery.py`）、`/ops/digest`（預覽 MIME 與 sha256，帶相符的 sha256 才寄既有 `pending`，取代 `gmail_smtp_cli`）。憑證只在 Vercel，不複製到本機，所以用頁面不用本機 script（盤點 §4 已定）。驗收：`retry_mail` 的 Python 案例 TS 版、sha256 不符拒寄、跨來源 Origin 被擋。mutation：拿掉 sha256 比對，測試要失敗。
 
 - [ ] **11. UI、API、契約與離線 demo**（被擋於：步驟 4、D10；可以和步驟 6–10 並行）
@@ -411,7 +412,7 @@
     - 頁面沿用 `frontend/` 的元件。
     - 歷史核准失效保護依 D8。
     - 離線 demo 模式：PGlite 加 network guard，不讀任何 env。
-    - 讀取路徑瘦身（D13）：UI 的清單與分組回饋不再每次讀全表、重算全部評估。做法在本步決定（候選：寫入時存 identity key 與投影欄位，回饋只讀相關群組；清單用 SQL 篩選分頁）。每日摘要可以保留全表 `listIn`（每天 1 次），以維持和 Python 的逐位元比對。
+    - 讀取路徑瘦身（D13）：由步驟 10e 的共用投影（D16）完成，UI 直接讀它；本步只做 UI 的 SQL 篩選分頁與回饋讀取範圍。D13 的月用量驗收仍在本步量。
   - 消費端：`inventory-surface.md` §3 的 47 個呼叫點；`rg -n "openapi-fetch|api\.d\.ts|contracts/" frontend scripts`；`frontend/tests/{smoke,manual-application-load,workbench}.mjs`。
   - 驗收：
     - 三支前端測試的等價版在 preview 上通過。
@@ -475,19 +476,11 @@
   - 完成定義逐項核對；獨立設計審查（design-review skill）。
   - 長期檢查接進 CI：schema 漂移、trigger 測試、指紋相容測試、step 型別檢查。
   - 延後項附觸發條件，搬回主清單。
-  - D6 窗口結束時處理（2026-10-24 設計審查記下的終局）：
-    - Python 值模型只留在雜湊與已存 JSON 的邊界（`web/src/platform/py/{json,unicode,url}.ts`）；業務模組改用 TS 原生型別與 `DomainError` 類別階層，移除 `PyError` 字串分類、C 版 `fromisoformat` 與 Python `round`／格式化的照抄。
-    - `golden.json` 拆成兩份：雜湊相容（永久保留）與 Python 行為對照（刪除）。
-    - `web/src/platform/py/html.ts` 與 `platform/http.ts` 的 `loadsBytes`（照抄 `json.detect_encoding` 的 UTF-16／32）：二選一，換成 WHATWG parser（parse5）並修盤點缺陷 23，接受所有描述來自 HTML 的來源一次性重算指紋；或永久保留移植。觸發：D6 窗口結束。
-    - 步驟 7 的 Python 行為照抄（`platform/py/email.ts` 的 `parsedate_to_datetime`、`re.ts` 的 `\b`＋IGNORECASE、`unicode.ts` 的 `pyInt`／`pyIsDigit`／`pyUpperAscii` 與 `decimal`／`digit`／`word`／`ignorecase_ascii`／`upper_ascii` 表、`xml.ts` 照 expat 的編碼判斷）：它們決定 `published_at`、`taiwan_eligible`、`remote_evidence`，這些欄位進 receipt 雜湊，所以切換前必須和 Python 一致。D6 後二選一：換標準實作（RFC 5322 日期解析、原生 `/iu`、`BigInt`／`Number` 解析），接受這類來源一次性重算 receipt；或永久保留並寫出理由。觸發：D6 窗口結束。（2026-10-24 步驟 7 設計審查）
-    - 步驟 8 第 1 批的照抄（`re.ts` 的 `translate`、`unicode.ts` 的 `pyFloat`／`pyIntToFloat`／`space` 與 `cased` 表、`datetime.ts` 的 `fromTimestamp` 錯誤分類、`json.ts` 的 4300 位上限、`xml.ts` 的 `attrib` 與第二個 BOM）：決定 `taiwan_eligible`、`timezone_compatible`、來源成敗與 receipt 雜湊。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 設計審查）
-    - 步驟 8 第 2 批的照抄（`re.ts` 的 lookahead、控制字元跳脫、dotAll 與 `pyFindall`／`pySub`／`pyReSplit`；`xml.ts` 的 `xmlFromString` 忽略宣告編碼與跳過一個 BOM；`codecs.ts` 的錯誤分類）：決定 `employment_evidence`、`kind`（進 receipt 雜湊）與 RSS 來源成敗。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 第 2 批設計審查）
-    - 步驟 8 第 3 批的照抄（`url.ts` 的 `urljoin`、`unicode.ts` 的 `pyUpper` 與 `upper` 表、`json.ts` 的 `rawDecode`、`datetime.ts` 的 `dateFromIsoformat`、`re.ts` 的 `\Z`／`pyMatch`、`http.ts` 的 `urlopenRead`／`raiseForUrllibStatus`）：決定 canonical URL（external_id）、`employment_types`（進 receipt 雜湊）、`published_at`／`updated_at` 與詳情頁成敗。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 第 3 批）
-    - 步驟 8 最後一批的照抄（`unicode.ts` 的 `pyRstrip`、taiwanjobs 的 `STRPTIME_YMD`）：決定 arbeitnow 的 `description` 與 taiwanjobs 的 `source_updated_at`，都進 receipt 雜湊。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 最後一批設計審查）
-    - 步驟 9a 的照抄（`platform/py/email.ts` 的 `getaddresses`／`AddrlistClass`、`receiving.ts` 的 `utf8Length` 對 lone surrogate 丟錯、`readNotification` 只為例外而呼叫的 `qualify`、`mailRecords` 照 SQLite 主鍵索引的讀取順序）：決定寄件者 allowlist、哪些信被 rejected 與重試順序。二選一：寄件者改用維護中的 RFC 5322 parser 或只比對已知的 From 形式、`qualify` 呼叫刪掉、順序改成明寫的規則；或永久保留並寫出理由。觸發：D6 窗口結束。（2026-10-25 步驟 9a 設計審查）
-    - 步驟 9b 的照抄（glassdoor 的 `received_at` 存信件原始字串而其他來源存 `isoformat()`、cake 的 base64 長度規則與「恰好一個 zlib stream」、`queryValues` 的兩個拒收與丟空值、`html.ts` 在 close() 時回報未結束的 comment）：決定哪些信被拒收與 glassdoor 的 `received_at`（進 fingerprint 排除欄位，不進雜湊）。二選一：glassdoor 改存 `isoformat()` 並接受既有列的一次差異、連結檢查改成只認已知形式；或永久保留並寫出理由。觸發：D6 窗口結束。（2026-10-25 步驟 9b 設計審查）
-    - 非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`，或寫出保留理由。
-    - `listIn` 全表讀取：UI 路徑已在步驟 11 改掉（D13）；這裡只剩每日摘要的全表讀取，D6 後若摘要不再需要和 Python 逐位元比對，再一起改。
+  - D6 窗口結束時處理（2026-10-24 設計審查記下的終局；2026-10-26 依 D17 改寫：不再是「照抄或原生二選一」，而是分成「現在就原生」與「窗口結束後換版本」兩組）：
+    - 現在就原生（不影響任何已存雜湊，在各自相關的步驟裡做，不等步驟 14）：業務模組改用 TS 原生型別與 `DomainError` 類別階層，移除 `PyError` 字串分類（步驟 10c、11 起，新程式不再用）；`FAILURE_REASON` 併進 runner spec；`readNotification` 只為例外而呼叫的 `qualify` 刪除；`AccessBlocked` 歸到 collection；ranking／render 的 Python `round`／格式化照抄換原生（決定 R1 的投影步驟一起做）；`mailRecords` 的讀取順序改成明寫的規則；非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`（反向腳本負責轉回 SQLite 格式）。
+    - 窗口結束後換版本（會改到已存雜湊的輸入）：下列照抄在 D6 前必須和 Python 一致，窗口結束後換成標準實作，寫入改用 v2 雜湊並把已知職缺一次重新基準化（只差版本不通知），v1 函式保留來驗證舊列；`external_id`／canonical URL（`url.ts` 的 `urljoin`）不換，或附舊→新 id 對照表。換之前在 VM 量受影響的職缺數。範圍：`html.ts` 與 `http.ts` 的 `loadsBytes`（盤點缺陷 23）；步驟 7 的 `email.ts` `parsedate_to_datetime`、`re.ts` 的 `\b`＋IGNORECASE、`unicode.ts` 的 `pyInt`／`pyIsDigit`／`pyUpperAscii` 與相關表、`xml.ts` 的編碼判斷；步驟 8 各批的 `re.ts`（`translate`、lookahead、dotAll、`pyFindall`／`pySub`／`pyReSplit`、`\Z`／`pyMatch`）、`unicode.ts`（`pyFloat`、`pyIntToFloat`、`space`／`cased`／`upper` 表、`pyUpper`、`pyRstrip`）、`datetime.ts`（`fromTimestamp`、`dateFromIsoformat`）、`json.ts`（4300 位上限、`rawDecode`）、`xml.ts`（`attrib`、BOM、宣告編碼）、`codecs.ts`、`http.ts` 的 `urlopenRead`／`raiseForUrllibStatus`、taiwanjobs 的 `STRPTIME_YMD`；步驟 9a 的 `getaddresses`／`AddrlistClass`、`utf8Length`；步驟 9b 的 glassdoor `received_at` 格式、cake 的 base64／zlib 規則、`queryValues` 的拒收、`html.ts` 未結束 comment。
+    - `golden.json` 拆成兩份：v1 雜湊相容（永久保留，驗證舊列用）與 Python 行為對照（刪除）。
+    - 照抄清單的原始逐條紀錄（每批的理由與審查來源）見 `git show dbd9b12:docs/plans/2026-10-23-nextjs-vercel-migration.md` 的本段。
   - 需要人做的事：
     - VM 退役。
     - 確認 Neon 與 Vercel 帳單。
@@ -574,7 +567,11 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
   - 終局：切換時這把 key 就是正式的收信 key（步驟 13 第 5 小步）；VM 上的 key 留到 D6 窗口結束才撤銷，因為回滾要用。
   - 狀態更新：已決 2026-10-25，Will 選 A。需要人做的事：在 Resend 建專用 key、存進 Vercel production env（`RESEND_API_KEY`、`RESEND_INBOX`，Sensitive）後回 `done`，再授權部署與排程。
 
-拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D13 於 2026-10-24 拍板（A）。D14 於 2026-10-25 拍板（A）。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
+- **D15 摘要怎麼判斷已通知**（狀態：已決 2026-10-26，Will 同意；擋住步驟：10b2）：已通知帳本，和 snapshot 同交易推導、不可改，選取時 join 狀態。否決：每天重掃全部 snapshot（傳輸量隨歷史成長，碰 Neon 免費上限）、只看最近 N 天（改變產品行為）。ADR：`docs/adr/2026-10-26-digest-ledger-shared-read-model-native-port.md`。
+- **D16 衍生資料的讀取**（狀態：已決 2026-10-26，Will 同意；擋住步驟：10e、11）：UI 與摘要共用一份寫入時投影，取代 D13 原本「只做 UI」的路徑與步驟 14 的摘要 `listIn`。否決：兩條讀取路徑（同一份衍生資料兩套算法會漂移）、全表加快取（serverless 不共用記憶體、每次回饋都失效）。ADR 同上。
+- **D17 移植忠實度**（狀態：已決 2026-10-26，Will：「也不一定輸出一致，可以用更好的方式重構」；擋住步驟：10c 起所有新程式、步驟 14）：不再照抄 Python 的實作，也不要求輸出和 Python 一致；改原生寫法，shadow 與 replay 的差異逐項列出、經 Will 接受（完成定義原本就允許）。D4 的目的（不重收、不重複通知）由兩條護欄守住：雜湊加演算法版本，只差版本時重新基準化不通知；`external_id` 不變或附舊→新 id 對照表。已存雜湊的演算法只在 D6 窗口結束後換（窗口內 Python 要能回滾），v1 函式保留驗證舊列。修改了 2026-10-23 ADR 的 D0（輸出一致）與 D4（永久逐位元相容）。ADR 同上。
+
+拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D13 於 2026-10-24 拍板（A）。D14 於 2026-10-25 拍板（A）。D15、D16、D17 於 2026-10-26 拍板。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
 
 ## 進度
 
@@ -591,7 +588,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 7 CryptoJobsList | 已部署（2026-10-25，`920b6b4`） | 本機：golden（RSS 123、text 127、日期 126、int 26）、真實 feed 100 筆逐位元組相同、4 個 Python 案例、交易邊界 mutation | 比對（10-26 起，與步驟 6 同一份報告）；依序執行的 fan-out 隨同一次部署上線 | |
 | 8 其餘免登入來源 | 進行中 | 第 1 批（himalayas、hackernews、v2ex）與 getonboard 程式完成：golden、真實回應逐位元組相同、9 個 store 案例、13 個 mutation、差分模糊測試與設計審查；第 2 批（public_feeds 4 個）程式完成：golden、真實回應 351 筆逐位元組相同、14 個 store 案例、13 個 mutation、設計審查；第 3 批（nodesk、justremote、dynamitejobs、jobbank518、chickpt）程式完成：golden、5 個來源的實抓回應輸出逐位元組相同、37 個 Python 案例、25 個 mutation、設計審查（改 4、記 1） | 第 1–3 批 2026-10-25 已部署（`920b6b4`），3 天比對 10-26 起；jobbank518 索引頁修正（Python 也上 VM，見第 3 批）；最後一批（taiwanjobs、arbeitnow、freelancer）2026-10-25 程式完成：golden、真實回應逐位元組相同、29 個入庫案例、20 個 mutation、設計審查（改 4、記 2），同日部署（`82cd89d`），3 天比對 10-26 起；排程後量各 step 耗時（freelancer 超過 200 秒、任一 step 超過 150 秒交 Will） | |
 | 9 信件來源 | 進行中 | 9a（共用收信、tasker、linkedin）與 9b（cake、104、talent、glassdoor）程式完成：golden（寄件者、主旨 gate、parser、read_notification、41 個 sync 情境逐表比對）、12＋16 個 mutation、設計審查兩輪（9a 改 2 記 1 提 1 駁回 1；9b 改 5） | 2026-10-25 排程並部署（`f23f052`，`2cqsaiyx1`）；3 天比對 10-26 起，每個信件 step 的耗時與 Resend 狀態碼待第一次自然執行後量 | |
-| 10 摘要與寄送 | 進行中（拆成 10a–10d） | 10a（`51eb12f`，CI run 40193316438 綠）：typecheck、boundaries、build、344 個測試、5 個 mutation、golden `failure_reasons` 21 個；10b（`3add463`、效能修正 `a5b2e6c`）：golden（digest 情境、render 12 例、run_daily 4 例）逐位元組相同、22 個 mutation、replay 測試（相同、竄改、無 digest、inconclusive）、設計審查 9 項已分流；正式副本建摘要 12 秒 | 10a＋10b 已上 shadow（`a5b2e6c`，`8h6bndpwp`，VM `:a5b2e6c`），10-25 副本 replay same；replay 7 天比對、shadow 7 天候選清單比對從 10-26 起算；10c、10d 未開始 | |
+| 10 摘要與寄送 | 進行中（拆成 10a–10d） | 10a（`51eb12f`，CI run 40193316438 綠）：typecheck、boundaries、build、344 個測試、5 個 mutation、golden `failure_reasons` 21 個；10b（`3add463`、效能修正 `a5b2e6c`）：golden（digest 情境、render 12 例、run_daily 4 例）逐位元組相同、22 個 mutation、replay 測試（相同、竄改、無 digest、inconclusive）、設計審查 9 項已分流；正式副本建摘要 12 秒 | 10a＋10b 已上 shadow（`a5b2e6c`，`8h6bndpwp`，VM `:a5b2e6c`），10-25 副本 replay same；replay 7 天比對、shadow 7 天候選清單比對從 10-26 起算；2026-10-26 依 D15–D17 新增 10b2（帳本）與 10e（共用投影），順序 10b2 → 10c → 10e → 10d；10b2、10c、10d、10e 未開始 | |
 | 11 UI、API、demo | 未開始 | | | |
 | 12 反向收斂與演練 | 未開始 | | | |
 | 13 正式切換 | 未開始 | | | |
