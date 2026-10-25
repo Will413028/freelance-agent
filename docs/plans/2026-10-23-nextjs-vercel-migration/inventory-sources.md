@@ -20,7 +20,7 @@
 
 | source id | file | access type | auth | 非 stdlib | LOC | 測試檔（數） | 正式啟用 | 特殊語意 | 去向 |
 |---|---|---|---|---|---|---|---|---|---|
-| freelancer | `collection/freelancer.py` | public API（官方 projects/active，JSON） | none | 無 | 121 | `test_freelancer.py`（17） | yes（partial：1636筆/23頁、limited=true） | 3 個固定 query（:12）；offset 分頁 limit=100、每 query max_pages=20、max_seconds=30（:42,:101-108）；同 ID 同時間不同內容 → 整批失敗（:83-84）；offset≥total 時以實際不重複數判 limited（:90-95）；無新 ID 停止；TITLE_SIGNAL／OUT_OF_SCOPE 標題過濾 + score>0（:110-113）；ID=`project.id`，receipt=`freelancer:{id}:{time_updated}`；不用 source_batch，逐筆 `store.ingest` | 改寫：web/src/modules/collection/sources/freelancer.ts（有分頁與時間上限、partial 映射，排最後一批）；步驟 8 |
+| freelancer | `collection/freelancer.py` | public API（官方 projects/active，JSON） | none | 無 | 121 | `test_freelancer.py`（17） | yes（partial：1636筆/23頁、limited=true） | 3 個固定 query（:12）；offset 分頁 limit=100、每 query max_pages=20、max_seconds=30（:42,:101-108）；同 ID 同時間不同內容 → 整批失敗（:83-84）；offset≥total 時以實際不重複數判 limited（:90-95）；無新 ID 停止；TITLE_SIGNAL／OUT_OF_SCOPE 標題過濾 + score>0（:110-113）；ID=`project.id`，receipt=`freelancer:{id}:{time_updated}`；不用 source_batch，逐筆 `store.ingest` | 改寫：web/src/modules/collection/sources/freelancer.ts（有分頁與時間上限、partial 映射）；步驟 8 最後一批，2026-10-25 程式完成、未排程 |
 | jobicy | `collection/free_jobs.py` | public API（JSON） | none | 無 | 80（與 remotive 共用） | `test_free_jobs.py`（6，共用） | yes（ok） | 單次 GET、上限 200 筆／8MB（:56-68）；只收 kind=contract；ID=`id`，receipt=內容 sha256；geo 為 US/UK/EU 等才判 taiwan_eligible=False，其餘保留 None（:38-41）；不用 source_batch；health 直接設 ok（:77） | 改寫：web/src/modules/collection/sources/free-jobs.ts（與 remotive 共用）；步驟 6 試點，2026-10-24 程式完成，部署待授權 |
 | remotive | `collection/free_jobs.py` | public API（JSON） | none | 無 | 同上 | 同上 | yes（ok） | 同上，endpoint `category=software-dev&limit=200`（:11） | 改寫：web/src/modules/collection/sources/free-jobs.ts（與 jobicy 共用）；步驟 6 試點，2026-10-24 程式完成，部署待授權 |
 | himalayas | `collection/himalayas.py` | public API（JSON search） | none | 無 | 104 | `test_himalayas.py`（6） | yes（ok） | 4 query × 2 employment type = 8 次、各第 1 頁、每頁 ≤20（:12,:71-91）；以 `guid` 去重；**無整體 deadline**，每次 timeout=25（:79）；不用 source_batch | 改寫：web/src/modules/collection/sources/himalayas.ts；步驟 8，2026-10-25 程式完成、未排程 |
@@ -30,8 +30,8 @@
 | realworkfromanywhere | `collection/public_feeds.py` | RSS | none | 無 | 同上 | 同上 | yes（ok） | 同上；URL 須為固定 host/prefix（:122） | 改寫：web/src/modules/collection/sources/public-feeds.ts；步驟 8 |
 | weworkremotely | `collection/public_feeds.py` | RSS | none | 無 | 同上 | 同上 | yes（partial：1 筆正文 >200,000 字元） | 同上 | 改寫：web/src/modules/collection/sources/public-feeds.ts；步驟 8 |
 | workingnomads | `collection/public_feeds.py` | public API（JSON） | none | 無 | 同上 | 同上 | yes（ok） | 同上 | 改寫：web/src/modules/collection/sources/public-feeds.ts；步驟 8 |
-| taiwanjobs | `collection/taiwanjobs.py` | public API（政府開放資料 XML webservice） | none | 無 | 125 | `test_taiwanjobs.py`（11） | yes（partial：complete_scan=false、2 拒收） | 固定 `count=1000`（:13）；45s 整體 deadline，直接操作 `response.fp.raw._sock` 逐塊讀（:85-102，Python 專屬實作）；新 ID 需 90 天內更新 + contract；有 rejected 時**不呼叫 finish**，health 停在 failed（:121-122） | 改寫：web/src/modules/collection/sources/taiwanjobs.ts（逐塊讀的 deadline 改用 AbortController；complete_scan／partial 映射，排最後一批）；步驟 8 |
-| arbeitnow | `collection/arbeitnow.py` | public API（JSON 分頁） | none | 無 | 189 | `test_arbeitnow.py`（17） | yes（partial：20頁/2451筆、truncated、pagination_consistent=false） | **primary-host pinning**：next 只接受 `www.arbeitnow.com`／`www.arbeitnow.nl`、精確 path 與 `page=N+1`，然後重建為固定 `.com` URL（:105-115）；max_pages=20、max_seconds=120、頁間 sleep 3s（:119-138）；meta.from/to/per_page 一致性檢查（:141-153）；跨頁同 ID 不同 receipt → 整批失敗（:157-160）；complete_scan 需無 next、無 rejected、分頁一致；收錄另需 score>0（:181-183） | 改寫：web/src/modules/collection/sources/arbeitnow.ts（primary-host pinning、分頁一致性，排最後一批）；步驟 8 |
+| taiwanjobs | `collection/taiwanjobs.py` | public API（政府開放資料 XML webservice） | none | 無 | 125 | `test_taiwanjobs.py`（11） | yes（partial：complete_scan=false、2 拒收） | 固定 `count=1000`（:13）；45s 整體 deadline，直接操作 `response.fp.raw._sock` 逐塊讀（:85-102，Python 專屬實作）；新 ID 需 90 天內更新 + contract；有 rejected 時**不呼叫 finish**，health 停在 failed（:121-122） | 改寫：web/src/modules/collection/sources/taiwanjobs.ts（`urlopenRead` 的 45 秒整體 deadline；complete_scan／partial 映射）；步驟 8 最後一批，2026-10-25 程式完成、未排程 |
+| arbeitnow | `collection/arbeitnow.py` | public API（JSON 分頁） | none | 無 | 189 | `test_arbeitnow.py`（17） | yes（partial：20頁/2451筆、truncated、pagination_consistent=false） | **primary-host pinning**：next 只接受 `www.arbeitnow.com`／`www.arbeitnow.nl`、精確 path 與 `page=N+1`，然後重建為固定 `.com` URL（:105-115）；max_pages=20、max_seconds=120、頁間 sleep 3s（:119-138）；meta.from/to/per_page 一致性檢查（:141-153）；跨頁同 ID 不同 receipt → 整批失敗（:157-160）；complete_scan 需無 next、無 rejected、分頁一致；收錄另需 score>0（:181-183） | 改寫：web/src/modules/collection/sources/arbeitnow.ts（primary-host pinning、分頁一致性）；步驟 8 最後一批，2026-10-25 程式完成、未排程 |
 | getonboard | `collection/getonboard.py` | public API（JSON） | none | 無 | 110 | `test_getonboard.py`（5） | yes（ok） | 先讀 modalities taxonomy 且必須 total_pages=1（:71-73）；search 最多 10 頁 × 120（:74）；90s deadline；頁碼一致性檢查；TECH 類別 + remote + contract + 90 天 | 改寫：web/src/modules/collection/sources/getonboard.ts；步驟 8，2026-10-25 程式完成、未排程 |
 | cryptojobslist | `collection/cryptojobslist.py` | RSS | none | 無 | 104 | `test_cryptojobslist.py`（4） | yes（ok） | 單一 RSS，25s deadline、timeout 15（:85-90）；拒絕 DOCTYPE／ENTITY（:71）；ID=canonical URL；receipt=內容 sha256，但 received_at=抓取時間（:66）；「contract」標籤不當僱用型態（:52） | 改寫：web/src/modules/collection/sources/cryptojobslist.ts（驗證 source_batch；2026-10-24 程式完成、未部署）；步驟 7 試點 |
 | nodesk | `collection/nodesk.py` | RSS + HTML 詳情頁（JobPosting） | none | 無 | 152 | `test_nodesk.py`（7） | yes（ok） | RSS 只取前 20 筆、超過記 truncated（:48,:57）；90 天內才讀詳情，每頁 sleep 1s（:131）；ID=URL | 改寫：web/src/modules/collection/sources/nodesk.ts（共用 `sources/job-pages.ts`）；步驟 8 第 3 批，2026-10-25 程式完成、未排程 |
@@ -149,14 +149,14 @@ Resend 共用 mail 語意（`resend_sync.py`）：
 
 | source | 程式碼上限 | 最壞估計 | 一個 300s function |
 |---|---|---|---|
-| freelancer | 3 query × max_seconds 30（`freelancer.py:42,101-108`）＋2×0.6s | ~92s＋最多約 1600 筆 ingest | 可 |
+| freelancer | 3 query × max_seconds 30（`freelancer.py:42,101-108`）＋2×0.6s | 每個 query 30s 只限發出新請求，單次請求只限連線與每塊等待 20s（無整體上限，2 MB 慢速回應可更久）；~92s＋逐筆 ingest（2026-10-25 錄到的資料約 303 筆，推論） | 可（觸發條件見計畫步驟 8 最後一批） |
 | jobicy／remotive | 單次 timeout 25（`free_jobs.py:60`） | ~25s | 可 |
 | himalayas | 8 次 × timeout 25＋0.6s，無整體 deadline（`himalayas.py:79,90`） | ~205s；TS 的 `getCapped` 以 25s 限住整個請求，上界同（推論，未量），加整體 deadline 的條件見計畫步驟 8 | 可但緊 |
 | hackernews | 90s deadline（`community_jobs.py:78`），8 併發 | ≤90s | 可 |
 | v2ex | 同上 | ≤90s | 可 |
 | public_feeds ×4 | 25s deadline（`public_feeds.py:23,34`） | ≤25s | 可 |
-| taiwanjobs | 45s deadline（`taiwanjobs.py:86`） | ≤45s | 可（socket 逐塊 deadline 需改 AbortController） |
-| arbeitnow | max_seconds 120、頁間 3s（`arbeitnow.py:119-138`） | ≤120s＋單次 25s | 可 |
+| taiwanjobs | 45s deadline（`taiwanjobs.py:86`） | ≤45s（TS `urlopenRead` 傳整體 deadline） | 可 |
+| arbeitnow | max_seconds 120、頁間 3s（`arbeitnow.py:119-138`） | ≤120s 才發出新請求；單次只限連線與每塊等待 25s（無整體上限，8 MB 慢速回應可更久） | 可（觸發條件見計畫步驟 8 最後一批） |
 | getonboard、nodesk、justremote、dynamitejobs、jobbank518、chickpt、ptt_soho、ptt_codejob | 90s deadline（見 §1 各 file:line） | ≤90s | 可 |
 | cryptojobslist | 25s deadline（`cryptojobslist.py:86`） | ≤25s | 可 |
 | guru（未啟用） | 120s deadline（`guru.py:105`） | ≤120s | 可 |

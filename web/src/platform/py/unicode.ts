@@ -192,6 +192,14 @@ export function pyStrip(s: string): string {
   return fromCps(cps.slice(a, b));
 }
 
+/** str.rstrip() with no arguments. */
+export function pyRstrip(s: string): string {
+  const cps = codePoints(s);
+  let b = cps.length;
+  while (b > 0 && SPACE.has(cps[b - 1])) b--;
+  return fromCps(cps.slice(0, b));
+}
+
 const hex = (n: number, width: number) => n.toString(16).padStart(width, "0");
 
 function reprStr(s: string): string {

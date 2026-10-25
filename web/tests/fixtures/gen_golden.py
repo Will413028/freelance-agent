@@ -1607,6 +1607,303 @@ def batch3_golden():
     }
 
 
+# ---------------------------------------------------------------- step 8, batch 4: taiwanjobs, arbeitnow, freelancer
+from freelance.modules.collection import taiwanjobs, arbeitnow, freelancer   # noqa: E402
+from urllib.parse import urlencode                                     # noqa: E402
+
+RSTRIP = [' a ', 'a\n', 'a\x1c', 'a\x85', 'a　', '', '   ', 'a​', 'a\xa0', '\ta\t']
+
+TJ_LABELS = taiwanjobs.LABELS
+TJ_URL = 'https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34'
+
+
+def tj_row(**changes):
+    """backend/tests/collection/test_taiwanjobs.py:row"""
+    return dict(OCCU_DESC='AI agent 後端 API 工程師', WK_TYPE='兼職', JOB_DETAIL='遠端開發 AI agent 與後端 API', URL_QUERY=TJ_URL,
+                TRANDATE='20260918', STOP_DATE='20261231', WKTIME='日班', SALARYCD='時薪', NT_L='500', NT_U='1000') | changes
+
+
+def tj_xml(*rows, head='<?xml version="1.0"?>'):
+    """backend/tests/collection/test_taiwanjobs.py:xml"""
+    return (head + '<DataList>' + ''.join('<Data>' + ''.join(f'<{k}（{TJ_LABELS[k]}）><![CDATA[{v}]]></{k}（{TJ_LABELS[k]}）>' for k, v in r.items()) + '</Data>'
+                                         for r in rows) + '</DataList>').encode()
+
+
+def tj_url(query, path='/Internet/jobwanted/JobDetail.aspx', host='job.taiwanjobs.gov.tw', scheme='https'):
+    return tj_row(URL_QUERY=f'{scheme}://{host}{path}?{query}')
+
+
+TJ_DATES = ['20260918', '20261301', '20260230', '20240229', '20230229', '00000101', '00010101', '99991231', '２０２６０９１８', '2026091',
+            '202609180', '2026-9-1', '20261131', '20261010', '20260001', '20260100', '١٢٣٤٠١٠١', '𝟐𝟎𝟐𝟔𝟎𝟗𝟏𝟖', '2026 918', ' 20260918',
+            '20260918\n', '20261231', '20260101', '20261110', '19700101', '', 'abcdefgh', '2026091８']
+TJ_BATCHES = [
+    tj_xml(tj_row()), tj_xml(tj_row(JOB_DETAIL='開發 API <WKTIME（工作時間）>例子</WKTIME（工作時間）> & RAG')),
+    tj_xml(tj_row(WK_TYPE='全職'), tj_row(WK_TYPE='未知', URL_QUERY=TJ_URL.replace('34', '35'))),
+    b'<!DOCTYPE x [<!ENTITY p "bad">]><DataList/>', b'<html>challenge</html>', tj_xml(tj_row()).replace('（職務名稱）'.encode(), '（UNKNOWN）'.encode()),
+    tj_xml(tj_row()).replace(b'</Data>', b'<WK_TYPE>x</WK_TYPE></Data>'),
+    tj_xml(tj_row(URL_QUERY=TJ_URL.replace('job.taiwanjobs.gov.tw', 'evil.invalid'))), tj_xml(tj_row(TRANDATE='20269999')),
+    tj_xml(tj_row(URL_QUERY=TJ_URL + '&HIRE_ID=56')), tj_xml(tj_row(), tj_row()), tj_xml(tj_row(TRANDATE='20200101')),
+    tj_xml(tj_row(STOP_DATE='20260901')), tj_xml(tj_row(STOP_DATE='')), tj_xml(tj_row(STOP_DATE='20261340')), tj_xml(tj_row(STOP_DATE='abc')),
+    tj_xml(tj_row(STOP_DATE='２０２６１２３１')), tj_xml(), tj_xml(tj_row(), tj_row(OCCU_DESC='', URL_QUERY=TJ_URL.replace('34', '35'))),
+    tj_xml(tj_row(JOB_DETAIL='')), tj_xml(tj_row(OCCU_DESC='x' * 501)), tj_xml(tj_row(OCCU_DESC='x' * 500)),
+    tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=34', path='/Internet/index/JobDetail.aspx')),
+    tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=34', path='/internet/JOBWANTED/jobdetail.aspx')),
+    tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=34', path='/Internet/other.aspx')), tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=34', scheme='http')),
+    tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=34', host='job.taiwanjobs.gov.tw:443')),
+    tj_xml(tj_url('HIRE_ID=34&x=1&EMPLOYER_ID=12#frag')), tj_xml(tj_url('EMPLOYER_ID=0&HIRE_ID=34')), tj_xml(tj_url('EMPLOYER_ID=012&HIRE_ID=34')),
+    tj_xml(tj_url('EMPLOYER_ID=1' + '2' * 20 + '&HIRE_ID=34')), tj_xml(tj_url('EMPLOYER_ID=1' + '2' * 19 + '&HIRE_ID=34')),
+    tj_xml(tj_url('EMPLOYER_ID=١٢&HIRE_ID=34')), tj_xml(tj_url('EMPLOYER_ID=%31%32&HIRE_ID=34')), tj_xml(tj_url('EMPLOYER_ID=12+&HIRE_ID=34')),
+    tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=')), tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=34&HIRE_ID=')), tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID=34&HIRE_ID')), tj_xml(tj_url('EMPLOYER_ID=12&HIRE_ID')), tj_xml(tj_url('EMPLOYER_ID=12')),
+    tj_xml(tj_row(URL_QUERY='')), tj_xml(tj_row(URL_QUERY='https://[::1/x')), tj_xml(tj_row(TRANDATE='20260929')), tj_xml(tj_row(TRANDATE='20260930')),
+    tj_xml(tj_row(TRANDATE='')), tj_xml(tj_row(TRANDATE='２０２６０９１８')),
+    *[tj_xml(tj_row(WK_TYPE=w)) for w in ('部分工時', '接案', '承攬', '全職/兼職', 'part time', '', '  兼職 　', '兼 職')],
+    tj_xml({k: 'x' for k in TJ_LABELS} | tj_row()), b'\xef\xbb\xbf' + tj_xml(tj_row()), tj_xml(tj_row()).decode().encode('utf-16'),
+    tj_xml(tj_row()) + b'\xff', b'<!doctype x><DataList/>', b'<!ent\xc4\xb1ty x>' + tj_xml(tj_row()), b'<!ENTITY' + tj_xml(tj_row()),
+    tj_xml(tj_row(), head='<?xml version="1.0" encoding="big5"?>'), tj_xml(tj_row(), head=''),
+    b'<DataList>' + b'<Data/>' * 1001 + b'</DataList>', b'<DataList><Data/><Data/></DataList>', b'<DataList>x<Data/></DataList>',
+    b'<DataList>  \n<Data/></DataList>', b'<DataList><Data a="1"/></DataList>', b'<DataList><Row/></DataList>', b'<Other/>',
+    b'<DataList><Data><OCCU_DESC a="1">x</OCCU_DESC></Data></DataList>', b'<DataList><Data><OCCU_DESC><b/></OCCU_DESC></Data></DataList>',
+    b'<DataList><Data><FOO>x</FOO></Data></DataList>', b'<DataList><Data><constructor>x</constructor></Data></DataList>',
+    tj_xml(tj_row()).replace(b'<![CDATA[\xe6\x97\xa5\xe7\x8f\xad]]>', b'\xe6\x97\xa5<!-- c -->\xe7\x8f\xad'),
+    tj_xml(tj_row()).replace(b'<![CDATA[\xe6\x97\xa5\xe7\x8f\xad]]>', b'a&amp;b&lt;c'), b'<DataList><Data></Data>', b'', b'x',
+    '<DataList><Data><OCCU_DESC（職務名稱）>AI agent</OCCU_DESC（職務名稱）><URL_QUERY（職缺資料URL）>{}</URL_QUERY（職缺資料URL）><TRANDATE>20260918</TRANDATE></Data></DataList>'.format(TJ_URL.replace('&', '&amp;')).encode(),
+    tj_xml(tj_row()).replace(b'<Data>', b'<Data>\n  ', 1), tj_xml(tj_row()).replace(b'</DataList>', b'</DataList>tail'),
+    '<DataList><ns:Data xmlns:ns="u"/></DataList>'.encode(), tj_xml(tj_row(JOB_DETAIL=']]><x>')),
+]
+
+
+def tj_batch_case(raw):
+    return dict(input=raw.decode('latin-1'), expect=attempt(lambda: encode(taiwanjobs.parse_batch(raw, now=NOW))))
+
+
+AN_STAMP = 1790000000
+
+
+def an_entry(**changes):
+    """backend/tests/collection/test_arbeitnow.py:entry, with a fixed created_at"""
+    return dict(slug='ai-agent-123', title='Part time AI agent developer', description='<p>Build an AI agent and API.</p>', remote=True,
+                url='https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123', tags=['AI'], job_types=['Part Time'], location='Remote',
+                created_at=AN_STAMP) | changes
+
+
+def an_payload(*entries, page=1, nxt=None, **meta):
+    """backend/tests/collection/test_arbeitnow.py:payload"""
+    return json.dumps(dict(data=list(entries), meta={'current_page': page, 'per_page': 250, 'from': 1 if entries else None,
+                                                     'to': len(entries) or None} | meta, links={'next': nxt})).encode()
+
+
+AN_BASE_DESC = '<p>Build an AI agent and API.</p>'
+AN_ENTRIES = [
+    an_entry(), an_entry(url='https://www.arbeitnow.ch/jobs/companies/acme/ai-agent-123'), an_entry(url='https://www.arbeitnow.ch.evil.test/jobs/companies/acme/ai-agent-123'),
+    an_entry(url='https://www.arbeitnow.co.uk/jobs/companies/acme/ai-agent-123/'), an_entry(url='https://www.arbeitnow.fr/jobs/companies/acme/ai-agent-123?utm=x#y'),
+    an_entry(url='http://www.arbeitnow.com/jobs/companies/acme/ai-agent-123'), an_entry(url='https://www.arbeitnow.com/jobs/acme/ai-agent-123'),
+    an_entry(url='https://www.arbeitnow.com/jobs/companies/acme/other'), an_entry(url='https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123//'),
+    an_entry(url=None), an_entry(url=5), an_entry(url='https://WWW.arbeitnow.com/jobs/companies/acme/ai-agent-123'),
+    an_entry(slug='bad slug'), an_entry(slug='x' * 201), an_entry(slug=None), an_entry(slug='ai-agent-123\n'),
+    *[an_entry(created_at=v) for v in (0, -1, True, 1790000000.0, 10 ** 20, 2 ** 63, 2 ** 62, 253402300800, 253402300799, '1790000000', None)],
+    *[an_entry(job_types=v) for v in ('Part Time', [1], [], ['Full-Time'], [' Part-time '], ['freelance', 'contract'], ['Fulltime', 'Part Time'],
+                                      ['PART TIME'], ['full time'], ['Part Time'], ['part-time'], ['internship'], ['Contract ', 'İ'])],
+    an_entry(location=None), an_entry(location=5), an_entry(remote='yes'), an_entry(remote=False), an_entry(title=None), an_entry(title=''),
+    an_entry(title='x' * 501), an_entry(description=None), an_entry(description=''),
+    *[an_entry(description=AN_BASE_DESC + sep + f) for f in arbeitnow.PROMOTIONAL_FOOTERS for sep in ('\n', '', '  ')],
+    an_entry(description=AN_BASE_DESC + arbeitnow.PROMOTIONAL_FOOTERS[0] + '　\n'), an_entry(description=AN_BASE_DESC + arbeitnow.PROMOTIONAL_FOOTERS[0] + '<p>Must live in Germany</p>'),
+    *[an_entry(description=AN_BASE_DESC + arbeitnow.PROMOTIONAL_FOOTERS[0] + ws) for ws in ('\x85', '\x1c', '\x1f', '\ufeff', '\u2028', '\x0b')],
+    an_entry(description=AN_BASE_DESC + '<p>Find Jobs in Germany on Arbeitnow</p>'), an_entry(description=arbeitnow.PROMOTIONAL_FOOTERS[1]),
+    an_entry(description=AN_BASE_DESC + arbeitnow.PROMOTIONAL_FOOTERS[1] + arbeitnow.PROMOTIONAL_FOOTERS[0]),
+    [], None, 'x', an_entry(tags=None) | {'extra': [1]},
+]
+
+
+def an_normalize_case(e):
+    return dict(entry=tag(e), expect=attempt(lambda: encode(arbeitnow.normalize(e))))
+
+
+def an_raw(payload, **changes):
+    raw = json.loads(payload)
+    for k, v in changes.items():
+        raw[k] = v
+    return json.dumps(raw).encode()
+
+
+AN_NEXT = 'https://www.arbeitnow.com/api/job-board-api?page=2'
+AN_BATCHES = [
+    (an_payload(an_entry()), 1), (an_payload(an_entry()), 2), (an_payload(an_entry(), page=2), 2), (an_payload(), 1), (b'{}', 1), (b'', 1), (b'x', 1),
+    (b'[]', 1), (an_raw(an_payload(), data={}), 1), (an_raw(an_payload(), meta=None), 1), (an_payload(page=True), 1), (an_payload(page=1.0), 1),
+    (an_raw(an_payload(an_entry()), links=None), 1), (an_raw(an_payload(an_entry()), links={}), 1),
+    *[(an_payload(an_entry(), nxt=link), 1) for link in (AN_NEXT, 'https://www.arbeitnow.nl/api/job-board-api?page=2', 'https://evil.test/api/job-board-api?page=2',
+                                                         'https://www.arbeitnow.nl.evil.test/api/job-board-api?page=2', 'https://www.arbeitnow.nl/api/job-board-api?page=2&token=x',
+                                                         'http://www.arbeitnow.com/api/job-board-api?page=2', 'https://www.arbeitnow.com/api/job-board-api?page=1',
+                                                         'https://www.arbeitnow.com/api/job-board-api?page=2&token=x', AN_NEXT + '#x', AN_NEXT + '#',
+                                                         'https://www.arbeitnow.com/api/job-board-api/?page=2', 'https://www.arbeitnow.com/api/job-board-api?page=02',
+                                                         'https://www.arbeitnow.com/api/job-board-api?page=%32', ' ' + AN_NEXT, AN_NEXT + '\n', 5, '')],
+    (an_payload(nxt=AN_NEXT), 1), (an_payload(an_entry(), an_entry(slug='bad', url='https://evil.example/jobs/bad')), 1),
+    (an_raw(an_payload(), data=[{}] * (arbeitnow.MAX_PAGE_ENTRIES + 1)), 1), (an_raw(an_payload(), data=[{}] * 3), 1),
+    (an_payload(an_entry(created_at=10 ** 20)), 1), (an_payload(an_entry(created_at=2 ** 63)), 1),
+    (json.dumps({'data': [an_entry()], 'meta': {'current_page': 1}, 'links': {'next': None}}).encode('utf-16'), 1),
+]
+
+
+def an_batch_case(raw, page):
+    def run():
+        jobs, rejected, nxt = arbeitnow.parse_batch(raw, page=page)
+        return dict(jobs=[encode(j) for j in jobs], rejected=rejected, next=nxt)
+    return dict(input=raw.decode('latin-1'), page=page, expect=attempt(run))
+
+
+def an_page(page, entries, nxt, **meta):
+    return an_payload(*entries, page=page, nxt=nxt, **meta)
+
+
+AN_E1, AN_E2 = an_entry(slug='job-1', url='https://www.arbeitnow.com/jobs/companies/acme/job-1'), an_entry(slug='job-2', url='https://www.arbeitnow.com/jobs/companies/acme/job-2')
+AN_P2 = arbeitnow.ENDPOINT + '?page=2'
+AN_SCANS = [
+    ({arbeitnow.ENDPOINT: (200, an_payload(an_entry()))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [AN_E1], AN_NEXT, per_page=1, **{'from': 1, 'to': 1})), AN_P2: (200, an_page(2, [AN_E2], None, per_page=1, **{'from': 2, 'to': 2}))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [AN_E1], AN_NEXT)), AN_P2: (200, an_page(2, [AN_E1, AN_E2], None))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry(description='<p>20 hours</p>')], AN_NEXT)), AN_P2: (200, an_page(2, [an_entry(description='<p>40 hours</p>')], None))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT))}, {'max_pages': 1}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT))}, {}, [0, 1, 121]),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT))}, {}, [0, 1, 119]),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT)), AN_P2: (200, an_page(2, [AN_E2], None))}, {}, [0, 1, 116, 121]),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT)), AN_P2: (200, an_page(2, [AN_E2], None))}, {}, [0, 1, 116, 119.5, 120]),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT)), AN_P2: (404, b'')}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT))}, {}, None),
+    ({arbeitnow.ENDPOINT: (301, b'')}, {}, None), ({arbeitnow.ENDPOINT: (204, b'')}, {}, None), ({arbeitnow.ENDPOINT: (500, b'')}, {}, None),
+    *[({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], None, **meta))}, {}, None)
+      for meta in ({'per_page': 100, 'from': 101, 'to': 250}, {'per_page': True}, {'from': None}, {'to': 2}, {'per_page': 0}, {'per_page': 10001},
+                   {'per_page': 1.0}, {'from': 1.0}, {'per_page': 1}, {'from': True, 'to': True})],
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [AN_E1], AN_NEXT, per_page=2, **{'from': 1, 'to': 1})), AN_P2: (200, an_page(2, [AN_E2], None, per_page=2, **{'from': 3, 'to': 3}))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [AN_E1], AN_NEXT, per_page=1, **{'from': 1, 'to': 1})), AN_P2: (200, an_page(2, [AN_E2], None, per_page=2, **{'from': 3, 'to': 3}))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [AN_E1], AN_NEXT, per_page=True)), AN_P2: (200, an_page(2, [AN_E2], None, per_page=1, **{'from': 2, 'to': 2}))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [], None, per_page=250))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry(), an_entry(slug='bad', url='https://evil.example/jobs/bad')], None))}, {}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], AN_NEXT))}, {'max_pages': 0}, None), ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], None))}, {'max_seconds': 0}, None),
+    ({arbeitnow.ENDPOINT: (200, an_page(1, [an_entry()], None))}, {'max_seconds': 301}, None),
+]
+
+
+def an_scan_case(pages, kw, ticks):
+    calls = []
+
+    def reader(url, timeout):
+        calls.append([url, timeout])
+        with patch.object(arbeitnow, 'build_opener', lambda *a: UrllibOpener(pages)):
+            return arbeitnow.fetch(url, timeout=timeout)
+
+    def run():
+        mono = (lambda it: (lambda: next(it)))(iter(ticks)) if ticks else (lambda: 0)
+        with patch.object(arbeitnow.time, 'sleep', lambda s: None):
+            jobs, coverage = arbeitnow.scan(reader=reader, monotonic=mono, **kw)
+        return encode([jobs, coverage])
+    expect = attempt(run)
+    return dict(pages=wire(pages), kw=kw, ticks=ticks, expect=expect, calls=calls)
+
+
+def fl_project(**extra):
+    """backend/tests/collection/test_freelancer.py:project"""
+    return dict(id=42, title='AI agent backend', description='Build an API', status='active', type='fixed', budget={'minimum': 100, 'maximum': 500},
+                currency={'code': 'USD'}, time_updated=1789742168, language='en', seo_url='python/AI-agent', deleted=False, nonpublic=False) | extra
+
+
+FL_PROJECTS = [
+    fl_project(), *[fl_project(**p) for p in ({'description': None}, {'time_updated': None}, {'budget': {'maximum': float('nan')}}, {'nonpublic': True},
+                                             {'status': 'closed'}, {'seo_url': '//evil.com'})],
+    *[fl_project(id=v) for v in (0, -1, True, '42', 42.0, 10 ** 30)], fl_project(deleted=1), fl_project(deleted=''), fl_project(nonpublic=[]), fl_project(nonpublic=[0]),
+    fl_project(title=''), fl_project(title='x' * 501), fl_project(title='x' * 500), fl_project(description='x' * 50001), fl_project(description=''),
+    *[fl_project(time_updated=v) for v in (1789742168.5, 1789742168.0, 0, -1, float('inf'), 1e20, 10 ** 20, 10 ** 400, True, '1789742168', 2 ** 63, 253402300799, 253402300800, 1e-7)],
+    fl_project(currency={'code': 'usd'}), fl_project(currency=None), fl_project(currency='USD'), fl_project(currency={'code': 'USDX'}), fl_project(currency={}),
+    fl_project(currency={'code': 'ＵＳＤ'}), fl_project(currency={'code': 'USD\n'}),
+    *[fl_project(budget=b) for b in (None, {}, {'minimum': None}, {'minimum': -1}, {'minimum': 500, 'maximum': 100}, {'minimum': 1.5, 'maximum': True},
+                                     {'maximum': float('inf')}, {'minimum': 100, 'maximum': 100.0}, {'minimum': 10 ** 400}, {'minimum': '1'}, [], {'minimum': 0.5, 'maximum': 0.25},
+                                     {'minimum': 2 ** 64, 'maximum': 2 ** 64 + 1}, {'minimum': 2 ** 53 + 1, 'maximum': 2.0 ** 53})],
+    *[fl_project(seo_url=s) for s in ('python/AI-agent/x', 'python', 'python/', 'py thon/x', 'python/AI-agent\n', None, 'ü/x')],
+    fl_project(type='contest'), fl_project(type='hourly'), fl_project(type=None), [], None, 'x', 5,
+    {k: v for k, v in fl_project().items() if k != 'currency'}, {k: v for k, v in fl_project().items() if k != 'budget'},
+]
+
+
+def fl_url(query='AI agent', limit=20, offset=0):
+    return 'https://www.freelancer.com/api/projects/0.1/projects/active/?' + urlencode({'query': query, 'limit': limit, 'offset': offset, 'full_description': 'true'})
+
+
+def fl_page(ids, total, **extra):
+    return json.dumps({'status': 'success', 'result': {'projects': [fl_project(id=i) if isinstance(i, int) else i for i in ids], 'total_count': total}} | extra).encode()
+
+
+FL_SEARCHES = [
+    ('AI agent', {fl_url(limit=5): (200, fl_page([42], 100))}, {'limit': 5, 'max_pages': 1}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 3)), fl_url(limit=2, offset=2): (200, fl_page([3], 3))}, {'limit': 2}, None),
+    ('AI agent', {fl_url(limit=3): (200, fl_page([1, 2], 5)), fl_url(limit=3, offset=3): (200, fl_page([3, 4, 5], 5))}, {'limit': 3}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 4)), fl_url(limit=2, offset=2): (200, fl_page([2, 3], 4))}, {'limit': 2}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 100)), fl_url(limit=2, offset=2): (200, fl_page([1, 2], 100))}, {'limit': 2}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 100))}, {'limit': 2, 'max_pages': 1}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1], 100))}, {'limit': 2, 'max_pages': 1}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 100))}, {'limit': 2, 'max_seconds': 1}, [0, 0, 1]),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 100)), fl_url(limit=2, offset=2): (200, fl_page([3, 4], 100))}, {'limit': 2, 'max_seconds': 10}, [0, 0, 9, 9.5]),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 100)), fl_url(limit=2, offset=2): (200, fl_page([3, 4], 100))}, {'limit': 2, 'max_seconds': 10, 'max_pages': 2}, [0, 0, 9, 9.3]),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 100)), fl_url(limit=2, offset=2): (429, b'')}, {'limit': 2}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, fl_project(id=2, seo_url='malformed')], 2))}, {'limit': 2}, None),
+    ('AI agent', {fl_url(): (204, b'')}, {}, None), ('AI agent', {fl_url(): (301, b'')}, {}, None), ('AI agent', {fl_url(): (200, b'x')}, {}, None),
+    ('AI agent', {}, {}, None),
+    ('AI agent', {fl_url(): (200, fl_page([1], 1, status='error'))}, {}, None), ('AI agent', {fl_url(): (200, json.dumps({'status': 'success', 'result': {'projects': {}, 'total_count': 1}}).encode())}, {}, None),
+    ('AI agent', {fl_url(limit=1): (200, fl_page([1, 2], 2))}, {'limit': 1}, None), ('AI agent', {fl_url(): (200, fl_page([1, 2], 1))}, {}, None),
+    ('AI agent', {fl_url(): (200, fl_page([1], 1.0))}, {}, None), ('AI agent', {fl_url(): (200, fl_page([1], True))}, {}, None),
+    ('AI agent', {fl_url(): (200, fl_page([], 0))}, {}, None), ('AI agent', {fl_url(): (200, fl_page([], 5))}, {}, None),
+    ('AI agent', {fl_url(limit=1): (200, fl_page([1], 2)), fl_url(limit=1, offset=1): (200, fl_page([fl_project(id=1, title='Changed AI agent')], 2))}, {'limit': 1}, None),
+    ('AI agent', {fl_url(limit=1): (200, fl_page([1], 2)), fl_url(limit=1, offset=1): (200, fl_page([fl_project(id=1, time_updated=1789742169)], 2))}, {'limit': 1}, None),
+    ('AI agent', {fl_url(limit=1): (200, fl_page([fl_project(id=1, time_updated=1789742169)], 2)), fl_url(limit=1, offset=1): (200, fl_page([1], 2))}, {'limit': 1}, None),
+    ('AI agent', {fl_url(limit=1): (200, fl_page([1], 3)), fl_url(limit=1, offset=1): (200, fl_page([fl_project(id=2, seo_url='bad')], 3)),
+                  fl_url(limit=1, offset=2): (200, fl_page([3], 3))}, {'limit': 1}, None),
+    ('AI agent', {fl_url(): (200, fl_page([fl_project(time_updated=10 ** 20)], 1))}, {}, None),
+    ('AI agent', {fl_url(limit=3): (200, fl_page([1, 5, fl_project(id=3, currency=None)], 3))}, {'limit': 3}, None),
+    ('AI agent', {fl_url(limit=2): (200, fl_page([1, 2], 100)), fl_url(limit=2, offset=2): (200, fl_page([3, 4], 100))}, {'limit': 2, 'max_seconds': 10}, [0, 0, 9.5, 9.6]),
+    ('MVP web development', {fl_url('MVP web development', limit=100): (200, fl_page([1], 1))}, {'limit': 100}, None),
+    ('other', {}, {}, None), ('AI agent', {}, {'limit': 0}, None), ('AI agent', {}, {'limit': 101}, None), ('AI agent', {}, {'max_pages': 0}, None),
+    ('AI agent', {}, {'max_seconds': 0}, None), ('AI agent', {}, {'max_seconds': 121}, None), ('AI agent', {}, {'max_seconds': float('nan')}, None),
+    ('AI agent', {fl_url(): (200, fl_page([1], 1))}, {'max_seconds': 120}, None),
+]
+
+
+def fl_search_case(query, pages, kw, ticks):
+    calls = []
+
+    class Recorder(UrllibOpener):
+        def open(self, request, timeout=None):
+            calls.append([request.full_url, timeout])
+            return super().open(request, timeout)
+
+    def run():
+        mono = (lambda it: (lambda: next(it)))(iter(ticks)) if ticks else (lambda: 0)
+        return encode(freelancer.search(query, opener=Recorder(pages), pause=lambda s: None, monotonic=mono, **kw))
+    expect = attempt(run)
+    return dict(query=query, pages=wire(pages), kw=tag(kw), ticks=ticks, expect=expect, calls=calls)
+
+
+B4_RES = [(freelancer.TITLE_SIGNAL.pattern, re.I), (freelancer.OUT_OF_SCOPE.pattern, re.I), ('兼職|部分工時|接案|承攬', 0)]
+B4_RE_TEXT = ['AI agent backend', 'Back-end', 'backXend', 'back\nend', 'full stack', 'Full_Stack', 'web  app', 'web\napp', 'webapp', 'bots', 'chatbot',
+              'ＡＩ', 'aİ', 'AI-powered', 'xai', 'ai_x', 'Website Home Page Copywriting', 'SEO', 'ſeo', 'séo', 'link\tbuilding', 'linkbuilding',
+              'Lead  Generation', 'sales', 'salesforce', 'testing', 'Pen-Testing', 'VAPT', 'web scraping', 'Data Entry', 'logos', 'Graphic Design',
+              'graphic designer', 'KI', 'ki', 'automation', 'Integration', 'MVP', 'mvp2', 'software  development', 'app development', '兼職',
+              '部分工時', '接案', '承攬', '全職', '兼 職', '', 'AI', 'Ai', 'aI', 'Bot', 'BOT', 'ḃot', 'api', 'API_v2', 'apis']
+
+
+def batch4_golden():
+    return {
+        'py_rstrip': [dict(input=s, expect=s.rstrip()) for s in RSTRIP],
+        'b4_re': [dict(pattern=p, ignorecase=bool(f & re.I), dotall=False, mode='search', input=s,
+                       expect=(lambda m: None if m is None else dict(span=list(m.span()), groups=list(m.groups())))(re.search(p, s, f)))
+                  for p, f in B4_RES for s in B4_RE_TEXT],
+        'taiwanjobs_date': [dict(input=s, expect=attempt(lambda: taiwanjobs.date(s).isoformat())) for s in TJ_DATES],
+        'taiwanjobs_batch': [tj_batch_case(raw) for raw in TJ_BATCHES],
+        'taiwanjobs_strict': [tj_batch_case(raw) | dict(expect=attempt(lambda: encode(taiwanjobs.parse(raw, now=NOW)))) for raw in TJ_BATCHES[:12]],
+        'arbeitnow_normalize': [an_normalize_case(e) for e in AN_ENTRIES],
+        'arbeitnow_batch': [an_batch_case(raw, page) for raw, page in AN_BATCHES],
+        'arbeitnow_scan': [an_scan_case(pages, kw, ticks) for pages, kw, ticks in AN_SCANS],
+        'freelancer_normalize': [dict(project=tag(p), expect=attempt(lambda: encode(freelancer.normalize(p)))) for p in FL_PROJECTS],
+        'freelancer_search': [fl_search_case(*c) for c in FL_SEARCHES],
+    }
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -1646,6 +1943,7 @@ def main():
         'public_feeds_normalize': [pf_normalize_case(src, e) for src, e in PF_NORMALIZE],
         'public_feeds_batch': [pf_batch_case(src, raw) for src, raw in PF_BATCH],
         **batch3_golden(),
+        **batch4_golden(),
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

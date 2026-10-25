@@ -1,15 +1,18 @@
 import type { Db } from "@/db/client";
+import { syncArbeitnow } from "./sources/arbeitnow";
 import { syncChickpt } from "./sources/chickpt";
 import { syncCommunity } from "./sources/community-jobs";
 import { syncCryptoJobsList } from "./sources/cryptojobslist";
 import { syncDynamiteJobs } from "./sources/dynamitejobs";
 import { syncFreeJobs } from "./sources/free-jobs";
+import { syncFreelancer } from "./sources/freelancer";
 import { syncGetOnBoard } from "./sources/getonboard";
 import { syncHimalayas } from "./sources/himalayas";
 import { syncJobbank518 } from "./sources/jobbank518";
 import { syncJustRemote } from "./sources/justremote";
 import { syncNoDesk } from "./sources/nodesk";
 import { syncPublicFeed } from "./sources/public-feeds";
+import { syncTaiwanJobs } from "./sources/taiwanjobs";
 import { REGISTRY, SOURCES } from "./source-catalog";
 
 export type SourceRunner = (db: Db) => Promise<unknown>;
@@ -32,6 +35,9 @@ export const RUNNERS: Record<string, SourceRunner> = {
   dynamitejobs: (db) => syncDynamiteJobs(db),
   jobbank518: (db) => syncJobbank518(db),
   chickpt: (db) => syncChickpt(db),
+  taiwanjobs: (db) => syncTaiwanJobs(db),
+  arbeitnow: (db) => syncArbeitnow(db),
+  freelancer: (db) => syncFreelancer(db),
 };
 
 /**
