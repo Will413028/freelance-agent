@@ -23,6 +23,8 @@
 
 停writer備份：`/var/lib/freelance/runtime/compose-stage3b4dd278-stopped-backup.sqlite3`、`compose-stage3b4dd278-queue-backup.sqlite3`；private env回復材料 `/var/lib/freelance/.config/freelance-agent/compose.pre-stage3b4dd278.env`。需要回復時停服務、恢復此env與symlink `/opt/freelance-agent.1b8e22a`，回到backend316e9f6／Web1b8e22a，保留最新產品DB及新增表。此次未啟用submission producer；未來啟用新任務後須遵守compose.md的隔離queue回復程序。本輪未觸發回復，舊image對升級副本回讀已驗證。
 
+目前正式（2026-10-25）：release `/opt/freelance-agent.d994cd2-jb518`，API／worker image `freelance-agent-backend:d994cd2-jb518`（`sha256:42b166903a2274375721902403ddf4c93dd35e9a9018445730ef8c4841f04bf4`），Web 仍 `freelance-agent-web:b4dd278`。與前一版 `d994cd2` 只差 jobbank518.py；停writer備份 `runtime/compose-jb518-d994cd2-backup.sqlite3`，回復改回 symlink `/opt/freelance-agent.d994cd2` 與 `BACKEND_IMAGE=freelance-agent-backend:d994cd2`。經過與驗證見 `docs/plans/2026-10-23-nextjs-vercel-migration.md` 步驟 8 第 3 批「Python 上 VM」。
+
 驗收GET：`/`、`/applications`、`/clients`、`/proposals`、`/submissions`與`/api/submission-capabilities`、`/api/clients`、`/api/proposals`、`/api/submissions`均HTTP200；新清單為空、兩通道not_configured／can_dispatch false。不以HTTP／container健康宣稱下一次自然收案或摘要寄達；本輪不手動重跑daily。
 
 ## 未完成工作
