@@ -18,6 +18,8 @@ export class InvalidAction extends PyError {
 const PARENT: Record<string, string> = {
   Conflict: "ValueError", InvalidAction: "ValueError", UnicodeError: "ValueError",
   UnicodeEncodeError: "UnicodeError", UnicodeDecodeError: "UnicodeError", OverflowError: "ArithmeticError", ParseError: "SyntaxError",
+  JSONDecodeError: "ValueError", KeyError: "LookupError", TimeoutError: "OSError", URLError: "OSError", HTTPError: "URLError",
+  AccessBlocked: "ValueError",
 };
 
 /** isinstance(e, (types...)) for a PyError. */

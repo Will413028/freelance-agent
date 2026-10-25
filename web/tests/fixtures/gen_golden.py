@@ -1120,6 +1120,489 @@ XML_STR = ['<?xml version="1.0" encoding="ISO-8859-1"?><r>é</r>', '<?xml versio
            '<r>\U0001f600</r>', '<r>￾</r>', '<r>&#x1F600;</r>', '<?xml version="1.0" encoding=""?><r/>']
 
 
+# ---------------------------------------------------------------- step 8, batch 3: HTML JobPosting sources
+from freelance.modules.collection import nodesk, justremote, dynamitejobs, jobbank518, chickpt   # noqa: E402
+from urllib.error import HTTPError                                     # noqa: E402
+from urllib.parse import urljoin                                       # noqa: E402
+from datetime import date as _date                                     # noqa: E402
+
+URLJOIN_BASES = ['https://justremote.co/', 'https://dynamitejobs.com', 'https://www.518.com.tw', 'https://www.chickpt.com.tw',
+                 'https://a.example/b/c/d;p?q#f', 'https://a.example', '', 'http://a.example/x/']
+URLJOIN_REFS = ['', 'x', '/x', 'x/y', './x', '../x', '../../../../x', '/a/../b', '/a/./b/', 'a/b/..', 'a/b/.', '.', '..', '?q', '#f',
+                '?q#f', ';p', 'a;p', 'a;p/b', '//other.example/x', '//other.example', 'https://dynamitejobs.com/company/a/remote-job/b',
+                'HTTPS://justremote.co/remote-developer-jobs/a', 'http://justremote.co/x', 'https:x', 'https:/x', 'mailto:a@b',
+                'javascript:alert(1)', ' /x', '\t/x\n', '/a//b', 'a//b//c', '//', '///x', 'remote-developer-jobs/ai-agent-acme',
+                'job-Ab1234.html', '/job-Ab1234.html?x=1#apply', 'ftp://a/b', 'g:h', '/%2e%2e/x', 'x?y/../z', 'é/ü', '　/x',
+                '//[::1]/x', '//[::1/x', '../.', './..', 'a/./../b/', '/..', 'b/c/../../..', '/x/']
+UPPER = ['contractor', 'Full_Time', 'ß', 'ﬀ', 'ŉ', 'ǰ', 'ΐ', 'ǅ', 'ı', 'i̇', 'straße', 'ﬁve', 'ᾳ', 'ꭰ', '\U00010428', '\U0001e922', 'ſ',
+         'µ', 'ÿ', 'Σς', 'ͅ', 'ⓐ', '𐓘', '\U00016e60', 'part_time', '', 'ᲀ', 'ꞔ', 'ʂ', '\U0001e030',
+         # 55 code points upper-case differently in Node's newer ICU (measured 2026-10-25); a few of them:
+         'ƛ', 'ɤ', 'ᲊ', '\ua7cd', '\ua7db', '\U00010d70', '\U00016ebb', 'contractƛ']
+RAW_DECODE = ['{"a": 1}', '{"a": 1};', '{"a": 1} ;', ' {"a": 1}', '\n{}', '[1, 2]x', '"s"rest', '1', '-1.5e3 ', 'NaN;', 'true', 'nul',
+              '', '{', '{"a":}', '{"a": 1}{"b": 2}', '{"a": "\\u00e9"}', '﻿{}', '{"a": 1, "a": 2}', '[' * 3 + ']' * 3]
+DATE_ISO = ['2026-09-26', '2026-02-29', '2028-02-29', '2026-13-01', '2026-00-10', '2026-01-00', '0000-01-01', '0001-01-01', '9999-12-31',
+            '2026-1-01', '20260926', '2026-W01', '2026-W01-1', '2026W011', '2026-09-26T00:00', '２０２６-０９-２６', '2026-09-2',
+            '2026/09/26', '', '2026-09-26 ', '١٢٣٤-٠١-٠١']
+B3_RES = [
+    (r'/remote-jobs/[a-z0-9][a-z0-9-]+/\Z', 0, 'fullmatch'), (r'/remote-[a-z-]+-jobs/[a-z0-9][a-z0-9-]+\Z', 0, 'fullmatch'),
+    (r'/company/[a-z0-9-]+/remote-job/[a-z0-9-]+\Z', 0, 'fullmatch'), (r'/job-([A-Za-z0-9]{6})\.html\Z', 0, 'fullmatch'),
+    (r'/job-([A-Za-z0-9]{12})\Z', 0, 'fullmatch'), (r'\d{4}-\d{2}-\d{2}', 0, 'fullmatch'),
+    (r'cf-chl-|_Incapsula_Resource|captcha-container|<title>\s*(?:Just a moment|Access denied)', re.I, 'search'),
+    (r'更新日期\s*[:：]\s*(\d{4}-\d{2}-\d{2})', 0, 'search'), (r'職務類別\s*(.*?)\s*職缺條件', re.S, 'search'),
+    (r'單次\$([\d,]+)(?:\s*[~～]\s*\$?([\d,]+))?(?=\s|/|$)', 0, 'match'),
+]
+B3_RE_TEXT = ['/remote-jobs/acme-ai-agent/', '/remote-jobs/acme-ai-agent', '/remote-jobs/acme-ai-agent/\n', '/remote-jobs/-a/', '/remote-jobs/a/',
+              '/remote-jobs/Acme/', '/remote-developer-jobs/ai-agent-acme', '/remote-developer-jobs/ai-agent-acme\n', '/remote--jobs/a',
+              '/remote-jobs/a', '/company/example/remote-job/ai-agent-engineer', '/company/ex/remote-job/a\n', '/company//remote-job/a',
+              '/job-Ab1234.html', '/job-Ab1234.html\n', '/job-Ab12345.html', '/job-Ab123４.html', '/job-Ab1234567890', '/job-Ab1234567890\n',
+              '/job-Ab123456789０', '2026-09-26', '2026-09-26\n', '２０２６-０９-２６', '2026-9-26', '<title>Just a moment...</title>',
+              '<TITLE>\n  just A MOMENT', '<title>Access Denied</title>', 'x cf-chl-opt', 'CF-CHL-', '_incapsula_resource', 'captcha-container',
+              '<title>Attention Required</title>', '<title> Acceſs denied', '更新日期:2026-09-26', '更新日期 ： 2026-09-26', '更新日期2026-09-26',
+              '更新日期：２０２６-０９-２６', '更新日期: 2026-09-2', '職務類別\nAI工程師\n職缺條件\n兼職', '職務類別 職缺條件', '職務類別AI工程師職缺條件職缺條件',
+              '職務類別\n\nAPP工程師、AI工程師\n\n職缺條件', '單次$5000', '單次$3,000 ~ $5,000', '單次$3,000～5,000', '單次$5000/次', '單次$5000元',
+              '單次$5000 ~', '單次$,,,', '單次$５０００', '單次$5000 ~ $', '時薪$200', '面議', '', '單次$', 'x單次$5000', '單次$5000 在家兼職',
+              '單次$1,000~$2,000/次']
+
+
+class UrllibOpener:
+    """urllib's opener with NoRedirect over a fixed {url: (status, body)} map: other 2xx are responses,
+    a redirect is NoRedirect's ValueError, any other status HTTPError; an unknown URL fails like a network error."""
+    def __init__(self, pages):
+        self.pages = pages
+
+    def open(self, request, timeout=None):
+        if request.full_url not in self.pages:
+            raise OSError('unknown url ' + request.full_url)
+        status, body = self.pages[request.full_url]
+        if status in (301, 302, 303, 307, 308):
+            raise ValueError('Public feed redirects are unsupported')
+        if not 200 <= status < 300:
+            raise HTTPError(request.full_url, status, 'error', {}, None)
+        return FakeResponse(status, body)
+
+
+def ld(data, *, head='', tail='', kind='application/ld+json', raw=None):
+    body = raw if raw is not None else json.dumps(data)
+    return (f'<html>{head}<script type="{kind}">{body}</script>{tail}</html>').encode()
+
+
+ND_URL = 'https://nodesk.co/remote-jobs/acme-ai-agent/'
+ND_ENTRY = {'url': ND_URL, 'published_at': '2026-09-26T00:00:00+00:00'}
+
+
+def nd_post(**changes):
+    """backend/tests/collection/test_nodesk.py:article"""
+    return {'@type': 'JobPosting', 'title': 'AI agent developer', 'description': '<p>Build an AI agent and API.</p>',
+            'employmentType': ['CONTRACTOR'], 'jobLocationType': 'TELECOMMUTE', 'datePosted': '2026-09-26',
+            'applicantLocationRequirements': {'@type': 'Country', 'name': 'Anywhere'}} | changes
+
+
+def nd_item(link=ND_URL, date='Sat, 26 Sep 2026 00:00:00 GMT', title='AI agent', description='AI &ndash; agent &rsquo; work'):
+    return f'<item><title>{title}</title><description>{description}</description><link>{link}</link><pubDate>{date}</pubDate></item>'
+
+
+def nd_feed(*items, head='', root='rss', channel_attrs=''):
+    return f'{head}<{root}><channel{channel_attrs}><title>NoDesk</title>{"".join(items)}</channel></{root}>'
+
+
+ND_FEEDS = [
+    nd_feed(nd_item()), nd_feed(), nd_feed(nd_item(description='&unknown;')), nd_feed(nd_item()).replace('<rss>', '<!DOCTYPE rss><rss>'),
+    nd_feed(nd_item(description='<![CDATA[AI &ndash; agent]]>')), nd_feed(nd_item(description='<!-- &ndash; -->x')),
+    nd_feed(nd_item(description='&ndash;&rsquo;&amp;&#8211;')), nd_feed(nd_item(description='&mdash;')),
+    nd_feed(nd_item(link='https://evil.example/remote-jobs/acme-ai-agent/')), nd_feed(nd_item(link='https://nodesk.co/remote-jobs/acme-ai-agent')),
+    nd_feed(nd_item(link='https://NoDesk.co/remote-jobs/acme-ai-agent/')), nd_feed(nd_item(link='http://nodesk.co/remote-jobs/acme-ai-agent/')),
+    nd_feed(nd_item(link=ND_URL + '?utm=1#x')), nd_feed(nd_item(link=' ' + ND_URL)), nd_feed(nd_item(link='')),
+    nd_feed('<item><title>x</title><pubDate>Sat, 26 Sep 2026 00:00:00 GMT</pubDate></item>'),
+    nd_feed(nd_item(date='')), nd_feed(nd_item(date='2026-09-26T00:00:00Z')), nd_feed(nd_item(date='2026-09-26')),
+    nd_feed(nd_item(date='9999-12-31T23:59:59-01:00')), nd_feed(nd_item(), nd_item()), nd_feed(nd_item(), nd_item(link=ND_URL + '?x=1')),
+    nd_feed(*[nd_item(link=f'https://nodesk.co/remote-jobs/job-{i}/') for i in range(21)]),
+    nd_feed(*[nd_item(link=f'https://nodesk.co/remote-jobs/job-{i}/') for i in range(20)]),
+    nd_feed(*[nd_item(link='https://evil.example/') for i in range(19)], nd_item(), nd_item(link='https://nodesk.co/remote-jobs/late/')),
+    nd_feed(nd_item(), root='feed'), '<rss><item/></rss>', nd_feed(nd_item(), channel_attrs=' xmlns="urn:x"'),
+    nd_feed(nd_item(), head='<?xml version="1.0" encoding="UTF-8"?>'), '﻿' + nd_feed(nd_item()), 'not xml', '',
+    nd_feed(nd_item(title='後端 \U0001f600')), nd_feed(nd_item(link='https://nodesk.co/remote-jobs/aé/')),
+]
+ND_FEED_BYTES = [nd_feed(nd_item()).encode() + b'\xff', b' ' * 2_000_001]
+
+ND_ARTICLES = [
+    ld(nd_post()), ld(nd_post(employmentType='CONTRACTOR')), ld(nd_post(employmentType=['contractor'])), ld(nd_post(employmentType=['ß', 'ﬀ'])),
+    ld(nd_post(employmentType=['full_time', 'part_time'])), ld(nd_post(employmentType=[])), ld(nd_post(employmentType=[1])),
+    ld(nd_post(employmentType=None)), ld(nd_post(employmentType=5)), ld(nd_post(employmentType={'a': 1})),
+    ld(nd_post(employmentType=['TEMPORARY', 'temporary', 'Temporary'])), ld(nd_post(employmentType=['ǅ', 'ı', 'ŉ'])), ld(nd_post(employmentType=['CONTRACTOR', 'ƛ'])),
+    ld(nd_post(employmentType=['INTERN'])), ld({k: v for k, v in nd_post().items() if k != 'employmentType'}),
+    ld(nd_post(title=None)), ld(nd_post(title='')), ld(nd_post(title='<b>AI</b> agent')), ld(nd_post(title='x' * 501)), ld(nd_post(title='x' * 500)),
+    ld(nd_post(description='')), ld(nd_post(description=None)), ld(nd_post(description='x' * 100_001)), ld(nd_post(description='<p>a</p><p>b &amp; c</p>')),
+    ld(nd_post(validThrough='2026-12-01')), ld(nd_post(validThrough=None)), ld(nd_post(validThrough=5)), ld(nd_post(validThrough='')), ld(nd_post(validThrough=['x'])),
+    ld(nd_post(jobLocationType='telecommute')), ld(nd_post(jobLocationType=['TELECOMMUTE'])), ld(nd_post(jobLocationType=None)),
+    ld(nd_post(applicantLocationRequirements=[{'@type': 'Country', 'name': 'Taiwan'}, 1.0, 2, None, True, float('nan')])),
+    ld(nd_post(datePosted=1.5)), ld(nd_post(title='AI \\ud800 agent')), ld(nd_post(), kind='Application/LD+JSON'),
+    ld(None, raw=json.dumps(nd_post()) + '</script><script type="application/ld+json">' + json.dumps(nd_post())),
+    ld(None, raw=json.dumps(nd_post()) + '</script><script type="application/ld+json">' + json.dumps({'@type': 'Organization'})),
+    ld(None, raw=json.dumps([nd_post()])), ld(None, raw='{bad json'), ld(None, raw=''), ld(None, raw='  ' + json.dumps(nd_post()) + '\n'),
+    ld(None, raw=json.dumps(nd_post(title='R&amp;D')).replace('R&amp;D', 'R&amp;D')), ld(nd_post(**{'@type': 'jobposting'})),
+    b'<html>Pay or sign in</html>', b'', b'<SCRIPT TYPE="application/ld+json">' + json.dumps(nd_post()).encode() + b'</SCRIPT>',
+    b'<script type="x" type="application/ld+json">' + json.dumps(nd_post()).encode() + b'</script>',
+    b'<script type="application/ld+json"/>' + json.dumps(nd_post()).encode(), b'<script type="application/ld+json">' + json.dumps(nd_post()).encode(),
+    b'<!-- <script type="application/ld+json">{}</script> -->' + ld(nd_post()), b'<script>' + json.dumps(nd_post()).encode() + b'</script>',
+    ld(nd_post()) + b'\xff', b'\xef\xbb\xbf' + ld(nd_post()), ld(nd_post(description='<p>' + 'y' * 99_990 + '</p>')),
+    ld(nd_post(title='x\n\ny  z')), ld(None, raw=json.dumps(nd_post()) + '</script >'), ld(None, raw=json.dumps(nd_post()).replace('}', '} </script x>', 1)),
+]
+ND_ARTICLE_ENTRIES = [ND_ENTRY, {'url': 'https://nodesk.co.evil/remote-jobs/acme-ai-agent/', 'published_at': ND_ENTRY['published_at']},
+                      {'url': ND_URL + '?q=1', 'published_at': '2026-09-01T12:00:00+05:30'}]
+
+
+def classify(fn, catch, blocked=()):
+    try:
+        return {'ok': encode(fn())}
+    except blocked:
+        return {'error': 'blocked'}
+    except catch:
+        return {'error': 'rejected'}
+    except Exception as exc:
+        return {'error': type(exc).__name__}
+
+
+def nd_feed_case(raw):
+    def run():
+        entries, rejected, truncated = nodesk.parse_feed(raw)
+        return dict(entries=entries, rejected=rejected, truncated=truncated)
+    return dict(input=raw.decode('latin-1'), expect=attempt(run))
+
+
+JR_URL = 'https://justremote.co/remote-developer-jobs/ai-agent-acme'
+
+
+def jr_entry(**changes):
+    """backend/tests/collection/test_justremote.py:entry"""
+    return dict(id=42, title='AI agent API engineer', job_type='contract', category='developer',
+                is_active=True, location_restrictions=[], href='remote-developer-jobs/ai-agent-acme') | changes
+
+
+def jr_state(entries, status='success'):
+    return {'jobsState': {'entity': {'all': entries}, 'meta': {'status': status}}}
+
+
+def jr_index(data, *, prefix='window.__PRELOADED_STATE__ = ', suffix=';', extra=''):
+    return (f'<html>{extra}<script>{prefix}' + (data if isinstance(data, str) else json.dumps(data)) + f'{suffix}</script></html>').encode()
+
+
+JR_INDEXES = [
+    jr_index(jr_state([jr_entry(), jr_entry(id=43, href='https://evil.example/x')])), jr_index(jr_state([jr_entry()]), suffix=''),
+    jr_index(jr_state([jr_entry()]), suffix=' ; \n'), jr_index(jr_state([jr_entry()]), suffix=';;'), jr_index(jr_state([jr_entry()]), suffix=';alert(1)'),
+    jr_index(jr_state([jr_entry()]), prefix='window.__PRELOADED_STATE__ =  '), jr_index(jr_state([jr_entry()]), prefix='\n  window.__PRELOADED_STATE__ = '),
+    jr_index(jr_state([jr_entry()]), prefix='window.__PRELOADED_STATE__=') , jr_index(jr_state([jr_entry()]), extra='<script>var x = 1;</script>'),
+    jr_index(jr_state([jr_entry()]), extra='<script>window.__PRELOADED_STATE__ = {};</script>'), b'<h1>No jobs</h1>',
+    jr_index(jr_state([jr_entry()], status='loading')), jr_index(jr_state([])), jr_index(jr_state({'a': 1})), jr_index({'jobsState': {}}),
+    jr_index({'jobsState': {'entity': {'all': [jr_entry()]}}}), jr_index({'jobsState': {'entity': {'all': [jr_entry()]}, 'meta': None}}),
+    jr_index([1]), jr_index(jr_state([jr_entry(id=i + 1) for i in range(2001)])), jr_index(jr_state([jr_entry(id=i + 1, href=f'remote-developer-jobs/a-{i}') for i in range(3)])),
+    jr_index(jr_state([jr_entry(id=v) for v in (True, 0, -1, '42', 1.0, None)] + [jr_entry(id=7)])),
+    jr_index(jr_state([jr_entry(job_type=v) for v in ('freelance', None, 'Contract')] + [jr_entry(job_type='permanent')])),
+    jr_index(jr_state([jr_entry(id=i + 1, location_restrictions=v) for i, v in enumerate(([' '], [5], 'US', None, ['Taiwan', 'US'], [''], ['　']))])),
+    jr_index(jr_state([jr_entry(id=1, category=5), jr_entry(id=2, is_active=1), jr_entry(id=3, is_active=None), jr_entry(id=4, category='marketing')])),
+    jr_index(jr_state([jr_entry(id=i + 1, href=v) for i, v in enumerate((
+        '/remote-developer-jobs/xy', '//justremote.co/remote-developer-jobs/xy', 'https://justremote.co/remote-developer-jobs/XY',
+        'https://justremote.co/remote-developer-jobs/xy?utm=1#f', 'https://justremote.co.evil.example/remote-developer-jobs/a-b',
+        'http://justremote.co/remote-developer-jobs/xy', None, 5, '../remote-developer-jobs/xy', 'remote-jobs/xy', 'remote-developer-jobs/xy/',
+        'remote--jobs/xy', 'remote-developer-jobs/-x', 'remote-developer-jobs/x', 'HTTPS://JUSTREMOTE.CO/remote-developer-jobs/xy'))])),
+    jr_index(jr_state([jr_entry(id=1, title=''), jr_entry(id=2, title=None), jr_entry(id=3, title='<b>x</b>'), jr_entry(id=4)])),
+    jr_index(jr_state([jr_entry(), jr_entry()])), jr_index(jr_state([[1], 'x', None, jr_entry()])), jr_index(jr_state([jr_entry(url='https://old.example/')])),
+    jr_index(jr_state([jr_entry()])) + b'\xff', jr_index('{"jobsState": {"entity": {"all": [' + json.dumps(jr_entry()) + ']}, "meta": {"status": "success"}}} '),
+    jr_index(jr_state([jr_entry()])).replace(b'<script>', b'<script type="text/javascript">'),
+]
+
+
+def jr_index_case(raw):
+    def run():
+        entries, rejected = justremote.parse_index(raw)
+        return dict(entries=[encode(e) for e in entries], rejected=rejected)
+    return dict(input=raw.decode('latin-1'), expect=attempt(run))
+
+
+def jr_detail(**changes):
+    """backend/tests/collection/test_justremote.py:detail, with a fixed date"""
+    data = {'@type': 'JobPosting', 'title': 'AI agent API engineer', 'description': '<p>Build an AI agent API</p>',
+            'employmentType': 'CONTRACTOR', 'datePosted': '2026-09-26T10:00:00+00:00', 'jobLocationType': 'TELECOMMUTE'} | changes
+    return ('<script type="application/ld+json">' + json.dumps(data) + '</script>').encode()
+
+
+JR_ARTICLES = [
+    (jr_detail(), jr_entry()), (jr_detail(title='Different job'), jr_entry()), (jr_detail(title='<b>AI agent</b> API  engineer'), jr_entry()),
+    (jr_detail(employmentType='FULL_TIME'), jr_entry(job_type='permanent')), (jr_detail(), jr_entry(job_type='permanent')),
+    (jr_detail(employmentType='FULL_TIME'), jr_entry()), (jr_detail(employmentType=['PART_TIME', 'CONTRACTOR']), jr_entry()),
+    (jr_detail(employmentType=['part_time']), jr_entry()), (jr_detail(employmentType=None), jr_entry()), (jr_detail(employmentType=[None]), jr_entry()),
+    (jr_detail(validThrough=''), jr_entry()), (jr_detail(validThrough=0), jr_entry()), (jr_detail(validThrough=[]), jr_entry()),
+    (jr_detail(validThrough='bad'), jr_entry()), (jr_detail(validThrough='2026-12-01T00:00:00Z'), jr_entry()), (jr_detail(validThrough=5), jr_entry()),
+    (jr_detail(datePosted=None), jr_entry()), (jr_detail(datePosted='2026-09-26'), jr_entry()), (jr_detail(datePosted='Sat, 26 Sep 2026 10:00:00 +0800'), jr_entry()),
+    *[(jr_detail(), jr_entry(location_restrictions=v)) for v in (['Taiwan'], ['United States'], ['ASIA'], ['Europe', 'Worldwide'], ['İstanbul'], ['TAIWAN, PROVINCE OF CHINA'], [' Taiwan'])],
+    (jr_detail(jobLocationType='REMOTE'), jr_entry()), (jr_detail(), jr_entry(is_active=False)), (jr_detail(), jr_entry(category='marketing')),
+    (jr_detail(description=''), jr_entry()), (jr_detail(title='x' * 501), jr_entry(title='x' * 501)),
+    (jr_detail(), {k: v for k, v in jr_entry().items() if k != 'title'}), (b'<h1>none</h1>', jr_entry()), (jr_detail() + b'\xff', jr_entry()),
+    (jr_detail(), jr_entry(url='https://evil.example/x')),
+]
+
+
+def jr_article_entry(e):
+    if 'url' not in e:
+        e = e | {'url': justremote.canonical(e['href'])}
+    return e
+
+
+DJ_URL = 'https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer'
+
+
+def dj_post(**changes):
+    """backend/tests/collection/test_dynamitejobs.py:detail, with a fixed date"""
+    return {'@type': 'JobPosting', 'title': 'AI agent API engineer', 'description': '<p>Build an AI agent API.</p>',
+            'url': DJ_URL, 'employmentType': 'CONTRACTOR', 'jobLocationType': 'TELECOMMUTE',
+            'applicantLocationRequirements': [{'@type': 'Country', 'name': 'Taiwan'}],
+            'datePosted': '2026-09-26T10:00:00+00:00'} | changes
+
+
+def links(*hrefs, tag='a'):
+    return ''.join(f'<{tag} href="{h}">job</{tag}>' if h is not None else f'<{tag} href>job</{tag}>' for h in hrefs).encode()
+
+
+DJ_INDEXES = [
+    links(DJ_URL, DJ_URL), links('/company/a/remote-job/b', DJ_URL + '?utm=1#x'), links('/category/development', DJ_URL), links('/remote-job/', DJ_URL),
+    links('https://evil.example/company/a/remote-job/b'), b'<h1>No recognized jobs</h1>', b'<a>x</a>' + links(DJ_URL), links(None, DJ_URL),
+    links(DJ_URL, tag='link'), links(*[f'/company/a/remote-job/j{i}' for i in range(201)]), links(*[f'/company/a/remote-job/j{i}' for i in range(200)]),
+    b'<title>Just a moment...</title>' + links(DJ_URL), links(DJ_URL) + b'<div class="cf-chl-widget"></div>', b'<TITLE> access DENIED</TITLE>' + links(DJ_URL),
+    b'', links(DJ_URL) + b'\xff', links('HTTPS://DYNAMITEJOBS.COM/company/a/remote-job/b'), links('//dynamitejobs.com/company/a/remote-job/b'),
+    links('company/a/remote-job/b'), b'<a href="' + DJ_URL.encode() + b'"/>', links(DJ_URL.replace('ai-agent', 'AI-agent')),
+]
+DJ_ARTICLES = [
+    ld(dj_post()), ld(dj_post(url=DJ_URL + '-other')), ld(dj_post(url='/company/example/remote-job/ai-agent-engineer')), ld(dj_post(url=None)),
+    ld(dj_post(description='')), ld(dj_post(applicantLocationRequirements='Worldwide')), ld(dj_post(datePosted='yesterday')), ld(dj_post(employmentType=None)),
+    ld(dj_post(employmentType=[])), ld(dj_post(employmentType=['CONTRACTOR', 'CONTRACTOR'])), ld(dj_post(employmentType=['PART_TIME', 'FULL_TIME'])),
+    ld(dj_post(employmentType=['contractor'])), ld(dj_post(title='Contract AI agent engineer', employmentType='FULL_TIME')),
+    ld(dj_post(applicantLocationRequirements={'@type': 'Country', 'name': 'United States'})), ld(dj_post(applicantLocationRequirements=[])),
+    ld({k: v for k, v in dj_post().items() if k != 'applicantLocationRequirements'}), ld(dj_post(applicantLocationRequirements=None)),
+    ld(dj_post(applicantLocationRequirements=[{'@type': 'Place', 'name': 'x'}])), ld(dj_post(applicantLocationRequirements=[{'@type': 'Country', 'name': ''}])),
+    ld(dj_post(applicantLocationRequirements=[{'@type': 'Country', 'name': '<b>Taiwan</b>'}])), ld(dj_post(applicantLocationRequirements=['Taiwan'])),
+    ld(dj_post(applicantLocationRequirements=[{'@type': ['Country'], 'name': 'Taiwan'}])),
+    ld(dj_post(applicantLocationRequirements=[{'@type': 'AdministrativeArea', 'name': 'APAC'}, {'@type': 'Country', 'name': 'Japan'}])),
+    ld(dj_post(applicantLocationRequirements=[{'@type': 'Country', 'name': 'Germany'}, {'@type': 'Country', 'name': 'Canada'}])),
+    ld(dj_post(validThrough='')), ld(dj_post(validThrough=None)), ld(dj_post(validThrough=0)), ld(dj_post(validThrough='bad')),
+    ld(dj_post(validThrough='2026-12-01T00:00:00+08:00')), ld(dj_post(jobLocationType=None)), ld(dj_post(), head='<title>Just a moment</title>'),
+    ld(dj_post(title='x' * 501)), ld(None, raw='[' + json.dumps(dj_post()) + ']'), b'<h1>Missing metadata</h1>',
+]
+
+
+def dj_index_case(raw):
+    return dict(input=raw.decode('latin-1'), expect=attempt(lambda: dynamitejobs.parse_index(raw)))
+
+
+JB_URL = 'https://www.518.com.tw/job-Ab1234.html'
+
+
+def jb_index(*urls, empty=False, heading=None):
+    """backend/tests/collection/test_jobbank518.py:index"""
+    head = heading if heading is not None else '、'.join(jobbank518.CATEGORIES) + ' 的兼職工作職缺'
+    return ('<h1>' + head + '</h1>' + ''.join(f'<a href="{u}">job</a>' for u in urls) +
+            ('<p>抱歉沒有搜到適合的職缺</p>' if empty else '')).encode()
+
+
+def jb_post(**changes):
+    return {'@type': 'JobPosting', 'title': '兼職 AI agent API 工程師',
+            'description': '<p>開發 AI agent API</p><br>職務類別<br>AI工程師<br>職缺條件<br>兼職',
+            'url': JB_URL, 'employmentType': ['PART_TIME'], 'datePosted': '2026-01-01',
+            'jobLocation': {'address': {'addressCountry': 'TW'}},
+            'baseSalary': {'currency': 'TWD', 'value': {'minValue': 500, 'unitText': 'HOUR'}}} | changes
+
+
+def jb_detail(data=None, *, update='<time>更新日期:2026-09-26</time>', extra=None):
+    """backend/tests/collection/test_jobbank518.py:detail"""
+    return (update + '<script type="application/ld+json">' + json.dumps([data or jb_post(), {'@type': 'BreadcrumbList'}] + (extra or [])) + '</script>').encode()
+
+
+JB_INDEXES = [
+    jb_index(empty=True), b'<h1>No data</h1>', jb_index(), jb_index(JB_URL, empty=True), jb_index(JB_URL).replace('兼職'.encode(), '全職'.encode()),
+    jb_index(JB_URL, JB_URL, 'https://www.tasker.com.tw/job-Ab1234.html'), jb_index(JB_URL, '/job-Ab1235.html?x=1', 'job-index.html', '#top'),
+    jb_index(*[f'/job-A{i:05d}.html' for i in range(201)]), jb_index(JB_URL, heading='AI工程師 的兼職工作職缺'),
+    b'<h1>' + '、'.join(jobbank518.CATEGORIES).encode() + b'</h1><h1>\xe7\x9a\x84\xe5\x85\xbc\xe8\x81\xb7\xe5\xb7\xa5\xe4\xbd\x9c\xe8\x81\xb7\xe7\xbc\xba</h1><a href="/job-Ab1234.html">x</a>',
+    jb_index(heading='<span>' + '、'.join(jobbank518.CATEGORIES) + '</span> 的兼職工作職缺') + b'<a href="/job-Ab1234.html">x</a>',
+    jb_index(JB_URL) + b'<script>var t = "\xe6\x8a\xb1\xe6\xad\x89\xe6\xb2\x92\xe6\x9c\x89\xe6\x90\x9c\xe5\x88\xb0\xe9\x81\xa9\xe5\x90\x88\xe7\x9a\x84\xe8\x81\xb7\xe7\xbc\xba";</script>',
+    jb_index(empty=True) + b'<a href>bare</a>', b'<title>Just a moment</title>' + jb_index(JB_URL), jb_index(JB_URL) + b'\xff',
+    jb_index('HTTPS://www.518.com.tw/job-Ab1234.html', 'https://www.518.com.tw/job-Ab12.html'),
+]
+JB_ARTICLES = [
+    jb_detail(), jb_detail(jb_post(url=JB_URL.replace('Ab1234', 'Ab1235'))), jb_detail(jb_post(description='')), jb_detail(jb_post(employmentType=None)),
+    jb_detail(jb_post(datePosted='bad')), jb_detail(jb_post(employmentType=['FULL_TIME', 'PART_TIME'])), jb_detail(jb_post(employmentType='TEMPORARY')),
+    jb_detail(jb_post(description='網站文案<br>職務類別<br>網站行銷企劃<br>職缺條件<br>兼職')), jb_detail(jb_post(description='<p>no category</p>')),
+    jb_detail(jb_post(description='x<br>職務類別<br>APP工程師、軟體設計工程師<br>其他<br>職缺條件<br>y')),
+    *[jb_detail(jb_post(datePosted=v)) for v in ('2026-01-01T00:00:00+08:00', '2026-02-30', '0000-01-01', '20260101', 5, None, '２０２６-０１-０１',
+                                                 'Thu, 01 Jan 2026 00:00:00 +0800', '2026-01-01 ', '2026-W01-1')],
+    *[jb_detail(update=u) for u in ('', '<time>更新日期：2026-09-26</time>', '<time>更新日期 : 2026-13-01</time>', '<time>更新日期:２０２６-０９-２６</time>',
+                                    '<p>更新日期</p><p>2026-09-26</p>', '<script>更新日期:2026-09-26</script>', '<time>更新日期:2026-9-26</time>')],
+    *[jb_detail(jb_post(validThrough=v)) for v in ('2026-12-31', '', None, 0, 'bad', '2026-12-31T23:59:59Z')],
+    jb_detail(jb_post(jobLocationType='TELECOMMUTE', jobLocation=None, baseSalary=[1.5, 2])), jb_detail(extra=[jb_post()]),
+    ('<script type="application/ld+json">' + json.dumps(jb_post()) + '</script>').encode(),
+    ('<script type="application/ld+json">' + json.dumps([1, 'x', None]) + '</script>').encode(), b'<h1>Removed</h1>',
+    b'<title>Access denied</title>' + jb_detail(), jb_detail(jb_post(title='x' * 501)),
+]
+
+
+def jb_index_case(raw):
+    return dict(input=raw.decode('latin-1'), expect=attempt(lambda: jobbank518.parse_index(raw)))
+
+
+CK_URL = 'https://www.chickpt.com.tw/job-Ab1234567890'
+
+
+def ck_index(*urls, total=None, title='<span>電腦</span>接案任務', count_attr='id="job-count"', extra=''):
+    """backend/tests/collection/test_chickpt.py:index"""
+    return ('<h1>' + title + f'</h1><span {count_attr}>' + str(len(urls) if total is None else total) +
+            '</span><ul id="job-list">' + ''.join(f'<li><a href="{u}">task</a></li>' for u in urls) + '</ul>' + extra).encode()
+
+
+def ck_detail(salary='單次$5000', body='Build an AI agent API', url=CK_URL, *, og=None, extra='', title='AI agent 開發', prefix='任務內容'):
+    """backend/tests/collection/test_chickpt.py:detail"""
+    meta = og if og is not None else f'<meta property="og:url" content="{url}">'
+    return (f'{meta}<h1 id="job-h1-title">{title}</h1>'
+            f'<div class="job_salary_address-block"><h2>{salary}</h2><h2>在家兼職</h2></div>'
+            f'<section class="job-content"><p>{prefix}</p><ul><li>{body}</li></ul></section>'
+            '<section class="job-work_time">工作日期：2026/09/20~2026/10/20</section>'
+            f'{extra}<section class="similar"><p>無薪 FULL_TIME unrelated advertisement</p></section>').encode()
+
+
+CK_INDEXES = [
+    ck_index(), ck_index(URL := CK_URL) + f'<a href="{CK_URL}extra">similar</a>'.encode(), ck_index(total=1), ck_index(CK_URL, total=0),
+    ck_index(CK_URL).replace('電腦'.encode(), '其他'.encode()), b'<h1>Unavailable</h1>', ck_index(CK_URL, total=2), ck_index(CK_URL, CK_URL),
+    ck_index(CK_URL, '/job-Ab1234567891?from=list'), ck_index('https://evil.example/job-Ab1234567890'), ck_index('/ajax/jobs'),
+    ck_index(CK_URL, total='²'), ck_index(CK_URL, total='١'), ck_index(CK_URL, total=' 1 '), ck_index(CK_URL, total=''), ck_index(CK_URL, total='1.0'),
+    ck_index(CK_URL, total='9' * 4301), ck_index(title='電腦 接案任務'), ck_index(title='電腦　接案任務'), ck_index(title='電腦接案任務<script>x</script>'),
+    ck_index(CK_URL, count_attr='id="job-count" id="other"'), ck_index(CK_URL, extra='<div class>x</div>'), ck_index(CK_URL, extra='<ul id="job-list"><li><a href>x</a></li></ul>'),
+    ck_index(*[f'/job-Ab{i:010d}' for i in range(201)]), b'<title>Just a moment</title>' + ck_index(), ck_index() + b'\xff', b'',
+    ck_index(CK_URL, extra='<div id="job-list"><p><a href="' + CK_URL.encode().decode() + '">dup</a></p></div>'),
+    ck_index(CK_URL).replace(b'<li>', b'<li><br/>'),
+]
+CK_ARTICLES = [
+    ck_detail(), *[ck_detail(salary=s) for s in ('時薪$500', '單次$3,000 ~ $5,000', '單次$3,000～5,000', '單次$5000/次', '單次$5000元', '單次$0', '單次$5000 ~ $3000',
+                                                 '單次$,,,', '時薪$200', '面議', '', '單次$５０００', '單次$5000 ~', '單次$1,000~$2,000/次')],
+    ck_detail(url=CK_URL.replace('Ab', 'Ac')), ck_detail(body=''), ck_detail(og=''), ck_detail(og='<meta property="og:url">'),
+    ck_detail(og='<meta property="og:url" content="/job-Ab1234567890">'), ck_detail(prefix='內容'), ck_detail(title=''), ck_detail(title='x' * 501),
+    ck_detail(extra='<section class="job-address">台北市 <style>.x{}</style>信義區</section>'),
+    ck_detail(body='a<script>bad()</script>b<br/>c'), ck_detail(extra='<div class>bare</div>'), ck_detail(extra='<p class="job_salary_address-block">另計</p>'),
+    ck_detail(body='<section class="job-content">nested</section>'), ck_detail(extra='<section class="JOB-ADDRESS">x</section>'),
+    ck_detail(extra='<section class="x\tjob-address">台中</section>'), b'<title>Just a moment</title>' + ck_detail(), b'<h1>Missing</h1>',
+    ck_detail() + b'\xff', ck_detail(body='x' * 100_001),
+]
+
+
+def ck_index_case(raw):
+    def run():
+        urls, total = chickpt.parse_index(raw)
+        return dict(urls=urls, total=total)
+    return dict(input=raw.decode('latin-1'), expect=attempt(run))
+
+
+def page_fetch_case(module, pages, **kw):
+    def run():
+        patches = [patch.object(module, 'build_opener', lambda *a: UrllibOpener(pages)), patch.object(module, 'read_body', limited_body),
+                   patch.object(module.time, 'sleep', lambda s: None)]
+        if hasattr(module, 'datetime'):
+            patches.append(patch.object(module, 'datetime', FixedNow))
+        for p in patches:
+            p.start()
+        try:
+            return encode(module.fetch(**kw))
+        finally:
+            for p in patches:
+                p.stop()
+    return dict(pages=wire(pages), expect=attempt(run))
+
+
+def nd_pages():
+    old = 'Mon, 01 Jun 2026 00:00:00 GMT'
+    feed = nd_feed(nd_item(), nd_item(link='https://nodesk.co/remote-jobs/bb/'), nd_item(link='https://nodesk.co/remote-jobs/cc/'),
+                   nd_item(link='https://nodesk.co/remote-jobs/old/', date=old), nd_item(link='https://nodesk.co/remote-jobs/dd/'),
+                   nd_item(link='https://nodesk.co/remote-jobs/ee/'), nd_item(link='https://nodesk.co/remote-jobs/future/', date='Sat, 03 Oct 2026 00:00:00 GMT'),
+                   nd_item(link='https://evil.example/x/')).encode()
+    return {nodesk.FEED: (200, feed), ND_URL: (200, ld(nd_post())), 'https://nodesk.co/remote-jobs/bb/': (404, b''),
+            'https://nodesk.co/remote-jobs/cc/': (302, b''), 'https://nodesk.co/remote-jobs/ee/': (200, ld(nd_post(employmentType='FULL_TIME')))}
+
+
+def jr_pages(index=None):
+    entries = [jr_entry(), jr_entry(id=2, job_type='permanent', href='remote-developer-jobs/perm'), jr_entry(id=3, category='marketing', href='remote-marketing-jobs/cc'),
+               jr_entry(id=4, job_type='permanent', category='marketing', href='remote-marketing-jobs/skip'), jr_entry(id=5, href='remote-developer-jobs/missing'),
+               jr_entry(id=6, href='remote-developer-jobs/gone'), jr_entry(id=7, href='https://evil.example/')]
+    return {justremote.INDEX: (200, index or jr_index(jr_state(entries))), JR_URL: (200, jr_detail()),
+            'https://justremote.co/remote-developer-jobs/perm': (200, jr_detail(employmentType='FULL_TIME')),
+            'https://justremote.co/remote-marketing-jobs/cc': (200, jr_detail()), 'https://justremote.co/remote-developer-jobs/gone': (410, b'')}
+
+
+def dj_pages(**overrides):
+    urls = [DJ_URL, DJ_URL + '-two', DJ_URL + '-three', DJ_URL + '-four']
+    pages = {dynamitejobs.INDEX: (200, links(*urls)), DJ_URL: (200, ld(dj_post())), DJ_URL + '-two': (404, b''),
+             DJ_URL + '-three': (200, ld(dj_post(url=DJ_URL + '-three', employmentType='FULL_TIME'))), DJ_URL + '-four': (500, b'')}
+    return pages | overrides
+
+
+def jb_pages(**overrides):
+    two = JB_URL.replace('Ab1234', 'Ab1235')
+    pages = {jobbank518.INDEX: (200, jb_index(JB_URL, two, JB_URL.replace('Ab1234', 'Ab1236'))), JB_URL: (200, jb_detail()), two: (200, b'<h1>Removed</h1>')}
+    return pages | overrides
+
+
+def ck_pages(**overrides):
+    two = CK_URL.replace('Ab', 'Ac')
+    pages = {chickpt.INDEX: (200, ck_index(CK_URL, two, total=3)), CK_URL: (200, ck_detail()), two: (200, ck_detail(salary='單次$0', url=two))}
+    return pages | overrides
+
+
+NO_PAUSE = {'pause': lambda _: None}
+PAGE_FETCH = [
+    (nodesk, nd_pages(), {}), (nodesk, nd_pages() | {nodesk.FEED: (403, b'')}, {}), (nodesk, nd_pages() | {nodesk.FEED: (200, b'')}, {}),
+    (nodesk, nd_pages() | {nodesk.FEED: (301, b'')}, {}), (nodesk, nd_pages() | {nodesk.FEED: (204, b'')}, {}), (nodesk, {}, {}),
+    (justremote, jr_pages(), {}), (justremote, jr_pages() | {justremote.INDEX: (500, b'')}, {}), (justremote, jr_pages(b'<h1>none</h1>'), {}),
+    (dynamitejobs, dj_pages(), NO_PAUSE), (dynamitejobs, dj_pages(**{DJ_URL + '-two': (403, b'')}), NO_PAUSE),
+    (dynamitejobs, dj_pages(**{DJ_URL + '-two': (429, b'')}), NO_PAUSE), (dynamitejobs, dj_pages(**{DJ_URL + '-two': (401, b'')}), NO_PAUSE),
+    (dynamitejobs, dj_pages(**{DJ_URL + '-two': (200, b'<title>Just a moment...</title>')}), NO_PAUSE),
+    (dynamitejobs, dj_pages(**{DJ_URL + '-two': (307, b'')}), NO_PAUSE), (dynamitejobs, dj_pages(**{dynamitejobs.INDEX: (403, b'')}), NO_PAUSE),
+    (jobbank518, jb_pages(), NO_PAUSE), (jobbank518, jb_pages(**{jobbank518.INDEX: (200, jb_index(empty=True))}), NO_PAUSE),
+    (jobbank518, jb_pages(**{JB_URL.replace('Ab1234', 'Ab1235'): (403, b'')}), NO_PAUSE),
+    (jobbank518, jb_pages(**{JB_URL: (200, b'<title>Access denied</title>')}), NO_PAUSE), (jobbank518, jb_pages(**{JB_URL: (418, b'')}), NO_PAUSE),
+    (chickpt, ck_pages(), NO_PAUSE), (chickpt, ck_pages(**{CK_URL: (401, b'')}), NO_PAUSE), (chickpt, ck_pages(**{CK_URL: (404, b'')}), NO_PAUSE),
+    (chickpt, ck_pages(**{chickpt.INDEX: (200, ck_index())}), NO_PAUSE), (chickpt, ck_pages(**{CK_URL: (200, ck_detail(extra='<div class>x</div>'))}), NO_PAUSE),
+    (chickpt, ck_pages(**{CK_URL: (200, b'\xff')}), NO_PAUSE),
+]
+
+
+def batch3_golden():
+    return {
+        'urljoin': [dict(base=b, url=u, expect=attempt(lambda: urljoin(b, u))) for b in URLJOIN_BASES for u in URLJOIN_REFS],
+        'canonical_b3': [dict(source=m.__name__.rsplit('.', 1)[1], input=tag(v), expect=attempt(lambda: m.canonical(v)))
+                         for m in (nodesk, justremote, dynamitejobs, jobbank518, chickpt)
+                         for v in URLJOIN_REFS + [None, 5, ND_URL, JR_URL, DJ_URL, JB_URL, CK_URL, ND_URL + '?a=1#b', JR_URL + '#x', DJ_URL + '?u=1',
+                                                  JB_URL.upper(), CK_URL + '/', '/job-Ab1234.html', '/job-Ab1234567890', '/company/a/remote-job/b']],
+        'py_upper': [dict(input=s, expect=s.upper()) for s in UPPER],
+        'raw_decode': [dict(input=s, expect=attempt(lambda: (lambda r: [encode(r[0]), r[1]])(json.JSONDecoder().raw_decode(s)))) for s in RAW_DECODE],
+        'date_iso': [dict(input=s, expect=attempt(lambda: _date.fromisoformat(s).isoformat())) for s in DATE_ISO],
+        'b3_re': [dict(pattern=p, ignorecase=bool(f & re.I), dotall=bool(f & re.S), mode=mode, input=s,
+                       expect=(lambda m: None if m is None else dict(span=list(m.span()), groups=list(m.groups())))(getattr(re, mode)(p, s, f)))
+                  for p, f, mode in B3_RES for s in B3_RE_TEXT],
+        'nodesk_feed': [nd_feed_case(d.encode()) for d in ND_FEEDS] + [nd_feed_case(b) for b in ND_FEED_BYTES],
+        'nodesk_article': [dict(input=raw.decode('latin-1'), entry=e, expect=classify(lambda: nodesk.parse_article(raw, e), (ValueError, OSError, TimeoutError)))
+                           for e in ND_ARTICLE_ENTRIES for raw in (ND_ARTICLES if e is ND_ENTRY else ND_ARTICLES[:2])],
+        'justremote_index': [jr_index_case(raw) for raw in JR_INDEXES],
+        'justremote_article': [dict(input=raw.decode('latin-1'), entry=tag(jr_article_entry(e)),
+                                    expect=classify(lambda: justremote.parse_article(raw, jr_article_entry(e)), (ValueError, TypeError, KeyError, OSError)))
+                               for raw, e in JR_ARTICLES],
+        'dynamitejobs_index': [dj_index_case(raw) for raw in DJ_INDEXES],
+        'dynamitejobs_article': [dict(input=raw.decode('latin-1'), url=u, expect=classify(lambda: dynamitejobs.parse_article(raw, u),
+                                      (ValueError, TypeError, KeyError, OSError), dynamitejobs.AccessBlocked))
+                                 for u in (DJ_URL, DJ_URL + '?x=1', 'https://evil.example/') for raw in (DJ_ARTICLES if u == DJ_URL else DJ_ARTICLES[:1])],
+        'jobbank518_index': [jb_index_case(raw) for raw in JB_INDEXES],
+        'jobbank518_article': [dict(input=raw.decode('latin-1'), expect=classify(lambda: jobbank518.parse_article(raw, JB_URL),
+                                    (ValueError, TypeError, KeyError, OSError), jobbank518.AccessBlocked)) for raw in JB_ARTICLES],
+        'jobbank518_date': [dict(input=tag(v), expect=attempt(lambda: jobbank518.date_value(v))) for v in DATE_ISO + [None, 5, '2026-09-26T00:00:00Z', 'Sat, 26 Sep 2026 00:00:00 GMT']],
+        'chickpt_index': [ck_index_case(raw) for raw in CK_INDEXES],
+        'chickpt_article': [dict(input=raw.decode('latin-1'), expect=classify(lambda: chickpt.parse_article(raw, CK_URL, observed_at=NOW),
+                                 (ValueError, TypeError, OSError), chickpt.AccessBlocked)) for raw in CK_ARTICLES],
+        'page_fetch': [dict(source=m.__name__.rsplit('.', 1)[1], **page_fetch_case(m, pages, **kw)) for m, pages, kw in PAGE_FETCH],
+    }
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -1158,6 +1641,7 @@ def main():
         'pf_re': [pf_re_case(p, f, g, s) for p, f, g in PF_RES for s in PF_RE_TEXT],
         'public_feeds_normalize': [pf_normalize_case(src, e) for src, e in PF_NORMALIZE],
         'public_feeds_batch': [pf_batch_case(src, raw) for src, raw in PF_BATCH],
+        **batch3_golden(),
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

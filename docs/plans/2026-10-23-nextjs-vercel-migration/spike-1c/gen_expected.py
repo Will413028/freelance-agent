@@ -235,6 +235,8 @@ casefold = {cp: chr(cp).casefold() for cp in range(0x110000) if chr(cp).casefold
 nfkc = {cp: unicodedata.normalize('NFKC', chr(cp)) for cp in range(0x110000)
         if not 0xD800 <= cp <= 0xDFFF and unicodedata.normalize('NFKC', chr(cp)) != chr(cp)}
 lower = {cp: chr(cp).lower() for cp in range(0x110000) if chr(cp).lower() != chr(cp)}
+# str.upper() has no context rules, so a per-code-point map is exact (plan step 8, batch 3: nodesk).
+upper = {cp: chr(cp).upper() for cp in range(0x110000) if chr(cp).upper() != chr(cp)}
 # str.lower() maps U+03A3 by context (Final_Sigma); these two properties drive it. Probed through lower()
 # itself because CPython does not expose them: 'AΣ'+c+'A' and 'AΣ'+c tell ignorable / cased / neither apart.
 def sigma(s):
@@ -258,6 +260,7 @@ tables = {'unidata': unicodedata.unidata_version,
           'casefold': {str(k): v for k, v in casefold.items()},
           'nfkc_single': {str(k): v for k, v in nfkc.items()},
           'lower': {str(k): v for k, v in lower.items()},
+          'upper': {str(k): v for k, v in upper.items()},
           'case_ignorable': ranges(case_ignorable),
           'cased': ranges(cased),
           # int(str) (plan step 7): decimal runs as [first, last, value of first]; str.isdigit; and the

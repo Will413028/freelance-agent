@@ -27,8 +27,8 @@ export function htmlText(html: string): string {
   return parts.join("");
 }
 
-/** public_feeds.Text: visible text, block tags as line breaks, script/style dropped; feed() then close(). */
-function visibleText(html: string): string {
+/** public_feeds.Text(...).parts: visible text, block tags as line breaks, script/style dropped; feed() then close(). */
+export function visibleParts(html: string): string[] {
   const parts: string[] = [];
   let hidden = 0;
   htmlFeed(html, {
@@ -44,13 +44,13 @@ function visibleText(html: string): string {
       if (!hidden) parts.push(data);
     },
   }, true);
-  return parts.join("");
+  return parts;
 }
 
 /** public_feeds.text */
 export function text(value: unknown): string {
   if (typeof value !== "string" || !pyStrip(value) || pyLen(value) > 200_000) throw new PyError("ValueError", "Full feed description required");
-  const result = pySplitlines(visibleText(value)).filter((line) => pyStrip(line)).map((line) => pySplit(line).join(" ")).join("\n");
+  const result = pySplitlines(visibleParts(value).join("")).filter((line) => pyStrip(line)).map((line) => pySplit(line).join(" ")).join("\n");
   if (!result) throw new PyError("ValueError", "Empty text");
   return result;
 }

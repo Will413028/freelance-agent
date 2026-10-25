@@ -68,7 +68,21 @@ export const sha256Hex = (s: string) => createHash("sha256").update(utf8Strict(s
 
 /** json.loads, lossless: keeps int vs float, big ints and key order (first position, last value). */
 export function loads(text: string): PyValue {
-  let i = 0;
+  const [result, end] = scan(text, 0, true);
+  let i = end;
+  while (i < text.length && " \t\n\r".includes(text[i])) i++;
+  if (i !== text.length) throw new PyError("JSONDecodeError");
+  return result;
+}
+
+/**
+ * json.JSONDecoder().raw_decode(text): the first value and the (UTF-16) index after it. Unlike
+ * loads, leading whitespace is an error and anything may follow.
+ */
+export const rawDecode = (text: string): [PyValue, number] => scan(text, 0, false);
+
+function scan(text: string, start: number, skipLeading: boolean): [PyValue, number] {
+  let i = start;
   const ws = () => {
     while (i < text.length && " \t\n\r".includes(text[i])) i++;
   };
@@ -143,10 +157,9 @@ export function loads(text: string): PyValue {
     if (m![1].replace("-", "").length > 4300) throw new PyError("ValueError", "Exceeds the limit (4300 digits) for integer string conversion");
     return BigInt(m![1]);
   };
+  if (!skipLeading && i < text.length && " \t\n\r".includes(text[i])) fail();
   const result = value();
-  ws();
-  if (i !== text.length) fail();
-  return result;
+  return [result, i];
 }
 
 /** loads() for a stored JSON object column. */

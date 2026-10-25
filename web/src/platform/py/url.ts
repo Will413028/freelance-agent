@@ -41,11 +41,12 @@ function checkNetloc(netloc: string) {
   for (const c of "/?#@:") if (n2.includes(c)) throw new PyError("ValueError", "netloc contains invalid characters under NFKC normalization");
 }
 
-export function urlsplit(input: string): SplitResult {
+/** urlsplit(input, scheme): `defaultScheme` is used when the URL has none (callers pass a plain scheme). */
+export function urlsplit(input: string, defaultScheme = ""): SplitResult {
   let k = 0;
   while (k < input.length && input.charCodeAt(k) <= 0x20) k++;
   let url = input.slice(k).replace(/[\t\r\n]/g, "");
-  let scheme = "", netloc = "", query = "", fragment = "";
+  let scheme = defaultScheme, netloc = "", query = "", fragment = "";
   const i = url.indexOf(":");
   if (i > 0 && /^[A-Za-z]$/.test(url[0]) && [...url.slice(0, i)].every((c) => SCHEME_CHARS.test(c))) {
     scheme = url.slice(0, i).toLowerCase();
@@ -108,4 +109,67 @@ export function urlunsplit(p: SplitResult): string {
   if (p.query) url += "?" + p.query;
   if (p.fragment) url += "#" + p.fragment;
   return url;
+}
+
+const USES_RELATIVE = new Set(["", "ftp", "http", "gopher", "nntp", "imap", "wais", "file", "https", "shttp", "mms", "prospero",
+  "rtsp", "rtsps", "rtspu", "sftp", "svn", "svn+ssh", "ws", "wss"]);
+const USES_PARAMS = new Set(["", "ftp", "hdl", "prospero", "http", "imap", "https", "shttp", "rtsp", "rtsps", "rtspu", "sip", "sips", "mms", "sftp", "tel"]);
+
+type ParseResult = SplitResult & { params: string };
+
+/** urlparse(url, scheme): urlsplit plus the ';params' of the last path segment. */
+function urlparse(url: string, scheme: string): ParseResult {
+  const r = urlsplit(url, scheme);
+  let path = r.path, params = "";
+  if (USES_PARAMS.has(r.scheme) && path.includes(";")) {
+    let i: number;
+    if (path.includes("/")) {
+      i = path.indexOf(";", path.lastIndexOf("/"));
+      if (i < 0) return { ...r, params: "" };
+    } else i = path.indexOf(";");
+    params = path.slice(i + 1);
+    path = path.slice(0, i);
+  }
+  return { ...r, path, params };
+}
+
+function urlunparse(p: ParseResult): string {
+  return urlunsplit({ ...p, path: p.params ? `${p.path};${p.params}` : p.path });
+}
+
+/** urllib.parse.urljoin(base, url) for str arguments (CPython 3.13.15, allow_fragments=True). */
+export function urljoin(base: string, url: string): string {
+  if (!base) return url;
+  if (!url) return base;
+  const b = urlparse(base, "");
+  const u = urlparse(url, b.scheme);
+  let { netloc, path, params, query } = u;
+  if (u.scheme !== b.scheme || !USES_RELATIVE.has(u.scheme)) return url;
+  if (USES_NETLOC.has(u.scheme)) {
+    if (netloc) return urlunparse(u);
+    netloc = b.netloc;
+  }
+  if (!path && !params) {
+    path = b.path;
+    params = b.params;
+    if (!query) query = b.query;
+    return urlunparse({ ...u, netloc, path, params, query });
+  }
+  const baseParts = b.path.split("/");
+  // The last item is not a directory, so it does not take part in resolving the relative path.
+  if (baseParts.at(-1) !== "") baseParts.pop();
+  let segments: string[];
+  if (path.slice(0, 1) === "/") segments = path.split("/");
+  else {
+    segments = [...baseParts, ...path.split("/")];
+    // segments[1:-1] = filter(None, segments[1:-1]); a single segment is both first and last.
+    if (segments.length > 1) segments = [segments[0], ...segments.slice(1, -1).filter((x) => x), segments.at(-1)!];
+  }
+  const resolved: string[] = [];
+  for (const seg of segments) {
+    if (seg === "..") resolved.pop();
+    else if (seg !== ".") resolved.push(seg);
+  }
+  if (segments.at(-1) === "." || segments.at(-1) === "..") resolved.push("");
+  return urlunparse({ ...u, netloc, path: resolved.join("/") || "/", params, query });
 }

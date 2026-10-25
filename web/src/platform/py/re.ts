@@ -30,7 +30,7 @@ function literal(ch: string, ignoreCase: boolean, inClass: boolean): string {
 /**
  * Translates the subset of Python re syntax the sources use: literals, groups, lookaheads,
  * alternation, greedy and lazy quantifiers, '.', '^', '$', character classes, the \b \s \S \d \D
- * \w \W escapes and \n \t \r \f \v; dotAll is re.S.
+ * \w \W escapes, \Z (the very end, JS '$' without the m flag) and \n \t \r \f \v; dotAll is re.S.
  * Anything else (backreferences, inline flags, letter ranges under IGNORECASE) throws, so a pattern
  * this cannot translate exactly fails at load instead of matching differently.
  */
@@ -43,6 +43,7 @@ export function translate(pattern: string, ignoreCase = false, dotAll = false): 
       const e = cps[++i];
       if (e === undefined) throw new Unsupported("trailing backslash");
       if (e === "b") out += BOUNDARY;
+      else if (e === "Z") out += "$";
       else if (CLASS_ESCAPES[e]) out += `[${CLASS_ESCAPES[e]}]`;
       else if (NEGATED[e]) out += `[^${CLASS_ESCAPES[NEGATED[e]]}]`;
       else if (CONTROL_ESCAPES[e]) out += CONTROL_ESCAPES[e];
@@ -130,3 +131,7 @@ export function pyReSplit(re: RegExp, s: string): (string | null)[] {
 /** re.fullmatch(pattern, s): the match array, or null. */
 export const pyFullmatch = (pattern: string, s: string, ignoreCase = false) =>
   new RegExp(`^(?:${translate(pattern, ignoreCase)})$`, "u").exec(s);
+
+/** re.match(pattern, s): anchored at the start only, or null. */
+export const pyMatch = (pattern: string, s: string, ignoreCase = false) =>
+  new RegExp(`^(?:${translate(pattern, ignoreCase)})`, "u").exec(s);

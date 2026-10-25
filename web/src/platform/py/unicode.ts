@@ -9,13 +9,14 @@ import tables from "./unicode-tables.json";
 
 type Ranges = [number, number][];
 const T = tables as unknown as {
-  unassigned: Ranges; nonprintable: Ranges; space: Ranges; casefold: Record<string, string>; lower: Record<string, string>;
+  unassigned: Ranges; nonprintable: Ranges; space: Ranges; casefold: Record<string, string>; lower: Record<string, string>; upper: Record<string, string>;
   case_ignorable: Ranges; cased: Ranges; decimal: [number, number, number][]; digit: Ranges; upper_ascii: Record<string, string>;
   word: Ranges; ignorecase_ascii: Record<string, number[]>;
 };
 
 const CASEFOLD = new Map(Object.entries(T.casefold).map(([k, v]) => [Number(k), v]));
 const LOWER = new Map(Object.entries(T.lower).map(([k, v]) => [Number(k), v]));
+const UPPER = new Map(Object.entries(T.upper).map(([k, v]) => [Number(k), v]));
 const SPACE = new Set<number>(T.space.flatMap(([a, b]) => Array.from({ length: b - a + 1 }, (_, i) => a + i)));
 
 function inRanges(r: Ranges, cp: number): boolean {
@@ -163,6 +164,9 @@ export function pyIntToFloat(n: bigint): number {
   if (!Number.isFinite(x)) throw new PyError("OverflowError", "int too large to convert to float");
   return x;
 }
+
+/** str.upper(): per code point, with special casing ('ß' → 'SS'); Python has no context rules for it. */
+export const pyUpper = (s: string) => codePoints(s).map((cp) => UPPER.get(cp) ?? String.fromCodePoint(cp)).join("");
 
 /** str.upper(), exact only where the result is ASCII letters (enough to compare with ASCII names). */
 export const pyUpperAscii = (s: string) => codePoints(s).map((cp) => T.upper_ascii[cp] ?? String.fromCodePoint(cp)).join("");

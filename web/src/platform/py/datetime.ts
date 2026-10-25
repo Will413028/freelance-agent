@@ -305,3 +305,15 @@ export function fromisoformat(s: unknown): PyDateTime {
   }
   return new PyDateTime(date[0], date[1], date[2], hour, minute, second, us, offset);
 }
+
+/** date.fromisoformat(s).isoformat() (C implementation: 7, 8 or 10 UTF-8 bytes, else ValueError). */
+export function dateFromIsoformat(s: string): string {
+  const invalid = () => new PyError("ValueError", `Invalid isoformat string: ${s}`);
+  if (!s.isWellFormed()) throw invalid();
+  const c = new Cursor(new TextEncoder().encode(s));
+  const len = c.b.length;
+  const date = len === 7 || len === 8 || len === 10 ? parseDate(c, len) : null;
+  if (!date) throw invalid();
+  const d = new PyDateTime(date[0], date[1], date[2]);
+  return `${String(d.year).padStart(4, "0")}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+}
