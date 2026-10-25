@@ -16,6 +16,8 @@ import { TABLES, type TableSpec } from "./tables";
 // Scope: while TS runs only some sources (plan steps 6–10), rows of a table with a source column
 // count only for the sources TS runs, and run tables without one (daily_runs, digest_outbox) are
 // left out until TS owns them. What is left out is still counted in outOfScope, never dropped silently.
+// The scope is read from the TS run itself (ranSources), not from the comparator's own build, so a
+// Vercel deploy that changes the fan-out needs no new comparator image.
 
 export type DiffClass = "timing" | "user_action" | "logic";
 export type Diff = { table: string; key: string; class: DiffClass; kind: "only_python" | "only_ts" | "different" | "deleted" };
@@ -61,6 +63,22 @@ function scoped(spec: TableSpec, columns: Column[], scope: Set<string> | null) {
     const cell = row[at];
     return cell !== null && "s" in cell && scope.has(cell.s);
   };
+}
+
+/**
+ * The sources the day's TS run fanned out to: the keys of its finished daily_runs result
+ * (finishDailySources writes one per source, failed ones included). Fails closed when the day has
+ * no single finished run, e.g. Hobby cron fired late and the run is still going at compare time.
+ */
+export async function ranSources(ts: Pool, localDate: string): Promise<string[]> {
+  const { rows } = await ts.query<{ status: string; result: string | null }>("select status, result from daily_runs where local_date = $1", [localDate]);
+  if (rows.length !== 1) throw new Error(`daily_runs ${localDate}: expected one TS run, found ${rows.length}`);
+  const [{ status, result }] = rows;
+  if (status !== "complete" && status !== "failed") throw new Error(`daily_runs ${localDate}: TS run is ${status}, not finished`);
+  const details = result === null ? undefined : JSON.parse(result).source_details;
+  const sources = details && typeof details === "object" && !Array.isArray(details) ? Object.keys(details) : [];
+  if (!sources.length) throw new Error(`daily_runs ${localDate}: TS run recorded no sources`);
+  return sources;
 }
 
 export async function compareShadow(paths: { start: string; python: string }, ts: Pool, labels: CompareReport["labels"], scope: string[] | null = null): Promise<CompareReport> {

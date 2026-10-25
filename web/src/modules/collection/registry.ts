@@ -41,13 +41,15 @@ export const RUNNERS: Record<string, SourceRunner> = {
 };
 
 /**
- * Sources the shadow schedule runs: exactly the ones whose deploy Will has authorized. Each step or
+ * Release toggle: the sources the shadow schedule runs, exactly the ones whose deploy Will has authorized. Each step or
  * batch ships in its own deploy with its own shadow comparison, so a deploy of main for any other
  * reason must not start a ported source early. Add a source here in the commit that deploys it.
+ * Remove this set and enabledSources' scheduled parameter once it equals RUNNERS minus DISABLED (plan step 14).
  */
 export const SCHEDULED: ReadonlySet<string> = new Set([
   "jobicy", "remotive", "cryptojobslist", "himalayas", "getonboard", "hackernews", "v2ex", "remoteok", "realworkfromanywhere",
-  "weworkremotely", "workingnomads", "nodesk", "justremote", "dynamitejobs", "jobbank518", "chickpt",
+  "weworkremotely", "workingnomads", "nodesk", "justremote", "dynamitejobs", "jobbank518", "chickpt", "taiwanjobs", "arbeitnow",
+  "freelancer",
 ]);
 
 // D12: Vercel's regions get a challenge from PTT; these stay in the catalog for their history only.

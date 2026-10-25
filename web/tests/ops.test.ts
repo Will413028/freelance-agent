@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { compareShadow } from "@/ops/compare";
+import { compareShadow, ranSources } from "@/ops/compare";
 import { converge } from "@/ops/converge";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
@@ -146,6 +146,18 @@ describe("shadow comparator v1", () => {
     const all = await compareShadow({ start: base, python }, pool, labels);
     expect(all.diffs.map((d) => `${d.table}:${d.kind}`).sort()).toEqual(["clients:only_ts", "daily_runs:only_python", "opportunities:different", "opportunities:only_python"]);
     expect(all.outOfScope).toEqual({});
+  });
+
+  it("takes the scope from the day's finished TS run and fails closed without one", async () => {
+    await converge(base, pool, migrations);
+    const day = "2026-10-26";
+    await expect(ranSources(pool, day)).rejects.toThrow("expected one TS run, found 0");
+    await pool.query("insert into daily_runs values ($1, 'owner@example.invalid', 'running', 's', null, null)", [day]);
+    await expect(ranSources(pool, day)).rejects.toThrow("TS run is running");
+    await pool.query("update daily_runs set status = 'failed', result = $2 where local_date = $1", [day, '{"source_details": {"jobicy": {"status": "ok"}, "freelancer": {"status": "failed"}}}']);
+    expect(await ranSources(pool, day)).toEqual(["jobicy", "freelancer"]);
+    await pool.query("update daily_runs set result = '{\"source_details\": {}}' where local_date = $1", [day]);
+    await expect(ranSources(pool, day)).rejects.toThrow("recorded no sources");
   });
 
   it("reports rows a side deleted as logic", async () => {
