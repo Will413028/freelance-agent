@@ -266,7 +266,9 @@
     - 真實資料演練（2026-10-24，本機可拋棄 Postgres，資料用完即刪）：08:30 副本載入後跑 TS 的 Jobicy／Remotive，與 13:13 的正式副本（Python 當天已跑）比對。範圍內：logic 0、timing 0，opportunities 3／3、source_receipts 3／3 相同；範圍外 opportunities 65、source_receipts 65、mail 21、run 表 3 筆列為 out of scope。沒設 `PORTFOLIO_CATEGORY_PROJECTS` 時 4 筆 opportunity 只差 `portfolio_ids`（合成值），設了就 0，與步驟 4 的盤點缺陷 22 一致。
     - receipt mutation（同一套演練，量到）：receipt 改成 `source:id:x<hash>`，比對器報 3 筆 logic（Jobicy 新職缺的 opportunity，因為 `job.receipt_id` 在 item 裡），receipt 本身一邊有的列仍歸 timing。弱點：當天沒有新職缺、只有重看到的舊職缺時，receipt 規則壞掉只會出現 timing，不會被報出。7 天比對時同時看 source_receipts 的 timing 筆數；要補時的做法是 receipt 改用 `source:id` 當比對 key，雜湊不同就算 different。
     - VM shadow（2026-10-24 13:5x）：`/opt/freelance-shadow` checkout `afa8b10`，`SHADOW_IMAGE=freelance-agent-shadow:afa8b10`（回滾改回 `:13d991c`）；映像內 `enabledSources()` 為 jobicy、remotive。
-    - 未跑：7 天比對（第一份報告 10-25 10:30）。
+    - 7 天比對（VM `compare-<日期>.json`，`journalctl -u freelance-shadow-after.service`；source_receipts 的 timing 筆數照上面 receipt mutation 的弱點一起記）：
+      - 第 1 天 2026-10-25（10:30:36 報告，exit 0）：範圍 jobicy、remotive；logic 0、timing 0、user_action 0；opportunities 3／3、source_receipts 3／3 相同（source_receipts timing 0）；範圍外 opportunities 101、source_receipts 101、source_health 2、digest_outbox 1、daily_runs 2、mail_sync_state 6、mail_ingestion 10。
+    - 未跑：7 天比對第 2–7 天（10-26 至 10-31）。
   - 範圍：把 `collection/free_jobs.py`（80 行、6 個測試）改寫成 TS，在 shadow 模式每天跑。
   - 消費端：`rg -n "free_jobs|jobicy|remotive" backend/src frontend/src`。
   - 不能動：VM 上的 Python 來源照常跑，是唯一 writer。
@@ -528,7 +530,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
 | 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
 | 5 TS 端排程骨架 | 完成 | 正式專案部署；手動觸發（01:17）回 not due、shadow 無寫入；`vercel env ls production` 只有 4 個 key、無寄送憑證；Neon 傳輸量已量；2026-10-24 自然執行：08:31 morning `converge ok`、09:14 cron 寫唯一一列 `complete`、12:53 cron log「已有 run」 | | `199bef1`、`e6a299c` |
-| 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份 | 7 天比對（10-25 起）、比對器 mutation；2026-10-24 已部署、after timer 已 enable | |
+| 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份；7 天比對第 1 天（10-25）logic 0、timing 0 | 7 天比對第 2–7 天、比對器 mutation；2026-10-24 已部署、after timer 已 enable | |
 | 7 CryptoJobsList | 程式完成（未部署） | 本機：golden（RSS 123、text 127、日期 126、int 26）、真實 feed 100 筆逐位元組相同、4 個 Python 案例、交易邊界 mutation | 部署與比對（等步驟 6 的 7 天比對通過）；fan-out 已改依序執行（未部署） | |
 | 8 其餘免登入來源 | 進行中 | 第 1 批（himalayas、hackernews、v2ex）與 getonboard 程式完成：golden、真實回應逐位元組相同、9 個 store 案例、13 個 mutation、差分模糊測試與設計審查；第 2 批（public_feeds 4 個）程式完成：golden、真實回應 351 筆逐位元組相同、14 個 store 案例、13 個 mutation、設計審查 | 部署與 3 天比對（等步驟 7）；其餘來源未移植 | |
 | 9 信件來源 | 未開始 | | | |
