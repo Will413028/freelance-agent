@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { readTransaction, writeTransaction, type Db, type Executor } from "@/db/client";
-import { digestOutbox, utcNowText } from "@/db/schema";
+import { digestNovelty, digestOutbox, utcNowText } from "@/db/schema";
 import { groupItems, isCandidate, novelty, publicItem, seenIds, unseen } from "@/modules/discovery/public";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
@@ -32,30 +32,99 @@ export async function getDigest(db: Db, id: string): Promise<DigestRow> {
 }
 
 /**
- * The selection inside create_digest: grouped candidates, and those whose novelty keys no sent,
- * attempted or unknown prior digest (`priorSnapshots`, their stored text) already carried, so an
- * uncertain delivery is never repeated by the next day's mail. Pure, so its cost is tested alone.
+ * The novelty pairs a snapshot announced (D15): the digest_novelty rows written with it. Items
+ * stored before snapshots carried novelty_keys derive them, exactly as the old full scan did.
  */
-export function selectUnseen(allItems: PyDict[], priorSnapshots: string[]): { candidates: PyDict[]; fresh: PyDict[] } {
-  const candidates = groupItems(allItems).filter(isCandidate);
-  const seen = new TupleSet();
-  for (const text of priorSnapshots) for (const item of asList(loadsDict(text).req("items"))) for (const key of novelty(asDict(item)).values()) seen.add(key);
-  const known = seenIds(seen);
-  return { candidates, fresh: candidates.filter((item) => unseen(item, seen, known)) };
+export function noveltyRows(snapshot: PyDict): [string, string][] {
+  const pairs = new TupleSet();
+  for (const item of asList(snapshot.req("items"))) for (const pair of novelty(asDict(item)).values()) pairs.add(pair);
+  return [...pairs.values()].map(([key, fingerprint]) => [key, fingerprint]);
 }
 
-/** create_digest after list_in: select, then store the immutable snapshot. */
+const LEDGER_CHUNK = 10_000; // 3 bind parameters per row, under Postgres's 65535
+
+async function insertNoveltyIn(tx: Executor, digestId: string, snapshot: PyDict): Promise<number> {
+  const rows = noveltyRows(snapshot).map(([key, fingerprint]) => ({ digestId, key, fingerprint }));
+  for (let at = 0; at < rows.length; at += LEDGER_CHUNK) await tx.insert(digestNovelty).values(rows.slice(at, at + LEDGER_CHUNK));
+  return rows.length;
+}
+
+/**
+ * The keys unseen() looks up for these candidates: their novelty keys and member ids. Every pair it
+ * reads has one of them as its key, so the ledger rows for these keys decide exactly as all would.
+ */
+export function lookupKeys(candidates: PyDict[]): string[] {
+  const keys = new Set<string>();
+  for (const item of candidates) {
+    for (const [key] of novelty(item).values()) keys.add(key);
+    const members = item.has("members") ? asList(item.get("members")!).map(asDict) : [item];
+    for (const member of members) keys.add(member.str("id"));
+  }
+  return [...keys];
+}
+
+/** Pairs with these keys that a sent, attempted or unknown digest to this recipient announced. */
+async function announcedIn(tx: Executor, recipient: string, keys: string[]): Promise<TupleSet> {
+  const rows = await tx.selectDistinct({ key: digestNovelty.key, fingerprint: digestNovelty.fingerprint }).from(digestNovelty)
+    .innerJoin(digestOutbox, eq(digestOutbox.id, digestNovelty.digestId))
+    .where(and(eq(digestOutbox.recipient, recipient), inArray(digestOutbox.status, ["sent", "attempted", "unknown"]),
+      sql`${digestNovelty.key} = any(${sql.param(keys)}::text[])`));
+  return new TupleSet(rows.map((r) => [r.key, r.fingerprint]));
+}
+
+/**
+ * The selection inside create_digest: candidates none of whose novelty an earlier sent, attempted
+ * or unknown digest announced, so an uncertain delivery is never repeated by the next day's mail.
+ * Pure, so its cost is tested alone.
+ */
+export function selectUnseen(candidates: PyDict[], announced: TupleSet): PyDict[] {
+  const known = seenIds(announced);
+  return candidates.filter((item) => unseen(item, announced, known));
+}
+
+/** create_digest after list_in: select, then store the immutable snapshot and its ledger rows. */
 export async function insertDigestIn(tx: Executor, allItems: PyDict[], sources: PyDict, localDate: string, recipient: string, now: PyDateTime): Promise<DigestRow> {
-  const prior = await tx.select({ snapshot: digestOutbox.snapshot }).from(digestOutbox)
-    .where(and(eq(digestOutbox.recipient, recipient), inArray(digestOutbox.status, ["sent", "attempted", "unknown"])));
-  const { candidates, fresh } = selectUnseen(allItems, prior.map((row) => row.snapshot));
+  const candidates = groupItems(allItems).filter(isCandidate);
+  const fresh = selectUnseen(candidates, await announcedIn(tx, recipient, lookupKeys(candidates)));
   const items = fresh.map((item) => publicItem(item).update({ fingerprint: item.req("fingerprint"), novelty_keys: item.req("novelty_keys") }));
   const snapshot = PyDict.of({
     items, candidate_count: BigInt(candidates.length), unseen_count: BigInt(fresh.length), suppressed_count: BigInt(candidates.length - fresh.length),
     sources, generated_at: now.isoformat(), recipient, local_date: localDate,
   });
   const [row] = await tx.insert(digestOutbox).values({ id: randomUUID(), localDate, recipient, snapshot: encode(snapshot) }).returning();
-  return decode(row);
+  const stored = decode(row);
+  // From the stored text, the same derivation the backfill applies to older snapshots.
+  await insertNoveltyIn(tx, stored.id, stored.snapshot);
+  return stored;
+}
+
+export type StoredDigest = { id: string; snapshot: string };
+
+/**
+ * Writes the ledger rows of digests loaded without them: a copy just loaded into an empty ledger
+ * (converge, replay), from the copy's own rows rather than reading the snapshots back. A digest
+ * that already has rows fails on the primary key instead of being skipped. Returns the rows written.
+ */
+export async function backfillNoveltyIn(tx: Executor, digests: Iterable<StoredDigest>): Promise<number> {
+  let written = 0;
+  for (const digest of digests) written += await insertNoveltyIn(tx, digest.id, loadsDict(digest.snapshot));
+  return written;
+}
+
+export type NoveltyCheck = { digests: number; rows: number; missing: number; extra: number };
+
+/**
+ * Rederives the ledger from the stored snapshots and counts the differences; it needs only the
+ * snapshots, so it outlives the shadow replay. `since` limits it to digests of that day onwards.
+ */
+export async function checkNoveltyIn(tx: Executor, since?: string): Promise<NoveltyCheck> {
+  const digests = await tx.select({ id: digestOutbox.id, snapshot: digestOutbox.snapshot }).from(digestOutbox)
+    .where(since === undefined ? undefined : gte(digestOutbox.localDate, since));
+  const want = new TupleSet(digests.flatMap((d) => noveltyRows(loadsDict(d.snapshot)).map(([key, fp]) => [d.id, key, fp])));
+  const stored = await tx.select().from(digestNovelty).where(inArray(digestNovelty.digestId, digests.length ? digests.map((d) => d.id) : [""]));
+  const have = new TupleSet(stored.map((r) => [r.digestId, r.key, r.fingerprint]));
+  const missing = [...want.values()].filter((t) => !have.has(t)).length;
+  return { digests: digests.length, rows: stored.length, missing, extra: [...have.values()].filter((t) => !want.has(t)).length };
 }
 
 /** pending → attempted, committed before any sender is called; null when the intent was not pending. */

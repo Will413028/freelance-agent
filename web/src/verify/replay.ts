@@ -2,10 +2,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import type { Pool } from "pg";
 import * as schema from "@/db/schema";
 import { fromisoformat } from "@/platform/py/datetime";
-import { createDigestIn } from "@/services/digest";
-import { loadCopy } from "@/ops/converge";
+import { createDigestIn, rebuildNoveltyIn } from "@/services/digest";
+import { copiedDigests, loadCopy } from "@/ops/converge";
 import { openSqlite, pgColumns, readSqliteRows, rowText } from "@/ops/rows";
-import { TABLES } from "@/ops/tables";
+import { DERIVED_TABLES, TABLES } from "@/ops/tables";
 
 // Same-start digest replay (plan step 10b). The live comparator cannot compare digests: the two
 // runs fetch sources minutes apart, so their candidates differ. Here the TS digest code runs on
@@ -69,14 +69,19 @@ export async function replayDigest(paths: { start: string; python: string }, poo
       // is searched first), so the product code reads and writes only the copy. LIKE copies columns,
       // defaults, checks, keys and identity, not foreign keys or triggers; the public tables, their
       // rows and their retention triggers are never touched.
-      for (const t of TABLES) await client.query(`create temporary table "${t.name}" (like public."${t.name}" including all) on commit drop`);
+      for (const name of [...TABLES.map((t) => t.name), ...DERIVED_TABLES]) {
+        await client.query(`create temporary table "${name}" (like public."${name}" including all) on commit drop`);
+      }
       await loadCopy(client, lite, (table, columns, row) => {
         if (table !== "digest_outbox") return true;
         const at = columns.findIndex((c) => c.name === "local_date");
         const cell = row[at];
         return !(cell !== null && "s" in cell && cell.s === day);
       });
-      await createDigestIn(drizzle(client, { schema }), day, recipient, fromisoformat(JSON.parse(python).generated_at));
+      const tx = drizzle(client, { schema });
+      // The ledger the TS digest selects with, derived from the same earlier digests Python scanned.
+      await rebuildNoveltyIn(tx, copiedDigests(lite, day));
+      await createDigestIn(tx, day, recipient, fromisoformat(JSON.parse(python).generated_at));
       // The stored text, which is what Python's row holds, not a re-encoding of the returned value.
       const text = (await client.query<{ snapshot: string }>("select snapshot from digest_outbox where local_date = $1 and recipient = $2", [day, recipient])).rows[0].snapshot;
       let first = 0;

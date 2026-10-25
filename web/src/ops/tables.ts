@@ -52,5 +52,12 @@ export const TABLES: TableSpec[] = [
   t("application_proposals", ["application_id"], "user"),
 ];
 
+/**
+ * Postgres-only tables derived from TABLES rows (D15): never copied, compared or written back to
+ * SQLite, since Python neither has nor reads them; rebuilt from the copy after every load instead.
+ * digest_novelty is derived from digest_outbox snapshots.
+ */
+export const DERIVED_TABLES = ["digest_novelty"];
+
 /** Tables with a generated integer id whose sequence must follow the copied rows. */
 export const IDENTITY_COLUMNS: Record<string, string> = { tracking_events: "id" };

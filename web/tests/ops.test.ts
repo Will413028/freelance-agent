@@ -4,7 +4,11 @@ import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { compareShadow, ranSources } from "@/ops/compare";
-import { converge } from "@/ops/converge";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "@/db/schema";
+import { converge, copiedDigests, type RebuildDerived } from "@/ops/converge";
+import { checkNoveltyIn } from "@/modules/notifications/public";
+import { rebuildNoveltyIn } from "@/services/digest";
 import { replayDigest } from "@/verify/replay";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
@@ -14,6 +18,8 @@ import { fixture } from "./helpers/golden";
 const migrations = path.resolve(import.meta.dirname, "../drizzle");
 const dir = mkdtempSync(path.join(os.tmpdir(), "fa-ops-"));
 const labels = { start: "start", python: "python", ts: "ts" };
+// What scripts/converge.ts passes.
+const rebuild: RebuildDerived = (client, lite) => rebuildNoveltyIn(drizzle(client, { schema }), copiedDigests(lite));
 
 /** A synthetic production-shaped copy: every table has rows, with the awkward values production can hold. */
 function seed(lite: DatabaseSync) {
@@ -68,8 +74,8 @@ describe("convergence script v1", () => {
   });
 
   it("loads a copy losslessly and gives the identical report when run twice", async () => {
-    const first = await converge(base, pool, migrations);
-    const second = await converge(base, pool, migrations);
+    const first = await converge(base, pool, migrations, rebuild);
+    const second = await converge(base, pool, migrations, rebuild);
     expect(first.ok).toBe(true);
     expect(second).toEqual(first);
     expect(Object.values(first.tables).every((t) => t.source.rows > 0 && t.source.sha256 === t.target.sha256)).toBe(true);
@@ -78,7 +84,7 @@ describe("convergence script v1", () => {
   });
 
   it("continues the tracking_events id sequence after the copied rows", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const { rows } = await pool.query("insert into tracking_events (opportunity_id, revision, state, created_at) values ('o1', 3, '{}', 't3') returning id");
     expect(rows[0].id).toBe(3);
   });
@@ -89,21 +95,21 @@ describe("convergence script v1", () => {
       lite.prepare("update clients set revision = 'one'").run();
       lite.prepare("update proposal_templates set body = 'a' || char(0) || 'b'").run();
     });
-    await expect(converge(bad, pool, migrations)).rejects.toThrow(CopyError);
-    await expect(converge(bad, pool, migrations)).rejects.toThrow(/^clients: .*revision \(1\)$/);
+    await expect(converge(bad, pool, migrations, rebuild)).rejects.toThrow(CopyError);
+    await expect(converge(bad, pool, migrations, rebuild)).rejects.toThrow(/^clients: .*revision \(1\)$/);
   });
 });
 
 describe("shadow comparator v1", () => {
   it("reports no differences when both sides equal the start copy", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const report = await compareShadow({ start: base, python: base }, pool, labels);
     expect(report.counts).toEqual({ timing: 0, user_action: 0, logic: 0 });
     expect(report.diffs).toEqual([]);
   });
 
   it("ignores volatile columns and generated ids", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const python = copy("python-volatile.sqlite3", (lite) => {
       lite.prepare("update source_health set checked_at = '2026-10-23 09:00:00'").run();
       lite.prepare("insert into tracking_events (opportunity_id, revision, state, created_at) values ('o2', 1, '{}', 't')").run();
@@ -116,7 +122,7 @@ describe("shadow comparator v1", () => {
   });
 
   it("classifies fetch-time, production-only and logic differences", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const python = copy("python-run.sqlite3", (lite) => {
       lite.prepare("insert into opportunities values ('o4','guru','o4','{}')").run();
       lite.prepare("insert into opportunity_tracking values ('o2','{\"revision\": 1}')").run();
@@ -133,7 +139,7 @@ describe("shadow comparator v1", () => {
   });
 
   it("compares only the sources in scope and counts what it leaves out", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const python = copy("python-scoped.sqlite3", (lite) => {
       lite.prepare("insert into opportunities values ('o4','guru','o4','{}')").run();
       lite.prepare("insert into opportunities values ('o6','jobicy','o6','{\"python\": 1}')").run();
@@ -151,7 +157,7 @@ describe("shadow comparator v1", () => {
   });
 
   it("takes the scope from the day's finished TS run and fails closed without one", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const day = "2026-10-26";
     await expect(ranSources(pool, day)).rejects.toThrow("expected one TS run, found 0");
     await pool.query("insert into daily_runs values ($1, 'owner@example.invalid', 'running', 's', null, null)", [day]);
@@ -166,7 +172,7 @@ describe("shadow comparator v1", () => {
   });
 
   it("reports rows a side deleted as logic", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const python = path.join(dir, "python-deleted.sqlite3");
     copyFileSync(base, python);
     await pool.query("delete from mail_ingestion");
@@ -182,8 +188,8 @@ describe("snapshot", () => {
     const { execFileSync } = await import("node:child_process");
     const target = path.join(dir, "snap.sqlite3");
     execFileSync(tsx, [script, "--source", base, "--target", target], { stdio: "pipe" });
-    const report = await converge(target, pool, migrations);
-    const original = await converge(base, pool, migrations);
+    const report = await converge(target, pool, migrations, rebuild);
+    const original = await converge(base, pool, migrations, rebuild);
     expect(report.tables).toEqual(original.tables);
     expect(() => execFileSync(tsx, [script, "--source", base, "--target", target], { stdio: "pipe" })).toThrow();
   });
@@ -217,7 +223,7 @@ describe("digest replay", () => {
   };
 
   it("rebuilds Python's digest byte for byte and leaves the shadow as it was", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const before = (await pool.query("select count(*)::int n from opportunities")).rows[0].n;
     // Only the scenario's last digest was built from its final rows; earlier days saw fewer jobs.
     const copy = pythonCopy("replay.sqlite3");
@@ -227,8 +233,15 @@ describe("digest replay", () => {
     expect((await pool.query("select count(*)::int n from digest_outbox")).rows[0].n).toBe(1);
   });
 
+  it("rebuilds the notified ledger from the loaded snapshots", async () => {
+    const report = await converge(pythonCopy("converge-ledger.sqlite3"), pool, migrations, rebuild);
+    const check = await checkNoveltyIn(drizzle(pool, { schema }));
+    expect(report.derived).toBeGreaterThan(0);
+    expect(check).toEqual({ digests: scenario.tables.digest_outbox.length - 1, rows: report.derived, missing: 0, extra: 0 });
+  });
+
   it("reports a differing snapshot and a day without a Python digest", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const tampered = pythonCopy("replay-tampered.sqlite3", true);
     const report = await replayDigest({ start: tampered, python: tampered }, pool, "2026-10-03");
     expect(report.equal).toBe(false);
@@ -238,7 +251,7 @@ describe("digest replay", () => {
   });
 
   it("is inconclusive when Will changed a user table between the 08:30 copy and the after-run copy", async () => {
-    await converge(base, pool, migrations);
+    await converge(base, pool, migrations, rebuild);
     const report = await replayDigest({ start: pythonCopy("replay-0830.sqlite3", false, false), python: pythonCopy("replay-1030.sqlite3") }, pool, "2026-10-03");
     expect([report.equal, report.userChanges, report.python]).toEqual([null, ["opportunity_tracking", "tracking_events"], null]);
   });

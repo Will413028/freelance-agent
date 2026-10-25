@@ -1,6 +1,6 @@
 import { writeTransaction, type Db, type Executor } from "@/db/client";
 import { sourcesIn } from "@/modules/collection/public";
-import { findDigestIn, insertDigestIn, type DigestRow } from "@/modules/notifications/public";
+import { backfillNoveltyIn, findDigestIn, insertDigestIn, type DigestRow, type StoredDigest } from "@/modules/notifications/public";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { listIn } from "./discovery";
 
@@ -16,3 +16,6 @@ export async function createDigestIn(tx: Executor, localDate: string, recipient:
   if (existing) return existing;
   return insertDigestIn(tx, await listIn(tx, now), await sourcesIn(tx), localDate, recipient, now);
 }
+
+/** The digest_novelty rows of digests just loaded from a copy (converge, replay), from the copy's rows. */
+export const rebuildNoveltyIn = (tx: Executor, digests: Iterable<StoredDigest>): Promise<number> => backfillNoveltyIn(tx, digests);

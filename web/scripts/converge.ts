@@ -4,9 +4,12 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { strictSslUrl } from "../src/db/client";
-import { converge } from "../src/ops/converge";
+import * as schema from "../src/db/schema";
+import { converge, copiedDigests } from "../src/ops/converge";
+import { rebuildNoveltyIn } from "../src/services/digest";
 
 const { values } = parseArgs({ options: { sqlite: { type: "string" }, "confirm-drop": { type: "string" }, report: { type: "string" } } });
 const url = process.env.SHADOW_DATABASE_URL;
@@ -16,10 +19,12 @@ if (values["confirm-drop"] !== host) throw new Error(`refusing to drop: --confir
 
 const pool = new Pool({ connectionString: strictSslUrl(url), max: 2 });
 try {
-  const report = await converge(values.sqlite, pool, path.resolve(import.meta.dirname, "../drizzle"));
+  const report = await converge(values.sqlite, pool, path.resolve(import.meta.dirname, "../drizzle"),
+    (client, lite) => rebuildNoveltyIn(drizzle(client, { schema }), copiedDigests(lite)));
   const text = JSON.stringify(report, null, 1);
   if (values.report) writeFileSync(values.report, text + "\n", { mode: 0o600 });
   for (const [table, t] of Object.entries(report.tables)) console.log(`${table}\t${t.source.rows}\t${t.source.sha256 === t.target.sha256 ? "same" : "DIFFERENT"}`);
+  console.log(`digest_novelty\t${report.derived}\trebuilt`);
   console.log(report.ok ? "converge ok" : "converge FAILED: target differs from the copy");
   process.exitCode = report.ok ? 0 : 1;
 } finally {

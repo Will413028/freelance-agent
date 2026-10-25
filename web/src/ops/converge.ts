@@ -6,11 +6,17 @@ import { CopyError, fingerprint, openSqlite, pgColumns, readPgRows, readSqliteRo
 import { IDENTITY_COLUMNS, TABLES } from "./tables";
 
 // Convergence script v1 (plan step 4c): empty the shadow database and load a consistent SQLite copy
-// of production into it, unchanged. Rows keep their primary keys, so a rerun of the same copy gives
+// of production into it, unchanged, then rebuild the derived tables from it. Rows keep their primary keys, so a rerun of the same copy gives
 // the same database; an interrupted run rolls back its load and is simply run again.
 
 export type TableReport = { rows: number; sha256: string };
-export type ConvergeReport = { ok: boolean; tables: Record<string, { source: TableReport; target: TableReport }> };
+export type ConvergeReport = { ok: boolean; tables: Record<string, { source: TableReport; target: TableReport }>; derived: number };
+
+/**
+ * Rebuilds DERIVED_TABLES from the loaded copy inside the load's transaction; the caller supplies it
+ * because the derivation is product code. Returns how many rows it wrote.
+ */
+export type RebuildDerived = (client: PoolClient, lite: DatabaseSync) => Promise<number>;
 
 const PARAM_LIMIT = 60_000; // Postgres allows 65535 bind parameters per statement
 
@@ -19,7 +25,7 @@ export async function resetShadowSchema(pool: Pool, migrationsFolder: string) {
   await migrate(drizzle(pool), { migrationsFolder });
 }
 
-export async function converge(sqlitePath: string, pool: Pool, migrationsFolder: string): Promise<ConvergeReport> {
+export async function converge(sqlitePath: string, pool: Pool, migrationsFolder: string, rebuild: RebuildDerived): Promise<ConvergeReport> {
   const lite = openSqlite(sqlitePath);
   try {
     const present = sqliteTables(lite), expected = TABLES.map((t) => t.name).sort();
@@ -29,10 +35,12 @@ export async function converge(sqlitePath: string, pool: Pool, migrationsFolder:
     }
     await resetShadowSchema(pool, migrationsFolder);
     let source = new Map<string, Row[]>();
+    let derived = 0;
     const client = await pool.connect();
     try {
       await client.query("begin");
       source = await loadCopy(client, lite);
+      derived = await rebuild(client, lite);
       await client.query("commit");
     } catch (e) {
       await client.query("rollback");
@@ -40,7 +48,7 @@ export async function converge(sqlitePath: string, pool: Pool, migrationsFolder:
     } finally {
       client.release();
     }
-    return report(source, pool);
+    return { ...(await report(source, pool)), derived };
   } finally {
     lite.close();
   }
@@ -76,8 +84,13 @@ export async function loadCopy(client: PoolClient, lite: DatabaseSync, keep: (ta
   return source;
 }
 
+/** The digest rows of a copy, for rebuilding the ledger without reading the snapshots back; `skipDay` is left out. */
+export function copiedDigests(lite: DatabaseSync, skipDay?: string): { id: string; snapshot: string }[] {
+  return lite.prepare("select id, snapshot from digest_outbox where local_date is not ? order by id").all(skipDay ?? null) as { id: string; snapshot: string }[];
+}
+
 /** Per-table counts and content fingerprints of what was read and what Postgres now holds. */
-async function report(source: Map<string, Row[]>, pool: Pool): Promise<ConvergeReport> {
+async function report(source: Map<string, Row[]>, pool: Pool): Promise<Omit<ConvergeReport, "derived">> {
   const tables: ConvergeReport["tables"] = {};
   let ok = true;
   for (const spec of TABLES) {

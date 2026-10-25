@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { existingSourceIds, ingest, setSourceHealth, sourceBatch, sourcesIn } from "@/modules/collection/public";
 import { readSettings, replaceSettings, settingsDict } from "@/modules/discovery/public";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
-import { claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
+import { checkNoveltyIn, claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
 import { createDigest } from "@/services/digest";
 import { feedback, list, memberVersions, track } from "@/services/discovery";
 import { identityHash } from "@/platform/py/json";
@@ -103,6 +103,8 @@ describe("store scenarios replay the Python store byte for byte", () => {
         .filter((s) => JSON.stringify(s.want) !== JSON.stringify(s.got));
       expect(steps).toEqual([]);
       expect(got.tables).toEqual(scenario.tables);
+      // Every digest was selected through the ledger; it must hold exactly what the snapshots announced.
+      expect(await checkNoveltyIn(db)).toMatchObject({ missing: 0, extra: 0 });
     });
   }
 });

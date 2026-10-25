@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { DERIVED_TABLES } from "@/ops/tables";
 import { pool, resetSchema, sqliteWithSchema } from "./helpers/db";
 
 type Col = { name: string; notnull: number; pk: number };
@@ -10,10 +11,10 @@ describe("schema parity with the Python SQLite schema", () => {
   const lite = sqliteWithSchema();
   const tables = (lite.prepare("select name from sqlite_master where type='table' and name not like 'sqlite_%' order by name").all() as { name: string }[]).map((r) => r.name);
 
-  it("has every SQLite table", async () => {
+  it("has every SQLite table and, besides them, only the derived tables", async () => {
     const { rows } = await pool.query("select table_name from information_schema.tables where table_schema='public' order by table_name");
     expect(tables).toHaveLength(25);
-    expect(rows.map((r) => r.table_name)).toEqual(tables);
+    expect(rows.map((r) => r.table_name)).toEqual([...tables, ...DERIVED_TABLES].sort());
   });
 
   it("has the same columns and nullability in every table", async () => {

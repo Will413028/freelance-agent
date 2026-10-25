@@ -2,11 +2,12 @@ import { randomBytes } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { writeTransaction } from "@/db/client";
 import { ingestIn } from "@/modules/collection/public";
-import { groupItems } from "@/modules/discovery/public";
+import { groupItems, isCandidate } from "@/modules/discovery/public";
+import { backfillNoveltyIn, noveltyRows } from "@/modules/notifications/public";
 import { selectUnseen } from "@/modules/notifications/outbox";
 import { PyDateTime } from "@/platform/py/datetime";
-import { encode } from "@/platform/py/json";
-import { PyDict } from "@/platform/py/value";
+import { encode, loadsDict } from "@/platform/py/json";
+import { asDict, asList, PyDict, TupleSet } from "@/platform/py/value";
 import { createDigest } from "@/services/digest";
 import { list } from "@/services/discovery";
 import { db, pool, resetSchema } from "./helpers/db";
@@ -20,12 +21,16 @@ import { job } from "./helpers/jobs";
 // Vercel's 300 s step limit. Database time is left out of the tight bounds because it is noisy.
 // Scale: production had 2,226 opportunities and 37 digests on 2026-10-23; this uses 2,500 and 60.
 // Measured on an M-series Mac: grouping about 1.4 s, selection about 0.7 s (with the
-// per-candidate rebuild the selection took over 20 s).
+// per-candidate rebuild the selection took over 20 s). Since plan step 10b2 the digest reads the
+// announced pairs from the digest_novelty ledger; the history here is backfilled into it, and part
+// of it announced real candidates (some since changed) so the ledger lookup has to suppress.
 const OPPORTUNITIES = 2_500, PRIOR_DIGESTS = 60, ITEMS_PER_DIGEST = 100, KEYS_PER_ITEM = 6;
 const now = new PyDateTime(2026, 10, 26, 1, 0, 0, 0, 0n);
 const hex = (n: number) => randomBytes(n).toString("hex");
 let items: PyDict[] = [];
 let prior: string[] = [];
+let candidates: PyDict[] = [];
+const scanned = () => new TupleSet(prior.flatMap((text) => noveltyRows(loadsDict(text))));
 
 const timed = <T>(fn: () => T): [T, number] => {
   const started = Date.now();
@@ -45,9 +50,16 @@ beforeAll(async () => {
     }
   });
   items = await list(db, now);
-  // Prior digests only feed novelty suppression, which reads their items' novelty_keys.
-  prior = Array.from({ length: PRIOR_DIGESTS }, () => encode(PyDict.of({
-    items: Array.from({ length: ITEMS_PER_DIGEST }, () => PyDict.of({ novelty_keys: Array.from({ length: KEYS_PER_ITEM }, () => [hex(32), hex(32)]) })),
+  candidates = groupItems(items).filter(isCandidate);
+  // Prior digests only feed novelty suppression, which reads their items' novelty_keys. The first
+  // 300 candidates were announced; every third of them with a fingerprint that has since changed.
+  const announced = candidates.slice(0, 300).map((item, n) => PyDict.of({ novelty_keys: asList(item.req("novelty_keys")).map((k) => {
+    const [key, fp] = asList(k).map(String);
+    return [key, n % 3 === 0 && key === item.str("id") ? hex(32) : fp];
+  }) }));
+  prior = Array.from({ length: PRIOR_DIGESTS }, (_, d) => encode(PyDict.of({
+    items: [...Array.from({ length: ITEMS_PER_DIGEST }, () => PyDict.of({ novelty_keys: Array.from({ length: KEYS_PER_ITEM }, () => [hex(32), hex(32)]) })),
+      ...announced.filter((_, n) => n % PRIOR_DIGESTS === d)],
   })));
 }, 600_000);
 afterAll(async () => { await pool.end(); });
@@ -60,20 +72,26 @@ describe("digest at production scale", () => {
   });
 
   it("selects unseen candidates against 60 days of history within 5 s", () => {
-    const [{ candidates, fresh }, ms] = timed(() => selectUnseen(items, prior));
+    const seen = scanned();
+    const [fresh, ms] = timed(() => selectUnseen(candidates, seen));
     process.stderr.write(`selectUnseen: ${candidates.length} candidates, ${fresh.length} unseen in ${ms} ms\n`);
     expect(fresh.length).toBeGreaterThan(0);
+    expect(fresh.length).toBeLessThan(candidates.length);
     expect(ms).toBeLessThan(5_000);
   });
 
-  it("builds the whole digest well inside the 300 s step limit", async () => {
+  it("builds the whole digest from the ledger well inside the 300 s step limit, choosing what a full scan would", async () => {
     for (const [n, text] of prior.entries()) {
       await pool.query("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values ($1, $2, 'owner@example.invalid', $3, 'sent', 'r')",
         [`prior-${n}`, `prior-${n}`, text]);
     }
+    const digests = (await pool.query("select id, snapshot from digest_outbox")).rows as { id: string; snapshot: string }[];
+    expect(await backfillNoveltyIn(db, digests)).toBeGreaterThanOrEqual(PRIOR_DIGESTS * ITEMS_PER_DIGEST * KEYS_PER_ITEM);
     const [digest, ms] = await (async () => { const s = Date.now(); const d = await createDigest(db, "2026-10-26", "owner@example.invalid", now); return [d, Date.now() - s] as const; })();
     process.stderr.write(`createDigest: ${ms} ms\n`);
-    expect(digest.snapshot.req("unseen_count")).toBeGreaterThan(0n);
+    const ids = (list: PyDict[]) => list.map((item) => item.str("id"));
+    expect(ids(asList(digest.snapshot.req("items")).map(asDict))).toEqual(ids(selectUnseen(candidates, scanned())));
+    expect(digest.snapshot.req("suppressed_count")).toBeGreaterThan(0n);
     expect(ms).toBeLessThan(60_000);
   }, 120_000);
 });
