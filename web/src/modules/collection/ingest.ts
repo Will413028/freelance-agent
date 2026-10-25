@@ -1,17 +1,17 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { writeTransaction, type Db, type Executor } from "@/db/client";
-import { mailContentVersions, opportunities, sourceHealth, sourceReceipts, utcNowText, type SourceStatus } from "@/db/schema";
+import { mailContentVersions, mailIngestion, mailSyncState, opportunities, sourceHealth, sourceReceipts, utcNowText, type SourceStatus } from "@/db/schema";
 import { evaluate, readSettings } from "@/modules/discovery/public";
 import { getRecord, insertRecord, newObservation, recordsForSource, refreshRecord, saveRecord } from "@/modules/legacy/public";
 import { Conflict } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
-import { identityHash } from "@/platform/py/json";
-import { asDict, PyDict, PyError, type PyValue } from "@/platform/py/value";
+import { encode, identityHash, loads } from "@/platform/py/json";
+import { asDict, PyDict, PyError, pySubscript, type PyValue } from "@/platform/py/value";
 import { olderNotification } from "./observation";
 import { isSource, SOURCES } from "./source-catalog";
 
-// Port of collection/store.py (intake, receipts and source health). Mail cursors, ingestion records
-// and versioned mail intake arrive with the mail sources (plan step 9).
+// Port of collection/store.py: intake, receipts, source health, mail cursors, mail ingestion records
+// and versioned mail intake.
 
 const STATUSES: readonly SourceStatus[] = ["not_connected", "ok", "failed", "waiting"];
 const FINGERPRINT_EXCLUDED = new Set(["received_at", "receipt_id", "evidence_ref", "raw_evidence_ref"]);
@@ -138,3 +138,70 @@ export async function contentVersions(tx: Executor): Promise<ContentVersionRow[]
   return tx.select().from(mailContentVersions).orderBy(asc(mailContentVersions.fingerprint));
 }
 
+
+/**
+ * Keep distinct forwarded observations without choosing a newer source version
+ * (Collection.ingest_resend_batch): one transaction for the whole message.
+ */
+export function ingestResendBatch(db: Db, jobs: PyValue[], now: PyDateTime): Promise<{ contentVersions: number }> {
+  return writeTransaction(db, async (tx) => {
+    let newVersions = 0;
+    for (const jobValue of jobs) {
+      const job = asDict(jobValue);
+      const source = pySubscript(job, "source"), receiptId = pySubscript(job, "receipt_id");
+      const key = identityHash([source, pySubscript(job, "external_id")]);
+      const record = await getRecord(tx, key);
+      const fingerprint = jobFingerprint(job);
+      let incoming = job;
+      if (record !== null) {
+        if (fingerprint !== record.req("fingerprint")) {
+          const owner = await receiptOwner(tx, source as string, receiptId as string);
+          if (owner !== null && owner !== key) throw new Conflict("Receipt already belongs to another opportunity");
+          const [known] = await tx.select({ one: sql`1` }).from(mailContentVersions)
+            .where(and(eq(mailContentVersions.opportunityId, key), eq(mailContentVersions.fingerprint, fingerprint)));
+          if (owner !== null && !known) throw new Conflict("Receipt reused with different content");
+          await tx.insert(mailContentVersions).values({ opportunityId: key, fingerprint: record.str("fingerprint"), job: encode(record.dict("job")) })
+            .onConflictDoNothing();
+          const inserted = await tx.insert(mailContentVersions).values({ opportunityId: key, fingerprint, job: encode(job) })
+            .onConflictDoNothing().returning({ key: mailContentVersions.opportunityId });
+          newVersions += inserted.length;
+          await tx.insert(sourceReceipts).values({ source: source as string, receiptId: receiptId as string, opportunityId: key }).onConflictDoNothing();
+          continue;
+        }
+        incoming = record.dict("job");
+      }
+      await ingestIn(tx, incoming, receiptId, now);
+    }
+    return { contentVersions: newVersions };
+  });
+}
+
+export type MailRecord = { status: string; reason: string | null; retryPending?: boolean };
+
+export async function mailState(db: Db, source: string, recipient: string): Promise<PyDict> {
+  const [row] = await db.select({ state: mailSyncState.state }).from(mailSyncState)
+    .where(and(eq(mailSyncState.source, source), eq(mailSyncState.recipient, recipient)));
+  return row ? asDict(loads(row.state)) : PyDict.of({ cursor: null, after: null, head: null });
+}
+
+export async function saveMailState(db: Db, source: string, recipient: string, state: PyDict) {
+  await writeTransaction(db, (tx) => tx.insert(mailSyncState).values({ source, recipient, state: encode(state) })
+    .onConflictDoUpdate({ target: [mailSyncState.source, mailSyncState.recipient], set: { state: encode(state) } }));
+}
+
+/** Python iterates these rows in the primary-key index order SQLite reads them in (measured). */
+export async function mailRecords(db: Db, source: string, recipient: string): Promise<Map<string, MailRecord>> {
+  const rows = await db.select().from(mailIngestion)
+    .where(and(eq(mailIngestion.source, source), eq(mailIngestion.recipient, recipient))).orderBy(asc(mailIngestion.messageId));
+  return new Map(rows.map((r) => [r.messageId, { status: r.status, reason: r.reason, retryPending: r.retryPending === 1 }]));
+}
+
+/** A new message is recorded once; only an explicit retry (retry_pending=1) may overwrite it. */
+export async function recordMail(db: Db, source: string, recipient: string, messageId: string, status: string, reason: string | null = null) {
+  await writeTransaction(db, (tx) => tx.insert(mailIngestion).values({ source, recipient, messageId, status, reason })
+    .onConflictDoUpdate({
+      target: [mailIngestion.source, mailIngestion.recipient, mailIngestion.messageId],
+      set: { status, reason, retryPending: 0, checkedAt: utcNowText },
+      setWhere: eq(mailIngestion.retryPending, 1),
+    }));
+}

@@ -1,5 +1,5 @@
 import { PyDateTime } from "./datetime";
-import { codePoints, pyInt, pyIsDigit, pyLower, pySplit, pyUpperAscii } from "./unicode";
+import { codePoints, pyInt, pyIsDigit, pyLower, pySplit, pyStrip, pyUpperAscii } from "./unicode";
 import { PyError } from "./value";
 
 // email.utils.parsedate_to_datetime of CPython 3.13.15 (email/_parseaddr.py _parsedate_tz).
@@ -98,4 +98,254 @@ export function parsedateToDatetime(data: string): PyDateTime {
   if (fields.some((n) => n === null)) throw invalid();
   const [y, d, h, m, s] = fields as number[];
   return new PyDateTime(y, month, d, h, m, s, 0, tz === null ? null : BigInt(tz) * 1_000_000n);
+}
+
+// email.utils.getaddresses(strict=True) of CPython 3.13.15 (email/utils.py and _parseaddr.AddrlistClass),
+// line by line: the Resend sender allowlist depends on exactly which header values it accepts.
+
+type Address = [string, string];
+const SPECIALS = '()<>@,:;."[]';
+const LWS = " \t";
+const CR = "\r\n";
+const FWS = LWS + CR;
+const ATOMENDS = SPECIALS + LWS + CR;
+const PHRASEENDS = ATOMENDS.replace(".", "");
+const parseaddrQuote = (s: string) => s.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+
+class AddrlistClass {
+  pos = 0;
+  commentlist: string[] = [];
+  constructor(readonly field: string) {}
+
+  private at(): string {
+    return this.field[this.pos];
+  }
+
+  gotonext(): string {
+    const wslist: string[] = [];
+    while (this.pos < this.field.length) {
+      if ((LWS + "\n\r").includes(this.at())) {
+        if (!"\n\r".includes(this.at())) wslist.push(this.at());
+        this.pos++;
+      } else if (this.at() === "(") this.commentlist.push(this.getcomment());
+      else break;
+    }
+    return wslist.join("");
+  }
+
+  getaddrlist(): Address[] {
+    const result: Address[] = [];
+    while (this.pos < this.field.length) {
+      const ad = this.getaddress();
+      if (ad.length) result.push(...ad);
+      else result.push(["", ""]);
+    }
+    return result;
+  }
+
+  getaddress(): Address[] {
+    this.commentlist = [];
+    this.gotonext();
+    const oldpos = this.pos, oldcl = this.commentlist;
+    const plist = this.getphraselist();
+    this.gotonext();
+    let returnlist: Address[] = [];
+    if (this.pos >= this.field.length) {
+      if (plist.length) returnlist = [[this.commentlist.join(" "), plist[0]]];
+    } else if (".@".includes(this.at())) {
+      this.pos = oldpos;
+      this.commentlist = oldcl;
+      const addrspec = this.getaddrspec();
+      returnlist = [[this.commentlist.join(" "), addrspec]];
+    } else if (this.at() === ":") {
+      returnlist = [];
+      const fieldlen = this.field.length;
+      this.pos++;
+      while (this.pos < this.field.length) {
+        this.gotonext();
+        if (this.pos < fieldlen && this.at() === ";") {
+          this.pos++;
+          break;
+        }
+        returnlist = returnlist.concat(this.getaddress());
+      }
+    } else if (this.at() === "<") {
+      const routeaddr = this.getrouteaddr();
+      returnlist = this.commentlist.length
+        ? [[plist.join(" ") + " (" + this.commentlist.join(" ") + ")", routeaddr]]
+        : [[plist.join(" "), routeaddr]];
+    } else if (plist.length) returnlist = [[this.commentlist.join(" "), plist[0]]];
+    else if (SPECIALS.includes(this.at())) this.pos++;
+    this.gotonext();
+    if (this.pos < this.field.length && this.at() === ",") this.pos++;
+    return returnlist;
+  }
+
+  getrouteaddr(): string {
+    let expectroute = false;
+    this.pos++;
+    this.gotonext();
+    let adlist = "";
+    while (this.pos < this.field.length) {
+      if (expectroute) {
+        this.getdomain();
+        expectroute = false;
+      } else if (this.at() === ">") {
+        this.pos++;
+        break;
+      } else if (this.at() === "@") {
+        this.pos++;
+        expectroute = true;
+      } else if (this.at() === ":") this.pos++;
+      else {
+        adlist = this.getaddrspec();
+        this.pos++;
+        break;
+      }
+      this.gotonext();
+    }
+    return adlist;
+  }
+
+  getaddrspec(): string {
+    const aslist: string[] = [];
+    this.gotonext();
+    while (this.pos < this.field.length) {
+      let preserveWs = true;
+      if (this.at() === ".") {
+        if (aslist.length && !pyStrip(aslist[aslist.length - 1])) aslist.pop();
+        aslist.push(".");
+        this.pos++;
+        preserveWs = false;
+      } else if (this.at() === '"') aslist.push(`"${parseaddrQuote(this.getquote())}"`);
+      else if (ATOMENDS.includes(this.at())) {
+        if (aslist.length && !pyStrip(aslist[aslist.length - 1])) aslist.pop();
+        break;
+      } else aslist.push(this.getatom());
+      const ws = this.gotonext();
+      if (preserveWs && ws) aslist.push(ws);
+    }
+    if (this.pos >= this.field.length || this.at() !== "@") return aslist.join("");
+    aslist.push("@");
+    this.pos++;
+    this.gotonext();
+    const domain = this.getdomain();
+    if (!domain) return "";
+    return aslist.join("") + domain;
+  }
+
+  getdomain(): string {
+    const sdlist: string[] = [];
+    while (this.pos < this.field.length) {
+      if (LWS.includes(this.at())) this.pos++;
+      else if (this.at() === "(") this.commentlist.push(this.getcomment());
+      else if (this.at() === "[") sdlist.push(this.getdomainliteral());
+      else if (this.at() === ".") {
+        this.pos++;
+        sdlist.push(".");
+      } else if (this.at() === "@") return "";
+      else if (ATOMENDS.includes(this.at())) break;
+      else sdlist.push(this.getatom());
+    }
+    return sdlist.join("");
+  }
+
+  getdelimited(beginchar: string, endchars: string, allowcomments: boolean): string {
+    if (this.at() !== beginchar) return "";
+    const slist = [""];
+    let quote = false;
+    this.pos++;
+    while (this.pos < this.field.length) {
+      if (quote) {
+        slist.push(this.at());
+        quote = false;
+      } else if (endchars.includes(this.at())) {
+        this.pos++;
+        break;
+      } else if (allowcomments && this.at() === "(") {
+        slist.push(this.getcomment());
+        continue;
+      } else if (this.at() === "\\") quote = true;
+      else slist.push(this.at());
+      this.pos++;
+    }
+    return slist.join("");
+  }
+
+  getquote = () => this.getdelimited('"', '"\r', false);
+  getcomment = (): string => this.getdelimited("(", ")\r", true);
+  getdomainliteral = () => `[${this.getdelimited("[", "]\r", false)}]`;
+
+  getatom(atomends = ATOMENDS): string {
+    const atomlist = [""];
+    while (this.pos < this.field.length) {
+      if (atomends.includes(this.at())) break;
+      atomlist.push(this.at());
+      this.pos++;
+    }
+    return atomlist.join("");
+  }
+
+  getphraselist(): string[] {
+    const plist: string[] = [];
+    while (this.pos < this.field.length) {
+      if (FWS.includes(this.at())) this.pos++;
+      else if (this.at() === '"') plist.push(this.getquote());
+      else if (this.at() === "(") this.commentlist.push(this.getcomment());
+      else if (PHRASEENDS.includes(this.at())) break;
+      else plist.push(this.getatom(PHRASEENDS));
+    }
+    return plist;
+  }
+}
+
+const addressList = (field: string): Address[] => (field ? new AddrlistClass(field).getaddrlist() : []);
+
+function* iterEscapedChars(addr: string): Generator<[number, string]> {
+  let pos = 0, escape = false;
+  for (pos = 0; pos < addr.length; pos++) {
+    const ch = addr[pos];
+    if (escape) {
+      yield [pos, "\\" + ch];
+      escape = false;
+    } else if (ch === "\\") escape = true;
+    else yield [pos, ch];
+  }
+  // Python's loop variable keeps the last index (0 for an empty string).
+  if (escape) yield [Math.max(addr.length - 1, 0), "\\"];
+}
+
+function stripQuotedRealnames(addr: string): string {
+  if (!addr.includes('"')) return addr;
+  let start = 0, openPos: number | null = null;
+  const result: string[] = [];
+  for (const [pos, ch] of iterEscapedChars(addr)) {
+    if (ch !== '"') continue;
+    if (openPos === null) openPos = pos;
+    else {
+      if (start !== openPos) result.push(addr.slice(start, openPos));
+      start = pos + 1;
+      openPos = null;
+    }
+  }
+  if (start < addr.length) result.push(addr.slice(start));
+  return result.join("");
+}
+
+function checkParenthesis(addr: string): boolean {
+  addr = stripQuotedRealnames(addr);
+  let opens = 0;
+  for (const [, ch] of iterEscapedChars(addr)) {
+    if (ch === "(") opens++;
+    else if (ch === ")" && --opens < 0) return false;
+  }
+  return opens === 0;
+}
+
+export function getaddresses(fieldvalues: string[]): Address[] {
+  const values = fieldvalues.map((v) => (checkParenthesis(v) ? v : "('', '')"));
+  const result = addressList(values.join(", ")).map((v): Address => (v[1].includes("[") ? ["", ""] : v));
+  let n = 0;
+  for (const v of values) n += 1 + stripQuotedRealnames(v).split(",").length - 1;
+  return result.length === n ? result : [["", ""]];
 }

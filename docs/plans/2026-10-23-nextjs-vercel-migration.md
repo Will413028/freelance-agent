@@ -363,6 +363,12 @@
     - 比對器 3 天 0 筆邏輯差異。
     - 查 run data，裡面沒有正文欄位。
     - mutation：拿掉收件者邊界檢查，對應測試要失敗。
+  - 子步驟（2026-10-25 拆，一個 session 做不完）：
+    - 9a 共用收信與 tasker、linkedin：`ReceivingClient`（只 GET、不跟 redirect、2 MB 上限、每次呼叫間隔 0.6 秒、UUID 正規形式）、寄件者解析（`email.utils.getaddresses` 照 CPython 3.13.15 移植）、`matches`、`read_notification`、`_sync`（游標、上限、隔離、`retry_pending` 復原、狀態），`store` 的 mail 函式與 `ingest_resend_batch`；parser 只有 tasker（`html.parser` 走既有 `platform/py/html.ts`）與 linkedin（receipt 雜湊用 `ensure_ascii=True` 的 `json.dumps`）。驗收：`test_resend_sync.py`、`test_resend_preview.py`（不含 CLI 與 key 檔）、`test_tasker.py`、`test_linkedin_mail.py`、`test_linkedin_receiving.py` 的 TS 版，golden 對照寄件者解析、UUID、`matches`、兩個 parser；mutation 拿掉收件者邊界、`retry_pending` 只覆寫、游標只在 complete 前移，測試各自失敗。
+    - 9b cake、jobbank104、talent、glassdoor：parser 與 `matches` 的主旨 gate（`subject_format`、`is_job_subject`），各自 Python 測試的 TS 版與 golden。
+    - 兩個子步驟都只登記在 `RUNNERS`，不排程。怎麼上 shadow 等 D14：Resend 的 API key 只有 `full_access` 與 `sending_access` 兩種權限（官方文件 api-keys/create-api-key，2026-10-25 查），讀 Receiving 必須用能寄信、能管理帳號的 `full_access` key，放進 Vercel production env 會違反全域約束「切換前沒有任何寄送憑證」。`syncMailSource` 從 `RESEND_API_KEY`、`RESEND_INBOX` 讀（收件網域不進 repo）；缺 env 時照 Python 的 `connection is None`：health 記 failed、回傳 `source_unavailable`。
+    - 9a 實作狀態（2026-10-25，未排程、未部署）：`web/src/modules/collection/mail/`（`receiving.ts` client、寄件者、主旨 gate、`readNotification`；`sync.ts`；`tasker.ts`；`linkedin.ts`），store 的 mail 函式在 `collection/ingest.ts`，`getaddresses` 在 `platform/py/email.ts`。驗證：golden 新增 getaddresses 96、UUID 32、寄件者 102、`matches` 620、tasker 66、linkedin 75、read_notification 47（真的 `ReceivingClient`＋假 transport，逐請求比 URL）、sync 情境 35（真 store、兩邊逐表比 mail_sync_state／mail_ingestion／mail_content_versions／opportunities／receipts／health）；mutation 12 項全紅（收件者邊界、`retry_pending` 才覆寫、游標只在 complete 前移、重試順序、content version 計數、linkedin 非職缺通知、既有 ID 不受排除、tasker 的 MULTILINE、getaddresses 計數檢查、waiting 規則、復原迴圈、linkedin receipt 的 ASCII 雜湊），第一輪存活 2 項（`retry_pending` 覆寫、計數）補 store 測試與「同內容第二次」情境後失敗。設計審查（fresh subagent）5 項：改 2（`resendId` 不再模擬 `UUID()` 的錯誤類別，兩個呼叫端都不區分，golden 只比成敗；步驟 14 補 9a 的照抄並更正盤點去向）、記 1（`qualify` 只為了例外而呼叫，下一條）、提 1（D14）、駁回 1：「VM 與 shadow 兩個讀取端共用 Resend 速率上限」——上限是每個 team 每秒 10 個請求（官方文件 api-reference/introduction），每個讀取端每次呼叫間隔 0.6 秒，最多約每秒 1.7 個，兩端合計約 3.4 個。
+    - 記：`readNotification` 對每筆職缺跑一次 `qualify` 並丟掉結果，只因 Python 的 `preview()` 會算，算的時候丟例外就讓整封信變 rejected（stage template）。切換前必須一致；D6 後併入下面步驟 14 的 9a 照抄一起處理。
 
 - [ ] **10. 摘要建置與寄送路徑（shadow 只建不寄）**（被擋於：步驟 9、D9）
   - 範圍：
@@ -461,6 +467,7 @@
     - 步驟 8 第 2 批的照抄（`re.ts` 的 lookahead、控制字元跳脫、dotAll 與 `pyFindall`／`pySub`／`pyReSplit`；`xml.ts` 的 `xmlFromString` 忽略宣告編碼與跳過一個 BOM；`codecs.ts` 的錯誤分類）：決定 `employment_evidence`、`kind`（進 receipt 雜湊）與 RSS 來源成敗。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 第 2 批設計審查）
     - 步驟 8 第 3 批的照抄（`url.ts` 的 `urljoin`、`unicode.ts` 的 `pyUpper` 與 `upper` 表、`json.ts` 的 `rawDecode`、`datetime.ts` 的 `dateFromIsoformat`、`re.ts` 的 `\Z`／`pyMatch`、`http.ts` 的 `urlopenRead`／`raiseForUrllibStatus`）：決定 canonical URL（external_id）、`employment_types`（進 receipt 雜湊）、`published_at`／`updated_at` 與詳情頁成敗。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 第 3 批）
     - 步驟 8 最後一批的照抄（`unicode.ts` 的 `pyRstrip`、taiwanjobs 的 `STRPTIME_YMD`）：決定 arbeitnow 的 `description` 與 taiwanjobs 的 `source_updated_at`，都進 receipt 雜湊。處理方式同上一條，二選一。觸發：D6 窗口結束。（2026-10-25 步驟 8 最後一批設計審查）
+    - 步驟 9a 的照抄（`platform/py/email.ts` 的 `getaddresses`／`AddrlistClass`、`receiving.ts` 的 `utf8Length` 對 lone surrogate 丟錯、`readNotification` 只為例外而呼叫的 `qualify`、`mailRecords` 照 SQLite 主鍵索引的讀取順序）：決定寄件者 allowlist、哪些信被 rejected 與重試順序。二選一：寄件者改用維護中的 RFC 5322 parser 或只比對已知的 From 形式、`qualify` 呼叫刪掉、順序改成明寫的規則；或永久保留並寫出理由。觸發：D6 窗口結束。（2026-10-25 步驟 9a 設計審查）
     - 非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`，或寫出保留理由。
     - `listIn` 全表讀取：UI 路徑已在步驟 11 改掉（D13）；這裡只剩每日摘要的全表讀取，D6 後若摘要不再需要和 Python 逐位元比對，再一起改。
   - 需要人做的事：
@@ -540,6 +547,10 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
   - B：維持步驟 14 才改——切換後每天約 20 次回饋就可能超額，摘要跟著停。
   - C：升級 Neon 付費方案——每月 500 GB，但多一筆固定費用，且不解決每次讀 8 MB 的延遲。
 
+- **D14 信件來源怎麼上 shadow**（狀態：未決，2026-10-25 交 Will；擋住步驟：9 的 shadow 排程與 3 天比對，不擋 9a、9b 的程式）
+  - 事實：Resend API key 只有 `full_access`（讀寫與管理全部資源）與 `sending_access`（只能寄）；沒有唯讀 key（官方文件，2026-10-25 查）。正式 VM 現在用的 key 也是能寄的那種（`bootstrap/jobs.py:15,30` 讀同一個 key 檔）。切換後 Vercel 本來就要拿這把 key（步驟 13 存入寄送憑證）。
+  - 選項與建議見 2026-10-25 的設計簡報（交 Will 後補結論）。
+
 拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D13 於 2026-10-24 拍板（A）。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
 
 ## 進度
@@ -556,7 +567,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份；7 天比對第 1 天（10-25）logic 0、timing 0 | 7 天比對第 2–7 天、比對器 mutation；2026-10-24 已部署、after timer 已 enable；10-25 起比對範圍擴大為 16 個來源 | |
 | 7 CryptoJobsList | 已部署（2026-10-25，`920b6b4`） | 本機：golden（RSS 123、text 127、日期 126、int 26）、真實 feed 100 筆逐位元組相同、4 個 Python 案例、交易邊界 mutation | 比對（10-26 起，與步驟 6 同一份報告）；依序執行的 fan-out 隨同一次部署上線 | |
 | 8 其餘免登入來源 | 進行中 | 第 1 批（himalayas、hackernews、v2ex）與 getonboard 程式完成：golden、真實回應逐位元組相同、9 個 store 案例、13 個 mutation、差分模糊測試與設計審查；第 2 批（public_feeds 4 個）程式完成：golden、真實回應 351 筆逐位元組相同、14 個 store 案例、13 個 mutation、設計審查；第 3 批（nodesk、justremote、dynamitejobs、jobbank518、chickpt）程式完成：golden、5 個來源的實抓回應輸出逐位元組相同、37 個 Python 案例、25 個 mutation、設計審查（改 4、記 1） | 第 1–3 批 2026-10-25 已部署（`920b6b4`），3 天比對 10-26 起；jobbank518 索引頁修正（Python 也上 VM，見第 3 批）；最後一批（taiwanjobs、arbeitnow、freelancer）2026-10-25 程式完成：golden、真實回應逐位元組相同、29 個入庫案例、20 個 mutation、設計審查（改 4、記 2），同日部署（`82cd89d`），3 天比對 10-26 起；排程後量各 step 耗時（freelancer 超過 200 秒、任一 step 超過 150 秒交 Will） | |
-| 9 信件來源 | 未開始 | | | |
+| 9 信件來源 | 進行中 | 9a（共用收信、tasker、linkedin）程式完成：golden（寄件者、主旨 gate、parser、read_notification、35 個 sync 情境逐表比對）、12 個 mutation、設計審查（改 2、記 1、提 1、駁回 1） | 9b 未開始；shadow 排程與 3 天比對等 D14 | |
 | 10 摘要與寄送 | 未開始 | | | |
 | 11 UI、API、demo | 未開始 | | | |
 | 12 反向收斂與演練 | 未開始 | | | |

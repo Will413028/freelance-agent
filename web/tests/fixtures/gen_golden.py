@@ -1904,6 +1904,423 @@ def batch4_golden():
     }
 
 
+# ---------------------------------------------------------------- step 9a: Resend Receiving, tasker and linkedin
+from freelance.modules.collection import resend_preview as rp, resend_sync   # noqa: E402
+from freelance.modules.collection.tasker import parse_tasker            # noqa: E402
+from freelance.modules.collection.linkedin_mail import parse_linkedin   # noqa: E402
+from freelance.modules.collection.mail import MailMessage               # noqa: E402
+from email.utils import getaddresses                                    # noqa: E402
+
+MAIL_MID = '4ef9a417-02e9-4d39-ad75-9611e0fcc33c'
+MAIL_TARGET = 'test@inbox.resend.app'
+
+
+def mail_id(n):
+    return f'{n:08x}-02e9-4d39-ad75-9611e0fcc33c'
+
+
+def tasker_listing(extra='', description='串接 API 與建立網站。'):
+    """backend/tests/fixtures/tasker.py:listing"""
+    return f'''<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>
+    <img src="https://tracking.example/pixel?private=fake">
+    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>
+    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>{description}</p>
+    <a href="https://www.tasker.com.tw/cases/Ab123?private=fake">查看完整資訊</a>
+    <a href="https://www.tasker.com.tw/cases/Ab123">同案件</a>{extra}
+    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>
+    <a href="https://www.tasker.com.tw/login?private=fake">登入</a></html>'''
+
+
+def received_mail(**changes):
+    """backend/tests/fixtures/resend_preview.py:mail"""
+    return dict(id=MAIL_MID, **{'from': 'Tasker <deals@tasker.com.tw>'}, to=['owner@gmail.com'], received_for=[MAIL_TARGET],
+                created_at='2026-09-18T10:00:00Z', subject='新案件【測試網站】', html=tasker_listing(), text=None) | changes
+
+
+LI_CARD = ('Freelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\n'
+           'View job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private')
+
+
+def li_body(cards=None, header='New jobs match your preferences.', first='Your job alert for backend in Asia', extra=''):
+    """backend/tests/fixtures/linkedin_mail.py:mail, as the body text"""
+    return (first + '\n' + header + '\n' + extra + (cards or LI_CARD) +
+            '\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/')
+
+
+def li_received(**changes):
+    """backend/tests/bootstrap/test_linkedin_receiving.py:received"""
+    return received_mail(**{'from': 'jobalerts-noreply@linkedin.com', 'text': li_body(),
+                            'html': '<html>Not used or persisted</html>', 'subject': 'Example is hiring'}) | changes
+
+
+ADDRESSES = [
+    'Tasker <deals@tasker.com.tw>', 'deals@tasker.com.tw', '"Tasker, Inc" <deals@tasker.com.tw>', 'deals@tasker.com.tw <other@example.org>',
+    'deals@tasker.com.tw.evil.example', 'a@b, c@d', '', ' ', '<>', '<deals@tasker.com.tw>', 'Tasker (comment) <deals@tasker.com.tw>',
+    '(c) deals@tasker.com.tw', 'deals@tasker.com.tw (Tasker)', 'group: a@b, c@d;', 'group:;', '"quoted\\"name" <x@y>', '"unterminated <x@y>',
+    'x@[1.2.3.4]', 'x@[bad', 'x@y@z', 'x@', '@y', 'x', 'x.y.z@a.b', 'x . y@a', '"a b"@c', 'x@a .b', 'x@a(c).b', 'Name <x@y> trailing',
+    '((nested)) x@y', '(unbalanced x@y', 'x@y)', '\\x@y', 'x@y\\', '"x\\', 'Ｔａｓｋｅｒ <deals@tasker.com.tw>', '　deals@tasker.com.tw',
+    'deals@TASKER.com.tw', 'DEALS@tasker.com.tw', 'İ@x', 'ß@x', 'ﬀ@x', 'Name <x@y>, Other <z@w>', '"a,b" <x@y>', 'a\tb <x@y>', '<x@y', 'x@y>',
+    '<<x@y>>', '<@route:x@y>', '<@a,@b:x@y>', ':', ';', ',', '.', '..', '"', '()', 'x@y.', 'x@.y', '. x@y', 'x　@y', 'x@y ', 'x y@z',
+    'a@b,', ',a@b', 'jobalerts-noreply@linkedin.com', 'LinkedIn <jobalerts-noreply@linkedin.com>', 'LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>',
+    '"LinkedIn" <JobAlerts-NoReply@LinkedIn.com>', 'x@y; z@w', 'a b c', 'a (b) c', 'x@😀.com', '😀 <x@y>', 'x@y\r', 'x@y\n', 'a\r\n b <x@y>',
+    '"a\\\\" <x@y>', '"a\\" <x@y>', 'a"b"c <x@y>', '"" <x@y>', '"(" <x@y>', '(a"b) x@y', 'x@y (a,b)', 'x@y, (c)', '　', 'x　y <z@w>',
+    'Tasker <deals@tasker.com.tw', 'Tasker deals@tasker.com.tw', '<deals@tasker.com.tw> Tasker', 'x@[1.2.3.4]>', '"x@y" <deals@tasker.com.tw>',
+    '<deals@tasker.com.tw>, ', 'deals@tasker.com.tw,deals@tasker.com.tw', 'g: deals@tasker.com.tw;', 'g: deals@tasker.com.tw',
+]
+RESEND_IDS = [MAIL_MID, MAIL_MID.upper(), '{' + MAIL_MID + '}', 'urn:uuid:' + MAIL_MID, MAIL_MID.replace('-', ''), '../not-an-id', '', None, 5,
+              MAIL_MID + '\n', ' ' + MAIL_MID, MAIL_MID.replace('4', '４'), MAIL_MID.replace('-', '_'), '00000000-0000-0000-0000-000000000000',
+              mail_id(1), MAIL_MID[:-1] + 'g', MAIL_MID + '0', [MAIL_MID], True,
+              *[h for x in [MAIL_MID.replace('-', '')] for h in ('0x' + x[2:], '0X_' + x[3:], x[:31] + '_', 'a_' + x[2:], 'a__' + x[3:], '+' + x[1:], '-' + x[1:],
+                                                                  ' ' + x[1:], '\u3000' + x[1:], x[:-1] + '\u3000', '{{' + x + '}', 'uuid:urn:' + x, x[:16] + '٣' + x[17:])]]
+SENDER_VALUES = ADDRESSES + [None, 5, True, ['deals@tasker.com.tw'], 'Tasker <deals@tasker.com.tw>\r\n', 'deals@tasker.com.tw\r']
+MATCH_FROM = ['Tasker <deals@tasker.com.tw>', 'jobalerts-noreply@linkedin.com', 'LinkedIn <JobAlerts-NoReply@linkedin.com>', 'Cake <notifications@no-reply.cake.me>',
+              '104 <jobbank@ms1.104.com.tw>', 'attacker@example.com', None, 'deals@tasker.com.tw, jobbank@ms1.104.com.tw']
+MATCH_SUBJECTS = ['新案件【測試網站】', 'Your job alert has been created', 'YOUR JOB ALERT HAS BEEN CREATED', 'Your alert HAS BEEN CREATEd ok', 'Example is hiring',
+                  '某某05/06的配對日報，符合職缺3筆', 'x' * 100 + '05/06的配對日報，符合職缺3筆', 'x' * 101 + '05/06的配對日報，符合職缺3筆', '05/06的配對日報，符合職缺3筆',
+                  '某05/06的配對日報，符合職缺1000筆', '某０５/06的配對日報，符合職缺3筆', '某05/06的配對日報，符合職缺3筆\n', '某\n05/06的配對日報，符合職缺3筆',
+                  'Acme 刊登了一筆新職缺', 'Acme 刊登了一筆新職缺！', '刊登了一筆新職', None, 5, '']
+MATCH_ENTRIES = [{'from': f, 'subject': s} for f in MATCH_FROM for s in MATCH_SUBJECTS] + [{'from': 'deals@tasker.com.tw'}, {'subject': 'x'}, {}]
+
+
+def message(body, is_html=True, subject='新案件【測試網站】', sender='deals@tasker.com.tw', mid='synthetic-message', received='2026-09-17T00:00:00+00:00'):
+    return MailMessage(mid, sender, subject, body, is_html, received)
+
+
+TK_PLAIN = '2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER'
+TK_DESC = '建立網站，按鈕文字為查看完整資訊，另外需要串接 API，僅限美國居民。'
+TK_SHORT = '2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\nAPI\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123'
+TASKER_MESSAGES = [
+    message(tasker_listing()),
+    message(tasker_listing(description='請串接 API https://x.example/?private=fake <a href="https://x.example/?secret=fake">需求</a>')),
+    *[message(tasker_listing(), sender=s) for s in ('deals@tasker.com.tw.evil.example', 'other@tasker.com.tw')],
+    *[message(tasker_listing().replace('https://www.tasker.com.tw/cases/Ab123', u)) for u in (
+        'http://www.tasker.com.tw/cases/Ab123', 'https://www.tasker.com.tw.evil.example/cases/Ab123', 'https://user@www.tasker.com.tw/cases/Ab123',
+        'https://www.tasker.com.tw/cases/Ab-123', 'https://www.tasker.com.tw/cases/Ab123/', 'https://WWW.tasker.com.tw/cases/Ab123',
+        'https://www.tasker.com.tw/cases/Ａb123', 'https://www.tasker.com.tw:443/cases/Ab123', 'https://[::1/cases/Ab123')],
+    message(tasker_listing(extra='<a href="https://www.tasker.com.tw/cases/Other123">Other</a>')),
+    *[message(b) for b in ('PRIVATE BODY', tasker_listing().replace('需求說明', 'PRIVATE BODY'), tasker_listing().replace('測試網站', 'PRIVATE BODY'))],
+    message(TK_PLAIN, False),
+    message(tasker_listing(extra='<script><a href="https://www.tasker.com.tw/cases/Secret123">hidden</a></script>',
+                           description='API //tracking.example/?private=fake mailto:user@example.org?private=fake www.example.org/?private=fake')),
+    message(tasker_listing(description=TK_DESC)),
+    message('2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n' + TK_DESC + '\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求', False),
+    message(tasker_listing().replace('>查看完整資訊</a>', '>不同連結</a>').replace('串接 API 與建立網站。', '查看完整資訊')),
+    message(TK_SHORT + '\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123', False),
+    message(TK_SHORT.replace('查看完整資訊 https:', '查看完整資訊 unrelated https:'), False),
+    message(tasker_listing().replace('最新案件，限時搶先提案！', '最新上架案件，歡迎提案')),
+    message('2026/09/17 最新上架案件，歡迎提案\n測試網站\n$15,000\n台北市\n需求說明\n串接 API 與建立網站。\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123', False),
+    message(tasker_listing().replace('最新案件，限時搶先提案！', '未知郵件格式')),
+    message(tasker_listing().replace('$100,000', '預算詳談')),
+    # Edges beyond the Python tests.
+    message(TK_PLAIN.replace('\n', '\r\n'), False), message(TK_PLAIN.replace('\n', '\r'), False), message(TK_PLAIN.replace('\n', ' '), False),
+    message(TK_PLAIN.replace('查看完整資訊 https', '  查看完整資訊\thttps'), False), message(TK_PLAIN.replace('Ab123\n', 'Ab123  \n'), False),
+    message(TK_PLAIN.replace('查看完整資訊 https', '查看完整資訊https'), False), message(TK_PLAIN.replace('Ab123\n', 'Ab123　\n'), False),
+    message(TK_PLAIN, False, subject='新案件【測試網站】【另一個】'), message(TK_PLAIN, False, subject='新案件'), message(TK_PLAIN, False, subject='【 】'),
+    message(TK_PLAIN, False, subject='新案件【測試  網站】'), message(TK_PLAIN.replace('測試網站', '測試 網站'), False, subject='新案件【測試  網站】'),
+    message(TK_PLAIN.replace('測試網站', 'a.b (c)+[d]$'), False, subject='【a.b (c)+[d]$】'), message(TK_PLAIN.replace('測試網站', 'a.b'), False, subject='【a?b】'),
+    message(TK_PLAIN.replace('測試網站', 'a\\b'), False, subject='【a\\b】'), message(TK_PLAIN.replace('測試網站', 'x{2}'), False, subject='【x{2}】'),
+    message(TK_PLAIN.replace('$100,000', '$1,000,000'), False), message(TK_PLAIN.replace('$100,000', '$'), False), message(TK_PLAIN.replace('$100,000', '＄100'), False),
+    message(TK_PLAIN.replace('2026/09/17', '２０２６/09/17'), False), message(TK_PLAIN.replace('串接 API', ''), False), message(TK_PLAIN.replace('串接 API', '　'), False),
+    message(TK_PLAIN.replace('串接 API', 'see https://evil.example/x'), False),
+    message(tasker_listing().replace('<a href="https://www.tasker.com.tw/cases/Ab123?private=fake">', '<A HREF="https://www.tasker.com.tw/cases/Ab123?private=fake">')),
+    message(tasker_listing().replace('>查看完整資訊</a>', '><b>查看</b>完整資訊</a>')), message(tasker_listing().replace('>查看完整資訊</a>', '> 查看完整資訊 &gt;</a>')),
+    message(tasker_listing().replace('串接 API 與建立網站。', '串接 API &amp; 建立網站&#12290;')), message(tasker_listing().replace('<p>台北市</p>', '<br/>台北市<br>')),
+    message(tasker_listing().replace('<a href="https://www.tasker.com.tw/cases/Ab123?private=fake">', '<a href="https://www.tasker.com.tw/cases/Ab123?private=fake" href="https://x.example">')),
+    message(tasker_listing().replace('<a href="https://www.tasker.com.tw/cases/Ab123">同案件</a>', '<a href>空</a><a href="">空</a>')),
+    message(tasker_listing().replace('<script>HIDDEN SCRIPT</script>', '<noscript><p>查看完整資訊</p><a href="https://www.tasker.com.tw/cases/Zz9">x</a></noscript>')),
+    message(tasker_listing().replace('<style>HIDDEN STYLE</style>', '<template><a href="https://www.tasker.com.tw/cases/Zz9">查看完整資訊</a></template>')),
+    message(tasker_listing() + '<a href="https://www.tasker.com.tw/cases/Ab123">查看完整資訊'), message(tasker_listing().replace('</html>', '<a href="https://www.tasker.com.tw/cases/Ab123">查看完整資訊</a></html>')),
+    message(tasker_listing().replace('<p>其它需求</p>', '<p>查看完整資訊 https://www.tasker.com.tw/cases/Ab123</p>')),
+    message(tasker_listing(), subject='新案件【測試網站】 '), message(TK_PLAIN, True), message(tasker_listing(), False),
+]
+LI_MANAGE = 'Manage alerts: https://www.linkedin.com/comm/jobs/alerts?trackingId=private\n'
+LI_TWO = ('Full-stack developer (Part-time, Equity only)\nExample Co\nIndia\nView job: https://www.linkedin.com/jobs/view/123/\n'
+          '---------------------------------------------------------\nFull-time Backend Engineer\nOther Co\nRemote\nView job: https://www.linkedin.com/jobs/view/456/')
+LI_DUP = 'Backend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/'
+
+
+def li_message(body=None, **kw):
+    kw = dict(sender='jobalerts-noreply@linkedin.com', subject='Example is hiring', mid='test', received='2026-09-26T02:00:00+00:00', is_html=False) | kw
+    return message(li_body() if body is None else body, **kw)
+
+
+LINKEDIN_MESSAGES = [
+    li_message(), li_message(li_body(extra=LI_MANAGE)), li_message(li_body(extra=LI_MANAGE.replace('private', 'changed'))),
+    *[li_message(li_body(extra='Manage alerts: ' + u + '\n')) for u in ('https://www.linkedin.com.evil.test/comm/jobs/alerts', 'https://www.linkedin.com/comm/jobs/view/1234/',
+                                                                      'http://www.linkedin.com/comm/jobs/alerts', 'https://www.linkedin.com/comm/jobs/alerts#x',
+                                                                      'https://www.linkedin.com/comm/jobs/alerts' + 'x' * 8200, 'https://[www.linkedin.com/comm/jobs/alerts')],
+    li_message(li_body().replace('Example Co\n', 'Example Co\nManage alerts: https://www.linkedin.com/comm/jobs/alerts\n')),
+    *[li_message(li_body(header=h)) for h in ('A new job matches your preferences.', 'Recommended content for you.', '14 new jobs match your preferences.',
+                                               '2 new jobs match your preferences.', '0 new jobs match your preferences.', '14 new jobs match your preferences',
+                                               'Many new jobs match your preferences.', '10000 new jobs match your preferences.', '9999 new jobs match your preferences.',
+                                               '１4 new jobs match your preferences.', 'new jobs match your preferences.')],
+    li_message(received='2026-09-27T02:00:00+00:00', mid='forwarded'), li_message(sender='attacker@linkedin.com'), li_message(is_html=True),
+    li_message('Your job alert has been created'), li_message(li_body('Backend API Engineer\nView job: https://www.linkedin.com/jobs/view/1234/')),
+    li_message(li_body(LI_TWO)), li_message(li_body(LI_DUP + '\n' + LI_DUP)), li_message(li_body(LI_DUP + '\n' + LI_DUP.replace('Example Co', 'Different Co'))),
+    *[li_message(li_body(LI_DUP.replace('https://www.linkedin.com/jobs/view/123/', u))) for u in (
+        'https://www.linkedin.com.evil.test/jobs/view/123/', 'https://www.linkedin.com@evil.test/jobs/view/123/', 'https://www.linkedin.com/jobs/search/?currentJobId=123',
+        'http://www.linkedin.com/jobs/view/123/', 'https://www.linkedin.com/jobs/view/123', 'https://www.linkedin.com/jobs/view/' + '1' * 21 + '/',
+        'https://www.linkedin.com/jobs/view/１２３/', 'https://www.linkedin.com/jobs/view/123//', 'https://www.linkedin.com/comm/jobs/view/123/?x=1#y')],
+    li_message(li_body().replace('\n', '\r\n')), li_message(li_body().replace('\n', ' ')), li_message(li_body().replace('\n', '\x1c')), li_message(li_body().replace('\n', '\x85')),
+    li_message(li_body().replace('\n', '\n 　 \n')), li_message(li_body().replace('Example Co', '  Example Co\t')),
+    *[li_message(li_body(LI_DUP.replace('Backend API Engineer', t).replace('Remote', loc))) for t, loc in (
+        ('FULL-TIME Engineer', 'Taipei'), ('Full time Engineer', 'Taipei'), ('Fulltime Engineer', 'Taipei'), ('Part time dev', 'Remote-first'),
+        ('Contractor', 'Remote'), ('Contract dev', 'remotely'), ('Engineer', 'REMOTE'), ('Engineer', 'Hybrid / Remote'), ('Unpaid intern', 'X'),
+        ('Equity  only', 'X'), ('EQUITY ONLY role', 'X'), ('ﬀull-time', 'X'), ('freelancer', 'X'), ('full-time_x', 'X'), ('Engineer', 'Ｒemote'),
+        ('Engineer', 'Kemote'), ('x' * 501, 'Remote'), ('Has https://link', 'Remote'))],
+    li_message(li_body('A\nB\nView job: https://www.linkedin.com/jobs/view/1/')), li_message(li_body('\n'.join('L%d' % i for i in range(11)) + '\nView job: https://www.linkedin.com/jobs/view/1/')),
+    li_message(li_body('\n'.join('L%d' % i for i in range(10)) + '\nView job: https://www.linkedin.com/jobs/view/1/')),
+    li_message(li_body(LI_DUP + '\n----------\n' + LI_DUP.replace('123', '124'))), li_message(li_body(LI_DUP + '\n---------\n' + LI_DUP.replace('123', '124'))),
+    li_message(li_body(LI_DUP + '\nTrailing card line')), li_message(li_body(LI_DUP).replace('See all jobs on LinkedIn:', 'Footer')),
+    li_message(li_body(first='Your job alert for ')), li_message(li_body(first='Job alert for backend')), li_message('Your job alert for x'),
+    li_message(received='2026-09-26T02:00:00'), li_message(received='2026-09-26T02:00:00Z'), li_message(received='garbage'),
+]
+
+
+def tag_message(m):
+    return dict(message_id=m.message_id, sender=m.sender, subject=m.subject, body=m.body, is_html=m.is_html, received_at=m.received_at)
+
+
+class RecordingOpener:
+    """The Resend transport: a fixed {url: (status, body)} map as urllib with NoRedirect serves it, recording each URL."""
+    def __init__(self, pages, calls):
+        self.pages, self.calls = pages, calls
+
+    def open(self, request, timeout=None):
+        self.calls.append(request.full_url)
+        assert request.get_method() == 'GET' and timeout == 20
+        if request.full_url not in self.pages:
+            raise OSError('unknown url')
+        status, body = self.pages[request.full_url]
+        if not 200 <= status < 300:
+            raise HTTPError(request.full_url, status, 'error', {}, None)
+        return FakeResponse(status, body)
+
+
+def list_url(after=None):
+    return rp.ROOT + '?limit=100' + ('' if after is None else '&after=' + after)
+
+
+def body_url(mid):
+    return rp.ROOT + '/' + mid + '?html_format=cid'
+
+
+def listing_page(entries, has_more=False, after=None, status=200):
+    return {list_url(after): (status, jbytes({'data': entries, 'has_more': has_more}))}
+
+
+def bodies(*mails, status=200):
+    return {body_url(m['id']): (status, jbytes(m)) for m in mails}
+
+
+def rn_case(source, mail, retry=False, listed=None, status=200, raw=None):
+    """read_notification after one list_received, over the real ReceivingClient."""
+    entry = listed if listed is not None else mail
+    pages = listing_page([entry]) | {body_url(MAIL_MID): (status, raw if raw is not None else jbytes(mail))}
+    calls = []
+    client = rp.ReceivingClient('re_synthetic', opener=RecordingOpener(pages, calls), pause=lambda s: None, sources=(source,))
+
+    def run():
+        client.list_received()
+        try:
+            items = rp.read_notification(client, MAIL_MID, MAIL_TARGET, source, retry=retry)
+        except rp.NotificationError as error:
+            return {'stage': error.stage}
+        return {'jobs': encode([item['job'] for item in items])}
+    expect = attempt(run)
+    return dict(source=source, retry=retry, pages=wire(pages), expect=expect, calls=calls)
+
+
+LI_MAIL = li_received()
+READ_NOTIFICATIONS = [
+    ('tasker', received_mail()), ('tasker', received_mail(received_for=['elsewhere@example.com'])), ('tasker', received_mail(**{'from': 'attacker@example.com'})),
+    ('tasker', received_mail(id='wrong')), ('tasker', received_mail(html='PRIVATE')), ('tasker', received_mail(received_for=[], to=[MAIL_TARGET])),
+    ('tasker', received_mail(received_for=[MAIL_TARGET.upper()])), ('tasker', {k: v for k, v in received_mail().items() if k != 'received_for'} | {'to': [MAIL_TARGET]}),
+    ('tasker', received_mail(received_for=MAIL_TARGET)), ('tasker', received_mail(received_for=[MAIL_TARGET, 5])), ('tasker', received_mail(to=None)),
+    ('tasker', received_mail(created_at='2026-09-18T10:00:00')), ('tasker', received_mail(created_at='2026-09-18T18:00:00+08:00')),
+    ('tasker', received_mail(created_at='2026-09-18 10:00:00.123456Z')), ('tasker', received_mail(created_at='garbage')), ('tasker', received_mail(created_at=5)),
+    ('tasker', {k: v for k, v in received_mail().items() if k != 'created_at'}), ('tasker', received_mail(subject=5)),
+    ('tasker', {k: v for k, v in received_mail().items() if k != 'subject'}), ('tasker', received_mail(html=None, text=TK_PLAIN)),
+    ('tasker', received_mail(html='', text=TK_PLAIN)), ('tasker', received_mail(html=5)), ('tasker', received_mail(html=None, text=None)),
+    ('tasker', received_mail(html=[], text=TK_PLAIN)), ('tasker', received_mail(html='\ud800')), ('tasker', received_mail(subject='新案件【其他】')),
+    ('tasker', received_mail(**{'from': 'Tasker <DEALS@Tasker.com.tw>'})), ('tasker', received_mail(created_at='2026-09-18T10:00:00+00:00:30')),
+    ('linkedin', LI_MAIL), ('linkedin', li_received(text=None)), ('linkedin', li_received(text='PRIVATE unsupported body')),
+    ('linkedin', li_received(**{'from': 'imposter@linkedin.com'})), ('linkedin', li_received(received_for=['other@example.test'])),
+    ('linkedin', li_received(subject='We‘ve turned off your job alert for software engineer in Asia', text='Administrative notice only.')),
+    ('linkedin', li_received(subject="We've turned off your job alert for x", text=None)), ('linkedin', li_received(subject='New LinkedIn jobs', text='Unknown private template.')),
+    ('linkedin', li_received(text=li_body().replace('Engineer (Remote)', 'Engineer (Remote, Equity only)'))), ('linkedin', li_received(html=None)),
+    ('linkedin', li_received(created_at='2026-09-27T00:00:00Z')),
+]
+READ_EXTRA = [
+    rn_case('tasker', received_mail(), retry=True), rn_case('tasker', received_mail(), listed=received_mail(**{'from': 'attacker@example.com'})),
+    rn_case('tasker', received_mail(), retry=True, listed=received_mail(**{'from': 'attacker@example.com'})),
+    rn_case('tasker', received_mail(), status=404), rn_case('tasker', received_mail(), raw=b'[]'), rn_case('tasker', received_mail(), raw=b'{"error": "x"}'),
+    rn_case('tasker', received_mail(), raw=b'x'),
+    rn_case('tasker', received_mail(), raw=json.dumps(received_mail()).encode('utf-16')),
+]
+
+
+def tasker_parsed(**changes):
+    return parse_tasker(MailMessage('resend:' + MAIL_MID, rp.SENDER, '新案件【測試網站】', tasker_listing(), True, '2026-09-18T10:00:00+00:00'))[0] | changes
+
+
+def li_parsed(**changes):
+    return parse_linkedin(MailMessage('resend:' + MAIL_MID, 'jobalerts-noreply@linkedin.com', 'Example is hiring', li_body(), False, '2026-09-18T10:00:00+00:00'))[0] | changes
+
+
+def ticks_from(values):
+    it = iter(values)
+    return lambda: next(it)
+
+
+def run_mail_scenario(sc):
+    with tempfile.TemporaryDirectory() as tmp:
+        store = SQLiteStore(Path(tmp) / 'golden.db', clock=lambda: NOW)
+        store.migrate()
+        for op in sc.get('setup', []):
+            kind = op['op']
+            if kind == 'ingest':
+                store.ingest(op['job'], op['receipt_id'])
+            elif kind == 'record':
+                store.record_mail(sc['source'], MAIL_TARGET, op['message_id'], op['status'], op.get('reason'))
+            elif kind == 'retry':
+                store.retry_mail(sc['source'], MAIL_TARGET, op['message_id'])
+            elif kind == 'state':
+                store.save_mail_state(sc['source'], MAIL_TARGET, op['state'])
+            else:
+                raise ValueError(kind)
+        runs = []
+        for run in sc['runs']:
+            calls = []
+            client = rp.ReceivingClient('re_synthetic', opener=RecordingOpener(run['pages'], calls), pause=lambda s: None, sources=(sc['source'],))
+            mono = ticks_from(run['ticks']) if run.get('ticks') else (lambda: 0)
+            with patch.object(resend_sync, 'monotonic', mono):
+                result = attempt(lambda: encode(resend_sync._sync(client, store, run.get('recipient', MAIL_TARGET), source=sc['source'],
+                                                                  max_messages=run.get('max_messages', 20), **run.get('limits', {}))))
+            runs.append(dict(pages=wire(run['pages']), max_messages=run.get('max_messages', 20), limits=run.get('limits', {}),
+                             ticks=run.get('ticks'), recipient=run.get('recipient', MAIL_TARGET), expect=result, calls=calls))
+        with store._connect(write=False) as conn:
+            tables = {}
+            for table, columns, order in (
+                    ('mail_sync_state', 'source,recipient,state', 'source,recipient'),
+                    ('mail_ingestion', 'source,recipient,message_id,status,reason,retry_pending', 'source,recipient,message_id'),
+                    ('mail_content_versions', 'opportunity_id,fingerprint,job', 'opportunity_id,fingerprint'),
+                    ('opportunities', 'id,source,external_id,item', 'id'),
+                    ('source_receipts', 'source,receipt_id,opportunity_id', 'source,receipt_id'),
+                    ('source_health', 'source,status', 'source')):
+                tables[table] = [list(row.values()) for row in conn.execute(f'SELECT {columns} FROM {table} ORDER BY {order}')]
+    setup = [{k: tag(v) if k in ('job', 'state') else v for k, v in op.items()} for op in sc.get('setup', [])]
+    return dict(source=sc['source'], setup=setup, runs=runs, tables=tables)
+
+
+def tk(n, **changes):
+    """A Tasker notification with its own message and case id."""
+    return received_mail(id=mail_id(n), html=tasker_listing().replace('Ab123', 'Case%d' % n)) | changes
+
+
+def pages_of(*page_entries, more_last=False, start_after=None):
+    """Consecutive list pages: each page after the first continues after the previous page's last id."""
+    out, after = {}, start_after
+    for i, entries in enumerate(page_entries):
+        last = i == len(page_entries) - 1
+        out |= listing_page(entries, has_more=(more_last if last else True), after=after)
+        after = entries[-1]['id'] if entries else after
+    return out
+
+
+OTHER = received_mail(id=mail_id(90), **{'from': 'someone@example.com'})
+MAIL_SCENARIOS = {
+    'tasker_import_and_replay': dict(source='tasker', runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail()))] * 2),
+    'tasker_changed_existing_keeps_both_versions': dict(source='tasker', setup=[dict(op='ingest', job=tasker_parsed(description='Existing newer description'), receipt_id='original')],
+                                                        runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail()))]),
+    'tasker_changed_content_seen_twice': dict(source='tasker', setup=[dict(op='ingest', job=tasker_parsed(description='Existing newer description'), receipt_id='original')],
+                                              runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail())),
+                                                    dict(pages=listing_page([received_mail(id=mail_id(2)), received_mail()]) | bodies(received_mail(id=mail_id(2))))]),
+    'tasker_same_content_other_receipt': dict(source='tasker', setup=[dict(op='ingest', job=tasker_parsed(receipt_id='gmail-original', received_at='2026-09-17T00:00:00+00:00'), receipt_id='gmail-original')],
+                                              runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail()))]),
+    'tasker_truncation_then_unknown': dict(source='tasker', runs=[
+        dict(pages=listing_page([received_mail()], has_more=True) | bodies(received_mail()), limits={'max_pages': 1}),
+        dict(pages=listing_page([received_mail(id=mail_id(0x11111111), html='PRIVATE')], after=MAIL_MID) | listing_page([received_mail(id=mail_id(0x11111111), html='PRIVATE')]) |
+             bodies(received_mail(id=mail_id(0x11111111), html='PRIVATE')))]),
+    'tasker_fetch_failure_then_template': dict(source='tasker', runs=[
+        dict(pages=listing_page([received_mail()]) | bodies(received_mail(), status=500)),
+        dict(pages=listing_page([received_mail()]) | bodies(received_mail(html='SECRET BODY')))]),
+    'tasker_multi_page_and_cursor': dict(source='tasker', runs=[
+        dict(pages=pages_of([tk(3), OTHER], [tk(2), tk(1)]) | bodies(tk(3), tk(2), tk(1))),
+        dict(pages=listing_page([tk(5), tk(4), tk(3), OTHER]) | bodies(tk(5), tk(4))),
+        dict(pages=listing_page([tk(5), tk(4)]))]),
+    'tasker_body_limit_resumes_after': dict(source='tasker', runs=[
+        dict(pages=listing_page([tk(3), tk(2), tk(1)]) | bodies(tk(3), tk(2), tk(1)), max_messages=2),
+        dict(pages=listing_page([tk(1)], after=mail_id(2)) | bodies(tk(1)), max_messages=2),
+        dict(pages=listing_page([tk(3)]), max_messages=2)]),
+    'tasker_deadline_interrupts': dict(source='tasker', runs=[
+        dict(pages=listing_page([tk(3), tk(2), tk(1)]) | bodies(tk(3), tk(2), tk(1)), limits={'max_seconds': 10}, ticks=[0, 1, 2, 11, 12, 13]),
+        dict(pages=listing_page([tk(2), tk(1)], after=mail_id(3)) | bodies(tk(2), tk(1)), limits={'max_seconds': 10}, ticks=[0, 1, 2, 3, 4, 5, 6, 7])]),
+    'tasker_fetch_failure_keeps_after': dict(source='tasker', runs=[
+        dict(pages=listing_page([tk(3), tk(2), tk(1)]) | bodies(tk(3), tk(1)) | bodies(tk(2), status=503)),
+        dict(pages=listing_page([tk(2), tk(1)], after=mail_id(3)) | bodies(tk(2), tk(1)))]),
+    'tasker_retry_pending_recovers': dict(source='tasker', setup=[dict(op='record', message_id=MAIL_MID, status='rejected', reason='template'),
+                                                                  dict(op='retry', message_id=MAIL_MID)],
+                                          runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail())), dict(pages=listing_page([received_mail()]))]),
+    'tasker_retry_pending_fetch_fails': dict(source='tasker', setup=[dict(op='record', message_id=MAIL_MID, status='rejected', reason='template'),
+                                                                     dict(op='retry', message_id=MAIL_MID)],
+                                             runs=[dict(pages=listing_page([])), dict(pages=listing_page([]) | bodies(received_mail(html='PRIVATE')))]),
+    'tasker_retry_limit': dict(source='tasker', setup=[*[dict(op='record', message_id=mail_id(n), status='rejected', reason='template') for n in (7, 8, 9)],
+                                                       *[dict(op='retry', message_id=mail_id(n)) for n in (9, 7, 8)]],
+                               runs=[dict(pages=listing_page([tk(1)]) | bodies(tk(1), tk(7), tk(8), tk(9)), max_messages=2)]),
+    'tasker_receipt_collision': dict(source='tasker', setup=[dict(op='ingest', job=tasker_parsed(external_id='third', receipt_id='x'), receipt_id='resend:' + MAIL_MID + ':Ab123')],
+                                     runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail()))]),
+    'tasker_reused_receipt_new_content': dict(source='tasker', setup=[dict(op='ingest', job=tasker_parsed(description='Older text'), receipt_id='resend:' + MAIL_MID + ':Ab123')],
+                                              runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail()))]),
+    'tasker_repeated_identity': dict(source='tasker', runs=[dict(pages=pages_of([tk(2)], [tk(2)]) | bodies(tk(2)))]),
+    'tasker_list_failure': dict(source='tasker', runs=[dict(pages=listing_page([], status=500)), dict(pages={list_url(): (200, b'{"data": {}, "has_more": false}')}),
+                                                       dict(pages={list_url(): (200, b'{"data": [], "has_more": 1}')})]),
+    'tasker_cursor_first': dict(source='tasker', setup=[dict(op='state', state={'cursor': mail_id(5), 'after': None, 'head': None})],
+                                runs=[dict(pages=listing_page([tk(5), tk(4)]))]),
+    'tasker_stale_after': dict(source='tasker', setup=[dict(op='state', state={'cursor': mail_id(1), 'after': mail_id(4), 'head': mail_id(6)})],
+                               runs=[dict(pages=listing_page([tk(3), tk(2), tk(1)], after=mail_id(4)) | bodies(tk(3), tk(2)))]),
+    'tasker_state_missing_key': dict(source='tasker', setup=[dict(op='state', state={'cursor': None})], runs=[dict(pages=listing_page([]))]),
+    'tasker_bad_limits': dict(source='tasker', runs=[dict(pages={}, recipient='owner@example.com'), dict(pages={}, recipient='X@Inbox.Resend.App'),
+                                                     dict(pages={}, max_messages=0), dict(pages={}, max_messages=101), dict(pages={}, limits={'max_pages': 0}),
+                                                     dict(pages={}, limits={'max_seconds': 0}), dict(pages={}, limits={'max_seconds': 301})]),
+    'tasker_uppercase_recipient': dict(source='tasker', runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail()), recipient='TEST@inbox.resend.app')]),
+    'tasker_already_recorded': dict(source='tasker', setup=[dict(op='record', message_id=MAIL_MID, status='processed')],
+                                    runs=[dict(pages=listing_page([received_mail()]))]),
+    'tasker_conflict_record_not_overwritten': dict(source='tasker', setup=[dict(op='record', message_id=MAIL_MID, status='conflict', reason='receipt_collision')],
+                                                   runs=[dict(pages=listing_page([received_mail()]) | bodies(received_mail()))]),
+    'linkedin_waiting_then_ok_and_replay': dict(source='linkedin', runs=[
+        dict(pages=listing_page([])), dict(pages=listing_page([LI_MAIL]) | bodies(LI_MAIL)),
+        dict(pages=listing_page([li_received(id=mail_id(2), created_at='2026-09-27T00:00:00Z'), LI_MAIL]) | bodies(li_received(id=mail_id(2), created_at='2026-09-27T00:00:00Z')))]),
+    'linkedin_admin_notice': dict(source='linkedin', runs=[dict(pages=listing_page([li_received(subject='We‘ve turned off your job alert for software engineer in Asia', text='Administrative notice only.')]) |
+                                                                bodies(li_received(subject='We‘ve turned off your job alert for software engineer in Asia', text='Administrative notice only.')))] * 2),
+    'linkedin_unknown_quarantined': dict(source='linkedin', runs=[dict(pages=listing_page([li_received(subject='New LinkedIn jobs', text='Unknown private template.')]) |
+                                                                       bodies(li_received(subject='New LinkedIn jobs', text='Unknown private template.')))]),
+    'linkedin_unpaid_excluded': dict(source='linkedin', runs=[dict(pages=listing_page([LI_MAIL]) | bodies(li_received(text=li_body().replace('Engineer (Remote)', 'Engineer (Remote, Equity only)'))))]),
+    'linkedin_excluded_but_existing_updates': dict(source='linkedin', setup=[dict(op='ingest', job=li_parsed(), receipt_id='seed')],
+                                                   runs=[dict(pages=listing_page([LI_MAIL]) | bodies(li_received(text=li_body().replace('Engineer (Remote)', 'Engineer (Remote, Equity only)'))))]),
+    'linkedin_created_subject_skipped': dict(source='linkedin', runs=[dict(pages=listing_page([li_received(subject='Your job alert has been created')]))]),
+    'linkedin_wrong_envelope': dict(source='linkedin', runs=[dict(pages=listing_page([LI_MAIL]) | bodies(li_received(received_for=['other@example.test'])))]),
+    'linkedin_truncated_repeat': dict(source='linkedin', runs=[dict(pages=listing_page([LI_MAIL], has_more=True) | listing_page([LI_MAIL], after=MAIL_MID) | bodies(LI_MAIL))]),
+    'cake_and_104_waiting': dict(source='cake', runs=[dict(pages=listing_page([OTHER]))]),
+    'jobbank104_waiting': dict(source='jobbank104', runs=[dict(pages=listing_page([]))]),
+    'linkedin_empty_truncated': dict(source='linkedin', runs=[dict(pages=listing_page([], has_more=True))]),
+}
+
+
+def mail_golden():
+    return {
+        'getaddresses': [dict(input=a, expect=[list(t) for t in getaddresses([a])]) for a in ADDRESSES],
+        'resend_id': [dict(input=tag(v), expect=attempt(lambda: rp._id(v))) for v in RESEND_IDS],
+        'resend_sender': [dict(input=tag(v), expect=rp._sender(v)) for v in SENDER_VALUES],
+        'resend_matches': [dict(entry=tag(e), source=s, expect=bool(rp.matches(e, s))) for e in MATCH_ENTRIES for s in ('tasker', 'linkedin', 'cake', 'jobbank104')],
+        'tasker_parse': [dict(message=tag_message(m), expect=attempt(lambda: encode(parse_tasker(m)))) for m in TASKER_MESSAGES],
+        'linkedin_parse': [dict(message=tag_message(m), expect=attempt(lambda: encode(parse_linkedin(m)))) for m in LINKEDIN_MESSAGES],
+        'read_notification': [rn_case(s, m) for s, m in READ_NOTIFICATIONS] + READ_EXTRA,
+        'mail_sync': {name: run_mail_scenario(sc) for name, sc in MAIL_SCENARIOS.items()},
+    }
+
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -1944,6 +2361,7 @@ def main():
         'public_feeds_batch': [pf_batch_case(src, raw) for src, raw in PF_BATCH],
         **batch3_golden(),
         **batch4_golden(),
+        **mail_golden(),
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

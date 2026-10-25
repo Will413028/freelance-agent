@@ -10,6 +10,7 @@ import { syncGetOnBoard } from "./sources/getonboard";
 import { syncHimalayas } from "./sources/himalayas";
 import { syncJobbank518 } from "./sources/jobbank518";
 import { syncJustRemote } from "./sources/justremote";
+import { syncMailSource } from "./mail/sync";
 import { syncNoDesk } from "./sources/nodesk";
 import { syncPublicFeed } from "./sources/public-feeds";
 import { syncTaiwanJobs } from "./sources/taiwanjobs";
@@ -17,7 +18,7 @@ import { REGISTRY, SOURCES } from "./source-catalog";
 
 export type SourceRunner = (db: Db) => Promise<unknown>;
 
-/** Every TS connector ported so far (plan steps 6–8), scheduled or not. */
+/** Every TS connector ported so far (plan steps 6–9), scheduled or not. */
 export const RUNNERS: Record<string, SourceRunner> = {
   jobicy: (db) => syncFreeJobs(db, "jobicy"),
   remotive: (db) => syncFreeJobs(db, "remotive"),
@@ -38,6 +39,8 @@ export const RUNNERS: Record<string, SourceRunner> = {
   taiwanjobs: (db) => syncTaiwanJobs(db),
   arbeitnow: (db) => syncArbeitnow(db),
   freelancer: (db) => syncFreelancer(db),
+  tasker: (db) => syncMailSource(db, "tasker"),
+  linkedin: (db) => syncMailSource(db, "linkedin"),
 };
 
 /**
