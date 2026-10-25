@@ -56,7 +56,7 @@ export const RUNNERS: Record<string, SourceRunner> = {
 export const SCHEDULED: ReadonlySet<string> = new Set([
   "jobicy", "remotive", "cryptojobslist", "himalayas", "getonboard", "hackernews", "v2ex", "remoteok", "realworkfromanywhere",
   "weworkremotely", "workingnomads", "nodesk", "justremote", "dynamitejobs", "jobbank518", "chickpt", "taiwanjobs", "arbeitnow",
-  "freelancer",
+  "freelancer", "tasker", "linkedin", "cake", "jobbank104", "talent", "glassdoor",
 ]);
 
 // D12: Vercel's regions get a challenge from PTT; these stay in the catalog for their history only.
