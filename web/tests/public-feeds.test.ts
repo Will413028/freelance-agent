@@ -26,7 +26,7 @@ const rss = ({ title = "Part-time Backend API developer", description = "Build A
 const run = async (data: Uint8Array, source: FeedSource = "remoteok") => {
   let result: PyDict | null = null;
   const status = await runSource(db, source, async (d) => (result = await syncPublicFeed(d, source, async () => data)));
-  return status === "failed" ? PyDict.of({ status: "failed" }) : result!;
+  return status.status === "failed" ? PyDict.of({ status: "failed" }) : result!;
 };
 const items = async () => (await pool.query("select id, item from opportunities order by id")).rows.map((r) => ({ id: r.id as string, item: loadsDict(r.item) }));
 const job = (item: PyDict) => asDict(item.at("job"));

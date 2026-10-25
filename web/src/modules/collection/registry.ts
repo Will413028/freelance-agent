@@ -1,4 +1,5 @@
 import type { Db } from "@/db/client";
+import type { PyDict } from "@/platform/py/value";
 import { syncArbeitnow } from "./sources/arbeitnow";
 import { syncChickpt } from "./sources/chickpt";
 import { syncCommunity } from "./sources/community-jobs";
@@ -16,7 +17,8 @@ import { syncPublicFeed } from "./sources/public-feeds";
 import { syncTaiwanJobs } from "./sources/taiwanjobs";
 import { REGISTRY, SOURCES } from "./source-catalog";
 
-export type SourceRunner = (db: Db) => Promise<unknown>;
+/** Every connector returns its Python result dict; runSource refuses anything else at run time too. */
+export type SourceRunner = (db: Db) => Promise<PyDict>;
 
 /** Every TS connector ported so far (plan steps 6–9), scheduled or not. */
 export const RUNNERS: Record<string, SourceRunner> = {
@@ -45,6 +47,32 @@ export const RUNNERS: Record<string, SourceRunner> = {
   jobbank104: (db) => syncMailSource(db, "jobbank104"),
   talent: (db) => syncMailSource(db, "talent"),
   glassdoor: (db) => syncMailSource(db, "glassdoor"),
+};
+
+/**
+ * The fixed reason each Python sync returns from its `except Exception` (where the TS connector
+ * throws instead). Mail sources catch inside syncMail as resend_sync.py does, so they have none.
+ */
+export const FAILURE_REASON: Readonly<Record<string, string>> = {
+  jobicy: "public_feed_unavailable_or_unsupported",
+  remotive: "public_feed_unavailable_or_unsupported",
+  cryptojobslist: "cryptojobslist_unavailable_or_unsupported",
+  himalayas: "public_feed_unavailable_or_unsupported",
+  getonboard: "getonboard_unavailable_or_unsupported",
+  hackernews: "community_feed_unavailable_or_unsupported",
+  v2ex: "community_feed_unavailable_or_unsupported",
+  remoteok: "public_feed_unavailable_or_unsupported",
+  realworkfromanywhere: "public_feed_unavailable_or_unsupported",
+  weworkremotely: "public_feed_unavailable_or_unsupported",
+  workingnomads: "public_feed_unavailable_or_unsupported",
+  nodesk: "nodesk_unavailable_or_unsupported",
+  justremote: "justremote_unavailable_or_unsupported",
+  dynamitejobs: "dynamitejobs_unavailable_or_unsupported",
+  jobbank518: "jobbank518_unavailable_or_unsupported",
+  chickpt: "chickpt_unavailable_or_unsupported",
+  taiwanjobs: "taiwanjobs_unavailable_or_unsupported",
+  arbeitnow: "arbeitnow_source_unavailable_or_unsupported",
+  freelancer: "freelancer_source_failed",
 };
 
 /**

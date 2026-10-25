@@ -2598,6 +2598,27 @@ def mail9b_golden():
 
 
 
+def failure_reasons():
+    """Plan step 10a: what each non-mail sync returns when every fetch fails. The network is cut at
+    urllib's opener and at socket.connect, so no request leaves the machine."""
+    from importlib import import_module
+    import socket
+    import urllib.request
+    from freelance.modules.collection.source_catalog import REGISTRY
+    out = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        store = SQLiteStore(Path(tmp) / 'golden.db', clock=lambda: NOW)
+        store.migrate()
+        with patch.object(urllib.request.OpenerDirector, 'open', side_effect=OSError('offline')), \
+             patch.object(socket.socket, 'connect', side_effect=OSError('offline')):
+            for name, spec in REGISTRY.items():
+                if not spec.runner or spec.runner == 'resend_sync':
+                    continue
+                run = getattr(import_module('freelance.modules.collection.' + spec.runner), spec.function)
+                out[name] = attempt(lambda: encode(run(name, store) if spec.keyed else run(store)))
+    return out
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -2640,6 +2661,7 @@ def main():
         **batch4_golden(),
         **mail_golden(),
         **mail9b_golden(),
+        'failure_reasons': failure_reasons(),
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

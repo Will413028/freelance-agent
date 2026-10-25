@@ -303291,5 +303291,70 @@ null,
 ]
 }
 }
+},
+"failure_reasons": {
+"freelancer": {
+"ok": "{\"status\": \"failed\", \"reason\": \"freelancer_source_failed\"}"
+},
+"justremote": {
+"ok": "{\"status\": \"failed\", \"reason\": \"justremote_unavailable_or_unsupported\"}"
+},
+"jobicy": {
+"ok": "{\"status\": \"failed\", \"reason\": \"public_feed_unavailable_or_unsupported\"}"
+},
+"remotive": {
+"ok": "{\"status\": \"failed\", \"reason\": \"public_feed_unavailable_or_unsupported\"}"
+},
+"himalayas": {
+"ok": "{\"status\": \"failed\", \"reason\": \"public_feed_unavailable_or_unsupported\"}"
+},
+"hackernews": {
+"ok": "{\"status\": \"failed\", \"reason\": \"community_feed_unavailable_or_unsupported\"}"
+},
+"v2ex": {
+"ok": "{\"status\": \"failed\", \"reason\": \"community_feed_unavailable_or_unsupported\"}"
+},
+"ptt_soho": {
+"ok": "{\"status\": \"failed\", \"reason\": \"ptt_unavailable_or_unsupported\"}"
+},
+"ptt_codejob": {
+"ok": "{\"status\": \"failed\", \"reason\": \"ptt_unavailable_or_unsupported\"}"
+},
+"remoteok": {
+"ok": "{\"status\": \"failed\", \"reason\": \"public_feed_unavailable_or_unsupported\"}"
+},
+"realworkfromanywhere": {
+"ok": "{\"status\": \"failed\", \"reason\": \"public_feed_unavailable_or_unsupported\"}"
+},
+"weworkremotely": {
+"ok": "{\"status\": \"failed\", \"reason\": \"public_feed_unavailable_or_unsupported\"}"
+},
+"workingnomads": {
+"ok": "{\"status\": \"failed\", \"reason\": \"public_feed_unavailable_or_unsupported\"}"
+},
+"taiwanjobs": {
+"ok": "{\"status\": \"failed\", \"reason\": \"taiwanjobs_unavailable_or_unsupported\"}"
+},
+"arbeitnow": {
+"ok": "{\"status\": \"failed\", \"reason\": \"arbeitnow_source_unavailable_or_unsupported\"}"
+},
+"nodesk": {
+"ok": "{\"status\": \"failed\", \"reason\": \"nodesk_unavailable_or_unsupported\"}"
+},
+"getonboard": {
+"ok": "{\"status\": \"failed\", \"reason\": \"getonboard_unavailable_or_unsupported\"}"
+},
+"cryptojobslist": {
+"ok": "{\"status\": \"failed\", \"reason\": \"cryptojobslist_unavailable_or_unsupported\"}"
+},
+"dynamitejobs": {
+"ok": "{\"status\": \"failed\", \"reason\": \"dynamitejobs_unavailable_or_unsupported\"}"
+},
+"jobbank518": {
+"ok": "{\"status\": \"failed\", \"reason\": \"jobbank518_unavailable_or_unsupported\"}"
+},
+"chickpt": {
+"ok": "{\"status\": \"failed\", \"reason\": \"chickpt_unavailable_or_unsupported\"}"
+}
 }
 }

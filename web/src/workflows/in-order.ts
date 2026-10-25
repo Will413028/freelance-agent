@@ -5,14 +5,14 @@
  * holds the single writer lock for its whole transaction, so a source running beside it would fail
  * on lock_timeout. A source step that throws counts as failed and the next one still runs.
  */
-export async function syncInOrder(sources: string[], sync: (source: string) => Promise<string>): Promise<Record<string, string>> {
-  const statuses: Record<string, string> = {};
+export async function syncInOrder<T>(sources: string[], sync: (source: string) => Promise<T>, failed: T): Promise<Record<string, T>> {
+  const results: Record<string, T> = {};
   for (const source of sources) {
     try {
-      statuses[source] = await sync(source);
+      results[source] = await sync(source);
     } catch {
-      statuses[source] = "failed";
+      results[source] = failed;
     }
   }
-  return statuses;
+  return results;
 }

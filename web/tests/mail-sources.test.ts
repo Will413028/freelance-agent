@@ -110,8 +110,8 @@ describe("Resend sync (TS-only checks)", () => {
     delete process.env.RESEND_API_KEY;
     delete process.env.RESEND_INBOX;
     try {
-      expect(await runSource(db, "tasker", RUNNERS.tasker)).toBe("failed");
-      expect(await runSource(db, "linkedin", RUNNERS.linkedin)).toBe("failed");
+      expect(await runSource(db, "tasker", RUNNERS.tasker)).toEqual({ status: "failed", reason: "source_unavailable" });
+      expect(await runSource(db, "linkedin", RUNNERS.linkedin)).toEqual({ status: "failed", reason: "source_unavailable" });
       const result: PyDict = await syncMailSource(db, "tasker");
       expect(encode(result)).toBe('{"status": "failed", "reason": "source_unavailable"}');
       const health = await sourcesIn(db);

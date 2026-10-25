@@ -75,7 +75,7 @@ describe("cryptojobslist source_batch (plan step 7)", () => {
     const r = parse(feed(item() + item({ url: "https://cryptojobslist.com/jobs/second-one" })), PyDateTime.now());
     (r.req("jobs") as PyDict[])[1].set("external_id", ""); // ingest raises on the second job
     const status = await runSource(db, "cryptojobslist", (d) => syncCryptoJobsList(d, async () => r));
-    expect(status).toBe("failed");
+    expect(status.status).toBe("failed");
     expect((await existingSourceIds(db, "cryptojobslist")).size).toBe(0);
     expect((await pool.query("select count(*)::int as n from source_receipts")).rows[0].n).toBe(0);
     expect((await sourcesIn(db)).at("cryptojobslist")).toBe("failed");

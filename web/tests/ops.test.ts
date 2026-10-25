@@ -156,6 +156,9 @@ describe("shadow comparator v1", () => {
     await expect(ranSources(pool, day)).rejects.toThrow("TS run is running");
     await pool.query("update daily_runs set status = 'failed', result = $2 where local_date = $1", [day, '{"source_details": {"jobicy": {"status": "ok"}, "freelancer": {"status": "failed"}}}']);
     expect(await ranSources(pool, day)).toEqual(["jobicy", "freelancer"]);
+    // collect_sources' shape (plan step 10a): the top-level status and reason are not sources.
+    await pool.query("update daily_runs set result = $2 where local_date = $1", [day, '{"source_details": {"status": "failed", "reason": "one_or_more_sources_failed", "jobicy": {"status": "ok"}, "cake": {"status": "waiting", "reason": null}}}']);
+    expect(await ranSources(pool, day)).toEqual(["jobicy", "cake"]);
     await pool.query("update daily_runs set result = '{\"source_details\": {}}' where local_date = $1", [day]);
     await expect(ranSources(pool, day)).rejects.toThrow("recorded no sources");
   });

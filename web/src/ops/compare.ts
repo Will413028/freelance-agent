@@ -67,8 +67,10 @@ function scoped(spec: TableSpec, columns: Column[], scope: Set<string> | null) {
 
 /**
  * The sources the day's TS run fanned out to: the keys of its finished daily_runs result
- * (finishDailySources writes one per source, failed ones included). Fails closed when the day has
- * no single finished run, e.g. Hobby cron fired late and the run is still going at compare time.
+ * source_details whose value is a dict (finishDailySources writes one per source, failed ones
+ * included; the top-level status and reason of collect_sources' shape are not sources). Fails
+ * closed when the day has no single finished run, e.g. Hobby cron fired late and the run is still
+ * going at compare time.
  */
 export async function ranSources(ts: Pool, localDate: string): Promise<string[]> {
   const { rows } = await ts.query<{ status: string; result: string | null }>("select status, result from daily_runs where local_date = $1", [localDate]);
@@ -76,7 +78,8 @@ export async function ranSources(ts: Pool, localDate: string): Promise<string[]>
   const [{ status, result }] = rows;
   if (status !== "complete" && status !== "failed") throw new Error(`daily_runs ${localDate}: TS run is ${status}, not finished`);
   const details = result === null ? undefined : JSON.parse(result).source_details;
-  const sources = details && typeof details === "object" && !Array.isArray(details) ? Object.keys(details) : [];
+  const isDict = (v: unknown) => v !== null && typeof v === "object" && !Array.isArray(v);
+  const sources = isDict(details) ? Object.keys(details).filter((k) => isDict(details[k])) : [];
   if (!sources.length) throw new Error(`daily_runs ${localDate}: TS run recorded no sources`);
   return sources;
 }

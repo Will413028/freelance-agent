@@ -28,7 +28,7 @@ describe("free_jobs.sync", () => {
 
   it("fails a malformed batch instead of reporting an empty success", async () => {
     const status = await runSource(db, "remotive", (d) => syncFreeJobs(d, "remotive", feed([rem(), rem({ id: 2n, description: null })])));
-    expect(status).toBe("failed");
+    expect(status.status).toBe("failed");
     expect((await existingSourceIds(db, "remotive")).size).toBe(0);
     expect((await sourcesIn(db)).at("remotive")).toBe("failed");
   });

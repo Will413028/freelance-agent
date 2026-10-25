@@ -1,5 +1,5 @@
 import type { Db } from "@/db/client";
-import { enabledSources, runSource, RUNNERS, type SourceOutcome, type SourceRunner } from "@/modules/collection/public";
+import { detailDict, enabledSources, FAILURE_REASON, runSource, RUNNERS, succeeded, type SourceDetail, type SourceRunner } from "@/modules/collection/public";
 import { claimDailyRun, dailyRecipient, finishDailyRun, taipeiLocal } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
 import { PyDict } from "@/platform/py/value";
@@ -21,15 +21,21 @@ export function dailySources(): string[] {
   return enabledSources();
 }
 
-export async function syncDailySource(db: Db, source: string, runners: Record<string, SourceRunner> = RUNNERS): Promise<SourceOutcome> {
+export async function syncDailySource(db: Db, source: string, runners: Record<string, SourceRunner> = RUNNERS): Promise<SourceDetail> {
   const runner = runners[source];
-  return runner ? runSource(db, source, runner) : "failed";
+  return runner ? runSource(db, source, runner, FAILURE_REASON[source]) : { status: "failed", reason: "source_unavailable" };
 }
 
-export async function finishDailySources(db: Db, localDate: string, statuses: Record<string, string>, now = PyDateTime.now()) {
-  const ok = Object.values(statuses).every((s) => s === "ok" || s === "waiting");
-  const details = new PyDict(Object.entries(statuses).map(([s, status]) => [s, PyDict.of({ status })]));
-  const result = PyDict.of({ status: ok ? "sources_ok" : "source_failed", local_date: localDate, source_details: details, delivery_status: "not_configured" });
+/** collection/service.py's collect_sources result: top-level status and reason, then one dict per source. */
+export function sourceDetails(details: Record<string, SourceDetail>): PyDict {
+  const ok = Object.values(details).every(succeeded);
+  return new PyDict([["status", ok ? "ok" : "failed"], ["reason", ok ? null : "one_or_more_sources_failed"],
+    ...Object.entries(details).map(([s, d]) => [s, detailDict(d)] as [string, PyDict])]);
+}
+
+export async function finishDailySources(db: Db, localDate: string, details: Record<string, SourceDetail>, now = PyDateTime.now()) {
+  const ok = Object.values(details).every(succeeded);
+  const result = PyDict.of({ status: ok ? "sources_ok" : "source_failed", local_date: localDate, source_details: sourceDetails(details), delivery_status: "not_configured" });
   await finishDailyRun(db, localDate, dailyRecipient(), ok ? "complete" : "failed", result, now);
   return ok ? "complete" : "failed";
 }

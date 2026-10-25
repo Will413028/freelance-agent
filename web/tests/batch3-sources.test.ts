@@ -25,7 +25,7 @@ const nowIso = () => new Date().toISOString().replace("Z", "+00:00");
 const run = async (source: string, sync: (d: Db) => Promise<PyDict>) => {
   let result: PyDict | null = null;
   const status = await runSource(db, source, async (d) => (result = await sync(d)));
-  return status === "failed" ? PyDict.of({ status: "failed" }) : result!;
+  return status.status === "failed" ? PyDict.of({ status: "failed" }) : result!;
 };
 const items = () => list(db, PyDateTime.now());
 /** store.review(id, 'edit', version, text=...) lives in step 11; write the field it sets. */
