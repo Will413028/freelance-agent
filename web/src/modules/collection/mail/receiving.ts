@@ -44,6 +44,23 @@ export function sender(value: PyValue | undefined): string | null {
   return addresses.length === 1 ? casefold(addresses[0][1]) : null;
 }
 
+/**
+ * D14: the shadow holds a full_access Resend key (Resend has no read-only scope), so every request
+ * this client makes must be a GET under /emails/receiving on the API host; anything else is refused
+ * before it leaves the process.
+ */
+export function assertReceivingUrl(url: string): void {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    throw new ResendError("Refused Resend request");
+  }
+  const path = u.pathname;
+  if (u.protocol !== "https:" || u.host !== "api.resend.com" || u.username || u.password
+      || !(path === "/emails/receiving" || path.startsWith("/emails/receiving/"))) throw new ResendError("Refused Resend request");
+}
+
 /** One GET: status and body, as urllib's opener with NoRedirect returns or raises them. */
 export type Request = (url: string, headers: Record<string, string>) => Promise<{ status: number; body: Uint8Array }>;
 // timeout=20 bounds the connect and each read, not the whole read; past MAX_BYTES the read fails.
@@ -66,6 +83,7 @@ export class ReceivingClient {
     try {
       if (this.requested) await (this.opts.pause ?? sleep)(0.6);
       this.requested = true;
+      assertReceivingUrl(ROOT + suffix);
       const response = await (this.opts.request ?? httpRequest)(ROOT + suffix, {
         Authorization: "Bearer " + this.key, Accept: "application/json", "User-Agent": "freelance-agent/0.1",
       });

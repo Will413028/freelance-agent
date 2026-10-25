@@ -20,7 +20,7 @@
   - 離線 demo 不讀憑證、不連外、不寄信。
   - 不新增自動提案或自動應徵。
   - email 內文與 token 不寫 log。
-- **切換前 Python／VM 是唯一對外寄信、寫正式資料的系統。** TS 版在 shadow 期（影子期）只寫 shadow DB。Vercel production env 裡沒有任何寄送憑證，這是結構性防護，不是只靠程式碼守住；驗收方式是 `vercel env ls production` 的 key 名稱清單。
+- **切換前 Python／VM 是唯一對外寄信、寫正式資料的系統。** TS 版在 shadow 期（影子期）只寫 shadow DB。Vercel production env 裡沒有任何寄送憑證，這是結構性防護，不是只靠程式碼守住；驗收方式是 `vercel env ls production` 的 key 名稱清單。唯一例外（D14，Will 2026-10-25）：讀 Resend Receiving 的 `RESEND_API_KEY`。Resend 沒有唯讀 key，這把 `full_access` key 技術上能寄信與管理帳號；對它的防護是程式加測試：`ReceivingClient` 只送 GET，且每個請求先過 `assertReceivingUrl`（只允許 `https://api.resend.com/emails/receiving` 底下），`web/src` 裡只有 `receiving.ts` 寫到 Resend 的網址。驗收改成精確的 key 名稱白名單：允許 `DATABASE_URL`、`CRON_SECRET`、`DIGEST_RECIPIENT`、`PORTFOLIO_CATEGORY_PROJECTS`、`RESEND_API_KEY`、`RESEND_INBOX`，其他名稱（含任何 SMTP 相關的 key）出現就不通過。
 - **Workflow step 的輸入輸出只放 ID、計數與狀態。** 信件正文、職缺內文與憑證只在 step 內讀寫 DB，因為 Vercel Workflows 會記錄每個 step 的輸入、輸出與錯誤（[Workflows](https://vercel.com/docs/workflows)）。
 - 憑證只放 Vercel 的 Sensitive Environment Variables 或本機 `secrets/`。Will 存好後回 `done`，agent 只看 key 名稱，不讀值。
 - 每次部署到 Vercel 正式專案、每次改 VM 上的設定，都要 Will 先授權。preview 部署不算。
@@ -250,7 +250,7 @@
     - 第一次部署 Vercel 正式專案，DB 指向 shadow branch，env 不含寄送憑證。
   - 驗收：
     - 同一天手動觸發兩次 cron，`daily_runs` 只有一列，第二次的 log 顯示「已有 run」。
-    - `vercel env ls production` 不含寄送相關的 key。
+    - `vercel env ls production` 的 key 名稱都在全域約束的白名單內（D14 起允許 `RESEND_API_KEY`、`RESEND_INBOX`），不含 SMTP 相關的 key。
     - mutation：拿掉 claim，「重複觸發只跑一次」的測試要失敗。
     - Vercel env 加 `PORTFOLIO_CATEGORY_PROJECTS`（私人作品對應，盤點缺陷 22；非憑證但不進 repo）。
     - 量 Neon 傳輸量：一次 `list` 與一次分組回饋各傳多少位元組，換算每月用量（步驟 14「listIn」項的觸發條件用這個數字）。
@@ -366,7 +366,7 @@
   - 子步驟（2026-10-25 拆，一個 session 做不完）：
     - 9a 共用收信與 tasker、linkedin：`ReceivingClient`（只 GET、不跟 redirect、2 MB 上限、每次呼叫間隔 0.6 秒、UUID 正規形式）、寄件者解析（`email.utils.getaddresses` 照 CPython 3.13.15 移植）、`matches`、`read_notification`、`_sync`（游標、上限、隔離、`retry_pending` 復原、狀態），`store` 的 mail 函式與 `ingest_resend_batch`；parser 只有 tasker（`html.parser` 走既有 `platform/py/html.ts`）與 linkedin（receipt 雜湊用 `ensure_ascii=True` 的 `json.dumps`）。驗收：`test_resend_sync.py`、`test_resend_preview.py`（不含 CLI 與 key 檔）、`test_tasker.py`、`test_linkedin_mail.py`、`test_linkedin_receiving.py` 的 TS 版，golden 對照寄件者解析、UUID、`matches`、兩個 parser；mutation 拿掉收件者邊界、`retry_pending` 只覆寫、游標只在 complete 前移，測試各自失敗。
     - 9b cake、jobbank104、talent、glassdoor：parser 與 `matches` 的主旨 gate（`subject_format`、`is_job_subject`），各自 Python 測試的 TS 版與 golden。
-    - 兩個子步驟都只登記在 `RUNNERS`，不排程。怎麼上 shadow 等 D14：Resend 的 API key 只有 `full_access` 與 `sending_access` 兩種權限（官方文件 api-keys/create-api-key，2026-10-25 查），讀 Receiving 必須用能寄信、能管理帳號的 `full_access` key，放進 Vercel production env 會違反全域約束「切換前沒有任何寄送憑證」。`syncMailSource` 從 `RESEND_API_KEY`、`RESEND_INBOX` 讀（收件網域不進 repo）；缺 env 時照 Python 的 `connection is None`：health 記 failed、回傳 `source_unavailable`。
+    - 兩個子步驟都只登記在 `RUNNERS`，不排程。怎麼上 shadow 照 D14（A）：Resend 的 API key 只有 `full_access` 與 `sending_access` 兩種權限（官方文件 api-keys/create-api-key，2026-10-25 查），讀 Receiving 必須用能寄信、能管理帳號的 `full_access` key，放進 Vercel production env，全域約束因此加了這一條例外。`syncMailSource` 從 `RESEND_API_KEY`、`RESEND_INBOX` 讀（收件網域不進 repo）；缺 env 時照 Python 的 `connection is None`：health 記 failed、回傳 `source_unavailable`。
     - 9a 實作狀態（2026-10-25，未排程、未部署）：`web/src/modules/collection/mail/`（`receiving.ts` client、寄件者、主旨 gate、`readNotification`；`sync.ts`；`tasker.ts`；`linkedin.ts`），store 的 mail 函式在 `collection/ingest.ts`，`getaddresses` 在 `platform/py/email.ts`。驗證：golden 新增 getaddresses 96、UUID 32、寄件者 102、`matches` 620、tasker 66、linkedin 75、read_notification 47（真的 `ReceivingClient`＋假 transport，逐請求比 URL）、sync 情境 35（真 store、兩邊逐表比 mail_sync_state／mail_ingestion／mail_content_versions／opportunities／receipts／health）；mutation 12 項全紅（收件者邊界、`retry_pending` 才覆寫、游標只在 complete 前移、重試順序、content version 計數、linkedin 非職缺通知、既有 ID 不受排除、tasker 的 MULTILINE、getaddresses 計數檢查、waiting 規則、復原迴圈、linkedin receipt 的 ASCII 雜湊），第一輪存活 2 項（`retry_pending` 覆寫、計數）補 store 測試與「同內容第二次」情境後失敗。設計審查（fresh subagent）5 項：改 2（`resendId` 不再模擬 `UUID()` 的錯誤類別，兩個呼叫端都不區分，golden 只比成敗；步驟 14 補 9a 的照抄並更正盤點去向）、記 1（`qualify` 只為了例外而呼叫，下一條）、提 1（D14）、駁回 1：「VM 與 shadow 兩個讀取端共用 Resend 速率上限」——上限是每個 team 每秒 10 個請求（官方文件 api-reference/introduction），每個讀取端每次呼叫間隔 0.6 秒，最多約每秒 1.7 個，兩端合計約 3.4 個。
     - 記：`readNotification` 對每筆職缺跑一次 `qualify` 並丟掉結果，只因 Python 的 `preview()` 會算，算的時候丟例外就讓整封信變 rejected（stage template）。切換前必須一致；D6 後併入下面步驟 14 的 9a 照抄一起處理。
 
@@ -427,7 +427,7 @@
     2. 確認 VM 當天的 `daily_runs` 已是 complete 或 failed，且 `digest_outbox` 沒有 pending、attempted 或 unknown（pending 要先在 VM 上寄出或人工結案，因為預覽 sha256 不跨語言沿用）。
     3. 停 VM 的 API／worker／Web，用 `docker compose ps` 確認沒有 writer。
     4. 做一致備份；先在 Neon 的 prod branch 跑 Drizzle migration 到最新版本，再跑收斂腳本與指紋報告。
-    5. 改 production env：`DATABASE_URL` 指向 prod branch；Will 存入寄送憑證後回 `done`；寄送開關打開。然後重新部署，並 Enable Cron Jobs。
+    5. 改 production env：`DATABASE_URL` 指向 prod branch；Will 存入寄送憑證（D9 的 Gmail SMTP）後回 `done`；寄送開關打開。`RESEND_API_KEY`、`RESEND_INBOX` 在 shadow 期已存入（D14），沿用；shadow 期超過 6 週或懷疑外洩時先換一把新 key。然後重新部署，並 Enable Cron Jobs。
     6. 驗下一次自然排程；Hobby 會在 09:00–09:59 之間觸發。
     7. shadow branch 保留到 D6 窗口結束。
   - 回滾（D6 窗口內）：
@@ -547,11 +547,16 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
   - B：維持步驟 14 才改——切換後每天約 20 次回饋就可能超額，摘要跟著停。
   - C：升級 Neon 付費方案——每月 500 GB，但多一筆固定費用，且不解決每次讀 8 MB 的延遲。
 
-- **D14 信件來源怎麼上 shadow**（狀態：未決，2026-10-25 交 Will；擋住步驟：9 的 shadow 排程與 3 天比對，不擋 9a、9b 的程式）
-  - 事實：Resend API key 只有 `full_access`（讀寫與管理全部資源）與 `sending_access`（只能寄）；沒有唯讀 key（官方文件，2026-10-25 查）。正式 VM 現在用的 key 也是能寄的那種（`bootstrap/jobs.py:15,30` 讀同一個 key 檔）。切換後 Vercel 本來就要拿這把 key（步驟 13 存入寄送憑證）。
-  - 選項與建議見 2026-10-25 的設計簡報（交 Will 後補結論）。
+- **D14 信件來源怎麼上 shadow**（狀態：已決 2026-10-25，Will 照建議（A）；擋住步驟：9 的 shadow 排程與 3 天比對，不擋 9a、9b 的程式）
+  - 事實：Resend API key 只有 `full_access`（讀寫與管理全部資源）與 `sending_access`（只能寄）；沒有唯讀 key（官方文件，2026-10-25 查）。正式 VM 現在用的 key 也是能寄的那種（`bootstrap/jobs.py:30` 收信與 `:15` 的 Resend 寄送路徑讀同一個 key 檔；D9 選了 SMTP，所以那條寄送路徑目前沒用）。切換後只有 Vercel 讀收件匣，所以 Vercel 遲早要拿 `full_access` key（推論；步驟 13 原本只列 SMTP 憑證，已補上）。
+  - A：為 shadow 另建一把專用 `full_access` key 放進 Vercel production env，明文修改全域約束（例外只限 Resend 讀取）；防護改成程式加測試：HTTP 層執行期白名單（只允許 GET `https://api.resend.com/emails/receiving` 底下）＋ mutation 測試、`web/src` 只有 `receiving.ts` 寫到 Resend 網址、env 驗收改成精確的 key 名稱白名單。用真實信件在真正的 runtime 跑 3 天比對，不寫任何步驟 14 會刪的 shadow 專用程式。（建議，已選）
+  - B：TS 收信改在 VM 的 shadow 容器跑，key 留在 VM——要繞過 `daily_runs` claim 的單獨入口、比對範圍邏輯、改 VM 設定與掛載 key，全是步驟 14 會刪的程式；也量不到 Vercel 上的耗時。
+  - C：不跑 shadow，在 VM 錄真實回應、兩邊離線重播比對；少了 3 天自然信件比對，切換時才第一次在 Vercel 真跑。（A 被否決時的備案）
+  - 外洩處置：在 Resend 撤銷這把 key，再稽核帳號裡的 API key 清單、網域與 webhook（`full_access` 能自己建新 key、加網域與 webhook，只撤銷擋不住），並換掉 Vercel env。
+  - 終局：切換時這把 key 就是正式的收信 key（步驟 13 第 5 小步）；VM 上的 key 留到 D6 窗口結束才撤銷，因為回滾要用。
+  - 狀態更新：已決 2026-10-25，Will 選 A。需要人做的事：在 Resend 建專用 key、存進 Vercel production env（`RESEND_API_KEY`、`RESEND_INBOX`，Sensitive）後回 `done`，再授權部署與排程。
 
-拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D13 於 2026-10-24 拍板（A）。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
+拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D13 於 2026-10-24 拍板（A）。D14 於 2026-10-25 拍板（A）。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
 
 ## 進度
 

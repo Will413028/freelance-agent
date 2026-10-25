@@ -1,3 +1,5 @@
+import { execSync } from "node:child_process";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { getaddresses } from "@/platform/py/email";
 import { encode } from "@/platform/py/json";
@@ -6,7 +8,7 @@ import { attempt, attemptAsync, fixture, untag, type Expect, type Tagged } from 
 import { transport } from "../../../../tests/helpers/resend";
 import { parseLinkedin } from "./linkedin";
 import type { MailMessage } from "./message";
-import { MAX_BYTES, matches, NotificationError, readNotification, ReceivingClient, resendId, sender } from "./receiving";
+import { assertReceivingUrl, MAX_BYTES, matches, NotificationError, readNotification, ReceivingClient, resendId, sender } from "./receiving";
 import { parseTasker } from "./tasker";
 
 // Plan step 9a: email.utils.getaddresses, resend_preview's identifiers, sender allowlist, subject gates
@@ -84,6 +86,20 @@ describe("read_notification", () => {
       if (!same(failed(got), failed(c.expect)) || !same(calls, c.calls)) bad.push({ c: c.expect, got, calls, want: c.calls });
     }
     expect(bad).toEqual([]);
+  });
+  it("refuses any Resend request but a GET under /emails/receiving (D14)", () => {
+    for (const ok of ["https://api.resend.com/emails/receiving?limit=100", "https://api.resend.com/emails/receiving/4ef9a417-02e9-4d39-ad75-9611e0fcc33c?html_format=cid"]) {
+      expect(() => assertReceivingUrl(ok)).not.toThrow();
+    }
+    for (const bad of ["https://api.resend.com/emails", "https://api.resend.com/emails/batch", "https://api.resend.com/api-keys", "https://api.resend.com/domains",
+      "https://api.resend.com/webhooks", "https://api.resend.com/emails/receivingx", "http://api.resend.com/emails/receiving", "https://evil.test/emails/receiving",
+      "https://api.resend.com.evil.test/emails/receiving", "https://user@api.resend.com/emails/receiving", "https://api.resend.com/emails/receiving/../../api-keys", "not a url"]) {
+      expect(() => assertReceivingUrl(bad), bad).toThrow("Refused Resend request");
+    }
+  });
+  it("is the only product module in web/src that names the Resend API", () => {
+    const files = execSync("grep -rl --exclude='*.test.ts' 'resend.com' src", { cwd: path.resolve(import.meta.dirname, "../../../..") }).toString().trim().split("\n");
+    expect(files).toEqual(["src/modules/collection/mail/receiving.ts"]);
   });
   it("fails a response past 2 MB at fetch", async () => {
     const big = new Uint8Array(MAX_BYTES + 1).fill(0x20);

@@ -51,13 +51,14 @@ The owner is the only developer and the only user. He wants to stop maintaining 
 - **D9** Keep Gmail SMTP for the digest (current transport, measured from `smtp-accepted` receipts); spike 1d must prove Vercel can reach port 465.
 - **D10** Zod schemas are the single contract source. OpenAPI generation is dropped.
 - **D11** During shadow, a daily production copy is loaded into a Neon shadow branch.
+- **D14** (2026-10-25) Mail sources get their shadow run on Vercel with a dedicated full_access Resend key in production env. Resend has no read-only key scope, so this is the one send-capable credential allowed before cutover; it is guarded by code and tests (a runtime allowlist of GET under `/emails/receiving`, one module naming the API) and an exact env key-name allowlist. Rejected: running the TS mail sync on the VM (shadow-only code deleted at cutover) and offline replay only (no natural-mail comparison). Leak response: revoke, then audit API keys, domains and webhooks.
 
 ## Rationale
 
 - **C rather than A or B.** A and B fix deploys and hosting, but the owner chose C to work in one language across UI, API and connectors. Only C, or a later rewrite, delivers that. The cost is rewriting about 10k lines and re-proving 629 tests' behaviour. That cost is effort we choose to spend, not an external constraint. Both independent drafts preferred A or B because they assumed the pain was operations only. That premise was put to the owner on 2026-10-23, and he chose C.
 - **C rather than E.** E pays every serverless cost of C and keeps two languages. It is a waypoint, not an end state.
 - **How the Vercel limits are handled.** Each source runs as its own Workflow step, and spike 1e measures each source on Vercel. A `daily_runs` row claim absorbs duplicate cron fires. A second 12:00 catch-up cron covers missed fires (D5). Trade-off: the digest time moves within 09:00–09:59 on Hobby.
-- **How the double-send and history risks are handled.** Python stays the only writer and sender until cutover. Production env holds no send credentials during shadow. Byte-compatible hashing is proven in spike 1c before any port; if it fails, D4 is revisited.
+- **How the double-send and history risks are handled.** Python stays the only writer and sender until cutover. Production env holds no send credentials during shadow, except the Resend receiving key of D14, which Resend cannot scope to reading. Byte-compatible hashing is proven in spike 1c before any port; if it fails, D4 is revisited.
 - **D4 rather than archiving history.** Re-keying or dropping receipts would make the first post-cutover run treat about 2,200 known jobs as new.
 
 ## Expected Outcome
