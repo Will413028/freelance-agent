@@ -1,7 +1,8 @@
 #!/bin/sh
 # Daily shadow job on the VM (plan steps 4c/4d); runs inside the shadow container.
 #   morning: 08:30 copy of production, loaded into the Neon shadow branch.
-#   after:   10:30 copy after the Python run, compared with the shadow branch after the TS run.
+#   after:   10:30 copy after the Python run, compared with the shadow branch after the TS run, then
+#            the day's digest replayed on that copy (rolled back).
 set -eu
 day=$(TZ=Asia/Taipei date +%F)
 copies=/shadow/copies reports=/shadow/reports
@@ -13,7 +14,11 @@ case "${1:-}" in
     ;;
   after)
     pnpm exec tsx scripts/snapshot.ts --source /data/freelance-agent.sqlite3 --target "$copies/$day-1030.sqlite3"
-    pnpm exec tsx scripts/compare.ts --start "$copies/$day-0830.sqlite3" --python "$copies/$day-1030.sqlite3" --out "$reports" --day "$day"
+    # The replay runs even when the comparator reports differences; either failing fails the job.
+    rc=0
+    pnpm exec tsx scripts/compare.ts --start "$copies/$day-0830.sqlite3" --python "$copies/$day-1030.sqlite3" --out "$reports" --day "$day" || rc=$?
+    pnpm exec tsx scripts/replay-digest.ts --start "$copies/$day-0830.sqlite3" --python "$copies/$day-1030.sqlite3" --out "$reports" --day "$day" || rc=$?
+    exit "$rc"
     ;;
   *) echo "usage: shadow-job.sh morning|after" >&2; exit 2 ;;
 esac

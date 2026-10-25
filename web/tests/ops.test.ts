@@ -5,9 +5,11 @@ import type { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { compareShadow, ranSources } from "@/ops/compare";
 import { converge } from "@/ops/converge";
+import { replayDigest } from "@/verify/replay";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
 import { pool, sqliteWithSchema } from "./helpers/db";
+import { fixture } from "./helpers/golden";
 
 const migrations = path.resolve(import.meta.dirname, "../drizzle");
 const dir = mkdtempSync(path.join(os.tmpdir(), "fa-ops-"));
@@ -184,5 +186,60 @@ describe("snapshot", () => {
     const original = await converge(base, pool, migrations);
     expect(report.tables).toEqual(original.tables);
     expect(() => execFileSync(tsx, [script, "--source", base, "--target", target], { stdio: "pipe" })).toThrow();
+  });
+});
+
+// Plan step 10b: the same-start digest replay, on a Python-shaped copy built from the golden
+// scenario's final tables (gen_golden.py ran create_digest on exactly these rows).
+describe("digest replay", () => {
+  const scenario = fixture<{ scenarios: Record<string, { tables: Record<string, unknown[][]> }> }>("golden.json").scenarios.digest_novelty_and_uncertain_delivery;
+  const pythonCopy = (name: string, tamper = false, tracking = true) => {
+    const file = path.join(dir, name);
+    const lite = sqliteWithSchema(file);
+    const t = scenario.tables;
+    const run = (sql: string, rows: unknown[][]) => { for (const r of rows) lite.prepare(sql).run(...(r as (string | number | null)[])); };
+    run("insert into opportunities values (?,?,?,?)", t.opportunities);
+    run("insert into source_receipts (source, receipt_id, opportunity_id) values (?,?,?)", t.source_receipts);
+    run("insert into source_health (source, status) values (?,?)", t.source_health);
+    if (tracking) {
+      run("insert into opportunity_tracking values (?,?)", t.opportunity_tracking);
+      run("insert into tracking_events values (?,?,?,?,?)", t.tracking_events);
+    }
+    run("insert into discovery_settings values (?,?,?)", t.discovery_settings);
+    t.digest_outbox.forEach(([d, r, snapshot, status, receipt], n) => {
+      // Production has one recipient; the other one's digest of that day cannot affect this one's.
+      if (d === "2026-10-03" && r !== "owner@example.invalid") return;
+      const text = tamper && d === "2026-10-03" && r === "owner@example.invalid" ? (snapshot as string).replace('"unseen_count": 2', '"unseen_count": 3') : snapshot;
+      lite.prepare("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values (?,?,?,?,?,?)").run(`d${n}`, d as string, r as string, text as string, status as string, receipt as string | null);
+    });
+    lite.close();
+    return file;
+  };
+
+  it("rebuilds Python's digest byte for byte and leaves the shadow as it was", async () => {
+    await converge(base, pool, migrations);
+    const before = (await pool.query("select count(*)::int n from opportunities")).rows[0].n;
+    // Only the scenario's last digest was built from its final rows; earlier days saw fewer jobs.
+    const copy = pythonCopy("replay.sqlite3");
+    const report = await replayDigest({ start: copy, python: copy }, pool, "2026-10-03");
+    expect([report.equal, report.firstDifference, report.python!.items]).toEqual([true, null, 2]);
+    expect((await pool.query("select count(*)::int n from opportunities")).rows[0].n).toBe(before);
+    expect((await pool.query("select count(*)::int n from digest_outbox")).rows[0].n).toBe(1);
+  });
+
+  it("reports a differing snapshot and a day without a Python digest", async () => {
+    await converge(base, pool, migrations);
+    const tampered = pythonCopy("replay-tampered.sqlite3", true);
+    const report = await replayDigest({ start: tampered, python: tampered }, pool, "2026-10-03");
+    expect(report.equal).toBe(false);
+    expect(report.firstDifference).toBeGreaterThan(0);
+    const none = pythonCopy("replay-none.sqlite3");
+    expect((await replayDigest({ start: none, python: none }, pool, "2026-11-01")).equal).toBeNull();
+  });
+
+  it("is inconclusive when Will changed a user table between the 08:30 copy and the after-run copy", async () => {
+    await converge(base, pool, migrations);
+    const report = await replayDigest({ start: pythonCopy("replay-0830.sqlite3", false, false), python: pythonCopy("replay-1030.sqlite3") }, pool, "2026-10-03");
+    expect([report.equal, report.userChanges, report.python]).toEqual([null, ["opportunity_tracking", "tracking_events"], null]);
   });
 });

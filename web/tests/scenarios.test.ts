@@ -2,6 +2,8 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { existingSourceIds, ingest, setSourceHealth, sourceBatch, sourcesIn } from "@/modules/collection/public";
 import { readSettings, replaceSettings, settingsDict } from "@/modules/discovery/public";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
+import { claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
+import { createDigest } from "@/services/digest";
 import { feedback, list, memberVersions, track } from "@/services/discovery";
 import { identityHash } from "@/platform/py/json";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
@@ -24,6 +26,7 @@ const TABLES: [string, string, string][] = [
   ["opportunity_tracking", "opportunity_id,state", "opportunity_id"],
   ["tracking_events", "id,opportunity_id,revision,state,created_at", "id"],
   ["discovery_settings", "id,revision,settings", "id"],
+  ["digest_outbox", "local_date,recipient,snapshot,status,delivery_receipt", "local_date,recipient"],
 ];
 
 const refId = (ref: string | string[]) => (typeof ref === "string" ? ref : identityHash(ref));
@@ -67,6 +70,17 @@ async function replay(s: Scenario) {
       preferences: async () => settingsDict(await readSettings(db)),
       sources: async () => sourcesIn(db),
       existing: async () => pySorted(await existingSourceIds(db, op.source)),
+      digest: async () => (await createDigest(db, op.local_date, op.recipient, now)).snapshot,
+      render: async () => {
+        const snap = (await findDigest(db, op.local_date, op.recipient))!.snapshot;
+        return render(asList(snap.req("items")).map(asDict), snap.dict("sources"), { mode: "sqlite", email: op.email ?? false, counts: snap });
+      },
+      deliver: async () => {
+        const intent = (await findDigest(db, op.local_date, op.recipient))!;
+        const claimed = await claimDigest(db, intent.id);
+        if (claimed === null || op.outcome === "attempted") return claimed?.status ?? null;
+        return (await finishDigest(db, intent.id, op.outcome, op.receipt ?? null)).status;
+      },
     };
     results.push(await attemptAsync(async () => encode(await run[op.op]())));
   }

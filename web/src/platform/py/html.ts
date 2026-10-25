@@ -35,6 +35,13 @@ function replaceCharref(s: string): string {
   return "&" + s;
 }
 
+/** html.escape(s, quote=True); a non-str has no replace(), as in Python. */
+export function escape(s: unknown, quote = true): string {
+  if (typeof s !== "string") throw new PyError("AttributeError", "object has no attribute 'replace'");
+  const out = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return quote ? out.replace(/"/g, "&quot;").replace(/'/g, "&#x27;") : out;
+}
+
 /** html.unescape */
 export function unescape(s: string): string {
   if (!s.includes("&")) return s;

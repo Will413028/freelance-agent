@@ -1,6 +1,6 @@
 import { getDb } from "@/db/client";
 import type { SourceDetail } from "@/modules/collection/public";
-import { beginDailyRun, dailySources, finishDailySources, syncDailySource } from "@/services/daily";
+import { beginDailyRun, dailySources, finishDaily, syncDailySource } from "@/services/daily";
 import { syncInOrder } from "./in-order";
 
 // D2-A: one Vercel Cron trigger per slot (D5: 09:00 and 12:00 Asia/Taipei), a durable workflow, one
@@ -12,10 +12,14 @@ export async function dailyWorkflow() {
     console.log(`daily run ${begin.localDate}: ${begin.outcome === "already_run" ? "已有 run" : "not due before 09:00 Asia/Taipei"}`);
     return { ...begin, sources: {} };
   }
+  if (begin.reused) {
+    // run_daily: a digest already built that day is reused, and no source is called again.
+    return { ...begin, status: await finishStep(begin.localDate, begin.startedAt!, null), sources: {} };
+  }
   const sources = await sourcesStep();
   // A step that dies (timeout, crash) never returned its detail; record it as Python's unavailable source.
   const details = await syncInOrder(sources, syncStep, { status: "failed", reason: "source_unavailable" } as SourceDetail);
-  const status = await finishStep(begin.localDate, details);
+  const status = await finishStep(begin.localDate, begin.startedAt!, details);
   return { ...begin, status, sources: Object.fromEntries(Object.entries(details).map(([s, d]) => [s, d.status])) };
 }
 
@@ -37,8 +41,8 @@ async function syncStep(source: string) {
 }
 syncStep.maxRetries = 0;
 
-async function finishStep(localDate: string, details: Record<string, SourceDetail>) {
+async function finishStep(localDate: string, startedAt: string, details: Record<string, SourceDetail> | null) {
   "use step";
-  return finishDailySources(getDb(), localDate, details);
+  return finishDaily(getDb(), localDate, startedAt, details);
 }
 finishStep.maxRetries = 0;

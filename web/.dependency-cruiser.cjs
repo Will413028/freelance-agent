@@ -13,7 +13,15 @@ module.exports = {
       from: { path: "^src/modules/discovery/" },
       to: { path: "^src/modules/(?!discovery/)" },
     },
-    { name: "ops-stand-alone", comment: "Operations tooling reads tables, not product modules.", severity: "error", from: { path: "^src/ops" }, to: { path: "^src/(modules|workflows|app)" } },
+    { name: "ops-stand-alone", comment: "Operations tooling reads tables, not product modules.", severity: "error", from: { path: "^src/ops" }, to: { path: "^src/(modules|workflows|app|services|verify)" } },
+    {
+      name: "verify-runs-only-the-digest",
+      comment: "Verification tools run product code on a copy (the digest replay runs create_digest); nothing else of the product.",
+      severity: "error",
+      from: { path: "^src/verify" },
+      to: { path: "^src/(modules|workflows|app|services)", pathNot: "^src/services/digest\.ts$" },
+    },
+    { name: "product-not-verify", severity: "error", from: { path: "^src/(modules|workflows|app|db|platform|services|ops)" }, to: { path: "^src/verify" } },
     { name: "product-not-ops", severity: "error", from: { path: "^src/(modules|workflows|app|db|platform)" }, to: { path: "^src/ops" } },
     { name: "workflows-not-app", severity: "error", from: { path: "^src/workflows" }, to: { path: "^src/app" } },
     {

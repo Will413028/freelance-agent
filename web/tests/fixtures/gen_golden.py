@@ -20,6 +20,7 @@ from freelance.bootstrap.store import SQLiteStore                      # noqa: E
 from freelance.modules.discovery import domain, rules, ranking         # noqa: E402
 from freelance.modules.collection.store import identity_hash           # noqa: E402
 from freelance.platform.sqlite import encode                           # noqa: E402
+from freelance.modules.notifications.digest import render              # noqa: E402
 from freelance.modules.collection import free_jobs                     # noqa: E402
 from freelance.modules.collection import cryptojobslist, public_feeds   # noqa: E402
 from freelance.modules.collection import community_jobs, getonboard, himalayas  # noqa: E402
@@ -227,6 +228,19 @@ def run_scenario(ops):
                 fn = lambda: encode(store.sources())
             elif kind == 'existing':
                 fn = lambda: encode(sorted(store.existing_source_ids(op['source'])))
+            elif kind == 'digest':
+                fn = lambda: encode(store.create_digest(op['local_date'], op['recipient'], clock[0])['snapshot'])
+            elif kind == 'render':
+                def fn():
+                    snap = store.find_digest(op['local_date'], op['recipient'])['snapshot']
+                    return encode(render(snap['items'], snap['sources'], mode='sqlite', email=op.get('email', False), counts=snap))
+            elif kind == 'deliver':
+                def fn():
+                    intent = store.find_digest(op['local_date'], op['recipient'])
+                    claimed = store.notifications.claim_digest(intent['id'])
+                    if claimed is None or op['outcome'] == 'attempted':
+                        return encode(None if claimed is None else claimed['status'])
+                    return encode(store.notifications.finish_digest(intent['id'], op['outcome'], receipt=op.get('receipt'))['status'])
             else:
                 raise ValueError(kind)
             results.append(attempt(fn))
@@ -240,7 +254,8 @@ def run_scenario(ops):
                     ('source_health', 'source,status', 'source'),
                     ('opportunity_tracking', 'opportunity_id,state', 'opportunity_id'),
                     ('tracking_events', 'id,opportunity_id,revision,state,created_at', 'id'),
-                    ('discovery_settings', 'id,revision,settings', 'id')):
+                    ('discovery_settings', 'id,revision,settings', 'id'),
+                    ('digest_outbox', 'local_date,recipient,snapshot,status,delivery_receipt', 'local_date,recipient')):
                 tables[table] = [list(row.values()) for row in conn.execute(f'SELECT {columns} FROM {table} ORDER BY {order}')]
     return results, tables
 
@@ -352,6 +367,50 @@ SCENARIOS = {
         dict(op='track', ref=['freelancer', '101'], revision=1, kw=dict(feedback='interested')),
         dict(op='ingest', job=job(description='Scope changed again for agent API')),
         dict(op='list'),
+    ],
+    'digest_novelty_and_uncertain_delivery': [
+        dict(op='ingest', job=job()),
+        dict(op='ingest', job=job(external_id='102', kind='hourly', currency='USD', budget_min=None, budget_max=50.5, weekly_hours=7.5,
+                                  taiwan_eligible=None, location='Remote <anywhere>', company=None,
+                                  description='Agent API & tools \U0001f600 ' * 12)),
+        dict(op='ingest', job=job(external_id='103', kind='contract', url='http://insecure.example/x', weekly_hours=None,
+                                  location_evidence='Taiwan "only"', budget_max=None)),
+        dict(op='ingest', job=job(source='tasker', external_id='cross', url='https://www.freelancer.com/projects/example-101')),
+        dict(op='health', source='freelancer', status='ok'), dict(op='health', source='guru', status='failed'),
+        dict(op='track', ref=['freelancer', '101'], revision=0, kw=dict(feedback='interested')),
+        dict(op='digest', local_date='2026-09-28', recipient='owner@example.invalid'),
+        dict(op='render', local_date='2026-09-28', recipient='owner@example.invalid'),
+        dict(op='render', local_date='2026-09-28', recipient='owner@example.invalid', email=True),
+        dict(op='ingest', job=job(external_id='late')),
+        dict(op='digest', local_date='2026-09-28', recipient='owner@example.invalid'),
+        dict(op='digest', local_date='2026-09-28', recipient='other@example.invalid'),
+        dict(op='deliver', local_date='2026-09-28', recipient='owner@example.invalid', outcome='sent'),
+        dict(op='deliver', local_date='2026-09-28', recipient='owner@example.invalid', outcome='sent', receipt='smtp-accepted:x'),
+        dict(op='deliver', local_date='2026-09-28', recipient='other@example.invalid', outcome='sent', receipt='  '),
+        dict(op='clock', now='2026-09-29T01:00:00+00:00'),
+        dict(op='ingest', job=job(external_id='104')),
+        dict(op='ingest', job=job(description='Updated scope: agent API with tests')),
+        dict(op='digest', local_date='2026-09-29', recipient='owner@example.invalid'),
+        dict(op='deliver', local_date='2026-09-29', recipient='owner@example.invalid', outcome='attempted'),
+        dict(op='deliver', local_date='2026-09-29', recipient='owner@example.invalid', outcome='sent', receipt='again'),
+        dict(op='clock', now='2026-09-30T01:00:00.5+00:00'),
+        dict(op='ingest', job=job(external_id='105')),
+        dict(op='digest', local_date='2026-09-30', recipient='owner@example.invalid'),
+        dict(op='deliver', local_date='2026-09-30', recipient='owner@example.invalid', outcome='unknown'),
+        dict(op='clock', now='2026-10-01T01:00:00+00:00'),
+        dict(op='ingest', job=job(external_id='106')),
+        dict(op='digest', local_date='2026-10-01', recipient='owner@example.invalid'),
+        dict(op='clock', now='2026-10-02T01:00:00+00:00'),
+        dict(op='digest', local_date='2026-10-02', recipient='owner@example.invalid'),
+        dict(op='deliver', local_date='2026-10-02', recipient='owner@example.invalid', outcome='unknown'),
+        dict(op='clock', now='2026-10-03T01:00:00+00:00'),
+        dict(op='digest', local_date='2026-10-03', recipient='other@example.invalid'),
+        dict(op='ingest', job=job(external_id='107', title='Agent API 整合 😀', weekly_hours=12.5)),
+        dict(op='ingest', job=job(external_id='102', kind='hourly', currency='USD', budget_min=None, budget_max=60, weekly_hours=7.5,
+                                  taiwan_eligible=None, location='Remote <anywhere>', company=None, description='Changed hourly agent API')),
+        dict(op='track', ref=['freelancer', '107'], revision=0, kw=dict(feedback='interested')),
+        dict(op='digest', local_date='2026-10-03', recipient='owner@example.invalid'),
+        dict(op='render', local_date='2026-10-03', recipient='owner@example.invalid'),
     ],
     'source_batch': [
         dict(op='batch', source='tasker', items=[[job(source='tasker', external_id='one'), 'receipt-one']], finish='ok'),
@@ -2619,6 +2678,102 @@ def failure_reasons():
     return out
 
 
+def digest_render_golden():
+    """Plan step 10b: notifications/digest.py render() branches on synthetic items. The base items come
+    from a real create_digest snapshot; variants add content conflicts, a display basis and odd values."""
+    import copy
+    with tempfile.TemporaryDirectory() as tmp:
+        store = SQLiteStore(Path(tmp) / 'golden.db', clock=lambda: NOW)
+        store.migrate()
+        store.ingest(job())
+        store.ingest(job(external_id='202', kind='hourly', currency='USD', budget_min=12, budget_max=40, weekly_hours=20))
+        store.ingest(job(external_id='203', kind='mystery', weekly_hours=0.25, location='台北 & remote'))
+        store.set_source_health('freelancer', 'ok')
+        snap = store.create_digest('2026-09-28', 'owner@example.invalid', NOW)['snapshot']
+        listed = store.list()
+    items, sources = snap['items'], snap['sources']
+    conflict = copy.deepcopy(items)
+    first = conflict[0]
+    other = copy.deepcopy(first['job']) | dict(title='Other <title>', budget_max=9000.0, taiwan_eligible=False, url='https://u:p@x.example/',
+                                                 description='長' * 200, kind=['list'], weekly_hours={'min': 5}, company='', location=None)
+    first['content_conflicts'] = [dict(source='freelancer', external_id='101', changed_fields=[
+        'title', 'budget_max', 'taiwan_eligible', 'url', 'description', 'kind', 'weekly_hours', 'company', 'location', 'unlisted_field'],
+        versions=[dict(fingerprint=first['fingerprint'], job=first['job'], evaluation=first['evaluation'], original=True),
+                  dict(fingerprint='f' * 64, job=other, evaluation=dict(first['evaluation'], status='excluded'), original=False),
+                  dict(fingerprint='e' * 64, job=dict(first['job'], url='https://elsewhere.example/job?a=1&b="2"'), evaluation=first['evaluation'], original=False)])]
+    first['display_basis'] = dict(source='tasker', label='通知內容', fingerprint='abc' * 10)
+    fresh = copy.deepcopy(items)
+    for item, freshness in zip(fresh, ('week', 'older', 'bogus')):
+        item.setdefault('recommendation', {})['freshness'] = freshness
+    fresh[0]['tracking'] = dict(feedback='interested')
+    edge = copy.deepcopy(items)
+    edge[0]['job'].update(description='x' * 179 + '\U0001f600', taiwan_eligible='yes', company=0, location_evidence=0, location='Remote')
+    edge[1]['job'].update(description='y' * 180 + '\U0001f600', currency='', weekly_hours=10 ** 20)
+    edge[2]['job'].update(budget_min=True, budget_max=float('nan'), weekly_hours=1e-05, description=None)
+    unhashable = copy.deepcopy(items)
+    unhashable[0]['job']['kind'] = ['fixed']
+    odd_sources = dict(sources, extra='bogus', freelancer='demo')
+    cases = [
+        dict(items=items, sources=sources, mode='sqlite', email=False, counts=snap),
+        dict(items=items, sources=sources, mode='postgres', email=False, counts=None),
+        dict(items=items, sources=sources, mode='demo', email=False, counts=None),
+        dict(items=items, sources=sources, mode='demo', email=True, counts=None),
+        dict(items=items, sources=sources, mode='bogus', email=False, counts=None),
+        dict(items=items, sources=sources, mode='sqlite', email=True, counts={}),
+        dict(items=conflict, sources=sources, mode='sqlite', email=True, counts=snap),
+        dict(items=fresh, sources=odd_sources, mode='sqlite', email=False, counts=dict(snap, unseen_count=2.9, suppressed_count=True)),
+        dict(items=listed, sources=sources, mode='sqlite', email=False, counts=snap),
+        dict(items=unhashable, sources=sources, mode='sqlite', email=False, counts=None),
+        dict(items=edge, sources=sources, mode='sqlite', email=False, counts=None),
+        dict(items=[], sources={}, mode='sqlite', email=False, counts=None),
+    ]
+    return [dict(input={k: tag(v) for k, v in c.items()},
+                 expect=attempt(lambda: render(c['items'], c['sources'], mode=c['mode'], email=c['email'], counts=c['counts'])))
+            for c in cases]
+
+
+DAILY_SOURCES = {
+    'ok': {'status': 'ok', 'reason': None, 'jobicy': {'status': 'ok', 'seen': 3, 'jobs': 1, 'scope': 'latest_200_public_listings'},
+           'cake': {'status': 'waiting', 'reason': 'no_matching_notification', 'error_stages': {}}},
+    'failed': {'status': 'failed', 'reason': 'one_or_more_sources_failed', 'jobicy': {'status': 'ok', 'seen': 0, 'jobs': 0},
+               'remotive': {'status': 'failed', 'reason': 'public_feed_unavailable_or_unsupported'}},
+    'reused': None,
+    'render_fails': {'status': 'ok', 'reason': None},
+}
+# A list kind passes intake (needs_info) but render() cannot hash it: the run fails, the digest stays.
+DAILY_JOBS = {'render_fails': job(kind=['fixed'])}
+
+
+def daily_run_golden():
+    """Plan step 10b: notifications/daily.py run_daily with an injected source result. `output` is a
+    file path TS does not write and intent_id is a random UUID, so both are left out of the result."""
+    from contextlib import nullcontext
+    from freelance.modules.notifications.daily import run_daily
+    out = {}
+    for name, source in DAILY_SOURCES.items():
+        with tempfile.TemporaryDirectory() as tmp:
+            store = SQLiteStore(Path(tmp) / 'golden.db', clock=lambda: NOW)
+            store.migrate()
+            store.ingest(DAILY_JOBS.get(name, job()))
+            store.set_source_health('freelancer', 'ok')
+            if source is None:
+                store.create_digest('2026-09-28', 'owner@example.invalid', NOW)
+
+            def sync(client, repository):
+                assert source is not None, 'a reused digest must not call the sources'
+                return source
+            returned = run_daily(store, nullcontext, recipient=' Owner@Example.invalid ', output_dir=tmp, now=NOW, source_sync=sync)
+            row = store.get_daily_run('2026-09-28', 'owner@example.invalid')
+            result = {k: v for k, v in row['result'].items() if k != 'output'}
+            intent = store.find_digest('2026-09-28', 'owner@example.invalid')
+            assert result.get('intent_id', intent['id']) == intent['id'] and returned['status'] == result['status']
+            if 'intent_id' in result:
+                result['intent_id'] = 'INTENT'
+            out[name] = dict(source=tag(source), job=tag(DAILY_JOBS.get(name, job())), now=NOW.isoformat(), status=row['status'], started_at=row['started_at'], finished_at=row['finished_at'],
+                             result=encode(result), snapshot=encode(intent['snapshot']))
+    return out
+
+
 def main():
     golden = {
         'python': sys.version,
@@ -2662,6 +2817,8 @@ def main():
         **mail_golden(),
         **mail9b_golden(),
         'failure_reasons': failure_reasons(),
+        'digest_render': digest_render_golden(),
+        'daily_run': daily_run_golden(),
     }
     for name, ops in SCENARIOS.items():
         results, tables = run_scenario(ops)

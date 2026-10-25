@@ -229,7 +229,7 @@ Repo 層級腳本（不是 package 入口）：`scripts/check_boundaries.py`、`
 | item | where (file:line) | what it does in one line | 去向 |
 |---|---|---|---|
 | SqliteHuey queue | bootstrap/queue.py:24 | `SqliteHuey('freelance', filename=queue.sqlite, results=False)`，檔案必須是 owner-only 0600 | 取代：Vercel Workflows（D2）；run 狀態在 Postgres `daily_runs` |
-| `daily(day)` task | bootstrap/queue.py:26 | retries=0；`due_date(now) != day` 時回 `expired_trigger`，不補跑跨日 | 取代：web/src/bootstrap/daily-workflow.ts 的 workflow，入口驗 `dueDate(now) == day`，跨日不補（D2、D5），步驟 5 |
+| `daily(day)` task | bootstrap/queue.py:26 | retries=0；`due_date(now) != day` 時回 `expired_trigger`，不補跑跨日 | 取代：web/src/workflows/daily.ts 的 workflow；日期取自 claim step 執行當下（`beginDailyRun`），沒有排隊的日期參數，跨日不補（D2、D5），步驟 5、10b |
 | `tick` periodic | bootstrap/queue.py:32 | `crontab(minute='*')`，台北 09:00 後每分鐘入列 `daily(today)` | 取代：Vercel Cron 09:00 與 12:00 兩支（D5），步驟 5 |
 | `due_date` | bootstrap/queue.py:10 | Asia/Taipei，hour ≥ 9 才回日期 | 改寫：web/src/modules/notifications/schedule.ts `dueDate`（Asia/Taipei、hour ≥ 9）；步驟 5 |
 | `submission_v1` task | bootstrap/queue.py:42 | retries=0；payload 必須剛好是 `{schema_version:1, intent_id}`，否則回 `unsupported_task` | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7）；屆時用 Workflows step，不沿用 Huey（D2） |
@@ -248,9 +248,9 @@ Repo 層級腳本（不是 package 入口）：`scripts/check_boundaries.py`、`
 | item | where (file:line) | what it does in one line | 去向 |
 |---|---|---|---|
 | ∅ → running | modules/notifications/store.py:112-115（claim_daily_run，`INSERT ... ON CONFLICT DO NOTHING`） | 同日同收件者只會有一個 claim；claim 不到就回 `already_run` | 改寫：web/src/modules/notifications/daily-runs.ts `claimDailyRun`（`INSERT … ON CONFLICT DO NOTHING`）；步驟 5 |
-| claim 呼叫點 | modules/notifications/daily.py:37 | 搶不到 claim 時回 `{'status':'already_run','run_status':...}` | 改寫：web/src/app/api/cron/daily/route.ts 入口，搶不到回 already_run；步驟 5 |
+| claim 呼叫點 | modules/notifications/daily.py:37 | 搶不到 claim 時回 `{'status':'already_run','run_status':...}` | 改寫：web/src/services/daily.ts `beginDailyRun`（workflow 的 claim step），搶不到回 already_run；步驟 5 |
 | running → complete／failed | modules/notifications/store.py:127-133（`WHERE status='running'`） | 寫入 result JSON 與 finished_at | 改寫：daily-runs.ts `finishDailyRun`（`WHERE status='running'`）；步驟 10 |
-| finish 呼叫點 | modules/notifications/daily.py:97 | 來源 ok 或沿用既有 digest 時為 complete；來源失敗、寄送非 sent、例外時為 failed | 改寫：web/src/bootstrap/daily-workflow.ts 最後一個 step；步驟 10 |
+| finish 呼叫點 | modules/notifications/daily.py:97 | 來源 ok 或沿用既有 digest 時為 complete；來源失敗、寄送非 sent、例外時為 failed | 改寫：web/src/services/daily.ts `finishDaily`（web/src/workflows/daily.ts 最後一個 step），result 同 `run_daily` 但沒有 `output`、`finished_at` 記實際完成時間；步驟 10a、10b |
 | running 卡住 | （沒有轉移） | 程序中斷會留下 running，只能人工核對，沒有自動重跑（docs/compose.md:46） | 改寫：維持沒有自動轉移（AGENTS.md：中斷的 run 不自動重試）；web/src/app/ops/recovery/page.tsx 列出卡住的 run 供人工核對；步驟 10 |
 
 ### 5c. digest_outbox 狀態機
@@ -259,12 +259,12 @@ Repo 層級腳本（不是 package 入口）：`scripts/check_boundaries.py`、`
 
 | item | where (file:line) | what it does in one line | 去向 |
 |---|---|---|---|
-| ∅ → pending | modules/notifications/store.py:54-75（create_digest） | 同日已有就回既有的；否則算 candidates，扣掉 sent／attempted／unknown 歷史 snapshot 的 novelty 後 INSERT | 改寫：web/src/modules/notifications/outbox.ts `createDigest`（novelty 用 canonical-json，snapshot 存 text）；步驟 10 |
-| pending → attempted | modules/notifications/store.py:93-97（claim_digest，`WHERE status='pending'`） | 送出前先提交 attempt | 改寫：outbox.ts `claimDigest`（`WHERE status='pending'`）；步驟 10 |
-| attempted → sent／unknown | modules/notifications/store.py:101-108（finish_digest，`WHERE status='attempted'`） | sent 必須有 receipt | 改寫：outbox.ts `finishDigest`（sent 必須有 receipt）；步驟 10 |
+| ∅ → pending | modules/notifications/store.py:54-75（create_digest） | 同日已有就回既有的；否則算 candidates，扣掉 sent／attempted／unknown 歷史 snapshot 的 novelty 後 INSERT | 改寫：web/src/services/digest.ts `createDigest`／`createDigestIn`（組合 discovery 的 `listIn`）＋web/src/modules/notifications/outbox.ts `insertDigestIn`（novelty、snapshot 存 text）；同一起點的驗證是 web/src/verify/replay.ts＋web/scripts/replay-digest.ts；步驟 10b |
+| pending → attempted | modules/notifications/store.py:93-97（claim_digest，`WHERE status='pending'`） | 送出前先提交 attempt | 改寫：outbox.ts `claimDigest`（`WHERE status='pending'`）；步驟 10b（程式）、10c（寄送接上） |
+| attempted → sent／unknown | modules/notifications/store.py:101-108（finish_digest，`WHERE status='attempted'`） | sent 必須有 receipt | 改寫：outbox.ts `finishDigest`（sent 必須有 receipt）；步驟 10b（程式）、10c（寄送接上） |
 | 送出編排 | modules/notifications/scheduler.py:20-39（dispatch） | claim → sender（在交易外）→ 沒有 message_id 或拋例外就標 unknown | 改寫：web/src/modules/notifications/dispatch.ts，寄送 step `maxRetries = 0`（D2、spike 1b）；步驟 10 |
 | 寄送 adapter | modules/notifications/resend_delivery.py:65、gmail_smtp.py:22、gmail_send.py:107、resend_send.py:70 | 都經過 `scheduler.dispatch` | 改寫：只改寫 gmail_smtp → web/src/modules/notifications/gmail-smtp.ts（D9），`build_message` → notifications/mime.ts；resend_delivery、resend_send、gmail_send 的送出部分刪除（D9）；步驟 10 |
-| daily 內寄送 | modules/notifications/daily.py:68-92、bootstrap/jobs.py:7-36 | worker 依 `live_send` 加 `sender`（Resend）或 `smtp_config` 二選一 | 改寫：daily-workflow.ts 的寄送 step，只有 SMTP 一條（D9）；shadow 期缺憑證，結構上無法寄出；步驟 10 |
+| daily 內寄送 | modules/notifications/daily.py:68-92、bootstrap/jobs.py:7-36 | worker 依 `live_send` 加 `sender`（Resend）或 `smtp_config` 二選一 | 改寫：web/src/workflows/daily.ts 的寄送 step，只有 SMTP 一條（D9）；shadow 期缺憑證，結構上無法寄出；步驟 10 |
 
 ### 5d. submission_intents 狀態機
 
@@ -296,7 +296,7 @@ Backend：74 個測試檔，629 個 `def test_`（`rg -c "def test_" backend/tes
 | test_applications_http.py (2) | bootstrap/ | 投案 HTTP | 改寫：web/src/modules/applications/actions.test.ts；步驟 11 |
 | test_applications.py (11) | bootstrap/ | applications 用例（冪等、revision、tokens） | 改寫：web/src/modules/applications/store.test.ts（冪等、revision、tokens）；步驟 11 |
 | test_architecture.py (10) | bootstrap/ | 模組邊界與組裝 | 取代：dependency-cruiser 規則（計畫前提「工具鏈預設」），步驟 3 接進 CI |
-| test_daily_delivery.py (5) | bootstrap/ | daily 加寄送 | 改寫：web/src/bootstrap/daily-workflow.test.ts（daily 加寄送）；步驟 10 |
+| test_daily_delivery.py (5) | bootstrap/ | daily 加寄送 | 改寫：web/tests/daily.test.ts（daily 加寄送）；步驟 10c |
 | test_gmail_postgres.py (4) | bootstrap/ | legacy Gmail 加 Postgres 路徑 | 刪除：Gmail 路徑 dormant、舊 PG adapter 不改寫（D8） |
 | test_huey_runner.py (4) | bootstrap/ | Huey queue／tick／expired | 取代：Vercel Cron＋Workflows（D2、D5）；其中「過期日期不執行」案例移到 schedule.test.ts（步驟 5） |
 | test_linkedin_receiving.py (6) | bootstrap/ | LinkedIn Resend 接收 | 改寫：web/src/modules/collection/mail/linkedin.test.ts；步驟 9 |
@@ -304,7 +304,7 @@ Backend：74 個測試檔，629 個 `def test_`（`rg -c "def test_" backend/tes
 | test_optimization.py (15) | bootstrap/ | 查詢與投影效能／行為 | 改寫：依案例分到 web/src/modules/discovery（步驟 4b）、preferences（步驟 4b）、applications（步驟 11）的 *.test.ts；CLI 案例隨 cli 刪除 |
 | test_proposals.py (9) | bootstrap/ | 模板與草稿 | 改寫：web/src/modules/proposals/store.test.ts；步驟 11 |
 | test_relationships.py (10) | bootstrap/ | 客戶與聯絡人 | 改寫：web/src/modules/relationships/store.test.ts；步驟 11 |
-| test_resend_daily.py (19) | bootstrap/ | Resend daily 流程 | 改寫：web/src/modules/collection/mail/*.test.ts（步驟 9）與 daily-workflow.test.ts（步驟 10） |
+| test_resend_daily.py (19) | bootstrap/ | Resend daily 流程 | 改寫：web/src/modules/collection/mail/*.test.ts（步驟 9）與 web/tests/daily.test.ts（步驟 10） |
 | test_server_sqlite.py (1) | bootstrap/ | 真 SQLite server | 取代：CI 的 Postgres service container 上跑 Vitest（步驟 3） |
 | test_server.py (6) | bootstrap/ | LocalBoundary／server | 改寫：web/src/shared/http/guard.test.ts（Origin、body 上限、回應標頭；見計畫缺口 4）；步驟 11 |
 | test_sqlite.py (21) | bootstrap/ | SQLite store、migrate、交易 | 改寫：web/src/platform/db/*.test.ts（交易、約束、trigger 案例）；migrate 案例由 Drizzle 取代；步驟 4a |
@@ -324,7 +324,7 @@ Backend：74 個測試檔，629 個 `def test_`（`rg -c "def test_" backend/tes
 | test_antigravity.py (8) | legacy/ | 舊 CLI 擬稿 | 刪除：legacy 擬稿不改寫（D8） |
 | test_postgres.py (17) | legacy/ | Postgres adapter（需 `FREELANCE_TEST_DSN`，空值時跳過） | 刪除：舊 PG adapter 不改寫（D8） |
 | test_review.py (11) | legacy/ | 歷史 review 與核准失效 | 改寫：web/src/modules/legacy/review.test.ts，11 個案例全部移植（D8）；步驟 11 |
-| test_daily.py (11) | backend/tests/notifications/ | daily run 狀態機 | 改寫：web/src/bootstrap/daily-workflow.test.ts 與 daily-runs.test.ts；claim 案例步驟 5，其餘步驟 10 |
+| test_daily.py (11) | backend/tests/notifications/ | daily run 狀態機 | 改寫：web/tests/daily.test.ts（claim、run_daily 的 golden 情境）；claim 案例步驟 5，其餘步驟 10b、10c |
 | test_digest.py (7) | notifications/ | 摘要渲染與 novelty | 改寫：web/src/modules/notifications/digest.test.ts（渲染與 novelty）；步驟 10 |
 | test_gmail_send.py (10) | notifications/ | Gmail API 寄送 | 刪除：Gmail API 寄送 dormant（D9）；其中 MIME 建構的案例移到 web/src/modules/notifications/mime.test.ts（步驟 10） |
 | test_gmail_smtp.py (5) | notifications/ | SMTP 寄送 | 改寫：web/src/modules/notifications/gmail-smtp.test.ts；步驟 10 |
