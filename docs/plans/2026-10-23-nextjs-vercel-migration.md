@@ -619,7 +619,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
-| 1 Spike | 進行中 | 1a、1b、1e 成立；1c 合成 707/707；1c 正式副本（2026-10-24，VM 容器內）：職缺 ID 與指紋 2,226/2,226、信件內容版本 6/6、摘要 snapshot 37/37 round-trip（submission 0 筆，HP4 無列可驗）；1d 連線成立（`spikes.md`） | 1d 實寄已跑（2026-10-26，iad1，Gmail 接受 1／拒收 0、登入 225 ms，`spikes.md`）；Will 確認收到兩封、顯示正常 | |
+| 1 Spike | 進行中 | 1a、1b、1e 成立；1c 合成 707/707；1c 正式副本（2026-10-24，VM 容器內）：職缺 ID 與指紋 2,226/2,226、信件內容版本 6/6、摘要 snapshot 37/37 round-trip（submission 0 筆，HP4 無列可驗）；1d 連線成立（`spikes.md`）；1f（2026-10-26，`spikes.md` §1f）：HTTP batch 原子、BEGIN 一律被拒、守衛語句與 trigger 可讓整批回滾、iad1 單請求 p95 60–90 ms、最大 batch p95 ≤ 640 ms，撤回觸發都沒成立；逐句移植會超過 REST 上限，要按來源批次合併；shadow 全刪全載約佔每日寫入額度 35–45% | 1d 實寄已跑（2026-10-26，iad1，Gmail 接受 1／拒收 0、登入 225 ms，`spikes.md`）；Will 確認收到兩封、顯示正常 | |
 | 2 盤點去向 | 完成 | `check_inventory.py` exit 0（243＋29 列、20 項缺陷）；改一列為 TBD 時 exit 非 0；6 個計畫缺口已補進步驟 5、10、11、13 | `--residue` 要到步驟 14 才跑 | |
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
 | 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
