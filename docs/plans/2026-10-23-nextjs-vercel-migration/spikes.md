@@ -62,7 +62,7 @@ json-parse 668、tolower 695、utf16-length 705、raw-nfkc 705（都是 /707，�
 spike-1d {"delivery":"accepted","accepted":1,"rejected":0,"bytes":1892,"sha256":"8449612eb79c70c95737704c6c072d37f8096dbd3cf701aa1ee99fb7a4426aef","loginMs":225,"totalMs":582,"region":"iad1"}
 ```
 
-  第一次觸發（12:45）handler 還沒有 log，回 200 但看不到結果，所以加 log 後再觸發一次（12:46）；信箱可能有兩封相同的合成信。之後兩個 env 從 spike 移除並重新部署，再觸發回 `{"delivery":"not_configured"}`。還沒確認：Gmail 收件匣裡實際收到、顯示正常（要 Will 看）。
+  第一次觸發（12:45）handler 還沒有 log，回 200 但看不到結果，所以加 log 後再觸發一次（12:46）；信箱可能有兩封相同的合成信。之後兩個 env 從 spike 移除並重新部署，再觸發回 `{"delivery":"not_configured"}`。收件匣：Will 2026-10-26 確認收到兩封、顯示正常。
 
 ## 1e 出口與時間：只有 PTT 被擋
 
