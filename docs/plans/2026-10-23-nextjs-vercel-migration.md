@@ -54,7 +54,7 @@
   另外 Python 的 `sort_keys` 依 code point 排序，JS 預設依 UTF-16 排序。（讀程式得出 → spike 1c）
 - `legacy/records.py` 與 legacy 欄位 `review_status` 仍在正式的收案、回饋與候選判斷路徑上。（來源：`inventory-surface.md` §7；讀程式得出）
 - 正式資料量：2,226 筆 opportunities、2,303 筆 source_receipts（2026-10-23 唯讀查正式 DB，量到；`docs/implementation-plan.md:20` 的 708／726 是 9/28 的舊數字）；DB 檔 22.9 MB（量到）。
-- 環境（2026-10-23 建立）：Vercel 專案 `freelance-agent`（iad1，Deployment Protection All）；Neon 專案 `freelance-agent`（`fancy-water-44947465`，aws-us-east-1，branch `main`、`dev`；preview 用 `dev`）。spike 專案 `freelance-agent-spike` 在 1d 完成後刪除。
+- 環境（2026-10-23 建立）：Vercel 專案 `freelance-agent`（iad1，Deployment Protection All）；Neon 專案 `freelance-agent`（`fancy-water-44947465`，aws-us-east-1，branch `main`、`dev`；preview 用 `dev`）。spike 專案 `freelance-agent-spike` 已於 2026-10-26 1d 完成後刪除（Will 授權；`vercel project ls` 只剩 `freelance-agent`）。
 - 工具鏈預設（可推翻）：
   - Next.js 16 App Router、TypeScript、pnpm，沿用 `frontend/` 的版本鎖定。
   - ORM 用 Drizzle，搭版本化的 migration；不用 SQLite 那種「整份 `IF NOT EXISTS` 重跑」。
