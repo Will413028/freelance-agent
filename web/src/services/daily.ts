@@ -1,11 +1,11 @@
 import type { Db } from "@/db/client";
 import { detailDict, enabledSources, FAILURE_REASON, runSource, RUNNERS, succeeded, type SourceDetail, type SourceRunner } from "@/modules/collection/public";
-import { claimDailyRun, dailyRecipient, findDigest, finishDailyRun, render, taipeiLocal } from "@/modules/notifications/public";
+import { buildMessage, claimDailyRun, dailyRecipient, deliver, findDigest, finishDailyRun, gmailOpener, messageSha256, smtpPassword, taipeiLocal, type SmtpOpener } from "@/modules/notifications/public";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
-import { asDict, asList, pyGet, PyDict, type PyValue } from "@/platform/py/value";
+import { asList, pyGet, PyDict, type PyValue } from "@/platform/py/value";
 import { createDigest } from "./digest";
 
-// The daily run of notifications/daily.py:run_daily, minus delivery (plan step 10c). Each function
+// The daily run of notifications/daily.py:run_daily, delivery included (plan step 10c). Each function
 // is one workflow step: inputs and outputs carry only dates, source ids, statuses and counts; the
 // recipient is read from the environment inside the step. As in Python, the claim time is the run's
 // `now` for the digest (generated_at, freshness); finished_at is the actual finish time, unlike
@@ -41,14 +41,24 @@ export function sourceDetails(details: Record<string, SourceDetail>): PyDict {
     ...Object.entries(details).map(([s, d]) => [s, detailDict(d)] as [string, PyDict])]);
 }
 
+export type DeliveryOutcome = "not_configured" | "pending" | "attempted" | "sent" | "unknown" | "existing_snapshot_requires_review" | "send_preflight_failed";
+
+const configuredOpener = (): SmtpOpener | null => {
+  const password = smtpPassword();
+  return password === null ? null : gmailOpener(password);
+};
+
 /**
- * run_daily after the sources: build (or reuse) the day's digest, check that it renders, and finish
- * the claimed run. `details` is null when the claim found an existing digest. Any failure finishes
- * the run as daily_processing_failed, never leaving it running.
+ * run_daily after the sources: build (or reuse) the day's digest and its message, send it when
+ * delivery is configured, and finish the claimed run. `details` is null when the claim found an
+ * existing digest. Any failure finishes the run as daily_processing_failed, never leaving it running;
+ * a process that dies after the claim leaves the run running and the digest attempted, for a person
+ * to reconcile (no automatic retry: the workflow step has maxRetries 0).
  */
-export async function finishDaily(db: Db, localDate: string, startedAt: string, details: Record<string, SourceDetail> | null): Promise<"complete" | "failed"> {
+export async function finishDaily(db: Db, localDate: string, startedAt: string, details: Record<string, SourceDetail> | null,
+  open: SmtpOpener | null = configuredOpener()): Promise<{ status: "complete" | "failed"; delivery: DeliveryOutcome }> {
   const now = fromisoformat(startedAt), recipient = dailyRecipient();
-  let status: "complete" | "failed", result: PyDict;
+  let status: "complete" | "failed", result: PyDict, delivery: DeliveryOutcome = open ? "pending" : "not_configured";
   try {
     const reused = details === null;
     const existing = reused ? await findDigest(db, localDate, recipient) : null;
@@ -58,10 +68,9 @@ export async function finishDaily(db: Db, localDate: string, startedAt: string, 
       : sourceDetails(details!);
     const intent = existing ?? await createDigest(db, localDate, recipient, now);
     const snapshot = intent.snapshot;
-    // Python writes this HTML to a preview file and fails the run when it cannot; TS keeps only the
-    // failure (a list `kind` passes intake but not render). Replaced by building the delivery
-    // message itself once step 10c wires delivery into this function.
-    render(asList(snapshot.req("items")).map(asDict), snapshot.dict("sources"), { mode: "sqlite", counts: snapshot });
+    // Built even when not sending: Python fails the run when the preview cannot render (a list
+    // `kind` passes intake but not render), and the message contains that render.
+    const raw = buildMessage(snapshot, intent.id, recipient);
     result = new PyDict([
       ["status", reused ? "existing_digest" : source.at("status") === "ok" ? "digest_ready" : "source_failed"],
       ["local_date", localDate], ["intent_id", intent.id],
@@ -69,10 +78,29 @@ export async function finishDaily(db: Db, localDate: string, startedAt: string, 
       ["candidates", BigInt(asList(snapshot.req("items")).length)], ["delivery_status", intent.status],
     ] as [string, PyValue][]);
     status = reused || source.at("status") === "ok" ? "complete" : "failed";
+    if (open) {
+      if (reused) {
+        // A reused snapshot was built by an earlier, interrupted run; a person decides whether to send it.
+        delivery = "existing_snapshot_requires_review";
+        result.set("delivery_error", delivery);
+        status = "failed";
+      } else {
+        try {
+          const delivered = await deliver(db, intent.id, recipient, messageSha256(raw), open);
+          delivery = delivered.status as DeliveryOutcome;
+          result.set("delivery_status", delivered.status);
+          if (delivered.status !== "sent") status = "failed";
+        } catch {
+          delivery = "send_preflight_failed";
+          result.set("delivery_error", delivery);
+          status = "failed";
+        }
+      }
+    }
   } catch {
     status = "failed";
     result = PyDict.of({ status: "failed", local_date: localDate, reason: "daily_processing_failed" });
   }
   await finishDailyRun(db, localDate, recipient, status, result, PyDateTime.now());
-  return status;
+  return { status, delivery };
 }

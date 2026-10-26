@@ -14,13 +14,13 @@ export async function dailyWorkflow() {
   }
   if (begin.reused) {
     // run_daily: a digest already built that day is reused, and no source is called again.
-    return { ...begin, status: await finishStep(begin.localDate, begin.startedAt!, null), sources: {} };
+    return { ...begin, ...await finishStep(begin.localDate, begin.startedAt!, null), sources: {} };
   }
   const sources = await sourcesStep();
   // A step that dies (timeout, crash) never returned its detail; record it as Python's unavailable source.
   const details = await syncInOrder(sources, syncStep, { status: "failed", reason: "source_unavailable" } as SourceDetail);
-  const status = await finishStep(begin.localDate, begin.startedAt!, details);
-  return { ...begin, status, sources: Object.fromEntries(Object.entries(details).map(([s, d]) => [s, d.status])) };
+  const finished = await finishStep(begin.localDate, begin.startedAt!, details);
+  return { ...begin, ...finished, sources: Object.fromEntries(Object.entries(details).map(([s, d]) => [s, d.status])) };
 }
 
 async function claimStep() {
@@ -41,7 +41,9 @@ async function syncStep(source: string) {
 }
 syncStep.maxRetries = 0;
 
-async function finishStep(localDate: string, startedAt: string, details: Record<string, SourceDetail> | null) {
+// Builds the digest and sends it once when delivery is configured (plan step 10c). A retry could send
+// a second time after an uncertain first attempt, so the step must never be retried.
+export async function finishStep(localDate: string, startedAt: string, details: Record<string, SourceDetail> | null) {
   "use step";
   return finishDaily(getDb(), localDate, startedAt, details);
 }
