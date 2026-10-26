@@ -1,5 +1,7 @@
 # D20、D21 選項簡報 v2.1（2026-10-26；v1 審查 14 項與 v2 二審 11 項逐項處理後，交 Will 拍板）
 
+**拍板（2026-10-26，Will）**：D21 走 REST、用免費方案（不開 Workers Paid；converge 先 drop table 全載，4e5 增量 converge 在 45% 前接手）、切換後 CI 與正式同一個 Cloudflare 帳號。D20：Will 問「個人用的怎麼做比較適合」，回答 B，待確認。步驟 4e 已拆成 4e1–4e5。
+
 Repo `/Users/will/second-brain/.projects/personal/freelance-agent`（main），計畫 `docs/plans/2026-10-23-nextjs-vercel-migration.md`（D19–D21、步驟 4e、10e1、10e2），spike 結果 `spikes.md` §1f 與「1f 補充」。v1 的建議（資料層通用樂觀並行 A2、REST、增量 converge）被審查推翻的部分見文末兩張處置表。
 
 ## 前提題

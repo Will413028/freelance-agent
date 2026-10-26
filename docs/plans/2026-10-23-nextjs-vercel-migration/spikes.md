@@ -139,3 +139,4 @@ spike-1d {"delivery":"accepted","accepted":1,"rejected":0,"bytes":1892,"sha256":
 | 10-25 → 10-26 | 219 | 34 | 0 | daily_runs +1、digest_outbox +1、mail_ingestion +10、mail_sync_state 改 6、opportunities +103／改 1、source_health 改 27、source_receipts +104 |
 
   10-26 副本的列數：opportunities 2,395、source_receipts 2,475、mail_ingestion 257、digest_outbox 39。已有職缺幾乎不被改寫（每天 1–2 列）。
+- **`/raw` 端點與大小上限**（2026-10-26 晚，Mac → spike D1，暫用表 `zz_big`，測完已 drop）：`POST …/raw` 帶 `batch` 時每個結果是 `{results: {columns, rows: [[…]]}, meta: {changes, rows_written, rows_read, total_attempts, …}}`，rows 是陣列。約束失敗與交易語句都回 HTTP 400、`code` 7500，只能靠訊息區分（`SQLITE_CONSTRAINT…` 與「To execute a transaction…」）。一個 batch 送 2.0 MB（11 句）、5.1 MB（28 句）、10.1 MB（56 句，每句 100 個參數、50 列 × 3.6 KB）都成功，1.96／2.70／3.99 秒；integer 主鍵表每列 1 列寫入。一次 `select` 讀回 4,750 列、17.2 MB 成功，2.63 秒。iad1 沒有重量。
