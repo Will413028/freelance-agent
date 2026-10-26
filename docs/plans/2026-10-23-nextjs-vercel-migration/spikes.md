@@ -52,11 +52,17 @@ json-parse 668、tolower 695、utf16-length 705、raw-nfkc 705（都是 /707，�
 - 寄信前算的整封 MIME 預覽 sha256 只在執行當下用、不存資料庫，所以沒有重現。切換後由 TS 自己算，不沿用 Python 算的值。
 - 還沒做：用正式副本做一次性驗證，要等 Will 授權讀副本。
 
-## 1d 寄送通道：部分成立
+## 1d 寄送通道：成立
 
 - 從 Vercel 函式用 TLS 連 `smtp.gmail.com:465`，兩個區域都收到 `220` 回應：sin1 1063 ms、iad1 21 ms。
 - Resend Receiving API 連得到：不帶 key 時回 401。
-- 還沒測：真的登入並寄出一封合成信。要等 Will 把 SMTP 憑證存進 spike 專案的 env，存好回 `done`。
+- 實寄（2026-10-26，Will 授權；步驟 10c 完成後做）：spike 專案部署 `web/`（`48e4684` 之後的版本）的副本，只把 `/api/cron` 換成 1d handler：用正式程式的 `buildMessage`（沒有職缺、來源只有 `spike_1d: demo` 的合成摘要）與 `openGmail`，寄給 Gmail 帳號自己，不連 DB，只 log 計數。憑證由 Will 選擇從 VM 的正式設定檔（`gmail-smtp.json`）經管線送進 spike 的 `GMAIL_APP_PASSWORD`、`DIGEST_RECIPIENT`（Sensitive，值沒有顯示）。用 `vercel crons run /api/cron` 觸發，runtime log：
+
+```
+spike-1d {"delivery":"accepted","accepted":1,"rejected":0,"bytes":1892,"sha256":"8449612eb79c70c95737704c6c072d37f8096dbd3cf701aa1ee99fb7a4426aef","loginMs":225,"totalMs":582,"region":"iad1"}
+```
+
+  第一次觸發（12:45）handler 還沒有 log，回 200 但看不到結果，所以加 log 後再觸發一次（12:46）；信箱可能有兩封相同的合成信。之後兩個 env 從 spike 移除並重新部署，再觸發回 `{"delivery":"not_configured"}`。還沒確認：Gmail 收件匣裡實際收到、顯示正常（要 Will 看）。
 
 ## 1e 出口與時間：只有 PTT 被擋
 
