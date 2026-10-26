@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { D1_TABLES, DERIVED_TABLES } from "@/ops/tables";
-import { query, resetSchema, sqliteWithSchema } from "./helpers/db";
+import { query, resetSchema, sqliteWithSchema, leased } from "./helpers/db";
 
 type Col = { name: string; type: string; notnull: number; dflt_value: string | null; pk: number };
 type Named = { name: string; sql: string };
@@ -64,13 +64,13 @@ describe("schema parity with the Python SQLite schema", () => {
 });
 
 async function seedDraft() {
-  await query(`insert into proposal_drafts values ('d1','t',1,'{}','{}','null','c','u',null,'r1','{}')`);
-  await query(`insert into proposal_draft_revisions values ('d1',1,'body','{}','[]','{}','r1','{}','c')`);
+  await leased(`insert into proposal_drafts values ('d1','t',1,'{}','{}','null','c','u',null,'r1','{}')`);
+  await leased(`insert into proposal_draft_revisions values ('d1',1,'body','{}','[]','{}','r1','{}','c')`);
 }
 async function seedIntent(status = "prepared") {
   await seedDraft();
-  await query(`insert into submission_intents values ('s1','d1',1,'{}','h',null,?1,1,'c','u',null,null,null,null,'q1','{}')`, [status]);
-  await query(`insert into submission_events values ('s1',1,'prepared','{}','c')`);
+  await leased(`insert into submission_intents values ('s1','d1',1,'{}','h',null,?1,1,'c','u',null,null,null,null,'q1','{}')`, [status]);
+  await leased(`insert into submission_events values ('s1',1,'prepared','{}','c')`);
 }
 
 describe("immutability triggers", () => {
@@ -79,26 +79,26 @@ describe("immutability triggers", () => {
   // SQLite has no TRUNCATE; DELETE without WHERE is the only way to empty a table and fires the triggers.
   it("rejects UPDATE and DELETE of proposal draft revisions", async () => {
     await seedDraft();
-    await expect(query("update proposal_draft_revisions set body='x'")).rejects.toThrow("Proposal versions are immutable");
-    await expect(query("delete from proposal_draft_revisions")).rejects.toThrow("Proposal versions must be retained");
+    await expect(leased("update proposal_draft_revisions set body='x'")).rejects.toThrow("Proposal versions are immutable");
+    await expect(leased("delete from proposal_draft_revisions")).rejects.toThrow("Proposal versions must be retained");
   });
 
   it("rejects UPDATE and DELETE of submission events", async () => {
     await seedIntent();
-    await expect(query("update submission_events set evidence='x'")).rejects.toThrow("Submission events are immutable");
-    await expect(query("delete from submission_events")).rejects.toThrow("Submission events must be retained");
+    await expect(leased("update submission_events set evidence='x'")).rejects.toThrow("Submission events are immutable");
+    await expect(leased("delete from submission_events")).rejects.toThrow("Submission events must be retained");
   });
 
   it("keeps submission identity immutable and allows only safe transitions", async () => {
     await seedIntent();
-    await expect(query("update submission_intents set snapshot='{\"x\":1}'")).rejects.toThrow("immutable");
-    await expect(query("update submission_intents set approval_hash=null, request_payload='{ }'")).rejects.toThrow("immutable");
-    await expect(query("update submission_intents set status='attempted'")).rejects.toThrow("Unsafe submission transition");
-    await query("update submission_intents set status='approved', revision=2");
-    await query("update submission_intents set status='attempted', revision=3");
-    await expect(query("update submission_intents set status='cancelled'")).rejects.toThrow("Unsafe submission transition");
-    await query("update submission_intents set status='unknown', revision=4");
-    await expect(query("update submission_intents set status='accepted'")).rejects.toThrow("Unsafe submission transition");
+    await expect(leased("update submission_intents set snapshot='{\"x\":1}'")).rejects.toThrow("immutable");
+    await expect(leased("update submission_intents set approval_hash=null, request_payload='{ }'")).rejects.toThrow("immutable");
+    await expect(leased("update submission_intents set status='attempted'")).rejects.toThrow("Unsafe submission transition");
+    await leased("update submission_intents set status='approved', revision=2");
+    await leased("update submission_intents set status='attempted', revision=3");
+    await expect(leased("update submission_intents set status='cancelled'")).rejects.toThrow("Unsafe submission transition");
+    await leased("update submission_intents set status='unknown', revision=4");
+    await expect(leased("update submission_intents set status='accepted'")).rejects.toThrow("Unsafe submission transition");
   });
 
   it("keeps digest snapshots immutable and allows only pending→attempted→sent|unknown", async () => {
@@ -115,6 +115,6 @@ describe("immutability triggers", () => {
     await query("insert into digest_outbox (id, local_date, recipient, snapshot) values ('i1','2026-10-23','r','{}')");
     await query("update digest_outbox set attempted_at='t'");
     await seedIntent();
-    await query("update submission_intents set reconciliation='{}'");
+    await leased("update submission_intents set reconciliation='{}'");
   });
 });

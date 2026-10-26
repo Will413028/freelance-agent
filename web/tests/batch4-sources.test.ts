@@ -8,7 +8,7 @@ import { list } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, PyError, type PyValue } from "@/platform/py/value";
-import { db, query, resetSchema } from "./helpers/db";
+import { db, query, resetSchema, leased } from "./helpers/db";
 
 // The cases of backend/tests/collection/test_taiwanjobs.py, test_arbeitnow.py and test_freelancer.py
 // (plan step 8, last batch). runSource marks the source failed first, as each Python sync does on its
@@ -27,7 +27,7 @@ async function editProposal(text: string) {
   const rows = await query("select id, item from opportunities");
   const item = loadsDict(rows[0].item);
   item.update({ proposal: text, version: 2n });
-  await query("update opportunities set item = ?1 where id = ?2", [encode(item), rows[0].id]);
+  await leased("update opportunities set item = ?1 where id = ?2", [encode(item), rows[0].id]);
 }
 const status = (item: PyDict) => asDict(item.at("evaluation")).at("status");
 const ymd = (daysAgo: number) => new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10).replaceAll("-", "");

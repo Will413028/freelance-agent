@@ -1,9 +1,10 @@
-import { readAll, writeTransaction, type Db, type ReadValues } from "@/db/client";
+import { readAll, type Db, type ReadValues } from "@/db/client";
+import { UI_WAIT_MS, writeUnit, type WritePolicy } from "@/db/unit";
 import { applicationProjectionsRead } from "@/modules/applications/public";
 import { contentVersionsRead } from "@/modules/collection/public";
-import { allRecordsRead } from "@/modules/legacy/public";
-import { emptyTracking, track as trackIn, trackingStatesRead, type TrackingChange } from "@/modules/preferences/public";
-import { Conflict, InvalidAction } from "@/platform/errors";
+import { allRecordsRead, Records } from "@/modules/legacy/public";
+import { emptyTracking, track as trackIn, Trackings, trackingStatesRead, trackReads, type TrackingChange } from "@/modules/preferences/public";
+import { Conflict, InvalidAction, uiBusy } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, asList, cmpStr, isDict, pyEq, PyDict, PyError, type PyValue } from "@/platform/py/value";
@@ -14,6 +15,9 @@ import { evaluate, groupItems, project, PUBLIC_JOB_FIELDS, rankItems, recommenda
 // the modules (the Python facade wires them by injection in bootstrap/store.py).
 
 const OBSERVATION_ONLY = new Set(["received_at", "receipt_id", "evidence_ref", "raw_evidence_ref"]);
+
+/** Page requests wait 5 s for the writer lease and answer 409 when they give up (D20-B). */
+const PAGE_WRITE: WritePolicy = { waitMs: UI_WAIT_MS, busy: uiBusy };
 
 /** What list_in reads, to run in one request alone or with a caller's other reads (readAll). */
 export const listReads = (db: Db) =>
@@ -62,19 +66,26 @@ export async function group(db: Db, key: string, now: PyDateTime): Promise<PyDic
 /** Versions the caller saw: {member id: token} for every member of the group. */
 export const memberVersions = (g: PyDict) => new PyDict(asList(g.req("members")).map((m) => [asDict(m).str("id"), asDict(m).req("token")]));
 
+/**
+ * Group feedback as one unit: the whole list is read with the writer lease (until plan step 10e2
+ * reads the group's projection instead), every member's token is compared with what the caller saw,
+ * and every member's tracking is written in one batch.
+ */
 export async function feedback(db: Db, key: string, versions: PyValue, value: PyValue, now: PyDateTime) {
   if (!["neutral", "interested", "skipped"].some((s) => pyEq(value, s))) throw new InvalidAction("不支援的職缺狀態");
-  return writeTransaction(db, async (tx) => {
-    const items = await listIn(tx, now);
+  return writeUnit(db, PAGE_WRITE, listReads(db), (data, writes) => {
+    const [rows, { settings }, , states] = data;
+    const items = assembleList(data, now);
     const g = groupItems(items).find((x) => asList(x.req("member_ids")).includes(key));
     if (!g) throw new PyError("KeyError", key);
     if (!isDict(versions) || [...versions.values()].some((v) => typeof v !== "string") || !pyEq(versions, memberVersions(g))) {
       throw new Conflict("職缺或收藏狀態已更新，請重新載入");
     }
+    const unit = { records: Records.over(rows, writes), trackings: new Trackings(states, writes), settings };
     const byId = new Map(items.map((item) => [item.str("id"), item]));
     for (const m of asList(g.req("members")).map(asDict)) {
       const state = byId.get(m.str("id"))!.dict("tracking");
-      await trackIn(tx, m.str("id"), m.req("revision"), {
+      trackIn(unit, m.str("id"), m.req("revision"), {
         feedback: value, note: state.has("note") ? state.get("note")! : "", evidence: state.has("evidence") ? state.get("evidence")! : "",
       }, now);
     }
@@ -84,7 +95,8 @@ export async function feedback(db: Db, key: string, versions: PyValue, value: Py
 
 /** Record tracking through preferences, then assemble the recommendation, which belongs to discovery. */
 export async function track(db: Db, key: string, revision: PyValue, change: TrackingChange, now: PyDateTime): Promise<PyDict> {
-  const item = await writeTransaction(db, (tx) => trackIn(tx, key, revision, change, now));
+  const item = await writeUnit(db, PAGE_WRITE, trackReads(db, [key]), ([{ settings }, records, states], writes) =>
+    trackIn({ records: new Records(records, writes), trackings: new Trackings(states, writes), settings }, key, revision, change, now));
   item.set("recommendation", recommendation(item, now));
   return item;
 }

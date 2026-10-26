@@ -1,7 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { writeTransaction } from "@/db/client";
-import { ingestIn } from "@/modules/collection/public";
+import { ingestSource, type Listing } from "@/modules/collection/public";
 import { groupItems, isCandidate } from "@/modules/discovery/public";
 import { backfillNoveltyIn, noveltyRows } from "@/modules/notifications/public";
 import { selectUnseen } from "@/modules/notifications/outbox";
@@ -40,15 +39,18 @@ const timed = <T>(fn: () => T): [T, number] => {
 
 beforeAll(async () => {
   await resetSchema();
-  await writeTransaction(db, async (tx) => {
-    for (let i = 0; i < OPPORTUNITIES; i++) {
-      // Each block of five listings shares a URL and title across two sources, so groups form; one
-      // in five carries a different budget, so some merges are refused after the pair checks.
-      const block = i - (i % 5);
-      await ingestIn(tx, job({ external_id: `s${i}`, url: `https://www.freelancer.com/projects/scale-${block}`, title: `AI agent workflow ${block}`,
-        description: `Build an agent API ${i} ${hex(8)}`, source: i % 2 ? "tasker" : "freelancer", ...(i % 5 === 4 ? { budget_max: 9000n } : {}) }), null, now);
-    }
-  });
+  const bySource = new Map<string, Listing[]>([["freelancer", []], ["tasker", []]]);
+  for (let i = 0; i < OPPORTUNITIES; i++) {
+    // Each block of five listings shares a URL and title across two sources, so groups form; one
+    // in five carries a different budget, so some merges are refused after the pair checks.
+    const block = i - (i % 5), source = i % 2 ? "tasker" : "freelancer";
+    bySource.get(source)!.push([job({ external_id: `s${i}`, url: `https://www.freelancer.com/projects/scale-${block}`, title: `AI agent workflow ${block}`,
+      description: `Build an agent API ${i} ${hex(8)}`, source, ...(i % 5 === 4 ? { budget_max: 9000n } : {}) }), null]);
+  }
+  // 1,250 new records per source: more than one write batch, so this also loads through the split.
+  for (const [source, items] of bySource) {
+    await ingestSource(db, source, now, items, () => true, null);
+  }
   items = await list(db, now);
   candidates = groupItems(items).filter(isCandidate);
   // Prior digests only feed novelty suppression, which reads their items' novelty_keys. The first

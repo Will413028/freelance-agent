@@ -6,7 +6,7 @@ import { asciiHash } from "@/platform/py/json";
 import { pyLen, pyLower, pySplit, pyStrip } from "@/platform/py/unicode";
 import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { cmpStr, isInt, isList, PyDict, PyError, pyGet, truthy, type PyValue } from "@/platform/py/value";
-import { ingest, setSourceHealth } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { htmlText } from "./text";
 
 // Port of collection/free_jobs.py: free public job-board discovery, preserving attribution and
@@ -78,14 +78,14 @@ export type FeedReader = (source: string) => Promise<PyDict>;
 
 /**
  * free_jobs.sync minus its first line: runSource has already marked the source failed. Throws where
- * Python returns {'status': 'failed'}; jobs already ingested before a failure stay, as in Python.
+ * Python returns {'status': 'failed'}. The listings and the health are one unit: unlike Python, where
+ * jobs ingested before a failure stay, a failure keeps none of them (D20 common basis 3, accepted).
  */
 export async function syncFreeJobs(db: Db, source: string, reader: FeedReader = fetchFeed): Promise<PyDict> {
   const data = await reader(source);
   const now = PyDateTime.now();
   const jobs = (data.req("jobs") as PyValue[]).map((p) => normalize(source, p, now));
   const selected = jobs.filter((j) => j.at("kind") === "contract" && qualifyForIntake(j, PyDateTime.now()).at("status") !== "excluded");
-  for (const job of selected) await ingest(db, job, job.at("receipt_id"), PyDateTime.now());
-  await setSourceHealth(db, source, "ok");
+  await ingestSource(db, source, PyDateTime.now(), listings(selected), () => true, "ok");
   return PyDict.of({ status: "ok", seen: BigInt(jobs.length), jobs: BigInt(selected.length), scope: "latest_200_public_listings" });
 }

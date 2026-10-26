@@ -11,7 +11,7 @@ import { list } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, type PyValue } from "@/platform/py/value";
-import { db, query, resetSchema } from "./helpers/db";
+import { db, query, resetSchema, leased } from "./helpers/db";
 
 // The store cases of backend/tests/collection/test_nodesk.py, test_justremote.py,
 // test_dynamitejobs.py, test_jobbank518.py and test_chickpt.py (plan step 8, batch 3). runSource
@@ -33,7 +33,7 @@ async function editProposal(text: string) {
   const rows = await query("select id, item from opportunities");
   const item = loadsDict(rows[0].item);
   item.update({ proposal: text, version: 2n });
-  await query("update opportunities set item = ?1 where id = ?2", [encode(item), rows[0].id]);
+  await leased("update opportunities set item = ?1 where id = ?2", [encode(item), rows[0].id]);
 }
 const status = (item: PyDict) => asDict(item.at("evaluation")).at("status");
 const batchOf = (jobs: PyDict[], changes: Record<string, PyValue> = {}) =>

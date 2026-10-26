@@ -432,3 +432,19 @@ export const writeAttempts = sqliteTable("write_attempts", {
 export const guard = sqliteTable("guard", {
   ok: integer("ok").notNull(),
 });
+
+/**
+ * The writer lease (D20-B, a lease with a fencing token): one row, id 1, created by the first
+ * acquire. Every acquire adds one to token; a write batch starts with a guard that the row still
+ * names its holder and token (src/db/unit.ts). expires_at is D1's own clock (unixepoch()).
+ */
+export const writerLease = sqliteTable(
+  "writer_lease",
+  {
+    id: integer("id").primaryKey(),
+    holder: text("holder"),
+    token: integer("token").notNull(),
+    expiresAt: integer("expires_at").notNull(),
+  },
+  (t) => [check("writer_lease_singleton", sql`${t.id} = 1`)],
+);

@@ -3,13 +3,35 @@ import type { BatchItem } from "drizzle-orm/batch";
 import { D1Client, d1ErrorOf, httpTransport } from "./d1/client";
 import { d1Drizzle, type D1Db } from "./d1/drizzle";
 import * as schema from "./schema";
+import type { Usage } from "./usage";
 
 // The product database is Cloudflare D1 over its REST API (plan D19, D21, step 4e). There are no
 // transactions: every query is one request and auto-commits, and a batch is one request that
 // commits as a whole (spike 1f). drizzle's transaction() would send BEGIN, which D1 refuses.
 export type Db = D1Db<typeof schema>;
 
-export const dbOver = (client: D1Client): Db => d1Drizzle(client, schema);
+const clients = new WeakMap<Db, D1Client>();
+
+export function dbOver(client: D1Client): Db {
+  const db = d1Drizzle(client, schema);
+  clients.set(db, client);
+  return db;
+}
+
+/** The client behind a Db, for its counters. */
+export function clientOf(db: Db): D1Client {
+  const client = clients.get(db);
+  if (!client) throw new Error("not a Db made by dbOver");
+  return client;
+}
+
+export function usageOf(db: Db): Usage {
+  const c = clientOf(db).counters;
+  return {
+    d1_requests: c.requests, d1_rows_written: c.rowsWritten, lease_wait_ms: Math.round(c.leaseWaitMs), lease_timeouts: c.leaseTimeouts,
+    lease_lost: c.leaseLost, d1_errors: { ...c.errors }, lost_steps: 0,
+  };
+}
 
 /**
  * A client holds no connection, only request counters, so each caller (a workflow step, a page

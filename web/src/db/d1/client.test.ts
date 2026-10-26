@@ -42,7 +42,7 @@ describe("D1 HTTP client", () => {
     const results = await client.batch([{ sql: "select 1 a", params: [] }, { sql: "insert into t values (?)", params: [1] }]);
     expect(results.map((r) => [r.columns, r.rows, r.changes])).toEqual([[["a"], [[1]], 0], [[], [], 1]]);
     expect(seen).toEqual([{ batch: [{ sql: "select 1 a", params: [] }, { sql: "insert into t values (?)", params: [1] }] }]);
-    expect(client.counters).toEqual({ requests: 1, rowsWritten: 3, rowsRead: 2 });
+    expect(client.counters).toEqual({ requests: 1, rowsWritten: 3, errors: {}, leaseWaitMs: 0, leaseTimeouts: 0, leaseLost: 0, rowsRead: 2 });
   });
 
   it("classifies failures by whether the batch may have committed", async () => {

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { ingest } from "@/modules/collection/public";
 import { groupItems, isCandidate, publicItem } from "@/modules/discovery/public";
 import { backfillNoveltyIn, checkNoveltyIn, claimDigest, findDigest, finishDigest, noveltyRows } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
@@ -8,6 +7,7 @@ import { asDict, asList, PyDict } from "@/platform/py/value";
 import { createDigest } from "@/services/digest";
 import { list } from "@/services/discovery";
 import { db, migrationStatement, query, resetSchema } from "./helpers/db";
+import { ingestOne } from "./helpers/intake";
 import { job } from "./helpers/jobs";
 
 // Plan step 10b2 (D15): which candidates an earlier digest already announced is read from the
@@ -29,8 +29,8 @@ async function deliver(localDate: string, outcome: "sent" | "attempted" | "unkno
 
 describe("notified ledger", () => {
   it("stores the snapshot's novelty pairs in the same write and nothing else", async () => {
-    await ingest(db, job({ external_id: "1" }), null, day(1));
-    await ingest(db, job({ external_id: "2", title: "Data pipeline", url: "https://www.freelancer.com/projects/other-2" }), null, day(1));
+    await ingestOne(db, job({ external_id: "1" }), null, day(1));
+    await ingestOne(db, job({ external_id: "2", title: "Data pipeline", url: "https://www.freelancer.com/projects/other-2" }), null, day(1));
     const digest = await createDigest(db, "2026-10-01", owner, day(1));
     expect(itemIds(digest.snapshot)).toHaveLength(2);
     const want = noveltyRows(digest.snapshot).map(([key, fingerprint]) => ({ digest_id: digest.id, key, fingerprint }));
@@ -42,7 +42,7 @@ describe("notified ledger", () => {
 
   for (const outcome of ["sent", "attempted", "unknown"] as const) {
     it(`suppresses what a ${outcome} digest announced`, async () => {
-      await ingest(db, job({ external_id: "1" }), null, day(1));
+      await ingestOne(db, job({ external_id: "1" }), null, day(1));
       await createDigest(db, "2026-10-01", owner, day(1));
       await deliver("2026-10-01", outcome);
       expect(itemIds((await createDigest(db, "2026-10-02", owner, day(2))).snapshot)).toEqual([]);
@@ -52,13 +52,13 @@ describe("notified ledger", () => {
   }
 
   it("never suppresses what a still pending digest announced", async () => {
-    await ingest(db, job({ external_id: "1" }), null, day(1));
+    await ingestOne(db, job({ external_id: "1" }), null, day(1));
     await createDigest(db, "2026-10-01", owner, day(1));
     expect(itemIds((await createDigest(db, "2026-10-02", owner, day(2))).snapshot)).toHaveLength(1);
   });
 
   it("backfills snapshots stored before the ledger, deriving keys for items without novelty_keys", async () => {
-    await ingest(db, job({ external_id: "1" }), null, day(1));
+    await ingestOne(db, job({ external_id: "1" }), null, day(1));
     const candidate = groupItems(await list(db, day(1))).filter(isCandidate)[0];
     // A digest Python stored before snapshots carried novelty_keys: public fields and the fingerprint.
     const legacy = PyDict.of({ items: [publicItem(candidate).update({ fingerprint: candidate.req("fingerprint") })], recipient: owner, local_date: "2026-09-01" });
@@ -74,7 +74,7 @@ describe("notified ledger", () => {
   it("suppresses a listing whose content an announced opportunity no longer in the table carried", async () => {
     // Today's list groups listings that share an identity key and content, so the group's ids cover
     // them; only an announced item whose opportunity row is gone is matched by identity key alone.
-    await ingest(db, job({ external_id: "1" }), null, day(1));
+    await ingestOne(db, job({ external_id: "1" }), null, day(1));
     const candidate = groupItems(await list(db, day(1))).filter(isCandidate)[0];
     const gone = publicItem(candidate).update({ id: "gone-1", member_ids: ["gone-1"], fingerprint: "old" });
     gone.delete("members");
@@ -85,7 +85,7 @@ describe("notified ledger", () => {
   });
 
   it("reports ledger rows that differ from the snapshots", async () => {
-    await ingest(db, job({ external_id: "1" }), null, day(1));
+    await ingestOne(db, job({ external_id: "1" }), null, day(1));
     const digest = await createDigest(db, "2026-10-01", owner, day(1));
     // The trigger forbids deletes; a rebuild that lost a row is simulated with the trigger disabled.
     await query("drop trigger digest_novelty_retained");
@@ -96,7 +96,7 @@ describe("notified ledger", () => {
   });
 
   it("refuses to change or remove a ledger row", async () => {
-    await ingest(db, job({ external_id: "1" }), null, day(1));
+    await ingestOne(db, job({ external_id: "1" }), null, day(1));
     await createDigest(db, "2026-10-01", owner, day(1));
     await expect(query("update digest_novelty set fingerprint = 'x'")).rejects.toThrow("Digest novelty is immutable");
     await expect(query("delete from digest_novelty")).rejects.toThrow("Digest novelty is immutable");

@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { existingSourceIds, ingest, setSourceHealth, sourceBatch, sourceStatuses } from "@/modules/collection/public";
+import { ingestSource, setSourceHealth, sourceStatuses } from "@/modules/collection/public";
 import { readSettings, replaceSettings, settingsDict } from "@/modules/discovery/public";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
 import { checkNoveltyIn, claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
@@ -11,6 +11,7 @@ import { encode } from "@/platform/py/json";
 import { asDict, asList, PyDict, pySorted, type PyValue } from "@/platform/py/value";
 import { db, query, resetSchema, queryArrays } from "./helpers/db";
 import { attemptAsync, fixture, untag, type Expect, type Tagged } from "./helpers/golden";
+import { existingSourceIds, ingestOne } from "./helpers/intake";
 
 // Replays the store scenarios that web/tests/fixtures/gen_golden.py ran against the Python
 // SQLiteStore: every step's result and the final stored rows must match byte for byte.
@@ -40,12 +41,12 @@ async function replay(s: Scenario) {
   for (const op of s.ops) {
     const u = (k: string) => untag(op[k] as Tagged);
     const run: Record<string, () => Promise<PyValue>> = {
-      ingest: async () => ingest(db, u("job"), op.receipt_id ?? null, now),
-      batch: () => sourceBatch(db, op.source, now, async (batch) => {
-        for (const [j, receipt] of op.items as [Tagged, string][]) await batch.ingest(untag(j), receipt);
-        if (op.finish) await batch.finish(op.finish);
-        return pySorted(await batch.existingIds());
-      }),
+      ingest: async () => ingestOne(db, u("job"), op.receipt_id ?? null, now),
+      batch: async () => {
+        const items = (op.items as [Tagged, string][]).map(([j, receipt]) => [untag(j), receipt] as const);
+        await ingestSource(db, op.source, now, items, () => true, op.finish ?? null);
+        return pySorted(await existingSourceIds(op.source));
+      },
       set_preferences: async () => settingsDict(await replaceSettings(db, u("revision"), u("settings"))),
       track: async () => {
         const kw = op.kw ? Object.fromEntries(asDict(u("kw"))) : {};
@@ -69,7 +70,7 @@ async function replay(s: Scenario) {
       public: async () => groupItems(await list(db, now)).map(publicItem),
       preferences: async () => settingsDict(await readSettings(db)),
       sources: async () => sourceStatuses(db),
-      existing: async () => pySorted(await existingSourceIds(db, op.source)),
+      existing: async () => pySorted(await existingSourceIds(op.source)),
       digest: async () => (await createDigest(db, op.local_date, op.recipient, now)).snapshot,
       render: async () => {
         const snap = (await findDigest(db, op.local_date, op.recipient))!.snapshot;

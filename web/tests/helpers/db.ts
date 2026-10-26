@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { sql, type SQL } from "drizzle-orm";
 import { migrate } from "drizzle-orm/sqlite-proxy/migrator";
 import { dbOver } from "@/db/client";
 import { D1Client, D1Error, type D1Param, type D1Transport } from "@/db/d1/client";
 import { localTransport } from "@/db/d1/local";
+import { DAILY_WRITE, writeUnit } from "@/db/unit";
 
 // The suite runs on the local D1 stand-in (plan step 4e): it refuses what D1 refuses (transaction
 // statements, over 100 parameters, over 100 KB of SQL) and keeps a batch atomic, so code that passes
@@ -43,6 +45,19 @@ export function losingResponse(lost: (sql: string[]) => boolean) {
   return { db: dbOver(over), client: over, fired: () => !armed };
 }
 
+/** A view of the test database that runs `before` ahead of every batch it sends, e.g. to interleave another writer. */
+export function intercepting(before: (sql: string[]) => Promise<void>) {
+  const over = new D1Client({ batch: async (statements) => { await before(statements.map((s) => s.sql)); return current!.batch(statements); } });
+  return { db: dbOver(over), client: over };
+}
+
+/** A view of the test database that records every batch it sends. */
+export function recording() {
+  const batches: { sql: string; params: unknown[] }[][] = [];
+  const over = new D1Client({ batch: (statements) => { batches.push(statements); return current!.batch(statements); } });
+  return { db: dbOver(over), client: over, batches };
+}
+
 /** A fresh, empty database with the current schema. */
 export async function resetSchema() {
   current?.close();
@@ -54,6 +69,27 @@ export async function resetSchema() {
 export async function query<T = Record<string, any>>(sql: string, params: D1Param[] = []): Promise<T[]> {
   const [result] = await client.batch([{ sql, params }]);
   return result.rows.map((row) => Object.fromEntries(result.columns.map((c, i) => [c, row[i]])) as T);
+}
+
+/** Raw SQL with ?/?N placeholders as a drizzle SQL with bound parameters. */
+function bound(text: string, params: D1Param[]): SQL {
+  const chunks: SQL[] = [];
+  let last = 0, next = 0;
+  for (const m of text.matchAll(/\?(\d+)?/g)) {
+    chunks.push(sql.raw(text.slice(last, m.index)));
+    chunks.push(sql`${params[m[1] ? Number(m[1]) - 1 : next++]}`);
+    last = m.index + m[0].length;
+  }
+  chunks.push(sql.raw(text.slice(last)));
+  return sql.join(chunks);
+}
+
+/**
+ * A raw write to a leased table (fixtures, trigger tests): the client refuses it without the writer
+ * lease guard, so it runs as a unit like any product write.
+ */
+export async function leased(text: string, params: D1Param[] = []) {
+  await writeUnit(db, DAILY_WRITE, [], (_, writes) => writes.statement(db.run(bound(text, params))));
 }
 
 /** Raw SQL with rows as arrays, in column order. */

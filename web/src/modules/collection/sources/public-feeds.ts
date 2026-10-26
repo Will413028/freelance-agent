@@ -10,7 +10,7 @@ import { codePoints, pyIsDigit, pyLen, pyLower, pyStr, pyStrip } from "@/platfor
 import { urlsplit, urlunsplit } from "@/platform/py/url";
 import { isDict, isList, or, PyDict, PyError, pyGet, truthy, type PyValue } from "@/platform/py/value";
 import { xmlFind, xmlFindAll, xmlFindText, xmlFromString } from "@/platform/py/xml";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { published, text } from "./text";
 
 // Port of collection/public_feeds.py: bounded official public feeds, with source attribution and
@@ -182,20 +182,11 @@ export async function syncPublicFeed(db: Db, source: FeedSource, reader: FeedRea
   const { jobs, truncated, rejected } = parseBatch(source, await reader(source));
   const now = PyDateTime.now();
   const nowUs = now.utcMicros();
-  const selected = await sourceBatch(db, source, now, async (batch) => {
-    const existing = await batch.existingIds();
-    let n = 0n;
-    for (const job of jobs) {
-      const at = published(job.req("published_at")).utcMicros();
-      const fresh = nowUs - 90n * DAY_US <= at && at <= nowUs;
-      if (existing.has(job.str("external_id")) || (fresh && job.at("kind") === "contract" && qualifyForIntake(job, now).at("status") !== "excluded")) {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(rejected ? "failed" : "ok");
-    return n;
-  });
+  const selected = BigInt((await ingestSource(db, source, now, listings(jobs), (job, exists) => {
+    const at = published(job.req("published_at")).utcMicros();
+    const fresh = nowUs - 90n * DAY_US <= at && at <= nowUs;
+    return exists || (fresh && job.at("kind") === "contract" && qualifyForIntake(job, now).at("status") !== "excluded");
+  }, rejected ? "failed" : "ok")).length);
   const result = PyDict.of({
     status: rejected ? "partial" : "ok", seen: BigInt(jobs.length) + rejected, jobs: selected, truncated,
     rejected_count: rejected, scope: "latest_200_public_listings_within_90_days",

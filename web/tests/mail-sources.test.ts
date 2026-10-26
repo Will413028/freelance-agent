@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { ingest, mailRecords, recordMail, runSource, saveMailState, sourceStatuses } from "@/modules/collection/public";
+import { mailRecords, recordMail, runSource, saveMailState, sourceStatuses } from "@/modules/collection/public";
 import { ReceivingClient } from "@/modules/collection/mail/receiving";
 import { syncMail, syncMailSource } from "@/modules/collection/mail/sync";
 import { RUNNERS } from "@/modules/collection/registry";
@@ -8,6 +8,7 @@ import { encode } from "@/platform/py/json";
 import { asDict, PyError, type PyDict } from "@/platform/py/value";
 import { transport } from "./helpers/resend";
 import { db, query, resetSchema, queryArrays } from "./helpers/db";
+import { ingestOne } from "./helpers/intake";
 import { attemptAsync, fixture, untag, type Expect, type Tagged } from "./helpers/golden";
 
 // Replays the Resend sync scenarios gen_golden.py ran through resend_sync._sync against the Python
@@ -44,7 +45,7 @@ const ticker = (ticks: number[] | null) => {
 
 async function replay(s: Scenario) {
   for (const op of s.setup) {
-    if (op.op === "ingest") await ingest(db, untag(op.job!), op.receipt_id!, NOW);
+    if (op.op === "ingest") await ingestOne(db, untag(op.job!), op.receipt_id!, NOW);
     else if (op.op === "record") await recordMail(db, s.source, TARGET, op.message_id!, op.status!, op.reason ?? null);
     // store.retry_mail (the recovery page arrives in step 10): only a rejected message is requeued.
     else if (op.op === "retry") await query("update mail_ingestion set retry_pending = 1 where source = ?1 and message_id = ?2 and status = 'rejected'", [s.source, op.message_id ?? null]);

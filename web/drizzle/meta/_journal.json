@@ -15,6 +15,13 @@
       "when": 1793011000995,
       "tag": "0001_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793020760729,
+      "tag": "0002_writer_lease",
+      "breakpoints": true
     }
   ]
 }

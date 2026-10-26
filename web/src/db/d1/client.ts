@@ -2,6 +2,7 @@
 // to the account API. Facts this relies on are in spikes.md §1f and "1f 補充": a `batch` is atomic
 // when a constraint, guard or trigger fails; BEGIN/COMMIT/SAVEPOINT are refused; `/raw` returns rows
 // as arrays; numbers travel as JSON, so integers above 2^53 only survive as text.
+import { unguardedWrite } from "./guard";
 
 export type D1Param = string | number | bigint | boolean | null;
 export type D1Statement = { sql: string; params: D1Param[] };
@@ -32,7 +33,15 @@ export function d1ErrorOf(e: unknown): D1Error | undefined {
   return undefined;
 }
 
-export type D1Counters = { requests: number; rowsWritten: number; rowsRead: number };
+/**
+ * What one client spent and how it failed: requests, D1's row counts, errors by kind, and, kept here
+ * because a client lives as long as its step, the time its units waited for the writer lease and how
+ * often they gave up on it.
+ */
+export type D1Counters = {
+  requests: number; rowsWritten: number; rowsRead: number; errors: Partial<Record<D1ErrorKind, number>>;
+  leaseWaitMs: number; leaseTimeouts: number; leaseLost: number;
+};
 
 function encodeParam(value: unknown): string | number | null {
   if (value === null || typeof value === "string") return value;
@@ -49,12 +58,24 @@ function encodeParam(value: unknown): string | number | null {
 
 /** Wraps a transport with parameter encoding, the unsafe-integer check and request/row counters. */
 export class D1Client {
-  readonly counters: D1Counters = { requests: 0, rowsWritten: 0, rowsRead: 0 };
+  readonly counters: D1Counters = { requests: 0, rowsWritten: 0, rowsRead: 0, errors: {}, leaseWaitMs: 0, leaseTimeouts: 0, leaseLost: 0 };
 
   constructor(private readonly transport: D1Transport) {}
 
+  /** Every D1Error is counted by kind where it happens, whichever caller catches it later. */
   async batch(statements: D1Statement[]): Promise<D1Result[]> {
+    try {
+      return await this.send(statements);
+    } catch (e) {
+      if (e instanceof D1Error) this.counters.errors[e.kind] = (this.counters.errors[e.kind] ?? 0) + 1;
+      throw e;
+    }
+  }
+
+  private async send(statements: D1Statement[]): Promise<D1Result[]> {
     if (statements.length === 0) return [];
+    const unguarded = unguardedWrite(statements);
+    if (unguarded !== null) throw new D1Error("rejected", false, `a write to ${unguarded} must start with the writer lease guard (src/db/unit.ts)`);
     const encoded = statements.map((s) => ({ sql: s.sql, params: s.params.map(encodeParam) }));
     this.counters.requests++;
     const results = await this.transport.batch(encoded);

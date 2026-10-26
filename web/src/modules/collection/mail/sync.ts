@@ -1,9 +1,10 @@
 import type { Db } from "@/db/client";
+import { storageFailure } from "@/db/unit";
 import { qualifyForIntake } from "@/modules/discovery/public";
 import { Conflict } from "@/platform/errors";
 import { PyDateTime } from "@/platform/py/datetime";
 import { isList, pyEq, pyGet, PyDict, PyError, pySubscript, truthy, type PyValue } from "@/platform/py/value";
-import { existingSourceIds, ingestResendBatch, mailRecords, mailState, recordMail, saveMailState, setSourceHealth, type MailRecord } from "../ingest";
+import { ingestResendBatch, mailRecords, mailState, recordMail, saveMailState, setSourceHealth, type MailRecord } from "../ingest";
 import { matches, NotificationError, readNotification, ReceivingClient, resendId, SENDERS } from "./receiving";
 
 // Port of collection/resend_sync.py: incremental receiving intake; quarantined messages never discard
@@ -31,7 +32,6 @@ export async function syncMail(db: Db, client: ReceivingClient, recipientValue: 
     await setSourceHealth(db, source, "failed");
     let state = await mailState(db, source, recipient);
     const records: Map<string, MailRecord> = await mailRecords(db, source, recipient);
-    const existing = await existingSourceIds(db, source);
     const end = monotonic() + maxSeconds;
 
     const process = async (messageId: string, retry = false): Promise<boolean> => {
@@ -52,12 +52,13 @@ export async function syncMail(db: Db, client: ReceivingClient, recipientValue: 
         records.set(messageId, { status: "processed", reason: "non_job_notification" });
         return true;
       }
-      // qualify_for_intake reads the wall clock, not the store clock.
+      // qualify_for_intake reads the wall clock, not the store clock. Whether a listing is already
+      // known is read inside the unit, with the writer lease (D20 common basis 1).
       const now = PyDateTime.now();
-      const kept = jobs.filter((job) => existing.has(job.req("external_id") as string) || qualifyForIntake(job, now).req("status") !== "excluded");
+      const keep = (job: PyDict, exists: boolean) => exists || qualifyForIntake(job, now).req("status") !== "excluded";
       let outcome;
       try {
-        outcome = await ingestResendBatch(db, kept, clock());
+        outcome = await ingestResendBatch(db, jobs, clock(), keep);
       } catch (e) {
         if (!(e instanceof Conflict)) throw e;
         await recordMail(db, source, recipient, messageId, "conflict", "receipt_collision");
@@ -68,9 +69,8 @@ export async function syncMail(db: Db, client: ReceivingClient, recipientValue: 
       await recordMail(db, source, recipient, messageId, "processed", outcome.contentVersions ? "content_changed" : null);
       records.set(messageId, { status: "processed", reason: null });
       counts.messages++;
-      counts.jobs += kept.length;
+      counts.jobs += outcome.kept.length;
       counts.content_versions += outcome.contentVersions;
-      for (const job of kept) existing.add(job.req("external_id") as string);
       return true;
     };
 
@@ -131,7 +131,9 @@ export async function syncMail(db: Db, client: ReceivingClient, recipientValue: 
       ["retry_pending", BigInt(all.filter((r) => r.retryPending).length)],
       ["error_count", BigInt([...errors.values()].reduce((a, b) => a + b, 0))], ["error_stages", errorStages()],
     ]);
-  } catch {
+  } catch (e) {
+    // A storage failure is the step's, not the mailbox's: runSource records its reason.
+    if (storageFailure(e) !== null) throw e;
     return new PyDict([
       ["status", "failed"], ["reason", "source_or_reconciliation_failed"], ...countEntries(),
       ["truncated", true], ["complete_scan", false], ["error_stages", errorStages()],

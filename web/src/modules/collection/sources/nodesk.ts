@@ -9,7 +9,7 @@ import { pyLen, pyUpper } from "@/platform/py/unicode";
 import { urlsplit, urlunsplit } from "@/platform/py/url";
 import { PyDict, PyError, pyGet, pySorted, truthy, type PyValue } from "@/platform/py/value";
 import { xmlFind, xmlFindAll, xmlFindText, xmlFromString } from "@/platform/py/xml";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { employmentTypes, jobPostings, kindOf, pageReader, PAGE_LIMIT, seams, SOURCE_BUDGET_MS, type FetchSeams } from "./job-pages";
 import { published, text } from "./text";
 
@@ -141,18 +141,9 @@ export type JobsReader = () => Promise<PyDict>;
 export async function syncNoDesk(db: Db, reader: JobsReader = () => fetchNoDesk()): Promise<PyDict> {
   const result = await reader();
   const rejected = truthy(result.req("rejected_count"));
-  const selected = await sourceBatch(db, "nodesk", PyDateTime.now(), async (batch) => {
-    const existing = await batch.existingIds();
-    let n = 0n;
-    for (const job of result.req("jobs") as PyDict[]) {
-      if (existing.has(job.str("external_id")) || (truthy(job.at("remote_evidence")) && job.at("kind") === "contract" && qualifyForIntake(job, PyDateTime.now()).at("status") !== "excluded")) {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(rejected ? "failed" : "ok");
-    return n;
-  });
+  const selected = BigInt((await ingestSource(db, "nodesk", PyDateTime.now(), listings(result.req("jobs") as PyDict[]), (job, exists) =>
+    exists || (truthy(job.at("remote_evidence")) && job.at("kind") === "contract" && qualifyForIntake(job, PyDateTime.now()).at("status") !== "excluded"),
+  rejected ? "failed" : "ok")).length);
   const out = new PyDict([...result].filter(([k]) => k !== "jobs"));
   return out.update({ status: rejected ? "partial" : "ok", jobs: selected, scope: "advertised_rss_max_20_public_job_pages_90_days", complete_scan: false });
 }

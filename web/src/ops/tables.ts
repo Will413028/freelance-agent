@@ -62,9 +62,5 @@ export const DERIVED_TABLES = ["digest_novelty"];
 /** Tables with a generated integer id whose sequence must follow the copied rows. */
 export const IDENTITY_COLUMNS: Record<string, string> = { tracking_events: "id" };
 
-/**
- * D1-only bookkeeping (plan step 4e): guard aborts a batch whose precondition failed, write_attempts
- * records batches whose response may have been lost. Not product data: never copied, compared,
- * written back, or dropped by the import.
- */
-export const D1_TABLES = ["guard", "write_attempts"];
+/** D1-only bookkeeping, defined with the lease guard (src/db/d1/guard.ts): never copied, compared, written back or dropped. */
+export { D1_ONLY_TABLES as D1_TABLES } from "@/db/d1/guard";

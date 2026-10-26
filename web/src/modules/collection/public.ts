@@ -1,7 +1,7 @@
 // Intake, receipts and source health shared with discovery and the daily workflow.
 export {
-  contentVersionsRead, existingSourceIds, ingest, ingestIn, ingestResendBatch, jobFingerprint, mailRecords, mailState, recordMail, saveMailState, opportunityId, setSourceHealth, setSourceHealthIn,
-  SourceBatch, sourceBatch, sourceChecks, sourceStatuses, sourcesRead, type ContentVersionRow, type MailRecord,
+  contentVersionsRead, ingestResendBatch, ingestSource, jobFingerprint, listings, mailRecords, mailState, recordMail, saveMailState, opportunityId, setSourceHealth,
+  sourceChecks, sourceStatuses, sourcesRead, type ContentVersionRow, type Listing, type MailRecord,
 } from "./ingest";
 export { isSource, REGISTRY, SOURCES } from "./source-catalog";
 export { DISABLED, enabledSources, FAILURE_REASON, RUNNERS, SCHEDULED, type SourceRunner } from "./registry";

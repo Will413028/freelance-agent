@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { enabledSources, FAILURE_REASON, ingest, RUNNERS, runSource, setSourceHealth, sourceStatuses, type SourceDetail } from "@/modules/collection/public";
+import { enabledSources, FAILURE_REASON, RUNNERS, runSource, setSourceHealth, sourceStatuses, type SourceDetail } from "@/modules/collection/public";
 import { findDigest, getDailyRun } from "@/modules/notifications/public";
 import { createDigest } from "@/services/digest";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
@@ -9,6 +9,7 @@ import { beginDailyRun, finishDaily, syncDailySource } from "@/services/daily";
 import { syncInOrder } from "@/workflows/in-order";
 import { db, query, resetSchema } from "./helpers/db";
 import { fixture, untag, type Tagged } from "./helpers/golden";
+import { ingestOne } from "./helpers/intake";
 
 // Plan step 5: the daily entry claims daily_runs first; a second trigger the same day returns.
 const at = (h: number, m = 0) => new PyDateTime(2026, 10, 24, h, m, 0, 0, 0n);
@@ -146,7 +147,7 @@ describe("daily run with digest replays run_daily", () => {
   it.each(Object.entries(dailyCases))("%s", async (name, c) => {
     process.env.DIGEST_RECIPIENT = " Owner@Example.invalid ";
     const now = fromisoformat(c.now);
-    await ingest(db, untag(c.job), null, now);
+    await ingestOne(db, untag(c.job), null, now);
     await setSourceHealth(db, "freelancer", "ok");
     if (name === "reused") await createDigest(db, "2026-09-28", "owner@example.invalid", now);
     const begin = await beginDailyRun(db, now);
@@ -158,6 +159,11 @@ describe("daily run with digest replays run_daily", () => {
     const row = (await getDailyRun(db, "2026-09-28", "owner@example.invalid"))!;
     const intent = (await findDigest(db, "2026-09-28", "owner@example.invalid"))!;
     const result = asDict(row.result);
+    // D1 usage is TS-only (plan step 4e); the rest is run_daily's result.
+    for (const key of ["d1_requests", "d1_rows_written", "lease_wait_ms", "lease_timeouts", "lease_lost", "d1_errors", "lost_steps"]) {
+      expect(result.has(key)).toBe(true);
+      result.delete(key);
+    }
     if (result.has("intent_id")) {
       expect(result.req("intent_id")).toBe(intent.id);
       result.set("intent_id", "INTENT");
@@ -174,7 +180,7 @@ describe("daily run with digest replays run_daily", () => {
     await query("insert into digest_outbox (id, local_date, recipient, snapshot) values ('x', '2026-10-24', 'owner@example.invalid', 'not json')");
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, {})).status).toBe("failed");
     const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
-    expect(encode(row!.result)).toBe('{"status": "failed", "local_date": "2026-10-24", "reason": "daily_processing_failed"}');
+    expect(encode(row!.result)).toMatch(/^\{"status": "failed", "local_date": "2026-10-24", "reason": "daily_processing_failed", "d1_requests": \d+, "d1_rows_written": \d+, "lease_wait_ms": 0, "lease_timeouts": 0, "lease_lost": 0, "d1_errors": \{\}, "lost_steps": 0\}$/);
   });
 
   it("executes the date of its own claim: a run that starts the next day never runs the day it was queued for", async () => {

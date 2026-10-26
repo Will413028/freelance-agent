@@ -1,10 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { runSource, sourceStatuses } from "@/modules/collection/public";
-import { SourceBatch } from "@/modules/collection/ingest";
+import { Records } from "@/modules/legacy/public";
 import { syncPublicFeed, type FeedSource } from "@/modules/collection/sources/public-feeds";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, type PyValue } from "@/platform/py/value";
-import { db, query, resetSchema } from "./helpers/db";
+import { db, query, resetSchema, leased } from "./helpers/db";
 
 // The store cases of backend/tests/collection/test_public_feeds.py (plan step 8, batch 2). runSource
 // marks the source failed first, as public_feeds.sync does on its first line. The fetch cases are in
@@ -99,7 +99,7 @@ describe("public_feeds.sync (Python cases)", () => {
     // store.review / store.track live in step 11; write the fields they set.
     const [{ id, item }] = await items();
     item.update({ proposal: "Human proposal", version: 2n, tracking: PyDict.of({ note: "Keep this" }) as PyValue });
-    await query("update opportunities set item = ?1 where id = ?2", [encode(item), id]);
+    await leased("update opportunities set item = ?1 where id = ?2", [encode(item), id]);
     await run(data);
     const after = (await items())[0].item;
     expect(after.at("proposal")).toBe("Human proposal");
@@ -138,10 +138,10 @@ describe("public_feeds.sync (Python cases)", () => {
   });
 
   it("an ingest failure rolls back the whole batch", async () => {
-    const original = SourceBatch.prototype.ingest;
-    const spy = vi.spyOn(SourceBatch.prototype, "ingest").mockImplementation(function (this: SourceBatch, j, receipt) {
-      if (asDict(j).at("external_id") === "2") throw new Error("synthetic failure");
-      return original.call(this, j, receipt);
+    const original = Records.prototype.insert;
+    const spy = vi.spyOn(Records.prototype, "insert").mockImplementation(function (this: Records, item) {
+      if (item.dict("job").at("external_id") === "2") throw new Error("synthetic failure");
+      return original.call(this, item);
     });
     try {
       expect((await run(json([remote({ id: "1" }), remote({ id: "2" })]))).at("status")).toBe("failed");
@@ -169,7 +169,7 @@ describe("public_feeds.sync (Python cases)", () => {
     expect((await sourceStatuses(db)).at("remoteok")).toBe("failed");
     const [{ id, item }] = await items();
     item.update({ proposal: "Human partial proposal", version: 2n });
-    await query("update opportunities set item = ?1 where id = ?2", [encode(item), id]);
+    await leased("update opportunities set item = ?1 where id = ?2", [encode(item), id]);
     await run(data);
     const after = await items();
     expect(after.length).toBe(1);

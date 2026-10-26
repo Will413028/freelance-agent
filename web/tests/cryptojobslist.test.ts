@@ -1,10 +1,11 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { existingSourceIds, runSource, sourceStatuses } from "@/modules/collection/public";
+import { runSource, sourceStatuses } from "@/modules/collection/public";
 import { parse, syncCryptoJobsList } from "@/modules/collection/sources/cryptojobslist";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { PyDict } from "@/platform/py/value";
-import { db, query, resetSchema } from "./helpers/db";
+import { db, query, resetSchema, leased } from "./helpers/db";
+import { existingSourceIds } from "./helpers/intake";
 
 // backend/tests/collection/test_cryptojobslist.py, plus the source_batch atomicity plan step 7 adds.
 
@@ -58,7 +59,7 @@ describe("cryptojobslist (Python cases)", () => {
     const rows = await query("select id, item from opportunities");
     const edited = loadsDict(rows[0].item);
     edited.set("proposal", "Human proposal");
-    await query("update opportunities set item = ?1 where id = ?2", [encode(edited), rows[0].id]);
+    await leased("update opportunities set item = ?1 where id = ?2", [encode(edited), rows[0].id]);
     const b = parse(feed(), plus(now, 1));
     b.set("rejected_count", 1n);
     expect((await syncCryptoJobsList(db, async () => b)).at("status")).toBe("partial");
@@ -85,7 +86,7 @@ describe("cryptojobslist source_batch (plan step 7)", () => {
     (r.req("jobs") as PyDict[])[1].set("external_id", ""); // ingest raises on the second job
     const status = await runSource(db, "cryptojobslist", (d) => syncCryptoJobsList(d, async () => r));
     expect(status.status).toBe("failed");
-    expect((await existingSourceIds(db, "cryptojobslist")).size).toBe(0);
+    expect((await existingSourceIds("cryptojobslist")).size).toBe(0);
     expect((await query("select count(*) as n from source_receipts"))[0].n).toBe(0);
     expect((await sourceStatuses(db)).at("cryptojobslist")).toBe("failed");
   });
