@@ -70,6 +70,16 @@ describe("cryptojobslist (Python cases)", () => {
   });
 });
 
+describe("cryptojobslist source detail (plan step 10a)", () => {
+  // 2026-10-26 shadow: Python's result carries the feed's lastBuildDate text, which the SourceDetail
+  // contract refuses, so a healthy day was recorded as failed/invalid_source_result.
+  it("records a healthy feed with a build date as ok", async () => {
+    const r = parse(feed(), PyDateTime.now());
+    expect(await runSource(db, "cryptojobslist", (d) => syncCryptoJobsList(d, async () => r)))
+      .toEqual({ seen: 1, rejected_count: 0, complete_scan: false, scope: "official_rss_window_no_job_dates", jobs: 1, status: "ok" });
+  });
+});
+
 describe("cryptojobslist source_batch (plan step 7)", () => {
   it("writes nothing, health included, when the batch fails midway", async () => {
     const r = parse(feed(item() + item({ url: "https://cryptojobslist.com/jobs/second-one" })), PyDateTime.now());
