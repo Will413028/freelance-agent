@@ -140,7 +140,8 @@ export async function syncCryptoJobsList(db: Db, reader: RssReader = fetchRss): 
     await batch.finish(rejected ? "failed" : "ok");
     return n;
   });
-  const out = new PyDict([...result].filter(([k]) => k !== "jobs"));
+  // feed_built_at is the feed's own date text, which a step's SourceDetail refuses; nothing reads it (D17).
+  const out = new PyDict([...result].filter(([k]) => k !== "jobs" && k !== "feed_built_at"));
   out.set("jobs", count);
   out.set("status", rejected ? "partial" : "ok");
   return out;
