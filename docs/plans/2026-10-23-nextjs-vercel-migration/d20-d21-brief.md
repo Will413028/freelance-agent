@@ -89,7 +89,7 @@ spike 1f（`spikes.md` §1f）：
 | 改動量 | 旁表、約 8 個 trigger、每條路徑組守衛、mutation 逐 trigger 逐路徑 | 一張表、client 包裝；路徑仍是「讀、比對、再寫」，4e 既有的「拿掉鎖測試要紅」照用 |
 
 - **建議 B**，範圍限在第 2、3 類會寫的表（`opportunities`、`proposal_revisions`、`source_receipts`、`mail_content_versions`、`opportunity_tracking`、`tracking_events`、`discovery_settings`、投影表、投案相關表）；第 1 類語句與 `createDigestIn` 的寫入不進租約。理由：實際競爭只有一個人對一個依序執行的 run；兩者都要求做決定的讀取在保護之內，但 B 另外只多一個 client 能強制的條件，A 另外要逐路徑列出讀取集合、逐表維護 trigger，漏一個就默默出錯，而且 A 在設定重算這條路上本來就退化成全域計數。v1 用「B 會把並行的 25 個來源序列化」否決 B，前提是錯的（來源本來就依序跑）。
-- **終點與觸發**：終點是 A（聚合版本）。觸發條件任一成立時改：重新讓來源並行、有第二個使用者或對外 API；或每日執行記錄的租約等待（`daily_runs.result` 頂層 `lease_wait_ms`，和 `d1_requests` 同一處）7 天內 p95 超過 2 秒，或出現一次等租約逾時。B2 正規化（D6 窗口結束後）時重新評估。
+- **終點與觸發**：終點是 A（聚合版本）。觸發條件任一成立時改：重新讓來源並行、有第二個使用者或對外 API；或每日執行記錄的租約等待（`daily_runs.result` 頂層 `lease_wait_ms`，和 `d1_requests` 同一處）7 天內 p95 超過 2 秒，或出現一次等租約逾時。（2026-10-26 Will 改成逐次檢查：任一次執行等租約超過 2 秒即觸發，現行條件以計畫 D20 為準。）B2 正規化（D6 窗口結束後）時重新評估。
 
 | 限制 | 類別 | 來源 |
 |---|---|---|
