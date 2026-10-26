@@ -1,7 +1,8 @@
 import type { DatabaseSync } from "node:sqlite";
-import { clientOf, type Db } from "@/db/client";
-import type { D1Statement } from "@/db/d1/client";
-import { migrateD1, migrationStatements } from "@/db/migrate";
+import { clientOf, dbOver, insertChunks, MAX_PARAMS, type Db } from "@/db/client";
+import { D1Client, type D1Statement } from "@/db/d1/client";
+import { localTransport } from "@/db/d1/local";
+import { migrateD1 } from "@/db/migrate";
 import { DAILY_WRITE, withLease } from "@/db/unit";
 import { columnsOf, CopyError, d1Rows, d1RowsQuery, fingerprint, openSqlite, readSqliteRows, sqliteColumns, sqliteTables, type Column, type Row } from "./rows";
 import { DERIVED_TABLES, TABLES } from "./tables";
@@ -28,57 +29,35 @@ export type ImportReport = {
  */
 export type RebuildDerived = (db: Db, lite: DatabaseSync) => Promise<number>;
 
-const PARAMS = 100; // bound parameters per statement on D1
-const STATEMENTS = 60; // statements per leased request, under the 75 measured in spike 1f (a)
-const BYTES = 4_000_000;
-
 const quoted = (name: string) => `"${name}"`;
 
-/** The migration statements that (re)create one of these tables, its indexes or its triggers; anything else is refused. */
-export function recreateStatements(tables: readonly string[], statements = migrationStatements()): string[] {
-  const wanted = new Set(tables);
-  const out: string[] = [];
-  for (const raw of statements) {
-    const sql = raw.replace(/^(\s*--[^\n]*\n)+/, "").trim();
-    const target = /^CREATE TABLE [`"]?(\w+)/i.exec(sql)?.[1] ?? /^ALTER TABLE [`"]?(\w+)/i.exec(sql)?.[1]
-      ?? /^CREATE (?:UNIQUE )?INDEX .*? ON [`"]?(\w+)/i.exec(sql)?.[1] ?? /^CREATE TRIGGER [\s\S]*? ON [`"]?(\w+)/i.exec(sql)?.[1];
-    if (target === undefined) throw new CopyError(`migration statement the import cannot place: ${sql.slice(0, 40)}`);
-    if (wanted.has(target)) out.push(sql);
+/**
+ * The DDL that creates these tables, their indexes and triggers in their current shape: read from
+ * SQLite's own catalog (sqlite_master) of an empty stand-in built from the same migrations that were
+ * just applied to the target, rather than replaying migration history. Automatic indexes have no SQL
+ * and come with their table.
+ */
+export async function createStatements(tables: readonly string[], migrationsFolder?: string): Promise<string[]> {
+  const stand = localTransport(":memory:");
+  try {
+    await migrateD1(dbOver(new D1Client(stand)), migrationsFolder);
+    const [catalog] = await stand.batch([{ sql: `select sql from sqlite_master where sql is not null and tbl_name in (${tables.map(() => "?").join(",")}) ` +
+      "order by case type when 'table' then 0 when 'index' then 1 else 2 end, rowid", params: [...tables] }]);
+    return catalog.rows.map((r) => String(r[0]));
+  } finally {
+    stand.close();
   }
-  return out;
 }
 
-/** Groups statements into requests within D1's limits. */
-function requests(statements: D1Statement[]): D1Statement[][] {
-  const out: D1Statement[][] = [];
-  let current: D1Statement[] = [], bytes = 0;
-  for (const s of statements) {
-    const size = s.sql.length + s.params.reduce<number>((n, p) => n + (typeof p === "string" ? Buffer.byteLength(p) : 8), 0);
-    if (current.length && (current.length >= STATEMENTS || bytes + size > BYTES)) {
-      out.push(current);
-      current = [];
-      bytes = 0;
-    }
-    current.push(s);
-    bytes += size;
-  }
-  if (current.length) out.push(current);
-  return out;
-}
-
-/** Multi-row INSERTs of a table's rows, each within D1's 100 bound parameters. */
+/** Multi-row INSERTs of a table's rows, each within D1's bound parameters. */
 function inserts(table: string, columns: Column[], rows: Row[]): D1Statement[] {
-  const per = Math.max(1, Math.floor(PARAMS / columns.length));
   const names = columns.map((c) => quoted(c.name)).join(",");
   const tuple = "(" + columns.map(() => "?").join(",") + ")";
-  const out: D1Statement[] = [];
-  for (let at = 0; at < rows.length; at += per) {
-    const chunk = rows.slice(at, at + per);
-    // Integers travel as text and land as integers through the column's INTEGER affinity (spike 1f (e)).
-    out.push({ sql: `insert into ${quoted(table)} (${names}) values ${chunk.map(() => tuple).join(",")}`,
-      params: chunk.flat().map((cell) => (cell === null ? null : "i" in cell ? cell.i : cell.s)) });
-  }
-  return out;
+  // Integers travel as text and land as integers through the column's INTEGER affinity (spike 1f (e)).
+  return insertChunks(rows, Math.min(columns.length, MAX_PARAMS)).map((chunk) => ({
+    sql: `insert into ${quoted(table)} (${names}) values ${chunk.map(() => tuple).join(",")}`,
+    params: chunk.flat().map((cell) => (cell === null ? null : "i" in cell ? cell.i : cell.s)),
+  }));
 }
 
 async function d1Columns(db: Db, table: string): Promise<Column[]> {
@@ -103,7 +82,7 @@ export async function loadCopy(db: Db, lite: DatabaseSync, send: (statements: D1
     source.set(spec.name, rows);
     statements.push(...inserts(spec.name, columns, rows));
   }
-  for (const request of requests(statements)) await send(request);
+  await send(statements);
   return source;
 }
 
@@ -123,9 +102,10 @@ export function checkTableSet(lite: DatabaseSync) {
 /** Drops and recreates the product and derived tables, children first, under the caller's lease. */
 export async function recreateTables(send: (statements: D1Statement[]) => Promise<unknown>) {
   const names = [...TABLES.map((t) => t.name), ...DERIVED_TABLES];
+  const create = await createStatements(names);
   // DROP TABLE writes no rows on D1 and fires no triggers ("1f 補充"); reverse load order keeps foreign keys satisfied.
-  for (const request of requests([...names].reverse().map((n) => ({ sql: `drop table if exists ${quoted(n)}`, params: [] })))) await send(request);
-  for (const request of requests(recreateStatements(names).map((sql) => ({ sql, params: [] })))) await send(request);
+  await send([...names].reverse().map((n) => ({ sql: `drop table if exists ${quoted(n)}`, params: [] })));
+  await send(create.map((sql) => ({ sql, params: [] })));
 }
 
 export async function importCopy(sqlitePath: string, db: Db, rebuild: RebuildDerived, waitMs = DAILY_WRITE.waitMs): Promise<ImportReport> {
@@ -134,14 +114,16 @@ export async function importCopy(sqlitePath: string, db: Db, rebuild: RebuildDer
   try {
     checkTableSet(lite);
     await migrateD1(db);
-    const source = await withLease(db, waitMs, async (send) => {
+    // The lease keeps product write units out until the report is in. It does not stop the single-
+    // statement writers (daily claim, digest, mail records): a reload runs with the cron off or
+    // outside 09:00–09:59 Asia/Taipei (plan step 4e3).
+    return await withLease(db, waitMs, async (send) => {
       await recreateTables(send);
-      return loadCopy(db, lite, send);
+      const source = await loadCopy(db, lite, send);
+      const derived = await rebuild(db, lite);
+      const { ok, tables } = await report(source, db);
+      return { ok, tables, derived, d1RowsWritten: clientOf(db).counters.rowsWritten - before };
     });
-    // digest_novelty is written outside the lease (a single-statement table, plan step 4e category 1).
-    const derived = await rebuild(db, lite);
-    const { ok, tables } = await report(source, db);
-    return { ok, tables, derived, d1RowsWritten: clientOf(db).counters.rowsWritten - before };
   } finally {
     lite.close();
   }

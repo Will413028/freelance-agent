@@ -39,6 +39,8 @@ const MAX_STATEMENTS = 75;
 const MAX_BYTES = 4_000_000;
 /** Guard, renew, prune, attempt record and release around a batch's own statements. */
 const BOOKKEEPING = 5;
+/** Statements a withLease request carries besides its guard and renewal. */
+export const MAX_LEASED_STATEMENTS = MAX_STATEMENTS - 2;
 
 /** The unit could not get or keep the lease within its limits; nothing of its current attempt was written. */
 export class WriterBusy extends Error {
@@ -233,27 +235,50 @@ async function waitForLease(db: Db, holder: string, waitMs: number): Promise<num
 
 /**
  * The lease held across several requests, for operations tooling that writes more than a unit can
- * (the one-time import): every batch `send` gets goes out behind the guard and renews the lease, and
- * the lease is released at the end, also on failure. It does not settle lost responses or rerun
- * anything: a batch that failed, was lost or met a lost lease fails the whole operation, which must
- * therefore be safe to run again from the start.
+ * (the one-time import, migrations of a live database): `send` packs the statements it is given
+ * into requests within D1's limits, each behind the guard and renewing the lease, and the lease is
+ * released at the end, also on failure. It does not settle lost responses or rerun anything: a
+ * request that failed, was lost or met a lost lease fails the whole operation, which must therefore
+ * be safe to run again from the start.
  */
 export async function withLease<T>(db: Db, waitMs: number, fn: (send: (statements: D1Statement[]) => Promise<D1Result[]>) => Promise<T>): Promise<T> {
   const holder = crypto.randomUUID();
   const token = await waitForLease(db, holder, waitMs);
   const client = clientOf(db);
+  const lease = [{ sql: GUARD_SQL, params: [holder, token] }, { sql: RENEW_SQL, params: [holder, token] }];
   try {
     return await fn(async (statements) => {
-      if (statements.length + 2 > MAX_STATEMENTS) throw new Error(`a leased batch of ${statements.length} statements exceeds one request`);
-      try {
-        return (await client.batch([{ sql: GUARD_SQL, params: [holder, token] }, { sql: RENEW_SQL, params: [holder, token] }, ...statements])).slice(2);
-      } catch (e) {
-        throw isGuardFailure(e) ? new WriterBusy("lease_lost") : e;
+      const results: D1Result[] = [];
+      for (const request of pack(statements, MAX_LEASED_STATEMENTS)) {
+        try {
+          results.push(...(await client.batch([...lease, ...request])).slice(lease.length));
+        } catch (e) {
+          throw isGuardFailure(e) ? new WriterBusy("lease_lost") : e;
+        }
       }
+      return results;
     });
   } finally {
     await client.batch([{ sql: RELEASE_SQL, params: [holder, token] }]).then(() => undefined, () => undefined);
   }
+}
+
+/** Consecutive statements grouped into requests of at most `limit` statements and MAX_BYTES. */
+function pack(statements: D1Statement[], limit: number): D1Statement[][] {
+  const out: D1Statement[][] = [];
+  let current: D1Statement[] = [], bytes = 0;
+  for (const s of statements) {
+    const size = Buffer.byteLength(s.sql) + s.params.reduce<number>((n, p) => n + (typeof p === "string" ? Buffer.byteLength(p) : 8), 0);
+    if (current.length && (current.length >= limit || bytes + size > MAX_BYTES)) {
+      out.push(current);
+      current = [];
+      bytes = 0;
+    }
+    current.push(s);
+    bytes += size;
+  }
+  if (current.length) out.push(current);
+  return out;
 }
 
 /** What `run` may compute: never a promise, so a unit cannot wait on the network or read outside its reads while it holds the lease. */

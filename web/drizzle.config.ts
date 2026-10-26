@@ -1,15 +1,10 @@
 import { defineConfig } from "drizzle-kit";
 
-// `drizzle-kit generate` needs no credentials. `drizzle-kit migrate` applies the migrations to D1
-// over its HTTP API with the same three env values as the app (plan step 4e).
+// drizzle-kit only generates migrations here. They reach D1 through src/db/migrate.ts alone
+// (scripts/migrate.ts): drizzle-kit's own d1-http migrate sends statement by statement and leaves a
+// half schema when one fails (plan step 4e2a), so it has no credentials to do that with.
 export default defineConfig({
   dialect: "sqlite",
-  driver: "d1-http",
   schema: "./src/db/schema.ts",
   out: "./drizzle",
-  dbCredentials: {
-    accountId: process.env.CLOUDFLARE_ACCOUNT_ID ?? "",
-    databaseId: process.env.D1_DATABASE_ID ?? "",
-    token: process.env.D1_API_TOKEN ?? "",
-  },
 });

@@ -1,16 +1,17 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { ingestSource } from "@/modules/collection/public";
-import { checkTableSet, copiedDigests, importCopy, recreateStatements, type RebuildDerived } from "@/ops/import";
+import { checkTableSet, copiedDigests, createStatements, importCopy, type RebuildDerived } from "@/ops/import";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
 import { PyDateTime } from "@/platform/py/datetime";
 import { checkLedger, rebuildNovelty } from "@/services/digest";
 import { replayDigest } from "@/verify/replay";
-import { db, intercepting, leased, query, resetSchema, sqliteWithSchema } from "./helpers/db";
+import { db, intercepting, leased, MIGRATIONS, query, recording, resetSchema, sqliteWithSchema } from "./helpers/db";
+import { migrateD1 } from "@/db/migrate";
 import { fixture } from "./helpers/golden";
 import { job } from "./helpers/jobs";
 
@@ -173,9 +174,33 @@ describe("one-time import into D1", () => {
     await expect(importCopy(base, db, rebuild, 200)).rejects.toThrow("writer lease not available in time");
   });
 
-  it("recreates from the migrations only what it can place", () => {
-    expect(recreateStatements(["guard"])).toEqual([expect.stringMatching(/^CREATE TABLE `guard`/), expect.stringMatching(/^CREATE TRIGGER IF NOT EXISTS guard_failed/)]);
-    expect(() => recreateStatements(["opportunities"], ["DROP INDEX x"])).toThrow("cannot place");
+  it("recreates tables in their current shape from SQLite's catalog, with their indexes and triggers", async () => {
+    const ddl = await createStatements(["digest_novelty", "tracking_events"]);
+    expect(ddl.map((sql) => sql.split(/[\s(]/).slice(0, 3).join(" "))).toEqual([
+      "CREATE TABLE `digest_novelty`", "CREATE TABLE `tracking_events`", "CREATE UNIQUE INDEX",
+      "CREATE TRIGGER digest_novelty_immutable", "CREATE TRIGGER digest_novelty_retained",
+    ]);
+  });
+});
+
+describe("migrations on D1", () => {
+  it("apply to a live database behind the writer lease, even when they alter a leased table", async () => {
+    const folder = mkdtempSync(path.join(dir, "migrations-"));
+    cpSync(MIGRATIONS, folder, { recursive: true });
+    const journalFile = path.join(folder, "meta/_journal.json");
+    const journal = JSON.parse(readFileSync(journalFile, "utf8"));
+    journal.entries.push({ idx: journal.entries.length, version: "6", when: journal.entries.at(-1).when + 1, tag: "9999_test_alter", breakpoints: true });
+    writeFileSync(journalFile, JSON.stringify(journal));
+    writeFileSync(path.join(folder, "9999_test_alter.sql"), "ALTER TABLE `clients` ADD `x` text;");
+    const rec = recording();
+    await migrateD1(rec.db, folder);
+    expect((await query<{ name: string }>("pragma table_info(clients)")).map((c) => c.name)).toContain("x");
+    expect(rec.batches.find((b) => b.some((s) => s.sql.startsWith("ALTER TABLE")))![0].sql).toMatch(/^insert into guard/);
+    expect(await query("select holder from writer_lease")).toEqual([{ holder: null }]);
+    // Applied once: a second run has nothing to send.
+    const before = rec.batches.length;
+    await migrateD1(rec.db, folder);
+    expect(rec.batches.slice(before).some((b) => b.some((s) => s.sql.startsWith("ALTER TABLE")))).toBe(false);
   });
 });
 
