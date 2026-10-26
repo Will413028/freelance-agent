@@ -1,13 +1,13 @@
-import { readTransaction, writeTransaction, type Db, type Executor } from "@/db/client";
-import { applicationProjections } from "@/modules/applications/public";
-import { contentVersions } from "@/modules/collection/public";
-import { allRecords } from "@/modules/legacy/public";
-import { emptyTracking, track as trackIn, trackingStates, type TrackingChange } from "@/modules/preferences/public";
+import { readAll, writeTransaction, type Db, type ReadValues } from "@/db/client";
+import { applicationProjectionsRead } from "@/modules/applications/public";
+import { contentVersionsRead } from "@/modules/collection/public";
+import { allRecordsRead } from "@/modules/legacy/public";
+import { emptyTracking, track as trackIn, trackingStatesRead, type TrackingChange } from "@/modules/preferences/public";
 import { Conflict, InvalidAction } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, asList, cmpStr, isDict, pyEq, PyDict, PyError, type PyValue } from "@/platform/py/value";
-import { evaluate, groupItems, project, PUBLIC_JOB_FIELDS, rankItems, readSettings, recommendation } from "@/modules/discovery/public";
+import { evaluate, groupItems, project, PUBLIC_JOB_FIELDS, rankItems, recommendation, settingsRead } from "@/modules/discovery/public";
 
 // Port of discovery/service.py: discovery queries and atomic group feedback shared by all entry
 // points. It composes legacy records, preferences, collection and applications, so it lives above
@@ -15,17 +15,20 @@ import { evaluate, groupItems, project, PUBLIC_JOB_FIELDS, rankItems, readSettin
 
 const OBSERVATION_ONLY = new Set(["received_at", "receipt_id", "evidence_ref", "raw_evidence_ref"]);
 
-export async function listIn(tx: Executor, now: PyDateTime): Promise<PyDict[]> {
-  const rows = await allRecords(tx);
-  const settings = (await readSettings(tx)).settings;
+/** What list_in reads, to run in one request alone or with a caller's other reads (readAll). */
+export const listReads = (db: Db) =>
+  [allRecordsRead(db), settingsRead(db), contentVersionsRead(db), trackingStatesRead(db), applicationProjectionsRead(db)] as const;
+
+export type ListData = ReadValues<ReturnType<typeof listReads>>;
+
+/** list_in over rows read together by listReads. */
+export function assembleList([rows, { settings }, contentRows, states, applications]: ListData, now: PyDateTime): PyDict[] {
   const items = rows.map((row) => project(row, settings, now));
   const versions = new Map<string, { fingerprint: string; job: string }[]>();
-  for (const row of await contentVersions(tx)) {
+  for (const row of contentRows) {
     if (!versions.has(row.opportunityId)) versions.set(row.opportunityId, []);
     versions.get(row.opportunityId)!.push(row);
   }
-  const states = await trackingStates(tx);
-  const applications = await applicationProjections(tx);
   for (const item of items) {
     const id = item.str("id");
     item.set("tracking", states.get(id) ?? emptyTracking());
@@ -48,15 +51,13 @@ export async function listIn(tx: Executor, now: PyDateTime): Promise<PyDict[]> {
   return rankItems(items, now);
 }
 
-export const list = (db: Db, now: PyDateTime) => readTransaction(db, (tx) => listIn(tx, now));
+export const list = async (db: Db, now: PyDateTime) => assembleList(await readAll(db, listReads(db)), now);
 
-export async function groupIn(tx: Executor, key: string, now: PyDateTime): Promise<PyDict> {
-  const group = groupItems(await listIn(tx, now)).find((g) => asList(g.req("member_ids")).includes(key));
-  if (!group) throw new PyError("KeyError", key);
-  return group;
+export async function group(db: Db, key: string, now: PyDateTime): Promise<PyDict> {
+  const found = groupItems(await list(db, now)).find((g) => asList(g.req("member_ids")).includes(key));
+  if (!found) throw new PyError("KeyError", key);
+  return found;
 }
-
-export const group = (db: Db, key: string, now: PyDateTime) => readTransaction(db, (tx) => groupIn(tx, key, now));
 
 /** Versions the caller saw: {member id: token} for every member of the group. */
 export const memberVersions = (g: PyDict) => new PyDict(asList(g.req("members")).map((m) => [asDict(m).str("id"), asDict(m).req("token")]));

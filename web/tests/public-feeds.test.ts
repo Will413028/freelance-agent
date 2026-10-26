@@ -1,10 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { runSource, sourcesIn } from "@/modules/collection/public";
+import { runSource, sourceStatuses } from "@/modules/collection/public";
 import { SourceBatch } from "@/modules/collection/ingest";
 import { syncPublicFeed, type FeedSource } from "@/modules/collection/sources/public-feeds";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, type PyValue } from "@/platform/py/value";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, query, resetSchema } from "./helpers/db";
 
 // The store cases of backend/tests/collection/test_public_feeds.py (plan step 8, batch 2). runSource
 // marks the source failed first, as public_feeds.sync does on its first line. The fetch cases are in
@@ -28,11 +28,10 @@ const run = async (data: Uint8Array, source: FeedSource = "remoteok") => {
   const status = await runSource(db, source, async (d) => (result = await syncPublicFeed(d, source, async () => data)));
   return status.status === "failed" ? PyDict.of({ status: "failed" }) : result!;
 };
-const items = async () => (await pool.query("select id, item from opportunities order by id")).rows.map((r) => ({ id: r.id as string, item: loadsDict(r.item) }));
+const items = async () => (await query("select id, item from opportunities order by id")).map((r) => ({ id: r.id as string, item: loadsDict(r.item) }));
 const job = (item: PyDict) => asDict(item.at("job"));
 
 beforeEach(resetSchema);
-afterAll(() => pool.end());
 
 describe("public_feeds.sync (Python cases)", () => {
   it("keeps the description, attribution, unknowns and the actual date", async () => {
@@ -100,7 +99,7 @@ describe("public_feeds.sync (Python cases)", () => {
     // store.review / store.track live in step 11; write the fields they set.
     const [{ id, item }] = await items();
     item.update({ proposal: "Human proposal", version: 2n, tracking: PyDict.of({ note: "Keep this" }) as PyValue });
-    await pool.query("update opportunities set item = $1 where id = $2", [encode(item), id]);
+    await query("update opportunities set item = ?1 where id = ?2", [encode(item), id]);
     await run(data);
     const after = (await items())[0].item;
     expect(after.at("proposal")).toBe("Human proposal");
@@ -113,7 +112,7 @@ describe("public_feeds.sync (Python cases)", () => {
       expect((await run(Buffer.from(data))).at("status")).toBe("failed");
       expect(await items()).toEqual([]);
     }
-    expect((await sourcesIn(db)).at("remoteok")).toBe("failed");
+    expect((await sourceStatuses(db)).at("remoteok")).toBe("failed");
   });
 
   it("XML rejects DTDs, entities and arbitrary recovery", async () => {
@@ -167,10 +166,10 @@ describe("public_feeds.sync (Python cases)", () => {
     expect(result.at("seen")).toBe(2n);
     expect(result.at("jobs")).toBe(1n);
     expect(result.at("reason")).toBe("invalid_individual_listings_rejected");
-    expect((await sourcesIn(db)).at("remoteok")).toBe("failed");
+    expect((await sourceStatuses(db)).at("remoteok")).toBe("failed");
     const [{ id, item }] = await items();
     item.update({ proposal: "Human partial proposal", version: 2n });
-    await pool.query("update opportunities set item = $1 where id = $2", [encode(item), id]);
+    await query("update opportunities set item = ?1 where id = ?2", [encode(item), id]);
     await run(data);
     const after = await items();
     expect(after.length).toBe(1);

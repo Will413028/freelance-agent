@@ -1,58 +1,74 @@
-import { attachDatabasePool } from "@vercel/functions";
-import { sql } from "drizzle-orm";
-import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { sql, type AnyColumn } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
+import { D1Client, d1ErrorOf, httpTransport } from "./d1/client";
+import { d1Drizzle, type D1Db } from "./d1/drizzle";
 import * as schema from "./schema";
 
-export type Db = NodePgDatabase<typeof schema>;
-export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
-/** A connection or an open transaction; functions taking it share the caller's transaction. */
-export type Executor = Db | Tx;
+// The product database is Cloudflare D1 over its REST API (plan D19, D21, step 4e). There are no
+// transactions: every query is one request and auto-commits, and a batch is one request that
+// commits as a whole (spike 1f). drizzle's transaction() would send BEGIN, which D1 refuses.
+export type Db = D1Db<typeof schema>;
 
-let pool: Pool | undefined;
+export const dbOver = (client: D1Client): Db => d1Drizzle(client, schema);
 
 /**
- * Every Postgres URL goes through here (product and ops scripts). pg treats sslmode=require as
- * verify-full today but will adopt libpq's weaker semantics in its next major version, so the
- * certificate check is pinned explicitly instead of depending on the driver default.
+ * A client holds no connection, only request counters, so each caller (a workflow step, a page
+ * request) gets its own and its counters cover only its own work.
  */
-export function strictSslUrl(url: string): string {
-  const u = new URL(url);
-  const mode = u.searchParams.get("sslmode");
-  if (mode && ["prefer", "require", "verify-ca"].includes(mode)) u.searchParams.set("sslmode", "verify-full");
-  return u.toString();
-}
-
 export function getDb(): Db {
-  if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) throw new Error("DATABASE_URL is not set");
-    pool = new Pool({ connectionString: strictSslUrl(connectionString), max: 5 });
-    attachDatabasePool(pool);
-  }
-  return drizzle(pool, { schema });
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID, databaseId = process.env.D1_DATABASE_ID, token = process.env.D1_API_TOKEN;
+  if (!accountId || !databaseId || !token) throw new Error("CLOUDFLARE_ACCOUNT_ID, D1_DATABASE_ID and D1_API_TOKEN must be set");
+  return dbOver(new D1Client(httpTransport({ accountId, databaseId, token })));
 }
 
-// Arbitrary constant naming the single product-writer lock.
-const WRITER_LOCK = 0x46_41_57_31;
+/** D1 binds at most 100 parameters per statement. */
+export const MAX_PARAMS = 100;
+
+/** `column IN (values)` with the whole list as one JSON parameter, so its length is not bounded by MAX_PARAMS (json_each works on D1, spike 1f (g)). */
+export const inList = (column: AnyColumn, values: readonly string[]) => sql`${column} in (select value from json_each(${JSON.stringify(values)}))`;
+
+/** Rows split so that a multi-row INSERT of `paramsPerRow` columns stays within MAX_PARAMS. */
+export function insertChunks<T>(rows: readonly T[], paramsPerRow: number): T[][] {
+  const size = Math.floor(MAX_PARAMS / paramsPerRow);
+  const out: T[][] = [];
+  for (let at = 0; at < rows.length; at += size) out.push(rows.slice(at, at + size));
+  return out;
+}
+
+type Query = BatchItem<"sqlite">;
+
+/** A query and how to turn its rows into the value a caller wants; run with others by readAll. */
+export type Read<T> = { query: Query; decode: (rows: never) => T };
+
+export const read = <Q extends Query, T>(query: Q, decode: (rows: Q["_"]["result"]) => T): Read<T> => ({ query, decode });
+
+export type ReadValues<R extends readonly Read<unknown>[]> = { -readonly [K in keyof R]: R[K] extends Read<infer T> ? T : never };
+
+const RETRY_DELAYS_MS = [200, 500];
 
 /**
- * One writer at a time, as the Python store's BEGIN IMMEDIATE guarantees: intake, feedback and
- * group-token checks read, compare and then write, and their correctness assumes no other writer
- * ran in between. Needed while those read-check-write paths exist; readers never take the lock.
+ * Runs fn again when its request may or may not have executed (lost response, timeout, server
+ * error). Only for requests that are safe to repeat: reads, and writes whose second execution
+ * changes nothing (conditional updates, upserts of the same values). Rate, overload and daily-limit
+ * errors are not retried: the unit fails instead of waiting inside a step (plan step 4e).
  */
-export function writeTransaction<T>(db: Db, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  return db.transaction(async (tx) => {
-    // Bounded like the Python writer (sqlite3 timeout=5): a stuck writer fails the others fast
-    // instead of holding 27 parallel source steps until the 300 s function limit.
-    await tx.execute(sql`set local lock_timeout = '5s'`);
-    await tx.execute(sql`set local idle_in_transaction_session_timeout = '60s'`);
-    await tx.execute(sql`select pg_advisory_xact_lock(${WRITER_LOCK})`);
-    return fn(tx);
-  });
+export async function retrying<T>(fn: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (d1ErrorOf(e)?.kind !== "outcome_unknown" || attempt >= RETRY_DELAYS_MS.length) throw e;
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
+    }
+  }
 }
 
-/** A consistent snapshot for multi-query reads (the Python read path opens a read-only BEGIN). */
-export function readTransaction<T>(db: Db, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  return db.transaction(fn, { isolationLevel: "repeatable read", accessMode: "read only" });
+/**
+ * Reads whose results are combined must come from one state of the database, as the Python read
+ * path's BEGIN gave them: D1 executes a batch as one unit, so these go in one request.
+ */
+export async function readAll<const R extends readonly Read<unknown>[]>(db: Db, reads: R): Promise<ReadValues<R>> {
+  if (reads.length === 0) return [] as ReadValues<R>;
+  const results = await retrying(() => db.batch(reads.map((r) => r.query) as unknown as [Query, ...Query[]]));
+  return reads.map((r, i) => (r.decode as (rows: unknown) => unknown)(results[i])) as ReadValues<R>;
 }

@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { writeTransaction, type Db, type Executor } from "@/db/client";
+import { read, readAll, writeTransaction, type Db } from "@/db/client";
 import { discoverySettings } from "@/db/schema";
 import { Conflict } from "@/platform/errors";
 import { encode, loadsDict } from "@/platform/py/json";
@@ -10,9 +10,11 @@ import { defaults, preferences } from "./rules";
 
 export type Settings = { revision: bigint; settings: PyDict };
 
-export async function readSettings(tx: Executor): Promise<Settings> {
-  const [row] = await tx.select().from(discoverySettings).where(eq(discoverySettings.id, 1));
-  return row ? { revision: BigInt(row.revision), settings: loadsDict(row.settings) } : { revision: 0n, settings: preferences(defaults()) };
+export const settingsRead = (db: Db) => read(db.select().from(discoverySettings).where(eq(discoverySettings.id, 1)), ([row]): Settings =>
+  row ? { revision: BigInt(row.revision), settings: loadsDict(row.settings) } : { revision: 0n, settings: preferences(defaults()) });
+
+export async function readSettings(db: Db): Promise<Settings> {
+  return (await readAll(db, [settingsRead(db)]))[0];
 }
 
 export const settingsDict = (s: Settings) => PyDict.of({ revision: s.revision, settings: s.settings });

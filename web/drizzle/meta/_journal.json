@@ -1,33 +1,19 @@
 {
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
-      "version": "7",
-      "when": 1792761707003,
-      "tag": "0000_source_health",
+      "version": "6",
+      "when": 1793010998770,
+      "tag": "0000_schema",
       "breakpoints": true
     },
     {
       "idx": 1,
-      "version": "7",
-      "when": 1792766580698,
-      "tag": "0001_shared_schema",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1792766596034,
-      "tag": "0002_immutability_triggers",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1792949616587,
-      "tag": "0003_digest_novelty",
+      "version": "6",
+      "when": 1793011000995,
+      "tag": "0001_triggers",
       "breakpoints": true
     }
   ]

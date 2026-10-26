@@ -2,7 +2,7 @@
 export { claimDailyRun, dailyRecipient, finishDailyRun, getDailyRun, taipeiLocal } from "./daily-runs";
 export { render, safeUrl, SOURCE_STATUS, type RenderMode } from "./digest";
 export {
-  backfillNoveltyIn, checkNoveltyIn, claimDigest, findDigest, findDigestIn, finishDigest, getDigest, insertDigestIn, noveltyRows,
+  announced, backfillNoveltyIn, checkNoveltyIn, claimDigest, findDigest, findDigestRead, finishDigest, getDigest, insertDigest, noveltyRows,
   type DigestRow, type NoveltyCheck, type StoredDigest,
 } from "./outbox";
 export { buildMessage, deliver, dispatch, gmailOpener, messageSha256, smtpPassword, type SmtpOpener } from "./delivery";

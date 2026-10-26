@@ -2,9 +2,9 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { list } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { PyDict } from "@/platform/py/value";
-import { db, pool, resetSchema } from "../../../tests/helpers/db";
+import { db, query, resetSchema } from "../../../tests/helpers/db";
 import { job } from "../../../tests/helpers/jobs";
-import { setSourceHealth, sourceBatch, sourcesIn } from "./ingest";
+import { setSourceHealth, sourceBatch, sourceStatuses } from "./ingest";
 import { olderNotification } from "./observation";
 
 // Ports of backend/tests/collection/test_source_batch.py plus notification ordering.
@@ -12,7 +12,6 @@ const now = new PyDateTime(2026, 9, 28, 1, 0, 0, 0, 0n);
 const pyType = async (p: Promise<unknown>) => p.then(() => null, (e) => (e as { pyType?: string }).pyType ?? String(e));
 
 beforeEach(resetSchema);
-afterAll(async () => { await pool.end(); });
 
 describe("source batch", () => {
   it("replays and exposes existing source jobs", async () => {
@@ -36,7 +35,7 @@ describe("source batch", () => {
     });
     expect(await pyType(outcome)).toBe("Conflict");
     expect(await list(db, now)).toEqual([]);
-    expect((await sourcesIn(db)).req("tasker")).toBe("failed");
+    expect((await sourceStatuses(db)).req("tasker")).toBe("failed");
   });
 
   it("rejects another source without writing", async () => {

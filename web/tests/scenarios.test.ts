@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { existingSourceIds, ingest, setSourceHealth, sourceBatch, sourcesIn } from "@/modules/collection/public";
+import { existingSourceIds, ingest, setSourceHealth, sourceBatch, sourceStatuses } from "@/modules/collection/public";
 import { readSettings, replaceSettings, settingsDict } from "@/modules/discovery/public";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
 import { checkNoveltyIn, claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
@@ -9,7 +9,7 @@ import { identityHash } from "@/platform/py/json";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, asList, PyDict, pySorted, type PyValue } from "@/platform/py/value";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, query, resetSchema, queryArrays } from "./helpers/db";
 import { attemptAsync, fixture, untag, type Expect, type Tagged } from "./helpers/golden";
 
 // Replays the store scenarios that web/tests/fixtures/gen_golden.py ran against the Python
@@ -68,7 +68,7 @@ async function replay(s: Scenario) {
       groups: async () => groupItems(await list(db, now)),
       public: async () => groupItems(await list(db, now)).map(publicItem),
       preferences: async () => settingsDict(await readSettings(db)),
-      sources: async () => sourcesIn(db),
+      sources: async () => sourceStatuses(db),
       existing: async () => pySorted(await existingSourceIds(db, op.source)),
       digest: async () => (await createDigest(db, op.local_date, op.recipient, now)).snapshot,
       render: async () => {
@@ -86,14 +86,13 @@ async function replay(s: Scenario) {
   }
   const tables: Record<string, unknown[][]> = {};
   for (const [table, columns, order] of TABLES) {
-    const { rows } = await pool.query({ text: `select ${columns} from ${table} order by ${order}`, rowMode: "array" });
+    const rows = await queryArrays(`select ${columns} from ${table} order by ${order}`);
     tables[table] = rows;
   }
   return { results, tables };
 }
 
 beforeEach(resetSchema);
-afterAll(async () => { await pool.end(); });
 
 describe("store scenarios replay the Python store byte for byte", () => {
   for (const [name, scenario] of Object.entries(golden.scenarios)) {

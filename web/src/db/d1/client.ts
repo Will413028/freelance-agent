@@ -26,6 +26,12 @@ export class D1Error extends Error {
   }
 }
 
+/** The D1Error behind e: drizzle wraps errors of single queries (not of batches) in its own, keeping ours as the cause. */
+export function d1ErrorOf(e: unknown): D1Error | undefined {
+  for (let at: unknown = e, depth = 0; at instanceof Error && depth < 5; at = at.cause, depth++) if (at instanceof D1Error) return at;
+  return undefined;
+}
+
 export type D1Counters = { requests: number; rowsWritten: number; rowsRead: number };
 
 function encodeParam(value: unknown): string | number | null {

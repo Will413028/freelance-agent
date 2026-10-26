@@ -1,10 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { existingSourceIds, runSource, sourcesIn } from "@/modules/collection/public";
+import { existingSourceIds, runSource, sourceStatuses } from "@/modules/collection/public";
 import { parse, syncCryptoJobsList } from "@/modules/collection/sources/cryptojobslist";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { PyDict } from "@/platform/py/value";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, query, resetSchema } from "./helpers/db";
 
 // backend/tests/collection/test_cryptojobslist.py, plus the source_batch atomicity plan step 7 adds.
 
@@ -20,7 +20,6 @@ const first = (r: PyDict) => (r.req("jobs") as PyDict[])[0];
 const plus = (dt: PyDateTime, days: number) => PyDateTime.fromUtcMicros(dt.utcMicros() + BigInt(days) * 86_400_000_000n);
 
 beforeEach(resetSchema);
-afterAll(() => pool.end());
 
 describe("cryptojobslist (Python cases)", () => {
   it("does not fill a missing job date from the feed build or the observation", () => {
@@ -56,17 +55,17 @@ describe("cryptojobslist (Python cases)", () => {
     const a = parse(feed(), now);
     expect((await syncCryptoJobsList(db, async () => a)).at("jobs")).toBe(1n);
     // store.review(id, 'edit', version, text=...) lives in step 11; write the field it sets.
-    const { rows } = await pool.query("select id, item from opportunities");
+    const rows = await query("select id, item from opportunities");
     const edited = loadsDict(rows[0].item);
     edited.set("proposal", "Human proposal");
-    await pool.query("update opportunities set item = $1 where id = $2", [encode(edited), rows[0].id]);
+    await query("update opportunities set item = ?1 where id = ?2", [encode(edited), rows[0].id]);
     const b = parse(feed(), plus(now, 1));
     b.set("rejected_count", 1n);
     expect((await syncCryptoJobsList(db, async () => b)).at("status")).toBe("partial");
-    const after = await pool.query("select item from opportunities");
-    expect(after.rows.length).toBe(1);
-    expect(loadsDict(after.rows[0].item).at("proposal")).toBe("Human proposal");
-    expect((await sourcesIn(db)).at("cryptojobslist")).toBe("failed");
+    const after = await query("select item from opportunities");
+    expect(after.length).toBe(1);
+    expect(loadsDict(after[0].item).at("proposal")).toBe("Human proposal");
+    expect((await sourceStatuses(db)).at("cryptojobslist")).toBe("failed");
   });
 });
 
@@ -87,7 +86,7 @@ describe("cryptojobslist source_batch (plan step 7)", () => {
     const status = await runSource(db, "cryptojobslist", (d) => syncCryptoJobsList(d, async () => r));
     expect(status.status).toBe("failed");
     expect((await existingSourceIds(db, "cryptojobslist")).size).toBe(0);
-    expect((await pool.query("select count(*)::int as n from source_receipts")).rows[0].n).toBe(0);
-    expect((await sourcesIn(db)).at("cryptojobslist")).toBe("failed");
+    expect((await query("select count(*) as n from source_receipts"))[0].n).toBe(0);
+    expect((await sourceStatuses(db)).at("cryptojobslist")).toBe("failed");
   });
 });

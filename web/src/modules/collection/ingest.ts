@@ -1,5 +1,5 @@
 import { and, asc, eq, sql } from "drizzle-orm";
-import { writeTransaction, type Db, type Executor } from "@/db/client";
+import { read, readAll, retrying, writeTransaction, type Db } from "@/db/client";
 import { mailContentVersions, mailIngestion, mailSyncState, opportunities, sourceHealth, sourceReceipts, utcNowText, type SourceStatus } from "@/db/schema";
 import { evaluate, readSettings } from "@/modules/discovery/public";
 import { getRecord, insertRecord, newObservation, recordsForSource, refreshRecord, saveRecord } from "@/modules/legacy/public";
@@ -19,7 +19,7 @@ const FINGERPRINT_EXCLUDED = new Set(["received_at", "receipt_id", "evidence_ref
 export const opportunityId = (source: string, externalId: string) => identityHash([source, externalId]);
 export const jobFingerprint = (job: PyDict) => identityHash(new PyDict([...job].filter(([k]) => !FINGERPRINT_EXCLUDED.has(k))));
 
-async function receiptOwner(tx: Executor, source: string, receiptId: string): Promise<string | null> {
+async function receiptOwner(tx: Db, source: string, receiptId: string): Promise<string | null> {
   const [row] = await tx.select({ id: sourceReceipts.opportunityId }).from(sourceReceipts)
     .where(and(eq(sourceReceipts.source, source), eq(sourceReceipts.receiptId, receiptId)));
   return row?.id ?? null;
@@ -29,7 +29,7 @@ async function receiptOwner(tx: Executor, source: string, receiptId: string): Pr
  * receipt_id identifies ONE normalized listing occurrence. For multi-listing notifications use
  * message_id + listing identity; keep the raw message reference in job.evidence_ref.
  */
-export async function ingestIn(tx: Executor, jobValue: PyValue, receiptId: PyValue, now: PyDateTime): Promise<PyDict> {
+export async function ingestIn(tx: Db, jobValue: PyValue, receiptId: PyValue, now: PyDateTime): Promise<PyDict> {
   const job = asDict(jobValue);
   const source = job.at("source"), externalId = job.at("external_id");
   if (typeof source !== "string" || !source || typeof externalId !== "string" || !externalId) {
@@ -68,18 +68,18 @@ export async function ingestIn(tx: Executor, jobValue: PyValue, receiptId: PyVal
 export const ingest = (db: Db, job: PyValue, receiptId: PyValue, now: PyDateTime) =>
   writeTransaction(db, (tx) => ingestIn(tx, job, receiptId, now));
 
-export async function setSourceHealthIn(tx: Executor, source: PyValue, status: PyValue) {
+/** One upsert: atomic on D1, and repeating it only moves checked_at, so a lost response is retried. */
+export async function setSourceHealthIn(tx: Db, source: PyValue, status: PyValue) {
   if (!isSource(source) || !STATUSES.includes(status as SourceStatus)) throw new PyError("ValueError", "unknown source or source status");
   await tx.insert(sourceHealth).values({ source, status: status as SourceStatus })
     .onConflictDoUpdate({ target: sourceHealth.source, set: { status: status as SourceStatus, checkedAt: utcNowText } });
 }
 
-export const setSourceHealth = (db: Db, source: PyValue, status: PyValue) =>
-  writeTransaction(db, (tx) => setSourceHealthIn(tx, source, status));
+export const setSourceHealth = (db: Db, source: PyValue, status: PyValue) => retrying(() => setSourceHealthIn(db, source, status));
 
 /** Source-scoped data operations sharing the caller's intake transaction. */
 export class SourceBatch {
-  constructor(private readonly tx: Executor, readonly source: string, private readonly now: PyDateTime) {}
+  constructor(private readonly tx: Db, readonly source: string, private readonly now: PyDateTime) {}
 
   existingIds(): Promise<Set<string>> {
     return existingIdsIn(this.tx, this.source);
@@ -106,27 +106,31 @@ export function sourceBatch<T>(db: Db, source: PyValue, now: PyDateTime, fn: (ba
   return writeTransaction(db, (tx) => fn(new SourceBatch(tx, source, now)));
 }
 
-async function existingIdsIn(tx: Executor, source: string): Promise<Set<string>> {
+async function existingIdsIn(tx: Db, source: string): Promise<Set<string>> {
   const rows = await tx.select({ id: opportunities.externalId }).from(opportunities).where(eq(opportunities.source, source));
   return new Set(rows.map((r) => r.id));
 }
 
 export async function existingSourceIds(db: Db, source: PyValue): Promise<Set<string>> {
   if (!isSource(source)) throw new PyError("ValueError", "unknown source");
-  return existingIdsIn(db, source);
+  return retrying(() => existingIdsIn(db, source));
 }
 
 // Python reads source_health without ORDER BY (SQLite rowid order); rows outside the catalog are
 // appended in source order here, which only affects display order of retired sources.
-export async function sourcesIn(tx: Executor): Promise<PyDict> {
+export const sourcesRead = (db: Db) => read(db.select().from(sourceHealth).orderBy(asc(sourceHealth.source)), (rows) => {
   const result = new PyDict(SOURCES.map((s) => [s, "not_connected"]));
-  for (const row of await tx.select().from(sourceHealth).orderBy(asc(sourceHealth.source))) result.set(row.source, row.status);
+  for (const row of rows) result.set(row.source, row.status);
   return result;
+});
+
+export async function sourceStatuses(db: Db): Promise<PyDict> {
+  return (await readAll(db, [sourcesRead(db)]))[0];
 }
 
-export async function sourceChecksIn(tx: Executor): Promise<PyDict> {
+export async function sourceChecks(db: Db): Promise<PyDict> {
   const result = new PyDict(SOURCES.map((s) => [s, PyDict.of({ status: "not_connected", checked_at: null })]));
-  for (const row of await tx.select().from(sourceHealth).orderBy(asc(sourceHealth.source))) {
+  for (const row of await retrying(() => db.select().from(sourceHealth).orderBy(asc(sourceHealth.source)))) {
     result.set(row.source, PyDict.of({ status: row.status, checked_at: row.checkedAt }));
   }
   return result;
@@ -134,9 +138,8 @@ export async function sourceChecksIn(tx: Executor): Promise<PyDict> {
 
 export type ContentVersionRow = { opportunityId: string; fingerprint: string; job: string };
 
-export async function contentVersions(tx: Executor): Promise<ContentVersionRow[]> {
-  return tx.select().from(mailContentVersions).orderBy(asc(mailContentVersions.fingerprint));
-}
+export const contentVersionsRead = (db: Db) =>
+  read(db.select().from(mailContentVersions).orderBy(asc(mailContentVersions.fingerprint)), (rows): ContentVersionRow[] => rows);
 
 
 /**
@@ -179,26 +182,30 @@ export function ingestResendBatch(db: Db, jobs: PyValue[], now: PyDateTime): Pro
 export type MailRecord = { status: string; reason: string | null; retryPending?: boolean };
 
 export async function mailState(db: Db, source: string, recipient: string): Promise<PyDict> {
-  const [row] = await db.select({ state: mailSyncState.state }).from(mailSyncState)
-    .where(and(eq(mailSyncState.source, source), eq(mailSyncState.recipient, recipient)));
+  const [row] = await retrying(() => db.select({ state: mailSyncState.state }).from(mailSyncState)
+    .where(and(eq(mailSyncState.source, source), eq(mailSyncState.recipient, recipient))));
   return row ? asDict(loads(row.state)) : PyDict.of({ cursor: null, after: null, head: null });
 }
 
+/** One upsert of the same value: safe to repeat after a lost response. */
 export async function saveMailState(db: Db, source: string, recipient: string, state: PyDict) {
-  await writeTransaction(db, (tx) => tx.insert(mailSyncState).values({ source, recipient, state: encode(state) })
+  await retrying(() => db.insert(mailSyncState).values({ source, recipient, state: encode(state) })
     .onConflictDoUpdate({ target: [mailSyncState.source, mailSyncState.recipient], set: { state: encode(state) } }));
 }
 
 /** Python iterates these rows in the primary-key index order SQLite reads them in (measured). */
 export async function mailRecords(db: Db, source: string, recipient: string): Promise<Map<string, MailRecord>> {
-  const rows = await db.select().from(mailIngestion)
-    .where(and(eq(mailIngestion.source, source), eq(mailIngestion.recipient, recipient))).orderBy(asc(mailIngestion.messageId));
+  const rows = await retrying(() => db.select().from(mailIngestion)
+    .where(and(eq(mailIngestion.source, source), eq(mailIngestion.recipient, recipient))).orderBy(asc(mailIngestion.messageId)));
   return new Map(rows.map((r) => [r.messageId, { status: r.status, reason: r.reason, retryPending: r.retryPending === 1 }]));
 }
 
-/** A new message is recorded once; only an explicit retry (retry_pending=1) may overwrite it. */
+/**
+ * A new message is recorded once; only an explicit retry (retry_pending=1) may overwrite it, and the
+ * overwrite clears the flag, so repeating the statement after a lost response changes nothing.
+ */
 export async function recordMail(db: Db, source: string, recipient: string, messageId: string, status: string, reason: string | null = null) {
-  await writeTransaction(db, (tx) => tx.insert(mailIngestion).values({ source, recipient, messageId, status, reason })
+  await retrying(() => db.insert(mailIngestion).values({ source, recipient, messageId, status, reason })
     .onConflictDoUpdate({
       target: [mailIngestion.source, mailIngestion.recipient, mailIngestion.messageId],
       set: { status, reason, retryPending: 0, checkedAt: utcNowText },

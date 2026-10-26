@@ -1,5 +1,5 @@
 import { asc, eq } from "drizzle-orm";
-import type { Executor } from "@/db/client";
+import { read, readAll, type Db } from "@/db/client";
 import { opportunities, proposalRevisions } from "@/db/schema";
 import { evaluate, readSettings } from "@/modules/discovery/public";
 import type { PyDateTime } from "@/platform/py/datetime";
@@ -10,23 +10,25 @@ import { pyEq, PyDict, truthy, type PyValue } from "@/platform/py/value";
 // envelopes. The envelope keeps its legacy review fields (D8); `item` text is written with encode()
 // so rows stay byte-compatible with the Python writer.
 
-export async function getRecord(tx: Executor, key: string): Promise<PyDict | null> {
+export async function getRecord(tx: Db, key: string): Promise<PyDict | null> {
   const [row] = await tx.select({ item: opportunities.item }).from(opportunities).where(eq(opportunities.id, key));
   return row ? loadsDict(row.item) : null;
 }
 
-export async function allRecords(tx: Executor): Promise<PyDict[]> {
-  const rows = await tx.select({ item: opportunities.item }).from(opportunities).orderBy(asc(opportunities.id));
-  return rows.map((r) => loadsDict(r.item));
+export const allRecordsRead = (db: Db) =>
+  read(db.select({ item: opportunities.item }).from(opportunities).orderBy(asc(opportunities.id)), (rows) => rows.map((r) => loadsDict(r.item)));
+
+export async function allRecords(db: Db): Promise<PyDict[]> {
+  return (await readAll(db, [allRecordsRead(db)]))[0];
 }
 
 /** Python leaves the order of this query to SQLite; callers only build sets and maps from it. */
-export async function recordsForSource(tx: Executor, source: string): Promise<PyDict[]> {
+export async function recordsForSource(tx: Db, source: string): Promise<PyDict[]> {
   const rows = await tx.select({ item: opportunities.item }).from(opportunities).where(eq(opportunities.source, source));
   return rows.map((r) => loadsDict(r.item));
 }
 
-export async function insertRecord(tx: Executor, item: PyDict) {
+export async function insertRecord(tx: Db, item: PyDict) {
   const job = item.dict("job");
   await tx.insert(opportunities).values({ id: item.str("id"), source: job.str("source"), externalId: job.str("external_id"), item: encode(item) });
 }
@@ -42,7 +44,7 @@ export function newObservation(key: string, job: PyDict, fingerprint: string, ev
 
 const bump = (item: PyDict) => (item.req("version") as bigint) + 1n;
 
-export async function feedbackChanged(tx: Executor, item: PyDict, feedback: PyValue, now: PyDateTime): Promise<PyDict> {
+export async function feedbackChanged(tx: Db, item: PyDict, feedback: PyValue, now: PyDateTime): Promise<PyDict> {
   if (pyEq(feedback, "skipped") && pyEq(item.req("review_status"), "approved")) {
     item.update({ review_status: "draft", approved_hash: null, version: bump(item) });
   }
@@ -53,7 +55,7 @@ export async function feedbackChanged(tx: Executor, item: PyDict, feedback: PyVa
   return refreshRecord(tx, item, now);
 }
 
-export async function saveRecord(tx: Executor, item: PyDict) {
+export async function saveRecord(tx: Db, item: PyDict) {
   await tx.update(opportunities).set({ item: encode(item) }).where(eq(opportunities.id, item.str("id")));
   if (!truthy(item.at("proposal"))) return;
   await tx.insert(proposalRevisions).values({
@@ -61,7 +63,7 @@ export async function saveRecord(tx: Executor, item: PyDict) {
   }).onConflictDoNothing();
 }
 
-export async function refreshRecord(tx: Executor, item: PyDict, now: PyDateTime): Promise<PyDict> {
+export async function refreshRecord(tx: Db, item: PyDict, now: PyDateTime): Promise<PyDict> {
   const oldEvaluation = item.at("evaluation");
   const oldReview = item.req("review_status");
   item.set("evaluation", evaluate(item.dict("job"), (await readSettings(tx)).settings, now));

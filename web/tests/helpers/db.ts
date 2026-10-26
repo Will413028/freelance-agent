@@ -1,23 +1,73 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { Pool } from "pg";
-import * as schema from "@/db/schema";
+import { migrate } from "drizzle-orm/sqlite-proxy/migrator";
+import { dbOver } from "@/db/client";
+import { D1Client, D1Error, type D1Param, type D1Transport } from "@/db/d1/client";
+import { localTransport } from "@/db/d1/local";
 
-const url = process.env.TEST_DATABASE_URL;
-if (!url) throw new Error("TEST_DATABASE_URL is required (a disposable Postgres database)");
+// The suite runs on the local D1 stand-in (plan step 4e): it refuses what D1 refuses (transaction
+// statements, over 100 parameters, over 100 KB of SQL) and keeps a batch atomic, so code that passes
+// here sends D1 only what D1 accepts. Every reset starts a new in-memory database.
 
-export const pool = new Pool({ connectionString: url });
-export const db = drizzle(pool, { schema });
+let current: ReturnType<typeof localTransport> | undefined;
+const transport: D1Transport = { batch: (statements) => current!.batch(statements) };
 
-const migrationsFolder = path.resolve(import.meta.dirname, "../../drizzle");
+/** Counts every request the tests send, like the product client does in a run. */
+export const client = new D1Client(transport);
+export const db = dbOver(client);
 
-/** Drops everything and replays the versioned migrations: the suite owns this database. */
+export const MIGRATIONS = path.resolve(import.meta.dirname, "../../drizzle");
+
+/** Applies the versioned migrations in one batch, as the import tool does on D1. */
+export async function applyMigrations(target = db, over = client) {
+  await migrate(target, async (queries) => { await over.batch(queries.map((sql) => ({ sql, params: [] }))); }, { migrationsFolder: MIGRATIONS });
+}
+
+/**
+ * A view of the test database whose next batch matching `lost` executes and commits, but whose
+ * response is lost (D1Error outcome_unknown), as after a timeout or a dropped connection.
+ */
+export function losingResponse(lost: (sql: string[]) => boolean) {
+  let armed = true;
+  const over = new D1Client({
+    async batch(statements) {
+      const results = await current!.batch(statements);
+      if (armed && lost(statements.map((s) => s.sql))) {
+        armed = false;
+        throw new D1Error("outcome_unknown", "unknown", "response lost after commit");
+      }
+      return results;
+    },
+  });
+  return { db: dbOver(over), client: over, fired: () => !armed };
+}
+
+/** A fresh, empty database with the current schema. */
 export async function resetSchema() {
-  await pool.query("drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public");
-  await migrate(db, { migrationsFolder });
+  current?.close();
+  current = localTransport(":memory:");
+  await applyMigrations();
+}
+
+/** Raw SQL through the stand-in, one statement per request; rows come back as objects. */
+export async function query<T = Record<string, any>>(sql: string, params: D1Param[] = []): Promise<T[]> {
+  const [result] = await client.batch([{ sql, params }]);
+  return result.rows.map((row) => Object.fromEntries(result.columns.map((c, i) => [c, row[i]])) as T);
+}
+
+/** Raw SQL with rows as arrays, in column order. */
+export async function queryArrays(sql: string, params: D1Param[] = []): Promise<unknown[][]> {
+  return (await client.batch([{ sql, params }]))[0].rows;
+}
+
+/** Statements whose trigger or table definition a test removes and later restores, from the migration SQL. */
+export function migrationStatement(pattern: RegExp): string {
+  for (const file of ["0000_schema.sql", "0001_triggers.sql"]) {
+    const found = readFileSync(path.join(MIGRATIONS, file), "utf8").split("--> statement-breakpoint").find((s) => pattern.test(s));
+    if (found) return found.trim();
+  }
+  throw new Error(`no migration statement matches ${pattern}`);
 }
 
 // The Python writer's schema stays the source of truth until it is deleted in plan step 14.

@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Db } from "@/db/client";
-import { runSource, sourcesIn } from "@/modules/collection/public";
+import { runSource, sourceStatuses } from "@/modules/collection/public";
 import { fetchChickpt, INDEX as CK_INDEX, parseArticle as ckArticle, syncChickpt } from "@/modules/collection/sources/chickpt";
 import { parseArticle as djArticle, syncDynamiteJobs } from "@/modules/collection/sources/dynamitejobs";
 import { CATEGORIES, fetchJobbank518, INDEX as JB_INDEX, parseArticle as jbArticle, syncJobbank518 } from "@/modules/collection/sources/jobbank518";
@@ -11,7 +11,7 @@ import { list } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, type PyValue } from "@/platform/py/value";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, query, resetSchema } from "./helpers/db";
 
 // The store cases of backend/tests/collection/test_nodesk.py, test_justremote.py,
 // test_dynamitejobs.py, test_jobbank518.py and test_chickpt.py (plan step 8, batch 3). runSource
@@ -30,17 +30,16 @@ const run = async (source: string, sync: (d: Db) => Promise<PyDict>) => {
 const items = () => list(db, PyDateTime.now());
 /** store.review(id, 'edit', version, text=...) lives in step 11; write the field it sets. */
 async function editProposal(text: string) {
-  const { rows } = await pool.query("select id, item from opportunities");
+  const rows = await query("select id, item from opportunities");
   const item = loadsDict(rows[0].item);
   item.update({ proposal: text, version: 2n });
-  await pool.query("update opportunities set item = $1 where id = $2", [encode(item), rows[0].id]);
+  await query("update opportunities set item = ?1 where id = ?2", [encode(item), rows[0].id]);
 }
 const status = (item: PyDict) => asDict(item.at("evaluation")).at("status");
 const batchOf = (jobs: PyDict[], changes: Record<string, PyValue> = {}) =>
   PyDict.of({ jobs, seen: BigInt(jobs.length), details_read: BigInt(jobs.length), rejected_count: 0n, truncated: false, ...changes });
 
 beforeEach(resetSchema);
-afterAll(() => pool.end());
 
 describe("nodesk.sync (Python cases)", () => {
   const URL = "https://nodesk.co/remote-jobs/acme-ai-agent/";
@@ -79,7 +78,7 @@ describe("nodesk.sync (Python cases)", () => {
   it("partial keeps the valid job and leaves health failed", async () => {
     const result = await runJob(job(), 1n);
     expect(result.at("status")).toBe("partial");
-    expect((await sourcesIn(db)).at("nodesk")).toBe("failed");
+    expect((await sourceStatuses(db)).at("nodesk")).toBe("failed");
     expect((await items()).length).toBe(1);
   });
 });
@@ -104,7 +103,7 @@ describe("justremote.sync (Python cases)", () => {
     const after = await items();
     expect(after.length).toBe(1);
     expect(after[0].at("proposal")).toBe("Human draft");
-    expect((await sourcesIn(db)).at("justremote")).toBe("failed");
+    expect((await sourceStatuses(db)).at("justremote")).toBe("failed");
   });
   it("US-only, full-time and inactive listings do not become candidates", async () => {
     for (const [data, e] of [[detail(), entry({ location_restrictions: ["United States"] })], [detail({ employmentType: "FULL_TIME" }), entry()], [detail(), entry({ is_active: false })]] as const) {
@@ -134,7 +133,7 @@ describe("dynamitejobs.sync (Python cases)", () => {
     expect((await runSync([j], { truncated: true })).at("status")).toBe("partial");
     const after = await items();
     expect(after[0].at("proposal")).toBe("Human proposal");
-    expect((await sourcesIn(db)).at("dynamitejobs")).toBe("failed");
+    expect((await sourceStatuses(db)).at("dynamitejobs")).toBe("failed");
     expect(after.length).toBe(1);
   });
   it("an updated full-time listing is ingested to exclude the existing candidate", async () => {
@@ -158,7 +157,7 @@ describe("jobbank518.sync (Python cases)", () => {
   it("an explicit empty search is a successful empty scan", async () => {
     const result = await fetchJobbank518({ request: pages({ [JB_INDEX]: index([], true) }), pause: async () => {} });
     expect((await run("jobbank518", (d) => syncJobbank518(d, async () => result))).at("status")).toBe("ok");
-    expect((await sourcesIn(db)).at("jobbank518")).toBe("ok");
+    expect((await sourceStatuses(db)).at("jobbank518")).toBe("ok");
     expect(await items()).toEqual([]);
   });
   it("array metadata, dates and unknowns are kept; an old active listing is not dropped by its date", async () => {
@@ -189,7 +188,7 @@ describe("jobbank518.sync (Python cases)", () => {
     expect(result.at("rejected_count")).toBe(1n);
     expect(result.at("complete_scan")).toBe(false);
     expect((await run("jobbank518", (d) => syncJobbank518(d, async () => result))).at("status")).toBe("partial");
-    expect((await sourcesIn(db)).at("jobbank518")).toBe("failed");
+    expect((await sourceStatuses(db)).at("jobbank518")).toBe("failed");
     expect((await items()).length).toBe(1);
     expect((await run("jobbank518", (d) => syncJobbank518(d, async () => { throw new Error("Bad listing"); }))).at("status")).toBe("failed");
   });
@@ -227,7 +226,7 @@ describe("chickpt.sync (Python cases)", () => {
     const result = await fetchChickpt({ request: async (u) => ({ status: 200, body: u === CK_INDEX ? index([URL], 2) : detail() }), pause: async () => {} });
     expect(result.at("truncated")).toBe(true);
     expect((await run("chickpt", (d) => syncChickpt(d, async () => result))).at("status")).toBe("partial");
-    expect((await sourcesIn(db)).at("chickpt")).toBe("failed");
+    expect((await sourceStatuses(db)).at("chickpt")).toBe("failed");
   });
   it("a broken body is partial and an empty scan is ok", async () => {
     let result = await fetchChickpt({ request: async (u) => ({ status: 200, body: u === CK_INDEX ? index([URL]) : enc("<h1>Missing</h1>") }), pause: async () => {} });

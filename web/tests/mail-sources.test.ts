@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { ingest, mailRecords, recordMail, runSource, saveMailState, sourcesIn } from "@/modules/collection/public";
+import { ingest, mailRecords, recordMail, runSource, saveMailState, sourceStatuses } from "@/modules/collection/public";
 import { ReceivingClient } from "@/modules/collection/mail/receiving";
 import { syncMail, syncMailSource } from "@/modules/collection/mail/sync";
 import { RUNNERS } from "@/modules/collection/registry";
@@ -7,7 +7,7 @@ import { fromisoformat } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, PyError, type PyDict } from "@/platform/py/value";
 import { transport } from "./helpers/resend";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, query, resetSchema, queryArrays } from "./helpers/db";
 import { attemptAsync, fixture, untag, type Expect, type Tagged } from "./helpers/golden";
 
 // Replays the Resend sync scenarios gen_golden.py ran through resend_sync._sync against the Python
@@ -47,7 +47,7 @@ async function replay(s: Scenario) {
     if (op.op === "ingest") await ingest(db, untag(op.job!), op.receipt_id!, NOW);
     else if (op.op === "record") await recordMail(db, s.source, TARGET, op.message_id!, op.status!, op.reason ?? null);
     // store.retry_mail (the recovery page arrives in step 10): only a rejected message is requeued.
-    else if (op.op === "retry") await pool.query("update mail_ingestion set retry_pending = 1 where source = $1 and message_id = $2 and status = 'rejected'", [s.source, op.message_id]);
+    else if (op.op === "retry") await query("update mail_ingestion set retry_pending = 1 where source = ?1 and message_id = ?2 and status = 'rejected'", [s.source, op.message_id ?? null]);
     else if (op.op === "state") await saveMailState(db, s.source, TARGET, asDict(untag(op.state!)));
     else throw new Error(op.op);
   }
@@ -62,13 +62,12 @@ async function replay(s: Scenario) {
   }
   const tables: Record<string, unknown[][]> = {};
   for (const [table, columns, order] of TABLES) {
-    tables[table] = (await pool.query({ text: `select ${columns} from ${table} order by ${order}`, rowMode: "array" })).rows;
+    tables[table] = (await queryArrays(`select ${columns} from ${table} order by ${order}`));
   }
   return { runs, tables };
 }
 
 beforeEach(resetSchema);
-afterAll(() => pool.end());
 
 describe("Resend sync scenarios (Python ground truth)", () => {
   const all = { ...golden.mail_sync, ...golden.mail_sync_9b };
@@ -89,11 +88,11 @@ describe("Resend sync (TS-only checks)", () => {
     expect(encode(asDict(result.at("error_stages")))).toBe('{"template": 1}');
   });
   it("records a message once; only an explicit retry may overwrite it (store.record_mail)", async () => {
-    const rows = async () => (await pool.query("select status, reason, retry_pending from mail_ingestion")).rows;
+    const rows = async () => (await query("select status, reason, retry_pending from mail_ingestion"));
     await recordMail(db, "tasker", TARGET, "m", "rejected", "template");
     await recordMail(db, "tasker", TARGET, "m", "processed");
     expect(await rows()).toEqual([{ status: "rejected", reason: "template", retry_pending: 0 }]);
-    await pool.query("update mail_ingestion set retry_pending = 1");
+    await query("update mail_ingestion set retry_pending = 1");
     await recordMail(db, "tasker", TARGET, "m", "processed");
     expect(await rows()).toEqual([{ status: "processed", reason: null, retry_pending: 0 }]);
   });
@@ -102,7 +101,7 @@ describe("Resend sync (TS-only checks)", () => {
     const client = new ReceivingClient("re_synthetic", { request: transport(ok.pages), pause: async () => {} });
     const result = await syncMail(db, client, "other@inbox.resend.app", "tasker", { clock: () => NOW });
     expect([result.at("status"), result.at("quarantined")]).toEqual(["failed", 1n]);
-    expect((await pool.query("select count(*)::int n from opportunities")).rows[0].n).toBe(0);
+    expect((await query("select count(*) n from opportunities"))[0].n).toBe(0);
     expect([...(await mailRecords(db, "tasker", "other@inbox.resend.app")).values()]).toEqual([{ status: "rejected", reason: "metadata", retryPending: false }]);
   });
   it("runs as a daily source and fails without Resend credentials", async () => {
@@ -114,7 +113,7 @@ describe("Resend sync (TS-only checks)", () => {
       expect(await runSource(db, "linkedin", RUNNERS.linkedin)).toEqual({ status: "failed", reason: "source_unavailable" });
       const result: PyDict = await syncMailSource(db, "tasker");
       expect(encode(result)).toBe('{"status": "failed", "reason": "source_unavailable"}');
-      const health = await sourcesIn(db);
+      const health = await sourceStatuses(db);
       expect([health.at("tasker"), health.at("linkedin")]).toEqual(["failed", "failed"]);
     } finally {
       if (saved.key !== undefined) process.env.RESEND_API_KEY = saved.key;
