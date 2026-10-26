@@ -3,8 +3,9 @@
 
 /**
  * What a step spent on D1 and how its storage failed, as daily_runs.result records it at the top
- * level (plan step 4e). The D20 and D21 revocation triggers read it: lease_wait_ms (p95 over 7
- * days), lease_timeouts (any), d1_errors.rate_limited (any 429), d1_requests (over 600 in a run).
+ * level (plan step 4e). The D20 and D21 revocation triggers read it on every run
+ * (src/ops/storage-triggers.ts): lease_wait_ms (over 2 s), lease_timeouts and lease_lost (any),
+ * d1_errors.rate_limited (any 429), d1_requests (over 600).
  * lost_steps counts steps that died before returning theirs: the run's totals are then a lower bound.
  */
 export type Usage = {
