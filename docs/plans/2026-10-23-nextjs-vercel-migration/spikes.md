@@ -124,3 +124,18 @@ spike-1d {"delivery":"accepted","accepted":1,"rejected":0,"bytes":1892,"sha256":
 - **請求數（推論，讀 `ingestIn` 的程式）**：每筆職缺目前要 3–7 個語句（讀紀錄、查 receipt、讀設定、寫入、寫 receipt、再查 owner）。逐句變成一個 REST 請求時，freelancer 一批 274 筆約 900–1,900 個請求，超過每 5 分鐘 1,200 的帳號上限。改成每個來源批次「一次預讀（每 100 個參數一個請求）＋一個帶守衛的寫入 batch」約 5 個請求，25 個來源一天約 150 個。結論：逐句移植不可行，按來源批次合併後成立。這直接影響 D20。
 
 結論：撤回觸發都沒成立：HTTP batch 原子、守衛可回滾、延遲遠低於門檻、值能往返（條件見 (e)）。每日列寫入在 shadow 期接近 50%，要在 D21 處理。spike 資料庫與 Vercel spike 專案在 D20、D21 拍板前保留，之後刪除。
+
+## 1f 補充（2026-10-26 晚，D20、D21 簡報 v2 用）
+
+- **DDL 在 batch 內**（Mac → spike D1，暫用表 `zz_a`、`zz_b`，測完已 drop）：表上有擋 DELETE 的 trigger 時，單獨 `delete` 回 `SQLITE_CONSTRAINT_TRIGGER`；同一個 batch 送 `drop trigger`、`delete`（10 列）、`create trigger` 成功；同樣開頭、第三句改成違反 UNIQUE 的 insert 時整批失敗，之後查到 990 列（第二批的刪除回滾）且 trigger 仍在。DDL 和資料寫入一起回滾。
+- **列寫入**：`DROP TABLE`（990 列、一個唯一索引）`rows_written` 0；同結構 1,000 列 `DELETE FROM` 是 1,000；`CREATE TABLE` 3、`CREATE TRIGGER` 1、插 1,000 列（主鍵＋唯一索引）2,000。
+- **速率標頭**：D1 query 端點、`GET /d1/database/{id}`、`/user/tokens/verify` 都不回 `Ratelimit`／`Ratelimit-Policy` 標頭，剩餘額度從回應看不到。
+- **帳號內的 D1**：用 spike token 列 `GET /accounts/{id}/d1/database`，只有 `freelance-agent-spike-1f`；`meal-prep-production` 已於 2026-10-26 刪除（meal-prep-agent 專案的 Cloudflare 清理）。
+- **正式副本相鄰兩天的差異**（VM `/var/lib/freelance-shadow/copies/` 的 08:30 副本，Python 以 `mode=ro&immutable=1` 開啟、依主鍵比對整列，只輸出計數）：
+
+| 區間 | 新增 | 修改 | 刪除 | 有變的表 |
+|---|---|---|---|---|
+| 10-24 → 10-25 | 151 | 35 | 0 | daily_runs +1、digest_outbox +1、mail_ingestion +15、mail_sync_state 改 6、opportunities +66／改 2、source_health 改 27、source_receipts +68 |
+| 10-25 → 10-26 | 219 | 34 | 0 | daily_runs +1、digest_outbox +1、mail_ingestion +10、mail_sync_state 改 6、opportunities +103／改 1、source_health 改 27、source_receipts +104 |
+
+  10-26 副本的列數：opportunities 2,395、source_receipts 2,475、mail_ingestion 257、digest_outbox 39。已有職缺幾乎不被改寫（每天 1–2 列）。
