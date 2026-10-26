@@ -5,7 +5,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { dbOver, inList, readAll, read, usageOf } from "@/db/client";
 import { D1Client, httpTransport, type D1Transport } from "@/db/d1/client";
 import { GUARD_SQL } from "@/db/d1/guard";
@@ -24,6 +24,20 @@ import { job } from "./helpers/jobs";
 const env = { accountId: process.env.CLOUDFLARE_ACCOUNT_ID, databaseId: process.env.D1_DATABASE_ID, token: process.env.D1_API_TOKEN };
 const enabled = Boolean(env.accountId && env.databaseId && env.token) && process.env.D1_DESTRUCTIVE_TEST === env.databaseId;
 const ROW_BUDGET = 2_000;
+// The id check above cannot catch a wrong id given twice (CI sets both from one secret), and the
+// shadow and later the production database live in the same account: wipe only a database whose
+// name says it is disposable. beforeAll, so a refusal runs none of the writing tests either.
+const DISPOSABLE = /^freelance-agent-[a-z0-9-]*-(check|test)$/;
+
+async function databaseName(): Promise<string> {
+  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${env.accountId}/d1/database/${env.databaseId}`, {
+    headers: { authorization: `Bearer ${env.token}` },
+    signal: AbortSignal.timeout(30_000),
+  });
+  const body = (await response.json()) as { success?: boolean; result?: { name?: unknown } };
+  if (!response.ok || body.success !== true || typeof body.result?.name !== "string") throw new Error(`cannot read the database name (HTTP ${response.status})`);
+  return body.result.name;
+}
 
 describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () => {
   const http = httpTransport({ accountId: env.accountId!, databaseId: env.databaseId!, token: env.token! });
@@ -36,6 +50,10 @@ describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () =>
   const now = new PyDateTime(2026, 10, 27, 1, 0, 0, 0, 0n);
   const dir = mkdtempSync(path.join(os.tmpdir(), "fa-d1-real-"));
   afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  beforeAll(async () => {
+    const name = await databaseName();
+    if (!DISPOSABLE.test(name)) throw new Error(`refusing to wipe database "${name}": not named as disposable (${DISPOSABLE})`);
+  });
 
   it("starts from an empty database and applies the migrations in one request", async () => {
     const tables = (await rows("select name from sqlite_master where type = 'table' and name not like '\\_cf\\_%' escape '\\' and name <> 'sqlite_sequence'")).map((r) => String(r[0]));
