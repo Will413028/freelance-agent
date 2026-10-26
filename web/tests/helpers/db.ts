@@ -2,11 +2,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { sql, type SQL } from "drizzle-orm";
-import { migrate } from "drizzle-orm/sqlite-proxy/migrator";
 import { dbOver } from "@/db/client";
 import { D1Client, D1Error, type D1Param, type D1Transport } from "@/db/d1/client";
 import { localTransport } from "@/db/d1/local";
 import { DAILY_WRITE, writeUnit } from "@/db/unit";
+import { migrateD1, MIGRATIONS } from "@/db/migrate";
 
 // The suite runs on the local D1 stand-in (plan step 4e): it refuses what D1 refuses (transaction
 // statements, over 100 parameters, over 100 KB of SQL) and keeps a batch atomic, so code that passes
@@ -19,12 +19,10 @@ const transport: D1Transport = { batch: (statements) => current!.batch(statement
 export const client = new D1Client(transport);
 export const db = dbOver(client);
 
-export const MIGRATIONS = path.resolve(import.meta.dirname, "../../drizzle");
+export { MIGRATIONS };
 
-/** Applies the versioned migrations in one batch, as the import tool does on D1. */
-export async function applyMigrations(target = db, over = client) {
-  await migrate(target, async (queries) => { await over.batch(queries.map((sql) => ({ sql, params: [] }))); }, { migrationsFolder: MIGRATIONS });
-}
+/** Applies the versioned migrations in one batch, as on D1 (src/db/migrate.ts). */
+export const applyMigrations = (target = db) => migrateD1(target);
 
 /**
  * A view of the test database whose next batch matching `lost` executes and commits, but whose

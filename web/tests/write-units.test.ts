@@ -77,6 +77,9 @@ describe("the writer lease", () => {
   it("refuses a write to a leased table that does not start with the guard", async () => {
     await expect(query("update opportunities set item = item")).rejects.toThrow("must start with the writer lease guard");
     await query("update source_health set status = status");
+    // DDL that destroys or reshapes a leased table's rows needs the lease too (plan step 4e3).
+    await expect(query("drop table if exists opportunities")).rejects.toThrow("must start with the writer lease guard");
+    await expect(query("alter table clients add column x text")).rejects.toThrow("must start with the writer lease guard");
   });
 
   it("blocks the batch of a holder whose lease expired and was taken, then runs the unit again from fresh reads", async () => {

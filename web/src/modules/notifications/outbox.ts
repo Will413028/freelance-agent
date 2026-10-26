@@ -121,12 +121,12 @@ export type StoredDigest = { id: string; snapshot: string };
 
 /**
  * Writes the ledger rows of digests loaded without them: a copy just loaded into an empty ledger
- * (converge, replay), from the copy's own rows rather than reading the snapshots back. A digest
+ * (the import, the replay), from the copy's own rows rather than reading the snapshots back. A digest
  * that already has rows fails on the primary key instead of being skipped. Returns the rows written.
  */
 const BACKFILL_BATCH = 50; // statements per request; a load writes hundreds of digests (D19: 1,200 requests per 5 minutes)
 
-export async function backfillNoveltyIn(db: Db, digests: Iterable<StoredDigest>): Promise<number> {
+export async function backfillNovelty(db: Db, digests: Iterable<StoredDigest>): Promise<number> {
   let written = 0;
   let pending: Statement[] = [];
   const flush = async () => {
@@ -149,7 +149,7 @@ export type NoveltyCheck = { digests: number; rows: number; missing: number; ext
  * Rederives the ledger from the stored snapshots and counts the differences; it needs only the
  * snapshots, so it outlives the shadow replay. `since` limits it to digests of that day onwards.
  */
-export async function checkNoveltyIn(db: Db, since?: string): Promise<NoveltyCheck> {
+export async function checkNovelty(db: Db, since?: string): Promise<NoveltyCheck> {
   const day = since === undefined ? undefined : gte(digestOutbox.localDate, since);
   const [digests, stored] = await readAll(db, [
     read(db.select({ id: digestOutbox.id, snapshot: digestOutbox.snapshot }).from(digestOutbox).where(day), (rows) => rows),

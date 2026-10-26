@@ -10,9 +10,7 @@
     "test": "vitest run",
     "boundaries": "depcruise src --config .dependency-cruiser.cjs",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "converge": "tsx scripts/converge.ts",
-    "compare": "tsx scripts/compare.ts"
+    "import-copy": "tsx scripts/import-copy.ts"
   },
   "dependencies": {
     "@vercel/functions": "3.10.3",

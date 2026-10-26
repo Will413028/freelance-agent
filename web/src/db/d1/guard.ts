@@ -25,7 +25,9 @@ const UNLEASED = new Set([...SINGLE_STATEMENT_TABLES, ...D1_ONLY_TABLES]);
 
 export const LEASED = new Set(Object.values(schema).filter((v) => is(v, SQLiteTable)).map((t) => getTableName(t as SQLiteTable)).filter((n) => !UNLEASED.has(n)));
 
-const WRITE = /^\s*(?:insert(?:\s+or\s+\w+)?\s+into|replace\s+into|update(?:\s+or\s+\w+)?|delete\s+from)\s+[`"[]?(\w+)/i;
+// Row writes, and the DDL that destroys or reshapes a table's rows (DROP TABLE, ALTER TABLE). CREATE
+// is not a write here: migrations create the tables, writer_lease included, before any lease exists.
+const WRITE = /^\s*(?:insert(?:\s+or\s+\w+)?\s+into|replace\s+into|update(?:\s+or\s+\w+)?|delete\s+from|drop\s+table(?:\s+if\s+exists)?|alter\s+table)\s+[`"[]?(\w+)/i;
 const CTE_WRITE = /^\s*with\b[\s\S]*\b(insert|replace|update|delete)\b/i;
 
 /** The leased table a batch writes without starting with the guard, or null. */

@@ -2,7 +2,7 @@ import { getTableColumns, is, SQL, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getTableConfig, type SQLiteColumn, type SQLiteTable } from "drizzle-orm/sqlite-core";
 import { clientOf, insertChunks, MAX_PARAMS, retrying, type Db, type Read, type ReadValues } from "./client";
-import { d1ErrorOf } from "./d1/client";
+import { d1ErrorOf, type D1Result, type D1Statement } from "./d1/client";
 import { GUARD_SQL } from "./d1/guard";
 import { writeAttempts, writerLease } from "./schema";
 
@@ -72,14 +72,17 @@ const acquire = (db: Db, holder: string) =>
     })
     .returning({ token: writerLease.token });
 
-// GUARD_SQL with its two parameters bound: the client requires that exact text before any leased write.
-const [GUARD_HEAD, GUARD_MID, GUARD_TAIL] = GUARD_SQL.split("?");
-const guard = (db: Db, holder: string, token: number) =>
-  db.run(sql.join([sql.raw(GUARD_HEAD), sql`${holder}`, sql.raw(GUARD_MID), sql`${token}`, sql.raw(GUARD_TAIL)]));
-const renew = (db: Db, holder: string, token: number) =>
-  db.run(sql`update writer_lease set expires_at = unixepoch() + ${sql.raw(String(LEASE_SECONDS))} where id = 1 and holder = ${holder} and token = ${token}`);
-const release = (db: Db, holder: string, token: number) =>
-  db.run(sql`update writer_lease set holder = null where id = 1 and holder = ${holder} and token = ${token}`);
+// Each lease statement exists once, as text with (holder, token) parameters: sent raw by withLease and
+// bound into drizzle for units. The client requires GUARD_SQL's exact text before any leased write.
+const RENEW_SQL = `update writer_lease set expires_at = unixepoch() + ${LEASE_SECONDS} where id = 1 and holder = ? and token = ?`;
+const RELEASE_SQL = "update writer_lease set holder = null where id = 1 and holder = ? and token = ?";
+const leaseStatement = (db: Db, text: string, holder: string, token: number) => {
+  const [head, mid, tail] = text.split("?");
+  return db.run(sql.join([sql.raw(head), sql`${holder}`, sql.raw(mid), sql`${token}`, sql.raw(tail)]));
+};
+const guard = (db: Db, holder: string, token: number) => leaseStatement(db, GUARD_SQL, holder, token);
+const renew = (db: Db, holder: string, token: number) => leaseStatement(db, RENEW_SQL, holder, token);
+const release = (db: Db, holder: string, token: number) => leaseStatement(db, RELEASE_SQL, holder, token);
 const recordAttempt = (db: Db, id: string) => db.insert(writeAttempts).values({ attemptId: id });
 const pruneAttempts = (db: Db) => db.run(sql`delete from write_attempts where at < unixepoch() - ${sql.raw(String(ATTEMPT_RETENTION_SECONDS))}`);
 const attemptSeen = (db: Db, id: string) => db.select({ id: writeAttempts.attemptId }).from(writeAttempts).where(sql`${writeAttempts.attemptId} = ${id}`);
@@ -214,6 +217,45 @@ const isGuardFailure = (e: unknown) => d1ErrorOf(e)?.kind === "constraint" && /g
 
 type Attempt<T> = { done: true; value: T } | { done: false };
 
+/** Polls the acquire alone until the lease is free (or ours), at most waitMs; the wait counts into leaseWaitMs. */
+async function waitForLease(db: Db, holder: string, waitMs: number): Promise<number> {
+  let waited = 0;
+  for (let pause = 100; ; pause = Math.min(pause * 2, 1000)) {
+    const token = (await retrying(() => acquire(db, holder)))[0]?.token;
+    if (token !== undefined) return token;
+    if (waited >= waitMs) throw new WriterBusy("lease_wait");
+    const ms = Math.min(jitter(pause), waitMs - waited + 1);
+    await sleep(ms);
+    waited += ms;
+    clientOf(db).counters.leaseWaitMs += ms;
+  }
+}
+
+/**
+ * The lease held across several requests, for operations tooling that writes more than a unit can
+ * (the one-time import): every batch `send` gets goes out behind the guard and renews the lease, and
+ * the lease is released at the end, also on failure. It does not settle lost responses or rerun
+ * anything: a batch that failed, was lost or met a lost lease fails the whole operation, which must
+ * therefore be safe to run again from the start.
+ */
+export async function withLease<T>(db: Db, waitMs: number, fn: (send: (statements: D1Statement[]) => Promise<D1Result[]>) => Promise<T>): Promise<T> {
+  const holder = crypto.randomUUID();
+  const token = await waitForLease(db, holder, waitMs);
+  const client = clientOf(db);
+  try {
+    return await fn(async (statements) => {
+      if (statements.length + 2 > MAX_STATEMENTS) throw new Error(`a leased batch of ${statements.length} statements exceeds one request`);
+      try {
+        return (await client.batch([{ sql: GUARD_SQL, params: [holder, token] }, { sql: RENEW_SQL, params: [holder, token] }, ...statements])).slice(2);
+      } catch (e) {
+        throw isGuardFailure(e) ? new WriterBusy("lease_lost") : e;
+      }
+    });
+  } finally {
+    await client.batch([{ sql: RELEASE_SQL, params: [holder, token] }]).then(() => undefined, () => undefined);
+  }
+}
+
 /** What `run` may compute: never a promise, so a unit cannot wait on the network or read outside its reads while it holds the lease. */
 type Computed<T> = T extends PromiseLike<unknown> ? never : T;
 
@@ -259,15 +301,7 @@ async function once<const R extends readonly Read<unknown>[], T>(db: Db, holder:
   if (token === undefined) {
     // Read without the lease: worthless, the unit reads again once it holds the lease.
     results = [];
-    let waited = 0;
-    for (let pause = 100; token === undefined; pause = Math.min(pause * 2, 1000)) {
-      if (waited >= waitMs) throw new WriterBusy("lease_wait");
-      const ms = Math.min(jitter(pause), waitMs - waited + 1);
-      await sleep(ms);
-      waited += ms;
-      clientOf(db).counters.leaseWaitMs += ms;
-      token = (await retrying(() => acquire(db, holder)))[0]?.token;
-    }
+    token = await waitForLease(db, holder, waitMs);
   }
   const held = token;
   const writes = new Writes();

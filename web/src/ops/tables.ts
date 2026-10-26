@@ -1,12 +1,12 @@
-// Table metadata shared by the SQLite → Postgres convergence script (plan step 4c) and the shadow
-// comparator (step 4d). Load order respects foreign keys; every table of
-// backend/src/freelance/platform/schema/001_sqlite.sql must appear exactly once (tested).
+// The tables of backend/src/freelance/platform/schema/001_sqlite.sql that a copy of production
+// carries, in load order (parents before the tables that reference them); every table must appear
+// exactly once (tested). Used by the one-time import (plan step 4e3) and the digest replay.
 
 /**
- * Who writes a table, which decides how a one-sided difference is read by the comparator:
- * - source: intake from external sources; one-sided rows can be fetch-time differences.
+ * Who writes a table:
+ * - source: intake from external sources.
  * - run: daily run and delivery bookkeeping.
- * - user: written by Will through the Python UI/API; the shadow run never replays these.
+ * - user: written by Will through the UI/API; a change between two copies makes a replay inconclusive.
  * - legacy: historical rows that neither side writes any more.
  */
 export type Owner = "source" | "run" | "user" | "legacy";
@@ -15,28 +15,24 @@ export type TableSpec = {
   name: string;
   /** Primary key, used to order rows for the lossless fingerprint. */
   pk: string[];
-  /** Key that identifies the same logical row on both sides (differs from pk for generated ids). */
-  match: string[];
-  /** Columns written from a wall clock or a random id, ignored when comparing the two sides. */
-  volatile: string[];
   owner: Owner;
 };
 
-const t = (name: string, pk: string[], owner: Owner, volatile: string[] = [], match = pk): TableSpec => ({ name, pk, match, volatile, owner });
+const t = (name: string, pk: string[], owner: Owner): TableSpec => ({ name, pk, owner });
 
 export const TABLES: TableSpec[] = [
   t("opportunities", ["id"], "source"),
-  t("proposal_revisions", ["opportunity_id", "version"], "legacy", ["created_at"]),
-  t("source_receipts", ["source", "receipt_id"], "source", ["received_at"]),
-  t("source_health", ["source"], "run", ["checked_at"]),
-  t("digest_outbox", ["id"], "run", ["id", "created_at", "attempted_at", "finished_at", "delivery_receipt"], ["local_date", "recipient"]),
-  t("daily_runs", ["local_date", "recipient"], "run", ["started_at", "finished_at"]),
+  t("proposal_revisions", ["opportunity_id", "version"], "legacy"),
+  t("source_receipts", ["source", "receipt_id"], "source"),
+  t("source_health", ["source"], "run"),
+  t("digest_outbox", ["id"], "run"),
+  t("daily_runs", ["local_date", "recipient"], "run"),
   t("opportunity_tracking", ["opportunity_id"], "user"),
-  t("tracking_events", ["id"], "user", ["id"], ["opportunity_id", "revision"]),
+  t("tracking_events", ["id"], "user"),
   t("ai_draft_attempts", ["opportunity_id", "fingerprint", "priority"], "legacy"),
   t("discovery_settings", ["id"], "user"),
   t("mail_sync_state", ["source", "recipient"], "source"),
-  t("mail_ingestion", ["source", "recipient", "message_id"], "source", ["checked_at"]),
+  t("mail_ingestion", ["source", "recipient", "message_id"], "source"),
   t("mail_content_versions", ["opportunity_id", "fingerprint"], "source"),
   t("manual_applications", ["id"], "user"),
   t("manual_application_opportunities", ["application_id", "opportunity_id"], "user"),
@@ -53,14 +49,11 @@ export const TABLES: TableSpec[] = [
 ];
 
 /**
- * Postgres-only tables derived from TABLES rows (D15): never copied, compared or written back to
- * SQLite, since Python neither has nor reads them; rebuilt from the copy after every load instead.
- * digest_novelty is derived from digest_outbox snapshots.
+ * Tables derived from TABLES rows (D15) that Python neither has nor reads: never copied or written
+ * back to SQLite; rebuilt from the copy after every load instead. digest_novelty is derived from
+ * digest_outbox snapshots. Listed children last, so dropping in reverse order respects foreign keys.
  */
 export const DERIVED_TABLES = ["digest_novelty"];
-
-/** Tables with a generated integer id whose sequence must follow the copied rows. */
-export const IDENTITY_COLUMNS: Record<string, string> = { tracking_events: "id" };
 
 /** D1-only bookkeeping, defined with the lease guard (src/db/d1/guard.ts): never copied, compared, written back or dropped. */
 export { D1_ONLY_TABLES as D1_TABLES } from "@/db/d1/guard";

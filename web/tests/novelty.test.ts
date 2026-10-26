@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { groupItems, isCandidate, publicItem } from "@/modules/discovery/public";
-import { backfillNoveltyIn, checkNoveltyIn, claimDigest, findDigest, finishDigest, noveltyRows } from "@/modules/notifications/public";
+import { backfillNovelty, checkNovelty, claimDigest, findDigest, finishDigest, noveltyRows } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, asList, PyDict } from "@/platform/py/value";
@@ -37,7 +37,7 @@ describe("notified ledger", () => {
     expect(want.length).toBeGreaterThan(2);
     const order = (r: { key: string; fingerprint: string }) => [r.key, r.fingerprint];
     expect(await ledger()).toEqual(want.sort((a, b) => Buffer.compare(Buffer.from(order(a).join("\0")), Buffer.from(order(b).join("\0")))));
-    expect(await checkNoveltyIn(db)).toEqual({ digests: 1, rows: want.length, missing: 0, extra: 0 });
+    expect(await checkNovelty(db)).toEqual({ digests: 1, rows: want.length, missing: 0, extra: 0 });
   });
 
   for (const outcome of ["sent", "attempted", "unknown"] as const) {
@@ -64,10 +64,10 @@ describe("notified ledger", () => {
     const legacy = PyDict.of({ items: [publicItem(candidate).update({ fingerprint: candidate.req("fingerprint") })], recipient: owner, local_date: "2026-09-01" });
     await query("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values ('old', '2026-09-01', ?1, ?2, 'sent', 'r')",
       [owner, encode(legacy)]);
-    expect(await checkNoveltyIn(db)).toMatchObject({ digests: 1, rows: 0, extra: 0 });
-    expect(await backfillNoveltyIn(db, await stored())).toBeGreaterThan(1);
-    await expect(backfillNoveltyIn(db, await stored())).rejects.toThrow();
-    expect(await checkNoveltyIn(db)).toMatchObject({ missing: 0, extra: 0 });
+    expect(await checkNovelty(db)).toMatchObject({ digests: 1, rows: 0, extra: 0 });
+    expect(await backfillNovelty(db, await stored())).toBeGreaterThan(1);
+    await expect(backfillNovelty(db, await stored())).rejects.toThrow();
+    expect(await checkNovelty(db)).toMatchObject({ missing: 0, extra: 0 });
     expect(itemIds((await createDigest(db, "2026-10-01", owner, day(1))).snapshot)).toEqual([]);
   });
 
@@ -80,7 +80,7 @@ describe("notified ledger", () => {
     gone.delete("members");
     await query("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values ('old', '2026-09-01', ?1, ?2, 'sent', 'r')",
       [owner, encode(PyDict.of({ items: [gone] }))]);
-    await backfillNoveltyIn(db, await stored());
+    await backfillNovelty(db, await stored());
     expect(itemIds((await createDigest(db, "2026-10-01", owner, day(1))).snapshot)).toEqual([]);
   });
 
@@ -92,7 +92,7 @@ describe("notified ledger", () => {
     await query("delete from digest_novelty where rowid = (select min(rowid) from digest_novelty)");
     await query(migrationStatement(/TRIGGER IF NOT EXISTS digest_novelty_retained /));
     await query("insert into digest_novelty values (?1, 'stray', 'x')", [digest.id]);
-    expect(await checkNoveltyIn(db)).toMatchObject({ missing: 1, extra: 1 });
+    expect(await checkNovelty(db)).toMatchObject({ missing: 1, extra: 1 });
   });
 
   it("refuses to change or remove a ledger row", async () => {

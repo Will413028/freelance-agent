@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ingestSource, type Listing } from "@/modules/collection/public";
 import { groupItems, isCandidate } from "@/modules/discovery/public";
-import { backfillNoveltyIn, noveltyRows } from "@/modules/notifications/public";
+import { backfillNovelty, noveltyRows } from "@/modules/notifications/public";
 import { selectUnseen } from "@/modules/notifications/outbox";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
@@ -87,7 +87,7 @@ describe("digest at production scale", () => {
         [`prior-${n}`, `prior-${n}`, text]);
     }
     const digests = (await query("select id, snapshot from digest_outbox")) as { id: string; snapshot: string }[];
-    expect(await backfillNoveltyIn(db, digests)).toBeGreaterThanOrEqual(PRIOR_DIGESTS * ITEMS_PER_DIGEST * KEYS_PER_ITEM);
+    expect(await backfillNovelty(db, digests)).toBeGreaterThanOrEqual(PRIOR_DIGESTS * ITEMS_PER_DIGEST * KEYS_PER_ITEM);
     const [digest, ms] = await (async () => { const s = Date.now(); const d = await createDigest(db, "2026-10-26", "owner@example.invalid", now); return [d, Date.now() - s] as const; })();
     process.stderr.write(`createDigest: ${ms} ms\n`);
     const ids = (list: PyDict[]) => list.map((item) => item.str("id"));

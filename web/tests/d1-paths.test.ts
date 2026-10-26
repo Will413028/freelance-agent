@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { announced, backfillNoveltyIn, claimDailyRun, claimDigest, findDigest, finishDigest, getDailyRun, insertDigest } from "@/modules/notifications/public";
+import { announced, backfillNovelty, claimDailyRun, claimDigest, findDigest, finishDigest, getDailyRun, insertDigest } from "@/modules/notifications/public";
 import { encode } from "@/platform/py/json";
 import { PyDateTime } from "@/platform/py/datetime";
 import { PyDict } from "@/platform/py/value";
@@ -38,7 +38,7 @@ describe("lists longer than D1's 100 parameters", () => {
 
   it("looks up announced pairs for any number of keys in one statement", async () => {
     await query("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values ('d', '2026-10-01', ?1, ?2, 'sent', 'r')", [EMAIL, snapshot(150, "a")]);
-    await backfillNoveltyIn(db, await query<{ id: string; snapshot: string }>("select id, snapshot from digest_outbox"));
+    await backfillNovelty(db, await query<{ id: string; snapshot: string }>("select id, snapshot from digest_outbox"));
     const keys = Array.from({ length: 250 }, (_, i) => `k:a${i}`);
     expect((await announced(db, EMAIL, keys)).size).toBe(150);
   });
@@ -49,7 +49,7 @@ describe("lists longer than D1's 100 parameters", () => {
     }
     const digests = await query<{ id: string; snapshot: string }>("select id, snapshot from digest_outbox");
     const before = client.counters.requests;
-    expect(await backfillNoveltyIn(db, digests)).toBe(120);
+    expect(await backfillNovelty(db, digests)).toBe(120);
     expect(client.counters.requests - before).toBe(2);
   });
 });

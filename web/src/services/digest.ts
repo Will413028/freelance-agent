@@ -1,6 +1,6 @@
 import { readAll, type Db } from "@/db/client";
 import { sourcesRead } from "@/modules/collection/public";
-import { backfillNoveltyIn, findDigestRead, insertDigest, type DigestRow, type StoredDigest } from "@/modules/notifications/public";
+import { backfillNovelty, checkNovelty, findDigestRead, insertDigest, type DigestRow, type NoveltyCheck, type StoredDigest } from "@/modules/notifications/public";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { assembleList, listReads } from "./discovery";
 
@@ -17,5 +17,15 @@ export async function createDigest(db: Db, localDate: string, recipient: string,
   return insertDigest(db, assembleList(list, now), sources, localDate, recipient, now);
 }
 
-/** The digest_novelty rows of digests just loaded from a copy (converge, replay), from the copy's rows. */
-export const rebuildNoveltyIn = (db: Db, digests: Iterable<StoredDigest>): Promise<number> => backfillNoveltyIn(db, digests);
+/** The digest_novelty rows of digests just loaded from a copy (the import, the replay), from the copy's rows. */
+export const rebuildNovelty = (db: Db, digests: Iterable<StoredDigest>): Promise<number> => backfillNovelty(db, digests);
+
+/**
+ * The after job's ledger check (plan step 10b2, read-only on D1): the stored ledger against the one
+ * rederived from the snapshots since a day. No digest since then is a failure, not a pass: the day's
+ * TS run should have built one.
+ */
+export async function checkLedger(db: Db, since: string): Promise<NoveltyCheck & { ok: boolean }> {
+  const check = await checkNovelty(db, since);
+  return { ...check, ok: check.digests > 0 && check.missing === 0 && check.extra === 0 };
+}
