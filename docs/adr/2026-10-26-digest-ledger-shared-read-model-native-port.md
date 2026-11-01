@@ -106,6 +106,31 @@ Measured on the 2026-10-25 production copy:
 - AGENTS.md: replace "the Python rules are the spec for the TS port".
 - On the VM, measure how many current listings would change `external_id` or fingerprint under native code before choosing each module's guardrail. Show the 483 fallback keys equal Python's before the backfill.
 
+## Amendment (2026-10-26, later the same day): no cross-source merge
+
+R1's "store group membership; make grouping order-independent" is replaced. The single projection for the UI and the digest still holds.
+
+**Context (measured 2026-10-26 on the shadow copy of production, one-off read-only script, counts only).** All 2,447 opportunities carry a URL identity key only; none has a content key (2,130 have no company, 285 no usable body, 32 a body under 80 characters). URL keys of different sources have different hosts, so cross-source merging could only come from content keys: no two rows share a key, and the grouping rule has never merged anything in Python or TS. Equal company and title appear in 16 sets, 1 of them across sources. Equal title alone appears in 55 sets, 7 of them across sources. Content versions: 6, on 3 opportunities.
+
+**Options.**
+- **Baseline: dedupe by the source's own id when sources barely overlap.** Single-user multi-site job scrapers key a listing by site and job id (inferred: python-jobspy). Entity resolution (blocking, connected components, survivorship) is for aggregators with heavy overlap (Splink, dedupe, Zingg).
+- A1, the R1 text: keep "conflicting conditions stay separate" and maintain groups incrementally in id order. It needs a key index, closure recompute and group tokens, and merges nothing on today's data.
+- A2: connected components plus survivorship now. It merges nothing under today's keys unless the match is loosened (for example to the title alone), which risks false merges.
+
+**Decision (A3).**
+- Each opportunity is its own one-member group. `members: [self]`, the member token, `observation_fingerprints`, `novelty_keys` and the content-version display (`display_basis`) keep their current shape and formulas. The DTO, the snapshot and Python's rollback rendering are therefore unchanged.
+- Only the cross-source merge and its upkeep are removed.
+- The projection (B1) is two derived tables: one row per opportunity and one per content version. Each holds content- and settings-derived values. Clock-dependent values are computed at read time.
+- The tables are rebuilt by converge, replay and the reverse script.
+
+**Rationale.** A1 and A2 pay upkeep on every write path for duplicates the data does not show. A3's output equals today's on production data. The cost: if cross-source duplicates appear, they show as separate cards until the trigger fires. A normalized `opportunities` schema (B2) would be the baseline for reads, but it waits for the D6 window. Python's rollback reads the SQLite-shaped table (external). The rework at that point is limited to the two projection tables.
+
+**Re-add triggers.**
+- The TS daily run counts cross-source pairs with an equal normalized title among the last 7 days' candidates. When the count reaches 3, a manual sample confirms true duplicates, and A2 is then added as a cluster id on the projection.
+- A parser starts providing `company` widely, which revives content keys.
+
+Source: the owner's decision on 2026-10-26, after two independent critiques of the option brief.
+
 ## Related
 
 - Amends `docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`: D0's shadow output parity and D4's permanent byte compatibility (now N2).

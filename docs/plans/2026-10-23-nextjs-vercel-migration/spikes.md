@@ -83,3 +83,60 @@ spike-1d {"delivery":"accepted","accepted":1,"rejected":0,"bytes":1892,"sha256":
 - 換到 iad1 區域，被擋的只剩 PTT 兩個版，沒達到停止條件（3 個以上）。
 - PTT 的 challenge 依規則不繞過，PTT 的去向要另外決定，見 D12。
 - region 選 iad1，Neon 也選 us-east 區域。D1 原本只說「同一區」，這是在那個範圍內選定的區域。
+
+## 1f D1 over HTTP（2026-10-26）：成立，條件是寫入要按來源批次合併
+
+測法：spike D1 `freelance-agent-spike-1f`（ENAM）、帳號層級 token。(b)–(e)、(g)、(h) 從 Mac 直接打 REST query 端點（和地點無關的語意與列數）；(a)、(f) 從 Vercel spike 專案的 preview 部署（`VERCEL_REGION=iad1`）打同一個端點。程式在 session scratchpad，數字以下為原始輸出摘要。
+
+- **schema**：Python 的 `001_sqlite.sql` 原樣套用成功，一次請求 35 個語句，建出 25 張表、4 個索引、6 個 trigger。
+- **(a) 延遲（iad1 → D1 ENAM，ms）**：
+
+| 請求 | n | p50 | p95 | max |
+|---|---|---|---|---|
+| `select 1` | 20 | 63 | 86 | 89 |
+| 10 個語句的 batch | 20 | 59 | 73 | 86 |
+| 100 列寫入（4 個語句、每句 100 參數） | 20 | 74 | 89 | 92 |
+| 一個來源批次 274 筆（每筆 3.6 KB、upsert，11 個語句） | 10 | 178 | 258 | 258 |
+| 投影重算 2,450 列（`UPDATE … FROM (VALUES …)`，75 個語句） | 10 | 110 | 638 | 638 |
+| 225 KB snapshot＋110 列帳本 | 10 | 108 | 145 | 145 |
+
+  每條語句都在 100 個綁定參數以內，沒有錯誤。成立（撤回門檻是 p95 300 ms 乘請求數不超過 150 秒）。
+- **(b) HTTP batch 原子性**：`batch` 欄位與分號串接的 `sql` 兩種寫法，第三句違反 UNIQUE 時整批失敗，前兩句不留下（0 列）。成立。
+- **(c) 交易語句**：單獨送 `BEGIN`、`BEGIN TRANSACTION`、`SAVEPOINT`、`COMMIT`、`ROLLBACK`，或放進 batch，全部回 7500「To execute a transaction, please use the state.storage.transaction() … instead of the SQL BEGIN TRANSACTION or SAVEPOINT statements」。沒有互動式交易，確定。
+- **(d) 條件寫入**：`UPDATE … WHERE` 不符時 `meta.changes` 為 0、請求仍成功；`INSERT … ON CONFLICT DO NOTHING RETURNING` 衝突時回 0 列、新增時回 1 列。守衛語句可以讓整批回滾：前一句影響 0 列時 `insert into guard(ok) select case when changes() = 0 then 0 else 1 end`（CHECK `ok = 1`），或先讀前提 `insert into guard(ok) select count(*) from t where id = ? and rev = ?`，兩種都讓 batch 失敗、前面寫入的標記列不留下；前提成立時整批提交。trigger 的 `RAISE(ABORT, …)` 同樣讓整批回滾。成立。
+- **(e) 值的往返**：`params` 送 JSON 值。數字寫進沒有型別的欄位會存成 REAL；寫進 INTEGER 欄位時由欄位 affinity 轉回 integer。大於 2^53 的整數用字串寫入 INTEGER 欄位能精確保存（`cast(n as text)` 讀回 `9007199254740993`），用 JSON 數字寫入或讀回都會失真成 `9007199254740992`。布林值存成文字 `'true'`，要送 0／1。非 BMP 字元、U+0000、U+2028、JSON 文字逐位元相同；孤立 surrogate 讀回不同（UTF-8 帶不了，和 Python 端寫不進 golden 的已知限制同類）。條件成立：大整數一律以文字讀寫、布林送 0／1。
+- **(f) 同一 batch 的多條 SELECT**：並行 15 次寫入時做 15 次「count／其他查詢／count」的 batch，0 次前後不一致。成立（樣本小；和「batch 是交易、資料庫單執行緒」的文件一致）。
+- **(g) SQL 函式**：`sqlite_version()` 不可用（7500 not authorized）；`json_extract`、`json_valid`、`json`、`json_group_array`、`json_each`、`changes`、`last_insert_rowid`、`datetime`、`strftime`、`unixepoch`、`date(…, '+1 day')`、`julianday`、`coalesce`、`iif`、`lower`、`instr`、`substr`、`length`、`hex`、`printf`、`format`、`random`、`group_concat`、`typeof`、`abs`、`max`、`round`、`unicode`、`char`、`trim`、`replace` 都可用。
+- **(h) 列寫入與請求數（合成的正式量級副本，Python schema）**：每插入一列，連同主鍵與唯一索引算 2–3 列寫入，刪除一列算 1 列。
+
+| 動作 | 請求 | rows_written |
+|---|---|---|
+| 匯入 opportunities 2,450 筆（每筆 3.6 KB） | 10 | 7,350 |
+| 匯入 source_receipts 3,000 列 | 1 | 6,000 |
+| 匯入 digest_outbox 40 份（每份約 285 KB） | 3 | 120 |
+| 匯入帳本 4,815 列 | 1 | 9,630 |
+| 匯入 mail_ingestion 600 列 | 1 | 1,200 |
+| **完整匯入合計** | 16 | 24,300 |
+| 帳本重建（全刪＋重灌） | 2 | 14,445 |
+| 全刪上述五張表 | 5 | 10,905 |
+
+  換算（推論）：shadow 每日 converge 照現在「全刪再全載」約 3.5 萬列寫入，加上 10e 投影表與 tracking 等小表約再 0.5–1 萬；正式每日執行另計。只看 shadow 就佔帳號每日免費額度（10 萬列）的 35–45%，加上正式寫入會碰到撤回觸發的 50%。這只在切換前的 shadow 期成立，交 D21。
+- **請求數（推論，讀 `ingestIn` 的程式）**：每筆職缺目前要 3–7 個語句（讀紀錄、查 receipt、讀設定、寫入、寫 receipt、再查 owner）。逐句變成一個 REST 請求時，freelancer 一批 274 筆約 900–1,900 個請求，超過每 5 分鐘 1,200 的帳號上限。改成每個來源批次「一次預讀（每 100 個參數一個請求）＋一個帶守衛的寫入 batch」約 5 個請求，25 個來源一天約 150 個。結論：逐句移植不可行，按來源批次合併後成立。這直接影響 D20。
+
+結論：撤回觸發都沒成立：HTTP batch 原子、守衛可回滾、延遲遠低於門檻、值能往返（條件見 (e)）。每日列寫入在 shadow 期接近 50%，要在 D21 處理。spike 資料庫與 Vercel spike 專案在 D20、D21 拍板前保留，之後刪除。
+
+## 1f 補充（2026-10-26 晚，D20、D21 簡報 v2 用）
+
+- **DDL 在 batch 內**（Mac → spike D1，暫用表 `zz_a`、`zz_b`，測完已 drop）：表上有擋 DELETE 的 trigger 時，單獨 `delete` 回 `SQLITE_CONSTRAINT_TRIGGER`；同一個 batch 送 `drop trigger`、`delete`（10 列）、`create trigger` 成功；同樣開頭、第三句改成違反 UNIQUE 的 insert 時整批失敗，之後查到 990 列（第二批的刪除回滾）且 trigger 仍在。DDL 和資料寫入一起回滾。
+- **列寫入**：`DROP TABLE`（990 列、一個唯一索引）`rows_written` 0；同結構 1,000 列 `DELETE FROM` 是 1,000；`CREATE TABLE` 3、`CREATE TRIGGER` 1、插 1,000 列（主鍵＋唯一索引）2,000。
+- **速率標頭**：D1 query 端點、`GET /d1/database/{id}`、`/user/tokens/verify` 都不回 `Ratelimit`／`Ratelimit-Policy` 標頭，剩餘額度從回應看不到。
+- **帳號內的 D1**：用 spike token 列 `GET /accounts/{id}/d1/database`，只有 `freelance-agent-spike-1f`；`meal-prep-production` 已於 2026-10-26 刪除（meal-prep-agent 專案的 Cloudflare 清理）。
+- **正式副本相鄰兩天的差異**（VM `/var/lib/freelance-shadow/copies/` 的 08:30 副本，Python 以 `mode=ro&immutable=1` 開啟、依主鍵比對整列，只輸出計數）：
+
+| 區間 | 新增 | 修改 | 刪除 | 有變的表 |
+|---|---|---|---|---|
+| 10-24 → 10-25 | 151 | 35 | 0 | daily_runs +1、digest_outbox +1、mail_ingestion +15、mail_sync_state 改 6、opportunities +66／改 2、source_health 改 27、source_receipts +68 |
+| 10-25 → 10-26 | 219 | 34 | 0 | daily_runs +1、digest_outbox +1、mail_ingestion +10、mail_sync_state 改 6、opportunities +103／改 1、source_health 改 27、source_receipts +104 |
+
+  10-26 副本的列數：opportunities 2,395、source_receipts 2,475、mail_ingestion 257、digest_outbox 39。已有職缺幾乎不被改寫（每天 1–2 列）。
+- **`/raw` 端點與大小上限**（2026-10-26 晚，Mac → spike D1，暫用表 `zz_big`，測完已 drop）：`POST …/raw` 帶 `batch` 時每個結果是 `{results: {columns, rows: [[…]]}, meta: {changes, rows_written, rows_read, total_attempts, …}}`，rows 是陣列。約束失敗與交易語句都回 HTTP 400、`code` 7500，只能靠訊息區分（`SQLITE_CONSTRAINT…` 與「To execute a transaction…」）。一個 batch 送 2.0 MB（11 句）、5.1 MB（28 句）、10.1 MB（56 句，每句 100 個參數、50 列 × 3.6 KB）都成功，1.96／2.70／3.99 秒；integer 主鍵表每列 1 列寫入。一次 `select` 讀回 4,750 列、17.2 MB 成功，2.63 秒。iad1 沒有重量。
