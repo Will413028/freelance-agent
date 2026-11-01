@@ -18,3 +18,4 @@ Personal multi-platform part-time job discovery. Stack: Next.js, FastAPI/Pydanti
 - Tests must cover incremental intake, duplicate grouping (Python; `web/` merges no listings across sources, plan D18), stale feedback/settings, failed sources, unknown eligibility and uncertain delivery; historical approval invalidation remains protected.
 - Verification entry: `README.md` 驗證 section (`FREELANCE_TEST_DSN='' backend/.venv/bin/python -B -m unittest discover -s backend/tests -q`, module boundary and installed-wheel checks, explicit OpenAPI output path; frontend checks from `frontend/`). Compose smoke uses isolated synthetic data. Tests are not permission to change live cases or send messages.
 - Do not initialize Git, commit, push, or deploy without the applicable authorization.
+- Branch model: daily work goes to `dev`; `main` changes only through a `dev`→`main` PR merged with a merge commit (no squash, no rebase); never push to `main` directly.
