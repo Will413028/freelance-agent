@@ -1,8 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
-import type { Db } from "@/db/client";
+import { clientOf, type Db } from "@/db/client";
 import { DAILY_WRITE, withLease } from "@/db/unit";
-import { checkTableSet, d1Columns } from "./import";
-import { CopyError, d1Rows, d1RowsQuery, fingerprint, readSqliteRows, rowText, sqliteColumns, type Cell, type Column, type Row } from "./rows";
+import { checkTableSet } from "./import";
+import { columnsOf, CopyError, d1Rows, d1RowsQuery, fingerprint, readSqliteRows, rowText, sqliteColumns, type Cell, type Column, type Row } from "./rows";
 import { TABLES, type TableSpec } from "./tables";
 
 // The write-back "D1 → SQLite" (plan step 12), the rollback inside D6's window: what TS wrote after
@@ -16,23 +16,31 @@ import { TABLES, type TableSpec } from "./tables";
 // Running it again changes nothing. Messages and reports name tables and columns only: values are personal data.
 
 export type WriteBackTable = { inserted: number; updated: number; updatedColumns: Record<string, number>; rows: number; sqlite: string; d1: string };
-export type WriteBackReport = { ok: boolean; tables: Record<string, WriteBackTable> };
+/** Only a write-back that converged returns; any refusal or mismatch throws and writes nothing. */
+export type WriteBackReport = { tables: Record<string, WriteBackTable> };
 
 const key = (spec: TableSpec, columns: Column[], row: Row) => rowText(spec.pk.map((k) => row[columns.findIndex((c) => c.name === k)]));
 const value = (cell: Cell) => (cell === null ? null : "i" in cell ? BigInt(cell.i) : cell.s);
 const same = (a: Cell, b: Cell) => (a === null || b === null ? a === b : "i" in a ? "i" in b && a.i === b.i : "s" in b && a.s === b.s);
 
-/** Every TABLES row of D1, read under the writer lease so no product write unit lands in between. */
+/**
+ * Every TABLES row of D1, read under the writer lease so no product write unit lands in between: the
+ * columns in one request, the rows in as few leased requests as the batch limit allows.
+ */
 export async function readD1Tables(db: Db, waitMs = DAILY_WRITE.waitMs): Promise<Map<string, { columns: Column[]; rows: Row[] }>> {
-  const columns = new Map<string, Column[]>();
-  for (const spec of TABLES) columns.set(spec.name, await d1Columns(db, spec.name));
+  const infos = await clientOf(db).batch(TABLES.map((spec) => ({ sql: `pragma table_info("${spec.name}")`, params: [] })));
+  const columns = TABLES.map((spec, n) => columnsOf(spec.name, infos[n].rows.map((r) => ({
+    name: String(r[infos[n].columns.indexOf("name")]), type: String(r[infos[n].columns.indexOf("type")]),
+  }))));
   return withLease(db, waitMs, async (send) => {
-    const out = new Map<string, { columns: Column[]; rows: Row[] }>();
-    for (const spec of TABLES) {
-      const [result] = await send([{ sql: d1RowsQuery(spec, columns.get(spec.name)!), params: [] }]);
-      out.set(spec.name, { columns: columns.get(spec.name)!, rows: d1Rows(result, columns.get(spec.name)!) });
-    }
-    return out;
+    const results = await send(TABLES.map((spec, n) => ({ sql: d1RowsQuery(spec, columns[n]), params: [] })));
+    return new Map(TABLES.map((spec, n) => {
+      const rows = d1Rows(results[n], columns[n]);
+      // d1Rows trusts the cast; check integers here so a bad value is named, not a BigInt SyntaxError.
+      const bad = columns[n].filter((c, i) => c.type === "integer" && rows.some((row) => { const v = row[i]; return v !== null && "i" in v && !/^-?[0-9]+$/.test(v.i); }));
+      if (bad.length) throw new CopyError(`${spec.name}: D1 holds non-integer values in ${bad.map((c) => c.name).join(", ")}`);
+      return [spec.name, { columns: columns[n], rows }];
+    }));
   });
 }
 
@@ -56,14 +64,13 @@ export async function writeBack(db: Db, sqlitePath: string, waitMs = DAILY_WRITE
       if (integrity.length !== 1 || integrity[0].integrity_check !== "ok") throw new CopyError("the copy fails integrity_check after the write-back");
       const orphans = lite.prepare("pragma foreign_key_check").all() as { table: string }[];
       if (orphans.length) throw new CopyError(`foreign keys broken after the write-back in: ${[...new Set(orphans.map((o) => o.table))].join(", ")}`);
-      const ok = Object.values(tables).every((t) => t.sqlite === t.d1);
-      if (!ok) throw new CopyError(`the copy still differs from D1 in: ${Object.entries(tables).filter(([, t]) => t.sqlite !== t.d1).map(([n]) => n).join(", ")}`);
+      if (!Object.values(tables).every((t) => t.sqlite === t.d1)) throw new CopyError(`the copy still differs from D1 in: ${Object.entries(tables).filter(([, t]) => t.sqlite !== t.d1).map(([n]) => n).join(", ")}`);
       // A single-statement writer (a daily run, mail intake) may have written D1 since it was read.
       const again = await readD1Tables(db, waitMs);
       const moved = TABLES.filter((spec) => fingerprint(again.get(spec.name)!.rows) !== tables[spec.name].d1).map((spec) => spec.name);
       if (moved.length) throw new CopyError(`D1 changed while writing back (${moved.join(", ")}): stop every writer and run it again`);
       lite.exec("commit");
-      return { ok, tables };
+      return { tables };
     } catch (e) {
       lite.exec("rollback");
       throw e;

@@ -33,7 +33,8 @@ with tempfile.TemporaryDirectory() as directory:
     store.sources()
     checks = {
         'opportunities': count == expected['opportunities'],
-        'feedback_counts': {str(k): v for k, v in feedback.items()} == expected['feedback_counts'],
+        # inject.mts keys a missing feedback as String(null) == 'null'.
+        'feedback_counts': {('null' if k is None else str(k)): v for k, v in feedback.items()} == expected['feedback_counts'],
         'settings_revision': preferences['revision'] == expected['settings_revision'],
         'new_listing_listed': any(expected['new_listing'] in (i.get('member_ids') or [i.get('id')]) for i in items),
         'day_already_ran': store.claim_daily_run(expected['day'], recipient, datetime(2026, 11, 30, 2, tzinfo=timezone.utc)) is False,

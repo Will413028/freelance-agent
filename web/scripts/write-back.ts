@@ -17,5 +17,5 @@ for (const [table, t] of Object.entries(report.tables)) {
   const columns = Object.entries(t.updatedColumns).map(([c, n]) => `${c}:${n}`).join(",");
   console.log(`${table}\t${t.rows}\t+${t.inserted}\t~${t.updated}${columns ? ` (${columns})` : ""}\t${t.sqlite === t.d1 ? "same" : "DIFFERENT"}\t${t.sqlite.slice(0, 16)}`);
 }
-console.log(report.ok ? "write-back ok" : "write-back FAILED");
-process.exitCode = report.ok ? 0 : 1;
+// writeBack throws (exit 1, nothing written) unless the copy converged to D1.
+console.log("write-back ok");

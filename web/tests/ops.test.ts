@@ -1,18 +1,16 @@
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { DatabaseSync } from "node:sqlite";
+import { DatabaseSync as Lite, type DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { ingestSource } from "@/modules/collection/public";
 import { checkTableSet, copiedDiscovery, createStatements, importCopy, type RebuildDerived } from "@/ops/import";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
 import { writeBack } from "@/ops/write-back";
-import { DatabaseSync as Lite } from "node:sqlite";
-import { track } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
-import { listPage, rebuildProjection } from "@/services/discovery";
+import { listPage, rebuildProjection, track } from "@/services/discovery";
 import { referenceList as list } from "./helpers/reference";
 import { db, intercepting, leased, MIGRATIONS, query, recording, resetSchema, sqliteWithSchema } from "./helpers/db";
 import { migrateD1 } from "@/db/migrate";
@@ -218,7 +216,6 @@ describe("write-back from D1 into a copy (plan step 12)", () => {
     const target = await cutover("wb-1.sqlite3");
     await afterCutover();
     const report = await writeBack(db, target, 0);
-    expect(report.ok).toBe(true);
     expect(report.tables.opportunities.inserted).toBe(1);
     expect(report.tables.opportunity_tracking).toMatchObject({ inserted: 0, updated: 1, updatedColumns: { state: 1 } });
     expect(report.tables.tracking_events.inserted).toBe(1);
@@ -262,6 +259,12 @@ describe("write-back from D1 into a copy (plan step 12)", () => {
     const before = sha(target, "opportunities");
     await expect(writeBack(racing.db, target, 0)).rejects.toThrow(/D1 changed while writing back \(source_health\)/);
     expect(sha(target, "opportunities")).toBe(before);
+  });
+
+  it("names the table and column when D1 holds a non-integer in an integer column", async () => {
+    const target = await cutover("wb-7.sqlite3");
+    await leased("update discovery_settings set revision = 1.5 where id = 1");
+    await expect(writeBack(db, target, 0)).rejects.toThrow(/discovery_settings: D1 holds non-integer values in revision/);
   });
 
   it("refuses a daily run under a recipient the copy never had", async () => {
