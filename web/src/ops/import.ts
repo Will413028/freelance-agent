@@ -87,10 +87,6 @@ export async function loadCopy(db: Db, lite: DatabaseSync, send: (statements: D1
   return source;
 }
 
-/** The digest rows of a copy, for rebuilding the ledger without reading the snapshots back; `skipDay` is left out. */
-export function copiedDigests(lite: DatabaseSync, skipDay?: string): { id: string; snapshot: string }[] {
-  return lite.prepare("select id, snapshot from digest_outbox where local_date is not ? order by id").all(skipDay ?? null) as { id: string; snapshot: string }[];
-}
 
 /** What the discovery projection derives from in a copy (plan step 10e1): record envelopes, content versions, the settings row. */
 export type CopiedDiscovery = {

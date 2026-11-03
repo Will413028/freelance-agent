@@ -13,10 +13,6 @@ export async function dailyWorkflow() {
     console.log(`daily run ${begin.localDate}: ${begin.outcome === "already_run" ? "已有 run" : "not due before 09:00 Asia/Taipei"}`);
     return { ...begin, sources: {} };
   }
-  if (begin.reused) {
-    // run_daily: a digest already built that day is reused, and no source is called again.
-    return { ...begin, ...await finishStep(begin.localDate, begin.startedAt!, null, begin.usage), sources: {} };
-  }
   const sources = await sourcesStep();
   // A step that dies (timeout, crash) never returned its detail; record it as Python's unavailable
   // source. Its D1 usage is lost with it: lost_steps marks the run's totals as a lower bound.
@@ -51,10 +47,9 @@ async function syncStep(source: string): Promise<{ detail: SourceDetail; usage: 
 }
 syncStep.maxRetries = 0;
 
-// Builds the digest and sends it once when delivery is configured (plan step 10c). A retry could send
-// a second time after an uncertain first attempt, so the step must never be retried.
-export async function finishStep(localDate: string, startedAt: string, details: Record<string, SourceDetail> | null, usage: Usage) {
+// Records the run's outcome (plan step 10f); like every step of the run, never retried.
+export async function finishStep(localDate: string, startedAt: string, details: Record<string, SourceDetail>, usage: Usage) {
   "use step";
-  return finishDaily(getDb(), localDate, startedAt, details, undefined, usage);
+  return finishDaily(getDb(), localDate, startedAt, details, usage);
 }
 finishStep.maxRetries = 0;

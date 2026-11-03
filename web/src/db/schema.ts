@@ -82,20 +82,6 @@ export const digestOutbox = sqliteTable(
   ],
 );
 
-// Not in the Python schema (D15, plan step 10b2): the novelty pairs each digest snapshot announced,
-// derived from the snapshot in the same write and never changed, so selection reads the pairs of
-// the current candidates instead of every stored snapshot. Rebuilt from the snapshots after each copy.
-// The key-first primary key is the lookup index.
-export const digestNovelty = sqliteTable(
-  "digest_novelty",
-  {
-    digestId: text("digest_id").notNull().references(() => digestOutbox.id),
-    key: text("key").notNull(),
-    fingerprint: text("fingerprint").notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.key, t.fingerprint, t.digestId] })],
-);
-
 export const dailyRuns = sqliteTable(
   "daily_runs",
   {

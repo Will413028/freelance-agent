@@ -50,12 +50,11 @@ export const TABLES: TableSpec[] = [
 
 /**
  * Tables derived from TABLES rows (D15) that Python neither has nor reads: never copied or written
- * back to SQLite; rebuilt from the copy after every load instead. digest_novelty is derived from
- * digest_outbox snapshots; discovery_items and discovery_versions (D16, plan step 10e1) from
- * opportunities, mail_content_versions and discovery_settings. Listed children last, so dropping in
- * reverse order respects foreign keys.
+ * back to SQLite; rebuilt from the copy after every load instead: discovery_items and
+ * discovery_versions (D16, plan step 10e1) from opportunities, mail_content_versions and
+ * discovery_settings. Listed children last, so dropping in reverse order respects foreign keys.
  */
-export const DERIVED_TABLES = ["digest_novelty", "discovery_items", "discovery_versions"];
+export const DERIVED_TABLES = ["discovery_items", "discovery_versions"];
 
 /** D1-only bookkeeping, defined with the lease guard (src/db/d1/guard.ts): never copied, compared, written back or dropped. */
 export { D1_ONLY_TABLES as D1_TABLES } from "@/db/d1/guard";

@@ -20,7 +20,7 @@ export const D1_ONLY_TABLES = ["guard", "write_attempts", "writer_lease"];
  * category 1 (daily runs, the digest and its ledger, source health, mail cursors and records), and
  * the D1-only bookkeeping. Every other product table is leased, including tables added later.
  */
-const SINGLE_STATEMENT_TABLES = ["daily_runs", "digest_outbox", "digest_novelty", "source_health", "mail_ingestion", "mail_sync_state"];
+const SINGLE_STATEMENT_TABLES = ["daily_runs", "digest_outbox", "source_health", "mail_ingestion", "mail_sync_state"];
 const UNLEASED = new Set([...SINGLE_STATEMENT_TABLES, ...D1_ONLY_TABLES]);
 
 export const LEASED = new Set(Object.values(schema).filter((v) => is(v, SQLiteTable)).map((t) => getTableName(t as SQLiteTable)).filter((n) => !UNLEASED.has(n)));

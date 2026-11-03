@@ -3,8 +3,6 @@ import { ingestSource, setSourceHealth, sourceStatuses } from "@/modules/collect
 import { readSettings, settingsDict } from "@/modules/discovery/public";
 import { replaceSettings } from "@/services/discovery";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
-import { checkNovelty, claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
-import { createDigest } from "@/services/digest";
 import { feedback, memberVersions, track } from "@/services/discovery";
 import { list } from "./helpers/reference";
 import { identityHash } from "@/platform/py/json";
@@ -73,17 +71,6 @@ async function replay(s: Scenario) {
       preferences: async () => settingsDict(await readSettings(db)),
       sources: async () => sourceStatuses(db),
       existing: async () => pySorted(await existingSourceIds(op.source)),
-      digest: async () => (await createDigest(db, op.local_date, op.recipient, now)).snapshot,
-      render: async () => {
-        const snap = (await findDigest(db, op.local_date, op.recipient))!.snapshot;
-        return render(asList(snap.req("items")).map(asDict), snap.dict("sources"), { mode: "sqlite", email: op.email ?? false, counts: snap });
-      },
-      deliver: async () => {
-        const intent = (await findDigest(db, op.local_date, op.recipient))!;
-        const claimed = await claimDigest(db, intent.id);
-        if (claimed === null || op.outcome === "attempted") return claimed?.status ?? null;
-        return (await finishDigest(db, intent.id, op.outcome, op.receipt ?? null)).status;
-      },
     };
     results.push(await attemptAsync(async () => encode(await run[op.op]())));
   }
@@ -97,16 +84,22 @@ async function replay(s: Scenario) {
 
 beforeEach(resetSchema);
 
+// The TS app builds no digest since plan step 10f (D22): the scenarios that build, render or deliver
+// one replay Python's digest only, so they are left out here, by name.
+const DIGEST_OPS = new Set(["digest", "render", "deliver"]);
+const DIGEST_SCENARIOS = ["digest_novelty_and_uncertain_delivery"];
+
 describe("store scenarios replay the Python store byte for byte", () => {
-  for (const [name, scenario] of Object.entries(golden.scenarios)) {
+  it("leaves out exactly the digest scenarios", () => {
+    expect(Object.entries(golden.scenarios).filter(([, sc]) => sc.ops.some((op) => DIGEST_OPS.has(op.op))).map(([n]) => n)).toEqual(DIGEST_SCENARIOS);
+  });
+  for (const [name, scenario] of Object.entries(golden.scenarios).filter(([n]) => !DIGEST_SCENARIOS.includes(n))) {
     it(name, async () => {
       const got = await replay(scenario);
       const steps = scenario.ops.map((op, n) => ({ n, op: op.op, want: scenario.results[n], got: got.results[n] }))
         .filter((s) => JSON.stringify(s.want) !== JSON.stringify(s.got));
       expect(steps).toEqual([]);
       expect(got.tables).toEqual(scenario.tables);
-      // Every digest was selected through the ledger; it must hold exactly what the snapshots announced.
-      expect(await checkNovelty(db)).toMatchObject({ missing: 0, extra: 0 });
     });
   }
 });

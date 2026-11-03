@@ -141,6 +141,14 @@ Expected Outcome's "no full-table recompute remains" is narrowed to page request
 
 **Revocation trigger.** Two conditions reopen this. One is the digest's step taking over 60 s in production (`workflow inspect`). The other is D1 rows read for the digest passing 10% of the daily free budget. Either one leads to the ledger pre-filter.
 
+## Amendment (2026-11-03, later the same day): no digest
+
+The ledger and everything else of the digest in this record are withdrawn. Will decided it on 2026-11-03 (plan D22): "不需要摘要，也不要寄送 email，我先只要有網頁前端可以看就好".
+
+**Decision.** The TS app builds no digest and sends no mail. Plan step 10f removes the snapshot build, the novelty ledger (`digest_novelty`, dropped by migration `0004`), delivery, and the same-start replay. The one shared projection (R1) stays. It now serves only the web pages, and the previous amendment's digest recompute no longer applies. The Python production system stopped sending the same day (`live_send: false`). Its digests stay `pending`, and its historical `digest_outbox` rows are carried over unchanged. Native port (R3) and the hash guardrails (N2) are unchanged, except that novelty keys are no longer a TS hash point.
+
+**Revocation trigger.** Will asks for a digest or notifications again. Restore from git history (plan steps 10b–10c, PR #5's `76cd816`), and decide the sending channel anew.
+
 ## Related
 
 - Amends `docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`: D0's shadow output parity and D4's permanent byte compatibility (now N2).

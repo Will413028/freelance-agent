@@ -23,20 +23,20 @@
 | ai_draft_attempts | 001_sqlite.sql:72 | 舊 AI 背景擬稿的嘗試紀錄 | legacy/ai_drafts.py | 保留（只讀歷史） | 只搬資料：web/src/db/schema.ts 建表（步驟 4a）、收斂腳本 v1 搬入（步驟 4c）、反向腳本原樣保留（步驟 12）；legacy/ai_drafts.py 不改寫（D8） |
 | discovery_settings | 001_sqlite.sql:86 | 單列（id=1）探索設定 JSON 加上 revision | discovery（modules/discovery/settings.py） | 否（設定，需搬值） | 改寫：web/src/db/schema.ts＋web/src/modules/discovery/settings.ts（revision 防過期）；步驟 4b，值由步驟 4c 搬 |
 | mail_sync_state | 001_sqlite.sql:91 | Resend 收信游標（每個 source／recipient 一列） | collection | 否（但遺失會重讀） | 改寫：web/src/db/schema.ts＋web/src/modules/collection/mail/cursor.ts；步驟 9（表在 4a 建、值 4c 搬、反向腳本回寫 `cursor` 在步驟 12） |
-| mail_ingestion | 001_sqlite.sql:97 | 逐封 processed/rejected/conflict 與 retry_pending | collection | 保留（隔離證據） | 改寫：web/src/db/schema.ts＋web/src/modules/collection/ingest.ts（mail 函式，步驟 9a 已移植；`retry_mail` 隨步驟 10 的 recovery 頁面）（processed／rejected／conflict、retry_pending）；步驟 9 |
+| mail_ingestion | 001_sqlite.sql:97 | 逐封 processed/rejected/conflict 與 retry_pending | collection | 保留（隔離證據） | 改寫：web/src/db/schema.ts＋web/src/modules/collection/ingest.ts（mail 函式，步驟 9a 已移植；`retry_mail` 的復原頁隨 10d 取消，D22 後依需要再做，見計畫 10d）（processed／rejected／conflict、retry_pending）；步驟 9 |
 | mail_content_versions | 001_sqlite.sql:107 | 同來源 ID 不同內容的正規化版本，`(opportunity_id, fingerprint)` | collection | 保留 | 改寫：web/src/db/schema.ts＋web/src/modules/collection/mail/content-versions.ts；步驟 9 |
-| manual_applications | 001_sqlite.sql:113 | 本人填寫的投案（四階段、跟進日、revision、request_id 冪等） | applications | 保留 | 改寫：web/src/db/schema.ts＋web/src/modules/applications/store.ts（request_id 冪等、revision）；步驟 11（表 4a、資料 4c） |
-| manual_application_opportunities | 001_sqlite.sql:129 | 投案與來源職缺的關聯 | applications | 保留 | 改寫：web/src/modules/applications/store.ts；步驟 11（表 4a、資料 4c） |
-| manual_application_events | 001_sqlite.sql:135 | 投案的追加稽核事件 | applications | 保留 | 改寫：web/src/modules/applications/store.ts（事件只追加）；步驟 11（表 4a、資料 4c） |
-| clients | 001_sqlite.sql:143 | 客戶（revision、封存、request_payload 冪等） | relationships | 保留 | 改寫：web/src/db/schema.ts＋web/src/modules/relationships/store.ts（revision、封存、request_payload 冪等）；步驟 11（表 4a、資料 4c） |
-| client_contacts | 001_sqlite.sql:154 | 聯絡人，屬於某個客戶 | relationships | 保留 | 改寫：web/src/modules/relationships/store.ts；步驟 11（表 4a、資料 4c） |
-| application_parties | 001_sqlite.sql:168 | 投案對客戶／聯絡人的關聯及名稱 snapshot | applications | 保留 | 改寫：web/src/modules/applications/store.ts（名稱 snapshot 存 text）；步驟 11（表 4a、資料 4c） |
-| proposal_templates | 001_sqlite.sql:175 | 本人模板（純文字、revision、封存） | proposals（新模組） | 保留 | 改寫：web/src/db/schema.ts＋web/src/modules/proposals/store.ts；步驟 11（表 4a、資料 4c） |
-| proposal_drafts | 001_sqlite.sql:180 | 草稿 metadata、來源 tokens 與 snapshot、party | proposals | 保留 | 改寫：web/src/modules/proposals/store.ts（來源 tokens 與 snapshot 存 text）；步驟 11（表 4a、資料 4c） |
-| proposal_draft_revisions | 001_sqlite.sql:186 | 不可變的草稿版本（trigger 禁止 UPDATE／DELETE，:192、:194） | proposals | 保留 | 改寫：web/src/db/schema.ts＋`draft_revision_immutable`／`draft_revision_retained` 等價 trigger（步驟 4a）；web/src/modules/proposals/store.ts 只追加（步驟 11）；反向腳本只追加（步驟 12） |
+| manual_applications | 001_sqlite.sql:113 | 本人填寫的投案（四階段、跟進日、revision、request_id 冪等） | applications | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/db/schema.ts＋web/src/modules/applications/store.ts（request_id 冪等、revision）；步驟 11（表 4a、資料 4c） |
+| manual_application_opportunities | 001_sqlite.sql:129 | 投案與來源職缺的關聯 | applications | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/store.ts；步驟 11（表 4a、資料 4c） |
+| manual_application_events | 001_sqlite.sql:135 | 投案的追加稽核事件 | applications | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/store.ts（事件只追加）；步驟 11（表 4a、資料 4c） |
+| clients | 001_sqlite.sql:143 | 客戶（revision、封存、request_payload 冪等） | relationships | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/db/schema.ts＋web/src/modules/relationships/store.ts（revision、封存、request_payload 冪等）；步驟 11（表 4a、資料 4c） |
+| client_contacts | 001_sqlite.sql:154 | 聯絡人，屬於某個客戶 | relationships | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/relationships/store.ts；步驟 11（表 4a、資料 4c） |
+| application_parties | 001_sqlite.sql:168 | 投案對客戶／聯絡人的關聯及名稱 snapshot | applications | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/store.ts（名稱 snapshot 存 text）；步驟 11（表 4a、資料 4c） |
+| proposal_templates | 001_sqlite.sql:175 | 本人模板（純文字、revision、封存） | proposals（新模組） | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/db/schema.ts＋web/src/modules/proposals/store.ts；步驟 11（表 4a、資料 4c） |
+| proposal_drafts | 001_sqlite.sql:180 | 草稿 metadata、來源 tokens 與 snapshot、party | proposals | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/proposals/store.ts（來源 tokens 與 snapshot 存 text）；步驟 11（表 4a、資料 4c） |
+| proposal_draft_revisions | 001_sqlite.sql:186 | 不可變的草稿版本（trigger 禁止 UPDATE／DELETE，:192、:194） | proposals | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/db/schema.ts＋`draft_revision_immutable`／`draft_revision_retained` 等價 trigger（步驟 4a）；web/src/modules/proposals/store.ts 只追加（步驟 11）；反向腳本只追加（步驟 12） |
 | submission_intents | 001_sqlite.sql:196 | 精確核准送出 intent，snapshot 不可變，狀態轉移由 trigger 守（:209） | submissions | 保留 | 只搬資料：web/src/db/schema.ts 建表、snapshot 存 text、`submission_immutable` 等價 trigger（步驟 4a）；收斂腳本 v1 搬入（步驟 4c）；送出程式不改寫（D7） |
 | submission_events | 001_sqlite.sql:205 | 送出事件 ledger（trigger 禁止 UPDATE／DELETE，:222、:224） | submissions | 保留 | 只搬資料：web/src/db/schema.ts＋`submission_event_immutable`／`submission_event_retained` 等價 trigger（步驟 4a）；收斂腳本 v1（步驟 4c）、反向腳本只追加（步驟 12）；D7 |
-| application_proposals | 001_sqlite.sql:226 | 投案對草稿版本／submission 的關聯及證據 snapshot | applications | 保留 | 改寫：web/src/db/schema.ts＋web/src/modules/applications/store.ts（證據 snapshot 存 text）；既有指向 submission 的關聯只讀，新的 submission 關聯延後（D7）；步驟 11 |
+| application_proposals | 001_sqlite.sql:226 | 投案對草稿版本／submission 的關聯及證據 snapshot | applications | 保留 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/db/schema.ts＋web/src/modules/applications/store.ts（證據 snapshot 存 text）；既有指向 submission 的關聯只讀，新的 submission 關聯延後（D7）；步驟 11 |
 
 Trigger（共 6 個）：`digest_immutable` :41、`draft_revision_immutable` :192、`draft_revision_retained` :194、`submission_immutable` :209、`submission_event_immutable` :222、`submission_event_retained` :224。Postgres 端必須有等價機制（trigger 或 CHECK 加上應用層），否則不可變性會失守。
 
@@ -50,7 +50,7 @@ Trigger（共 6 個）：`digest_immutable` :41、`draft_revision_immutable` :19
 | 版本機制 | （沒有） | 沒有 `schema_version` 表，也不用 `PRAGMA user_version`；升級靠 idempotent 的 IF NOT EXISTS 加上兩段內省重建 | 取代：Drizzle migration journal（drizzle-kit 的 migrations 表），步驟 4a |
 | 遷移入口 | bootstrap/store.py:226（`python -m freelance.bootstrap.store --migrate --database ...`） | 唯一的正式顯式 migrate；API／worker 不會自動 migrate | 取代：`pnpm db:migrate`（drizzle-kit migrate）對 Neon branch 執行，步驟 4a；正式 branch 的執行時點見「計畫缺口」1 |
 | 連線語意 | platform/sqlite.py:24-44 | 檔案必須是 owner-only 0600 regular file；寫入用 `BEGIN IMMEDIATE`、timeout 5 秒；讀取用 `mode=ro` 加 `BEGIN`；開啟 foreign_keys | 取代：Postgres 交易＋`daily_runs` row claim 與 advisory lock（步驟 4a、5）；0600 檔案權限改由 Neon 連線字串放 Sensitive env 保護 |
-| MemoryDatabase | platform/sqlite.py:95-122 | Demo 用的 in-memory SQLite，套同一份 schema | 取代：PGlite 加 network guard 的離線 demo（步驟 11） |
+| MemoryDatabase | platform/sqlite.py:95-122 | Demo 用的 in-memory SQLite，套同一份 schema | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 取代：PGlite 加 network guard 的離線 demo（步驟 11） |
 | 001_initial.sql（Postgres） | platform/schema/001_initial.sql:1,8,16,23,28 | 舊 PostgreSQL schema，5 張表（opportunities、proposal_revisions、source_receipts、source_health、digest_outbox），只有 legacy/postgres.py:33 讀它 | 刪除：只有 legacy/postgres.py 讀，舊 PG adapter 不改寫（D8）；5 張表在 001_sqlite.sql 都有現行版本 |
 | 升級 gate | scripts/test_workbench_upgrade.py | 在 DB 副本上驗兩次升級、舊表指紋、新舊版回讀 | 刪除：步驟 12 先用它驗回寫的 SQLite 副本，步驟 14 刪除（計畫步驟 14 刪除清單） |
 
@@ -64,39 +64,39 @@ Trigger（共 6 個）：`digest_immutable` :41、`draft_revision_immutable` :19
 |---|---|---|---|---|
 | GET /dashboard | bootstrap/http.py:135 | 分組後的職缺、來源狀態、偏好、分類、排程旗標、operations | — → Dashboard | 改寫：web/src/app/page.tsx 的 server component 呼叫 web/src/modules/discovery/queries.ts `getDashboard`（operations 投影來自 notifications 公開契約）；步驟 11 |
 | GET /opportunities/{key} | http.py:145 | 單一職缺（群組）的公開投影 | — → Item | 改寫：web/src/modules/discovery/queries.ts `getOpportunity`，由 server component 直接呼叫；步驟 11 |
-| GET /digest | http.py:149 | 依目前清單即時算出 HTML 摘要預覽（不寫 outbox） | — → HTMLResponse（無 model） | 改寫：route handler web/src/app/digest/route.ts 回 HTML，render 用 web/src/modules/notifications/digest.ts（步驟 10，見計畫缺口 5）；步驟 11 |
+| GET /digest | http.py:149 | 依目前清單即時算出 HTML 摘要預覽（不寫 outbox） | — → HTMLResponse（無 model） | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：route handler web/src/app/digest/route.ts 回 HTML，render 用 web/src/modules/notifications/digest.ts（步驟 10，見計畫缺口 5）；步驟 11 |
 | POST /preferences | http.py:153 | 以 revision 防過期的方式寫設定 | PreferencesView → PreferencesView | 改寫：server action web/src/modules/preferences/actions.ts `updatePreferences`（zod 驗證，D10；revision 防過期）；步驟 11 |
 | POST /feedback/{key} | http.py:157 | 對整組 members 收藏／略過，要帶 member token | FeedbackCommand → Saved | 改寫：server action web/src/modules/preferences/actions.ts `updateFeedback`（zod 驗證，D10；member token、沿用呼叫端交易）；步驟 11 |
-| GET /applications | http.py:161 | 投案清單（stage、due、client_id、分頁） | query → ApplicationList | 改寫：web/src/modules/applications/queries.ts `listApplications`，由 server component 直接呼叫；步驟 11 |
-| GET /applications/summary | http.py:165 | 週統計與今日／逾期跟進數 | — → ApplicationSummary | 改寫：web/src/modules/applications/queries.ts `getApplicationSummary`，由 server component 直接呼叫；步驟 11 |
-| POST /applications | http.py:169 | 建立人工投案（可附 versions、party、proposal、submission） | ApplicationCreate → ApplicationView | 改寫：server action web/src/modules/applications/actions.ts `createApplication`（zod 驗證，D10；request_id 冪等；附 submission 的分支延後，D7）；步驟 11 |
-| PATCH /applications/{key} | http.py:176 | 更正投案 | ApplicationUpdate → ApplicationView | 改寫：server action web/src/modules/applications/actions.ts `updateApplication`（zod 驗證，D10）；步驟 11 |
-| GET /applications/{key} | http.py:180 | 單筆投案 | — → ApplicationView | 改寫：web/src/modules/applications/queries.ts `getApplication`，由 server component 直接呼叫；步驟 11 |
-| DELETE /applications/{key} | http.py:184 | 軟刪除（DELETE 帶 JSON body） | ApplicationDelete → Saved | 改寫：server action web/src/modules/applications/actions.ts `deleteApplication`（zod 驗證，D10；軟刪除，不再需要帶 body 的 DELETE）；步驟 11 |
-| GET /clients | bootstrap/workbench_http.py:8 | 客戶分頁清單 | query → ClientList | 改寫：web/src/modules/relationships/queries.ts `listClients`，由 server component 直接呼叫；步驟 11 |
-| POST /clients | workbench_http.py:12 | 建立客戶（request_id 冪等） | ClientCreate → ClientView | 改寫：server action web/src/modules/relationships/actions.ts `createClient`（zod 驗證，D10；request_id 冪等）；步驟 11 |
-| GET /clients/{key} | workbench_http.py:15 | 單一客戶 | — → ClientView | 改寫：web/src/modules/relationships/queries.ts `getClient`，由 server component 直接呼叫；步驟 11 |
-| PATCH /clients/{key} | workbench_http.py:18 | 更新客戶 | ClientUpdate → ClientView | 改寫：server action web/src/modules/relationships/actions.ts `updateClient`（zod 驗證，D10）；步驟 11 |
-| POST /clients/{key}/archive | workbench_http.py:21 | 封存客戶 | RevisionCommand → ClientView | 改寫：server action web/src/modules/relationships/actions.ts `archiveClient`（zod 驗證，D10）；步驟 11 |
-| GET /clients/{key}/contacts | workbench_http.py:24 | 客戶的聯絡人分頁 | query → ContactList | 改寫：web/src/modules/relationships/queries.ts `listContacts`，由 server component 直接呼叫；步驟 11 |
-| POST /contacts | workbench_http.py:28 | 建立聯絡人 | ContactCreate → ContactView | 改寫：server action web/src/modules/relationships/actions.ts `createContact`（zod 驗證，D10）；步驟 11 |
-| GET /contacts/{key} | workbench_http.py:31 | 單一聯絡人 | — → ContactView | 改寫：web/src/modules/relationships/queries.ts `getContact`，由 server component 直接呼叫；步驟 11 |
-| PATCH /contacts/{key} | workbench_http.py:34 | 更新聯絡人 | ContactUpdate → ContactView | 改寫：server action web/src/modules/relationships/actions.ts `updateContact`（zod 驗證，D10）；步驟 11 |
-| POST /contacts/{key}/archive | workbench_http.py:37 | 封存聯絡人 | RevisionCommand → ContactView | 改寫：server action web/src/modules/relationships/actions.ts `archiveContact`（zod 驗證，D10）；步驟 11 |
-| POST /applications/{key}/party | workbench_http.py:40 | 指定或更正投案的客戶／聯絡人 | ApplicationPartyCommand → ApplicationView | 改寫：server action web/src/modules/applications/actions.ts `setApplicationParty`（zod 驗證，D10）；步驟 11 |
-| GET /proposal-templates | workbench_http.py:43 | 模板清單 | query → TemplateList | 改寫：web/src/modules/proposals/queries.ts `listTemplates`，由 server component 直接呼叫；步驟 11 |
-| POST /proposal-templates | workbench_http.py:47 | 建立模板 | TemplateCreate → TemplateView | 改寫：server action web/src/modules/proposals/actions.ts `createTemplate`（zod 驗證，D10）；步驟 11 |
-| POST /proposal-templates/preview | workbench_http.py:50 | 純函式渲染預覽（不讀 DB） | TemplatePreview → RenderedTemplate | 改寫：純函式 web/src/modules/proposals/render.ts `previewTemplate`（不讀 DB），由 server action 包裝；步驟 11 |
-| GET /proposal-templates/{key} | workbench_http.py:53 | 單一模板 | — → TemplateView | 改寫：web/src/modules/proposals/queries.ts `getTemplate`，由 server component 直接呼叫；步驟 11 |
-| PATCH /proposal-templates/{key} | workbench_http.py:56 | 更新模板 | TemplateUpdate → TemplateView | 改寫：server action web/src/modules/proposals/actions.ts `updateTemplate`（zod 驗證，D10）；步驟 11 |
-| POST /proposal-templates/{key}/archive | workbench_http.py:59 | 封存模板 | RevisionCommand → TemplateView | 改寫：server action web/src/modules/proposals/actions.ts `archiveTemplate`（zod 驗證，D10）；步驟 11 |
-| GET /proposals | workbench_http.py:62 | 草稿清單 | query → ProposalList | 改寫：web/src/modules/proposals/queries.ts `listProposals`，由 server component 直接呼叫；步驟 11 |
-| POST /proposals | workbench_http.py:66 | 建立草稿（來源草稿會核對 discovery tokens） | ProposalCreate → ProposalView | 改寫：server action web/src/modules/proposals/actions.ts `createProposal`（zod 驗證，D10；核對 discovery tokens）；步驟 11 |
-| GET /proposals/{key} | workbench_http.py:69 | 單一草稿與其版本 | — → ProposalView | 改寫：web/src/modules/proposals/queries.ts `getProposal`，由 server component 直接呼叫；步驟 11 |
-| POST /proposals/{key}/versions | workbench_http.py:72 | 追加不可變版本 | ProposalAppend → ProposalView | 改寫：server action web/src/modules/proposals/actions.ts `appendProposalVersion`（zod 驗證，D10；不可變版本）；步驟 11 |
-| POST /proposals/{key}/template | workbench_http.py:75 | 重新套模板，產生新版本 | ProposalApplyTemplate → ProposalView | 改寫：server action web/src/modules/proposals/actions.ts `applyProposalTemplate`（zod 驗證，D10）；步驟 11 |
-| POST /proposals/{key}/archive | workbench_http.py:78 | 封存草稿 | RevisionCommand → ProposalView | 改寫：server action web/src/modules/proposals/actions.ts `archiveProposal`（zod 驗證，D10）；步驟 11 |
-| GET /submission-capabilities | workbench_http.py:81 | email／freelancer 通道狀態（沒有 runtime 時一律 not_configured） | — → SubmissionCapabilities | 改寫：web/src/app/submissions/page.tsx 靜態顯示 email／freelancer「未配置」，不建 route（D7）；步驟 11 |
+| GET /applications | http.py:161 | 投案清單（stage、due、client_id、分頁） | query → ApplicationList | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/queries.ts `listApplications`，由 server component 直接呼叫；步驟 11 |
+| GET /applications/summary | http.py:165 | 週統計與今日／逾期跟進數 | — → ApplicationSummary | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/queries.ts `getApplicationSummary`，由 server component 直接呼叫；步驟 11 |
+| POST /applications | http.py:169 | 建立人工投案（可附 versions、party、proposal、submission） | ApplicationCreate → ApplicationView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/applications/actions.ts `createApplication`（zod 驗證，D10；request_id 冪等；附 submission 的分支延後，D7）；步驟 11 |
+| PATCH /applications/{key} | http.py:176 | 更正投案 | ApplicationUpdate → ApplicationView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/applications/actions.ts `updateApplication`（zod 驗證，D10）；步驟 11 |
+| GET /applications/{key} | http.py:180 | 單筆投案 | — → ApplicationView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/queries.ts `getApplication`，由 server component 直接呼叫；步驟 11 |
+| DELETE /applications/{key} | http.py:184 | 軟刪除（DELETE 帶 JSON body） | ApplicationDelete → Saved | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/applications/actions.ts `deleteApplication`（zod 驗證，D10；軟刪除，不再需要帶 body 的 DELETE）；步驟 11 |
+| GET /clients | bootstrap/workbench_http.py:8 | 客戶分頁清單 | query → ClientList | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/relationships/queries.ts `listClients`，由 server component 直接呼叫；步驟 11 |
+| POST /clients | workbench_http.py:12 | 建立客戶（request_id 冪等） | ClientCreate → ClientView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/relationships/actions.ts `createClient`（zod 驗證，D10；request_id 冪等）；步驟 11 |
+| GET /clients/{key} | workbench_http.py:15 | 單一客戶 | — → ClientView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/relationships/queries.ts `getClient`，由 server component 直接呼叫；步驟 11 |
+| PATCH /clients/{key} | workbench_http.py:18 | 更新客戶 | ClientUpdate → ClientView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/relationships/actions.ts `updateClient`（zod 驗證，D10）；步驟 11 |
+| POST /clients/{key}/archive | workbench_http.py:21 | 封存客戶 | RevisionCommand → ClientView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/relationships/actions.ts `archiveClient`（zod 驗證，D10）；步驟 11 |
+| GET /clients/{key}/contacts | workbench_http.py:24 | 客戶的聯絡人分頁 | query → ContactList | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/relationships/queries.ts `listContacts`，由 server component 直接呼叫；步驟 11 |
+| POST /contacts | workbench_http.py:28 | 建立聯絡人 | ContactCreate → ContactView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/relationships/actions.ts `createContact`（zod 驗證，D10）；步驟 11 |
+| GET /contacts/{key} | workbench_http.py:31 | 單一聯絡人 | — → ContactView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/relationships/queries.ts `getContact`，由 server component 直接呼叫；步驟 11 |
+| PATCH /contacts/{key} | workbench_http.py:34 | 更新聯絡人 | ContactUpdate → ContactView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/relationships/actions.ts `updateContact`（zod 驗證，D10）；步驟 11 |
+| POST /contacts/{key}/archive | workbench_http.py:37 | 封存聯絡人 | RevisionCommand → ContactView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/relationships/actions.ts `archiveContact`（zod 驗證，D10）；步驟 11 |
+| POST /applications/{key}/party | workbench_http.py:40 | 指定或更正投案的客戶／聯絡人 | ApplicationPartyCommand → ApplicationView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/applications/actions.ts `setApplicationParty`（zod 驗證，D10）；步驟 11 |
+| GET /proposal-templates | workbench_http.py:43 | 模板清單 | query → TemplateList | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/proposals/queries.ts `listTemplates`，由 server component 直接呼叫；步驟 11 |
+| POST /proposal-templates | workbench_http.py:47 | 建立模板 | TemplateCreate → TemplateView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/proposals/actions.ts `createTemplate`（zod 驗證，D10）；步驟 11 |
+| POST /proposal-templates/preview | workbench_http.py:50 | 純函式渲染預覽（不讀 DB） | TemplatePreview → RenderedTemplate | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：純函式 web/src/modules/proposals/render.ts `previewTemplate`（不讀 DB），由 server action 包裝；步驟 11 |
+| GET /proposal-templates/{key} | workbench_http.py:53 | 單一模板 | — → TemplateView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/proposals/queries.ts `getTemplate`，由 server component 直接呼叫；步驟 11 |
+| PATCH /proposal-templates/{key} | workbench_http.py:56 | 更新模板 | TemplateUpdate → TemplateView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/proposals/actions.ts `updateTemplate`（zod 驗證，D10）；步驟 11 |
+| POST /proposal-templates/{key}/archive | workbench_http.py:59 | 封存模板 | RevisionCommand → TemplateView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/proposals/actions.ts `archiveTemplate`（zod 驗證，D10）；步驟 11 |
+| GET /proposals | workbench_http.py:62 | 草稿清單 | query → ProposalList | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/proposals/queries.ts `listProposals`，由 server component 直接呼叫；步驟 11 |
+| POST /proposals | workbench_http.py:66 | 建立草稿（來源草稿會核對 discovery tokens） | ProposalCreate → ProposalView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/proposals/actions.ts `createProposal`（zod 驗證，D10；核對 discovery tokens）；步驟 11 |
+| GET /proposals/{key} | workbench_http.py:69 | 單一草稿與其版本 | — → ProposalView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/proposals/queries.ts `getProposal`，由 server component 直接呼叫；步驟 11 |
+| POST /proposals/{key}/versions | workbench_http.py:72 | 追加不可變版本 | ProposalAppend → ProposalView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/proposals/actions.ts `appendProposalVersion`（zod 驗證，D10；不可變版本）；步驟 11 |
+| POST /proposals/{key}/template | workbench_http.py:75 | 重新套模板，產生新版本 | ProposalApplyTemplate → ProposalView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/proposals/actions.ts `applyProposalTemplate`（zod 驗證，D10）；步驟 11 |
+| POST /proposals/{key}/archive | workbench_http.py:78 | 封存草稿 | RevisionCommand → ProposalView | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：server action web/src/modules/proposals/actions.ts `archiveProposal`（zod 驗證，D10）；步驟 11 |
+| GET /submission-capabilities | workbench_http.py:81 | email／freelancer 通道狀態（沒有 runtime 時一律 not_configured） | — → SubmissionCapabilities | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/app/submissions/page.tsx 靜態顯示 email／freelancer「未配置」，不建 route（D7）；步驟 11 |
 | GET /submissions | workbench_http.py:86 | 送出 intent 清單 | query → SubmissionList | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7）；歷史列由 submission_intents 只搬資料保存 |
 | POST /submissions | workbench_http.py:89 | 從草稿版本建立 prepared intent | SubmissionCreate → SubmissionView | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
 | GET /submissions/{key} | workbench_http.py:92 | 單一 intent | — → SubmissionView | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
@@ -122,8 +122,8 @@ Trigger（共 6 個）：`digest_immutable` :41、`draft_revision_immutable` :19
 | route 白名單 | route.ts:11-22 | 手寫 regex 列出 GET／POST／PATCH／DELETE 可走的 path；opportunity／feedback ID 限 24 或 64 位 hex，其他實體限 UUID | 刪除：步驟 11 移除 proxy 白名單；route handler 與 server action 本身就是唯一登記處（缺陷 2） |
 | Origin、大小、轉發 | route.ts:23-39 | 非 GET 要求 Origin 同源，64 KiB 上限，失敗回 503「請先啟動 Python API」 | 改寫：web/src/shared/http/guard.ts 對 route handler 檢查 Origin 與 64 KiB body 上限；server action 用 Next 內建 Origin 檢查與 `serverActions.bodySizeLimit`；步驟 11 |
 | typed client 定義 | frontend/src/shared/api/client.ts:20 | `createClient<paths>({ baseUrl: '/api' })` | 刪除：D10 移除 openapi-fetch 與生成契約 |
-| client.ts 包裝函式 | shared/api/client.ts:29-42 | 10 個函式：dashboard、opportunity、preferences、feedback、applications ×6 | 取代：直接呼叫各模組的 queries.ts／actions.ts（D10），步驟 11 |
-| workbench.ts 包裝函式 | shared/api/workbench.ts:13-43 | 31 個函式，與 workbench_http.py 的 31 個 route 一一對應 | 取代：直接呼叫 applications／relationships／proposals 模組的 queries.ts／actions.ts（D10），步驟 11 |
+| client.ts 包裝函式 | shared/api/client.ts:29-42 | 10 個函式：dashboard、opportunity、preferences、feedback、applications ×6 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 取代：直接呼叫各模組的 queries.ts／actions.ts（D10），步驟 11 |
+| workbench.ts 包裝函式 | shared/api/workbench.ts:13-43 | 31 個函式，與 workbench_http.py 的 31 個 route 一一對應 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 取代：直接呼叫 applications／relationships／proposals 模組的 queries.ts／actions.ts（D10），步驟 11 |
 
 ### 3b. Feature 呼叫點（file:line → route）
 
@@ -131,43 +131,43 @@ Trigger（共 6 個）：`digest_immutable` :41、`draft_revision_immutable` :19
 |---|---|---|---|
 | getDashboard | features/discovery/discovery-page.tsx:24 | GET /dashboard | 改寫：web/src/features/discovery/discovery-page.tsx 由 web/src/app/page.tsx 傳入 `getDashboard` 結果；步驟 11 |
 | updateFeedback | features/discovery/discovery-page.tsx:59 | POST /feedback/{key} | 改寫：web/src/features/discovery/discovery-page.tsx 呼叫 server action `updateFeedback`；步驟 11 |
-| 摘要預覽連結 | features/discovery/discovery-page.tsx:71 | `<a href="/api/digest">`，GET /digest（未經 typed client） | 改寫：web/src/features/discovery/discovery-page.tsx 連到 `/digest` route handler；步驟 11 |
+| 摘要預覽連結 | features/discovery/discovery-page.tsx:71 | `<a href="/api/digest">`，GET /digest（未經 typed client） | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：web/src/features/discovery/discovery-page.tsx 連到 `/digest` route handler；步驟 11 |
 | updatePreferences | features/discovery/discovery-page.tsx:90 | POST /preferences | 改寫：web/src/features/discovery/discovery-page.tsx 呼叫 server action `updatePreferences`；步驟 11 |
-| getApplications、getApplicationSummary | features/applications/applications-page.tsx:24 | GET /applications、GET /applications/summary | 改寫：web/src/features/applications/applications-page.tsx 由頁面 server component 取 `listApplications`、`getApplicationSummary`；步驟 11 |
-| updateApplication | features/applications/applications-page.tsx:33 | PATCH /applications/{key} | 改寫：web/src/features/applications/applications-page.tsx 呼叫 server action `updateApplication`；步驟 11 |
-| deleteApplication | features/applications/applications-page.tsx:40 | DELETE /applications/{key} | 改寫：web/src/features/applications/applications-page.tsx 呼叫 server action `deleteApplication`；步驟 11 |
-| getApplication | features/applications/applications-page.tsx:53 | GET /applications/{key} | 改寫：web/src/features/applications/applications-page.tsx 由 server component 取 `getApplication`；步驟 11 |
-| setApplicationParty | features/applications/application-party.tsx:11 | POST /applications/{key}/party | 改寫：web/src/features/applications/application-party.tsx 呼叫 server action `setApplicationParty`；步驟 11 |
-| getApplication | features/applications/application-party.tsx:13 | GET /applications/{key} | 改寫：web/src/features/applications/application-party.tsx 由 server component 取 `getApplication`；步驟 11 |
+| getApplications、getApplicationSummary | features/applications/applications-page.tsx:24 | GET /applications、GET /applications/summary | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/applications-page.tsx 由頁面 server component 取 `listApplications`、`getApplicationSummary`；步驟 11 |
+| updateApplication | features/applications/applications-page.tsx:33 | PATCH /applications/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/applications-page.tsx 呼叫 server action `updateApplication`；步驟 11 |
+| deleteApplication | features/applications/applications-page.tsx:40 | DELETE /applications/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/applications-page.tsx 呼叫 server action `deleteApplication`；步驟 11 |
+| getApplication | features/applications/applications-page.tsx:53 | GET /applications/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/applications-page.tsx 由 server component 取 `getApplication`；步驟 11 |
+| setApplicationParty | features/applications/application-party.tsx:11 | POST /applications/{key}/party | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/application-party.tsx 呼叫 server action `setApplicationParty`；步驟 11 |
+| getApplication | features/applications/application-party.tsx:13 | GET /applications/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/application-party.tsx 由 server component 取 `getApplication`；步驟 11 |
 | getSubmission | features/applications/new-application-page.tsx:28 | GET /submissions/{key} | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7）；新投案頁在通道配置前不提供「從 submission 建投案」 |
-| getProposal | features/applications/new-application-page.tsx:30 | GET /proposals/{key} | 改寫：web/src/features/applications/new-application-page.tsx 由 server component 取 `getProposal`；步驟 11 |
-| getApplicationSummary、getOpportunity | features/applications/new-application-page.tsx:32 | GET /applications/summary、GET /opportunities/{key} | 改寫：web/src/features/applications/new-application-page.tsx 由 server component 取 `getApplicationSummary`、`getOpportunity`；步驟 11 |
-| createApplication | features/applications/new-application-page.tsx:47 | POST /applications | 改寫：web/src/features/applications/new-application-page.tsx 呼叫 server action `createApplication`；步驟 11 |
-| getClients | features/relationships/clients-page.tsx:17 | GET /clients | 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `listClients`；步驟 11 |
-| getClient、getContacts、getApplications | features/relationships/clients-page.tsx:18 | GET /clients/{key}、GET /clients/{key}/contacts、GET /applications?client_id | 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `getClient`、`listContacts`、`listApplications({clientId})`；步驟 11 |
-| createClient、updateClient | features/relationships/clients-page.tsx:23 | POST /clients、PATCH /clients/{key} | 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `createClient`、`updateClient`；步驟 11 |
-| createContact、updateContact | features/relationships/clients-page.tsx:24 | POST /contacts、PATCH /contacts/{key} | 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `createContact`、`updateContact`；步驟 11 |
-| getClient | features/relationships/clients-page.tsx:25,27 | GET /clients/{key} | 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `getClient`（action 後 revalidate）；步驟 11 |
-| getContact | features/relationships/clients-page.tsx:26 | GET /contacts/{key} | 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `getContact`；步驟 11 |
-| archiveClient | features/relationships/clients-page.tsx:36 | POST /clients/{key}/archive | 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `archiveClient`；步驟 11 |
-| archiveContact | features/relationships/clients-page.tsx:43 | POST /contacts/{key}/archive | 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `archiveContact`；步驟 11 |
-| getClients | features/relationships/party-picker.tsx:9 | GET /clients | 改寫：web/src/features/relationships/party-picker.tsx 由 server component 傳入 `listClients`；步驟 11 |
-| getClient | features/relationships/party-picker.tsx:10 | GET /clients/{key} | 改寫：web/src/features/relationships/party-picker.tsx 由 server component 傳入 `getClient`；步驟 11 |
-| getContacts | features/relationships/party-picker.tsx:11 | GET /clients/{key}/contacts | 改寫：web/src/features/relationships/party-picker.tsx 由 server component 傳入 `listContacts`；步驟 11 |
-| getProposals | features/proposals/proposals-page.tsx:17 | GET /proposals | 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `listProposals`；步驟 11 |
-| getOpportunity | features/proposals/proposals-page.tsx:19 | GET /opportunities/{key} | 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `getOpportunity`；步驟 11 |
-| getTemplates | features/proposals/proposals-page.tsx:23 | GET /proposal-templates | 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `listTemplates`；步驟 11 |
-| getProposal | features/proposals/proposals-page.tsx:24,40 | GET /proposals/{key} | 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `getProposal`；步驟 11 |
-| createProposal | features/proposals/proposals-page.tsx:25 | POST /proposals | 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `createProposal`；步驟 11 |
-| appendProposal | features/proposals/proposals-page.tsx:26 | POST /proposals/{key}/versions | 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `appendProposalVersion`；步驟 11 |
-| applyProposalTemplate | features/proposals/proposals-page.tsx:27 | POST /proposals/{key}/template | 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `applyProposalTemplate`；步驟 11 |
-| previewTemplate | features/proposals/proposals-page.tsx:34 | POST /proposal-templates/preview | 改寫：web/src/features/proposals/proposals-page.tsx 呼叫包裝 `previewTemplate` 的 server action；步驟 11 |
-| archiveProposal | features/proposals/proposals-page.tsx:42 | POST /proposals/{key}/archive | 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `archiveProposal`；步驟 11 |
-| getTemplates | features/proposals/templates.tsx:10 | GET /proposal-templates | 改寫：web/src/features/proposals/templates.tsx 由 server component 傳入 `listTemplates`；步驟 11 |
-| createTemplate、updateTemplate | features/proposals/templates.tsx:12 | POST /proposal-templates、PATCH /proposal-templates/{key} | 改寫：web/src/features/proposals/templates.tsx 呼叫 server action `createTemplate`、`updateTemplate`；步驟 11 |
-| getTemplate | features/proposals/templates.tsx:13 | GET /proposal-templates/{key} | 改寫：web/src/features/proposals/templates.tsx 由 server component 取 `getTemplate`；步驟 11 |
-| archiveTemplate | features/proposals/templates.tsx:18 | POST /proposal-templates/{key}/archive | 改寫：web/src/features/proposals/templates.tsx 呼叫 server action `archiveTemplate`；步驟 11 |
-| getSubmissionCapabilities、getSubmissions | features/submissions/submissions-page.tsx:13 | GET /submission-capabilities、GET /submissions | 改寫：web/src/app/submissions/page.tsx 只顯示「未配置」（D7），不呼叫任何查詢；步驟 11 |
+| getProposal | features/applications/new-application-page.tsx:30 | GET /proposals/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/new-application-page.tsx 由 server component 取 `getProposal`；步驟 11 |
+| getApplicationSummary、getOpportunity | features/applications/new-application-page.tsx:32 | GET /applications/summary、GET /opportunities/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/new-application-page.tsx 由 server component 取 `getApplicationSummary`、`getOpportunity`；步驟 11 |
+| createApplication | features/applications/new-application-page.tsx:47 | POST /applications | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/applications/new-application-page.tsx 呼叫 server action `createApplication`；步驟 11 |
+| getClients | features/relationships/clients-page.tsx:17 | GET /clients | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `listClients`；步驟 11 |
+| getClient、getContacts、getApplications | features/relationships/clients-page.tsx:18 | GET /clients/{key}、GET /clients/{key}/contacts、GET /applications?client_id | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `getClient`、`listContacts`、`listApplications({clientId})`；步驟 11 |
+| createClient、updateClient | features/relationships/clients-page.tsx:23 | POST /clients、PATCH /clients/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `createClient`、`updateClient`；步驟 11 |
+| createContact、updateContact | features/relationships/clients-page.tsx:24 | POST /contacts、PATCH /contacts/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `createContact`、`updateContact`；步驟 11 |
+| getClient | features/relationships/clients-page.tsx:25,27 | GET /clients/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `getClient`（action 後 revalidate）；步驟 11 |
+| getContact | features/relationships/clients-page.tsx:26 | GET /contacts/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 由 server component 取 `getContact`；步驟 11 |
+| archiveClient | features/relationships/clients-page.tsx:36 | POST /clients/{key}/archive | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `archiveClient`；步驟 11 |
+| archiveContact | features/relationships/clients-page.tsx:43 | POST /contacts/{key}/archive | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/clients-page.tsx 呼叫 server action `archiveContact`；步驟 11 |
+| getClients | features/relationships/party-picker.tsx:9 | GET /clients | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/party-picker.tsx 由 server component 傳入 `listClients`；步驟 11 |
+| getClient | features/relationships/party-picker.tsx:10 | GET /clients/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/party-picker.tsx 由 server component 傳入 `getClient`；步驟 11 |
+| getContacts | features/relationships/party-picker.tsx:11 | GET /clients/{key}/contacts | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/relationships/party-picker.tsx 由 server component 傳入 `listContacts`；步驟 11 |
+| getProposals | features/proposals/proposals-page.tsx:17 | GET /proposals | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `listProposals`；步驟 11 |
+| getOpportunity | features/proposals/proposals-page.tsx:19 | GET /opportunities/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `getOpportunity`；步驟 11 |
+| getTemplates | features/proposals/proposals-page.tsx:23 | GET /proposal-templates | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `listTemplates`；步驟 11 |
+| getProposal | features/proposals/proposals-page.tsx:24,40 | GET /proposals/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 由 server component 取 `getProposal`；步驟 11 |
+| createProposal | features/proposals/proposals-page.tsx:25 | POST /proposals | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `createProposal`；步驟 11 |
+| appendProposal | features/proposals/proposals-page.tsx:26 | POST /proposals/{key}/versions | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `appendProposalVersion`；步驟 11 |
+| applyProposalTemplate | features/proposals/proposals-page.tsx:27 | POST /proposals/{key}/template | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `applyProposalTemplate`；步驟 11 |
+| previewTemplate | features/proposals/proposals-page.tsx:34 | POST /proposal-templates/preview | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 呼叫包裝 `previewTemplate` 的 server action；步驟 11 |
+| archiveProposal | features/proposals/proposals-page.tsx:42 | POST /proposals/{key}/archive | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/proposals-page.tsx 呼叫 server action `archiveProposal`；步驟 11 |
+| getTemplates | features/proposals/templates.tsx:10 | GET /proposal-templates | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/templates.tsx 由 server component 傳入 `listTemplates`；步驟 11 |
+| createTemplate、updateTemplate | features/proposals/templates.tsx:12 | POST /proposal-templates、PATCH /proposal-templates/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/templates.tsx 呼叫 server action `createTemplate`、`updateTemplate`；步驟 11 |
+| getTemplate | features/proposals/templates.tsx:13 | GET /proposal-templates/{key} | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/templates.tsx 由 server component 取 `getTemplate`；步驟 11 |
+| archiveTemplate | features/proposals/templates.tsx:18 | POST /proposal-templates/{key}/archive | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/proposals/templates.tsx 呼叫 server action `archiveTemplate`；步驟 11 |
+| getSubmissionCapabilities、getSubmissions | features/submissions/submissions-page.tsx:13 | GET /submission-capabilities、GET /submissions | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/app/submissions/page.tsx 只顯示「未配置」（D7），不呼叫任何查詢；步驟 11 |
 | getProposal、getSubmission | features/submissions/submissions-page.tsx:14 | GET /proposals/{key}、GET /submissions/{key} | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
 | getSubmission | features/submissions/submissions-page.tsx:16,17,40,42 | GET /submissions/{key} | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
 | prepareSubmission | features/submissions/submissions-page.tsx:18 | POST /submissions | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
@@ -175,7 +175,7 @@ Trigger（共 6 個）：`digest_immutable` :41、`draft_revision_immutable` :19
 | dispatchSubmission | features/submissions/submissions-page.tsx:40 | POST /submissions/{key}/dispatch | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
 | cancelSubmission | features/submissions/submissions-page.tsx:41 | POST /submissions/{key}/cancel | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
 | reconcileSubmission | features/submissions/submissions-page.tsx:45 | POST /submissions/{key}/reconcile | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
-| getApplicationSummary | features/workbench/navigation.tsx:9 | GET /applications/summary（導覽列的跟進數） | 改寫：web/src/features/workbench/navigation.tsx 由 web/src/app/layout.tsx 取 `getApplicationSummary` 傳入；步驟 11 |
+| getApplicationSummary | features/workbench/navigation.tsx:9 | GET /applications/summary（導覽列的跟進數） | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/features/workbench/navigation.tsx 由 web/src/app/layout.tsx 取 `getApplicationSummary` 傳入；步驟 11 |
 
 App 頁面（薄路由）：`src/app/page.tsx`→discovery、`applications/page.tsx`、`applications/new/page.tsx`→applications、`clients/page.tsx`→relationships、`proposals/page.tsx`→proposals、`submissions/page.tsx`→submissions、`layout.tsx`→workbench navigation。42 個 operation 中，前端用到 41 個 typed 包裝函式，`/digest` 走裸連結，所以 42 個都有被前端使用。
 
@@ -184,7 +184,7 @@ App 頁面（薄路由）：`src/app/page.tsx`→discovery、`applications/page.
 | item | where (file:line) | what it does in one line | 去向 |
 |---|---|---|---|
 | `paths` 型別 | shared/api/client.ts:2,20 | openapi-fetch 的 path／method／body 都由生成的 `paths` 檢查型別 | 取代：zod schema（web/src/modules/<module>/contracts.ts）當唯一契約來源（D10），步驟 11 |
-| `components['schemas']` 別名 | shared/api/client.ts:5-14、shared/api/workbench.ts:4-11 | Dashboard、Item、Job、Settings、ApplicationView、ClientView、ProposalView、SubmissionView、PartySelection 等型別別名，所有 feature 透過它們拿型別 | 取代：各模組 contracts.ts 匯出的 `z.infer` 型別（D10），步驟 11 |
+| `components['schemas']` 別名 | shared/api/client.ts:5-14、shared/api/workbench.ts:4-11 | Dashboard、Item、Job、Settings、ApplicationView、ClientView、ProposalView、SubmissionView、PartySelection 等型別別名，所有 feature 透過它們拿型別 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 取代：各模組 contracts.ts 匯出的 `z.infer` 型別（D10），步驟 11 |
 | 錯誤型別 | shared/api/client.ts:23 | `components['schemas']['Error']` 決定錯誤訊息欄位 `error` | 取代：web/src/shared/result.ts 的錯誤結果型別，由 zod schema 定義（D10），步驟 11 |
 | 生成工具 | frontend/tools/contracts/generate.mjs（openapi-typescript 7.13.0 + TS 5.9.3） | 讀 `contracts/openapi.json`，寫出 `contracts/api.d.ts`；`--check` 檢查有無漂移 | 刪除：D10 移除 OpenAPI 生成；frontend/ 在步驟 14 刪除 |
 | 編譯期負向測試 | frontend/tests/contracts.ts:1-15（4 個 `@ts-expect-error`） | 契約若被放寬，typecheck 會失敗（tsconfig 的 include 涵蓋 `**/*.ts`） | 取代：zod 的型別測試（Vitest `expectTypeOf`／`@ts-expect-error`，D10），步驟 11 |
@@ -199,18 +199,18 @@ App 頁面（薄路由）：`src/app/page.tsx`→discovery、`applications/page.
 | item | where (file:line) | what it does in one line | 使用場景 | 去向 |
 |---|---|---|---|---|
 | `python -m freelance.bootstrap.worker`（`freelance-worker`） | bootstrap/worker.py:50 | 取得 queue.lock flock，啟動 Huey consumer（1 thread，含 periodic），啟動時立即入列當天 daily | **production**（compose.yaml:19；compose.submissions.yaml:10 加 `--submissions-config`） | 取代：Vercel Cron（09:00＋12:00，D5）觸發 Vercel Workflows（D2），入口 web/src/app/api/cron/daily/route.ts；步驟 5 |
-| `python -m freelance.bootstrap.api`（`freelance-api`） | bootstrap/api.py:50 | uvicorn loopback API，demo／sqlite 模式；可選 `--queue --submissions-config` 成為 producer | **production**（compose.yaml:34；compose.submissions.yaml:4）＋本機 demo | 取代：Next.js 全端 app 的 route handler／server action（D10，步驟 11）；demo 模式改 PGlite（步驟 11） |
+| `python -m freelance.bootstrap.api`（`freelance-api`） | bootstrap/api.py:50 | uvicorn loopback API，demo／sqlite 模式；可選 `--queue --submissions-config` 成為 producer | **production**（compose.yaml:34；compose.submissions.yaml:4）＋本機 demo | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 取代：Next.js 全端 app 的 route handler／server action（D10，步驟 11）；demo 模式改 PGlite（步驟 11） |
 | `python -m freelance.bootstrap.store --migrate` | bootstrap/store.py:226 | 顯式 SQLite migrate | **production 切換步驟**（docs/compose.md:95、README:58） | 取代：Drizzle migrate（`pnpm db:migrate`，步驟 4a） |
 | `python -m freelance.bootstrap.daily`（`freelance-daily`） | bootstrap/daily.py:32 | 手動跑一次每日用例（收信、摘要、可選寄送），參數與 worker.json 相同 | ops（手動補跑；與 worker 共用 jobs.execute_daily） | 取代：`vercel crons run` 手動觸發同一個 cron route（spike 1a 驗過），`daily_runs` claim 保證不重跑（D2、D5） |
 | `python -m freelance.bootstrap.cli`（`freelance-jobs`） | bootstrap/cli.py:12 | 終端 list/summary/feedback/preferences，不連網 | ops／本機（README:60） | 刪除：list／summary／feedback／preferences 都在 Web UI（步驟 11）；它是 legacy/review.py 例外類別唯一的 production 依賴，刪除後該依賴消失 |
-| `python -m freelance.bootstrap.recovery` | bootstrap/recovery.py:8 | 列出隔離的信件 ID，或以 `--retry` 重排一封 rejected | ops／recovery（docs/compose.md:150-151） | 改寫：受保護頁面 web/src/app/ops/recovery/page.tsx＋server action（列出隔離信件、把一封 rejected 標回 retry_pending），邏輯在 web/src/modules/collection/ingest.ts；步驟 10（計畫步驟 10 的 recovery 項） |
+| `python -m freelance.bootstrap.recovery` | bootstrap/recovery.py:8 | 列出隔離的信件 ID，或以 `--retry` 重排一封 rejected | ops／recovery（docs/compose.md:150-151） | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：受保護頁面 web/src/app/ops/recovery/page.tsx＋server action（列出隔離信件、把一封 rejected 標回 retry_pending），邏輯在 web/src/modules/collection/ingest.ts；步驟 10（計畫步驟 10 的 recovery 項） |
 | `python -m freelance.bootstrap.submission_operations` | bootstrap/submission_operations.py:7 | `verify-bid`（唯讀查 Freelancer bid）、`cancel-for-rollback` | ops／recovery（docs/compose.md:73,78） | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7）；verify-bid 與 cancel-for-rollback 隨送出改寫 |
 | `python -m freelance.bootstrap.export` | bootstrap/export.py:8 | 匯出或檢查 OpenAPI | build／CI（README:86） | 刪除：D10 移除 OpenAPI 生成 |
 | `python -m freelance.bootstrap.mail_sync` | bootstrap/mail_sync.py:80 | 舊 Tasker Gmail 單次 preview／import，`--backend` **預設 postgres** | legacy（只有 implementation-history 提到） | 刪除：Gmail 路徑 dormant（inventory-sources §1.3），舊 PG backend 不改寫（D8）；見缺陷 3 |
 | `python -m freelance.bootstrap.daily_cli` | bootstrap/daily_cli.py:16 | 舊的 Gmail token 版每日 Tasker 收信加摘要 | legacy（docs 無引用，有 3 個測試檔引用） | 刪除：Tasker 已改走 resend_sync（source_catalog.py:15），docs 無引用，只有測試呼叫 |
 | `python -m freelance.bootstrap.scheduler_cli` | bootstrap/scheduler_cli.py:5 | 跑一次 daily_tick 建 intent、不寄送，`--backend` **預設 postgres** | legacy | 刪除：legacy，`--backend` 預設 postgres（D8 舊 PG 不改寫）；daily_tick 本身在步驟 10 改寫 |
 | `python -m freelance.bootstrap.gmail_send_cli` | bootstrap/gmail_send_cli.py:18 | 預覽或顯式以 Gmail API 寄出既有摘要 intent | legacy／ops（systemd 時代） | 刪除：D9 選 Gmail SMTP，Gmail API 寄送 dormant |
-| `python -m freelance.bootstrap.gmail_smtp_cli` | bootstrap/gmail_smtp_cli.py:14 | 預覽或以 Gmail SMTP 寄既有 intent（要求 expected sha256） | legacy／ops | 改寫：受保護頁面 web/src/app/ops/digest/page.tsx＋server action：預覽 MIME 並顯示 sha256，帶相符的 expected sha256 才寄既有 pending intent，重試 0 次（D9）；步驟 10（見計畫缺口 3） |
+| `python -m freelance.bootstrap.gmail_smtp_cli` | bootstrap/gmail_smtp_cli.py:14 | 預覽或以 Gmail SMTP 寄既有 intent（要求 expected sha256） | legacy／ops | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：受保護頁面 web/src/app/ops/digest/page.tsx＋server action：預覽 MIME 並顯示 sha256，帶相符的 expected sha256 才寄既有 pending intent，重試 0 次（D9）；步驟 10（見計畫缺口 3） |
 | `python -m freelance.bootstrap.resend_send_cli` | bootstrap/resend_send_cli.py:14 | 預覽或以 Resend 寄既有 intent | legacy／ops | 刪除：D9 不用 Resend 寄送 |
 | `python -m freelance.modules.collection.resend_preview` | modules/collection/resend_preview.py:212 | 有上限的 Resend Receiving 預覽，不寫 DB | ops（接新來源時的偵查） | 刪除：只在接新信件來源時偵查，本計畫不新增來源；同檔的 ReceivingClient、寄件者 allowlist 與 `matches()` 是 resend_sync 的依賴，步驟 9 改寫到 web/src/modules/collection/mail/receiving.ts |
 | `python -m freelance.modules.collection.gmail_auth` | modules/collection/gmail_auth.py:140 | 一次性 Gmail OAuth bootstrap | legacy（碰憑證） | 刪除：Gmail 路徑 dormant，正式 image 沒裝 google-auth；碰憑證 |
@@ -250,8 +250,8 @@ Repo 層級腳本（不是 package 入口）：`scripts/check_boundaries.py`、`
 | ∅ → running | modules/notifications/store.py:112-115（claim_daily_run，`INSERT ... ON CONFLICT DO NOTHING`） | 同日同收件者只會有一個 claim；claim 不到就回 `already_run` | 改寫：web/src/modules/notifications/daily-runs.ts `claimDailyRun`（`INSERT … ON CONFLICT DO NOTHING`）；步驟 5 |
 | claim 呼叫點 | modules/notifications/daily.py:37 | 搶不到 claim 時回 `{'status':'already_run','run_status':...}` | 改寫：web/src/services/daily.ts `beginDailyRun`（workflow 的 claim step），搶不到回 already_run；步驟 5 |
 | running → complete／failed | modules/notifications/store.py:127-133（`WHERE status='running'`） | 寫入 result JSON 與 finished_at | 改寫：daily-runs.ts `finishDailyRun`（`WHERE status='running'`）；步驟 10 |
-| finish 呼叫點 | modules/notifications/daily.py:97 | 來源 ok 或沿用既有 digest 時為 complete；來源失敗、寄送非 sent、例外時為 failed | 改寫：web/src/services/daily.ts `finishDaily`（web/src/workflows/daily.ts 最後一個 step），result 同 `run_daily` 但沒有 `output`、`finished_at` 記實際完成時間；步驟 10a、10b |
-| running 卡住 | （沒有轉移） | 程序中斷會留下 running，只能人工核對，沒有自動重跑（docs/compose.md:46） | 改寫：維持沒有自動轉移（AGENTS.md：中斷的 run 不自動重試）；web/src/app/ops/recovery/page.tsx 列出卡住的 run 供人工核對；步驟 10 |
+| finish 呼叫點 | modules/notifications/daily.py:97 | 來源 ok 或沿用既有 digest 時為 complete；來源失敗、寄送非 sent、例外時為 failed | 改寫：web/src/services/daily.ts `finishDaily`（web/src/workflows/daily.ts 最後一個 step）：D22 後只記來源結果、D18 量測與 D1 用量，來源都 ok 時 complete、否則 failed；`source_details` 形狀照 `run_daily`；步驟 10a、10f |
+| running 卡住 | （沒有轉移） | 程序中斷會留下 running，只能人工核對，沒有自動重跑（docs/compose.md:46） | 改寫：維持沒有自動轉移（AGENTS.md：中斷的 run 不自動重試）；10d 的復原頁取消（D22），人工核對照計畫 10e2 設計盤點的復原步驟；步驟 10f |
 
 ### 5c. digest_outbox 狀態機
 
@@ -259,12 +259,12 @@ Repo 層級腳本（不是 package 入口）：`scripts/check_boundaries.py`、`
 
 | item | where (file:line) | what it does in one line | 去向 |
 |---|---|---|---|
-| ∅ → pending | modules/notifications/store.py:54-75（create_digest） | 同日已有就回既有的；否則算 candidates，扣掉 sent／attempted／unknown 歷史 snapshot 的 novelty 後 INSERT | 改寫：web/src/services/digest.ts `createDigest`／`createDigestIn`（組合 discovery 的 `listIn`）＋web/src/modules/notifications/outbox.ts `insertDigestIn`（novelty、snapshot 存 text）；同一起點的驗證是 web/src/verify/replay.ts＋web/scripts/replay-digest.ts；步驟 10b |
-| pending → attempted | modules/notifications/store.py:93-97（claim_digest，`WHERE status='pending'`） | 送出前先提交 attempt | 改寫：outbox.ts `claimDigest`（`WHERE status='pending'`）；步驟 10b（程式）、10c（寄送接上） |
-| attempted → sent／unknown | modules/notifications/store.py:101-108（finish_digest，`WHERE status='attempted'`） | sent 必須有 receipt | 改寫：outbox.ts `finishDigest`（sent 必須有 receipt）；步驟 10b（程式）、10c（寄送接上） |
-| 送出編排 | modules/notifications/scheduler.py:20-39（dispatch） | claim → sender（在交易外）→ 沒有 message_id 或拋例外就標 unknown | 改寫：web/src/modules/notifications/dispatch.ts，寄送 step `maxRetries = 0`（D2、spike 1b）；步驟 10 |
-| 寄送 adapter | modules/notifications/resend_delivery.py:65、gmail_smtp.py:22、gmail_send.py:107、resend_send.py:70 | 都經過 `scheduler.dispatch` | 改寫：只改寫 gmail_smtp → web/src/modules/notifications/gmail-smtp.ts（D9），`build_message` → notifications/mime.ts；resend_delivery、resend_send、gmail_send 的送出部分刪除（D9）；步驟 10 |
-| daily 內寄送 | modules/notifications/daily.py:68-92、bootstrap/jobs.py:7-36 | worker 依 `live_send` 加 `sender`（Resend）或 `smtp_config` 二選一 | 改寫：web/src/workflows/daily.ts 的寄送 step，只有 SMTP 一條（D9）；shadow 期缺憑證，結構上無法寄出；步驟 10 |
+| ∅ → pending | modules/notifications/store.py:54-75（create_digest） | 同日已有就回既有的；否則算 candidates，扣掉 sent／attempted／unknown 歷史 snapshot 的 novelty 後 INSERT | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：web/src/services/digest.ts `createDigest`／`createDigestIn`（組合 discovery 的 `listIn`）＋web/src/modules/notifications/outbox.ts `insertDigestIn`（novelty、snapshot 存 text）；同一起點的驗證是 web/src/verify/replay.ts＋web/scripts/replay-digest.ts；步驟 10b |
+| pending → attempted | modules/notifications/store.py:93-97（claim_digest，`WHERE status='pending'`） | 送出前先提交 attempt | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：outbox.ts `claimDigest`（`WHERE status='pending'`）；步驟 10b（程式）、10c（寄送接上） |
+| attempted → sent／unknown | modules/notifications/store.py:101-108（finish_digest，`WHERE status='attempted'`） | sent 必須有 receipt | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：outbox.ts `finishDigest`（sent 必須有 receipt）；步驟 10b（程式）、10c（寄送接上） |
+| 送出編排 | modules/notifications/scheduler.py:20-39（dispatch） | claim → sender（在交易外）→ 沒有 message_id 或拋例外就標 unknown | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：web/src/modules/notifications/dispatch.ts，寄送 step `maxRetries = 0`（D2、spike 1b）；步驟 10 |
+| 寄送 adapter | modules/notifications/resend_delivery.py:65、gmail_smtp.py:22、gmail_send.py:107、resend_send.py:70 | 都經過 `scheduler.dispatch` | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：只改寫 gmail_smtp → web/src/modules/notifications/gmail-smtp.ts（D9），`build_message` → notifications/mime.ts；resend_delivery、resend_send、gmail_send 的送出部分刪除（D9）；步驟 10 |
+| daily 內寄送 | modules/notifications/daily.py:68-92、bootstrap/jobs.py:7-36 | worker 依 `live_send` 加 `sender`（Resend）或 `smtp_config` 二選一 | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：web/src/workflows/daily.ts 的寄送 step，只有 SMTP 一條（D9）；shadow 期缺憑證，結構上無法寄出；步驟 10 |
 
 ### 5d. submission_intents 狀態機
 
@@ -293,17 +293,17 @@ Backend：74 個測試檔，629 個 `def test_`（`rg -c "def test_" backend/tes
 | item | where (file:line) | what it does in one line | 去向 |
 |---|---|---|---|
 | test_api_contract.py (8) | backend/tests/bootstrap/ | HTTP 契約與 OpenAPI | 取代：zod schema 型別測試與 server action 輸入驗證測試（D10），步驟 11 |
-| test_applications_http.py (2) | bootstrap/ | 投案 HTTP | 改寫：web/src/modules/applications/actions.test.ts；步驟 11 |
-| test_applications.py (11) | bootstrap/ | applications 用例（冪等、revision、tokens） | 改寫：web/src/modules/applications/store.test.ts（冪等、revision、tokens）；步驟 11 |
+| test_applications_http.py (2) | bootstrap/ | 投案 HTTP | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/actions.test.ts；步驟 11 |
+| test_applications.py (11) | bootstrap/ | applications 用例（冪等、revision、tokens） | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/applications/store.test.ts（冪等、revision、tokens）；步驟 11 |
 | test_architecture.py (10) | bootstrap/ | 模組邊界與組裝 | 取代：dependency-cruiser 規則（計畫前提「工具鏈預設」），步驟 3 接進 CI |
-| test_daily_delivery.py (5) | bootstrap/ | daily 加寄送 | 改寫：web/tests/daily.test.ts（daily 加寄送）；步驟 10c |
+| test_daily_delivery.py (5) | bootstrap/ | daily 加寄送 | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：web/tests/daily.test.ts（daily 加寄送）；步驟 10c |
 | test_gmail_postgres.py (4) | bootstrap/ | legacy Gmail 加 Postgres 路徑 | 刪除：Gmail 路徑 dormant、舊 PG adapter 不改寫（D8） |
 | test_huey_runner.py (4) | bootstrap/ | Huey queue／tick／expired | 取代：Vercel Cron＋Workflows（D2、D5）；其中「過期日期不執行」案例移到 schedule.test.ts（步驟 5） |
 | test_linkedin_receiving.py (6) | bootstrap/ | LinkedIn Resend 接收 | 改寫：web/src/modules/collection/mail/linkedin.test.ts；步驟 9 |
 | test_mail_sync_incremental.py (13) | bootstrap/ | 增量收信游標 | 改寫：web/src/modules/collection/mail/cursor.test.ts（實際測的是 resend_sync 的增量游標，見缺陷 15）；步驟 9 |
-| test_optimization.py (15) | bootstrap/ | 查詢與投影效能／行為 | 改寫：依案例分到 web/src/modules/discovery（步驟 4b）、preferences（步驟 4b）、applications（步驟 11）的 *.test.ts；CLI 案例隨 cli 刪除 |
-| test_proposals.py (9) | bootstrap/ | 模板與草稿 | 改寫：web/src/modules/proposals/store.test.ts；步驟 11 |
-| test_relationships.py (10) | bootstrap/ | 客戶與聯絡人 | 改寫：web/src/modules/relationships/store.test.ts；步驟 11 |
+| test_optimization.py (15) | bootstrap/ | 查詢與投影效能／行為 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：依案例分到 web/src/modules/discovery（步驟 4b）、preferences（步驟 4b）、applications（步驟 11）的 *.test.ts；CLI 案例隨 cli 刪除 |
+| test_proposals.py (9) | bootstrap/ | 模板與草稿 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/proposals/store.test.ts；步驟 11 |
+| test_relationships.py (10) | bootstrap/ | 客戶與聯絡人 | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/relationships/store.test.ts；步驟 11 |
 | test_resend_daily.py (19) | bootstrap/ | Resend daily 流程 | 改寫：web/src/modules/collection/mail/*.test.ts（步驟 9）與 web/tests/daily.test.ts（步驟 10） |
 | test_server_sqlite.py (1) | bootstrap/ | 真 SQLite server | 取代：CI 的 Postgres service container 上跑 Vitest（步驟 3） |
 | test_server.py (6) | bootstrap/ | LocalBoundary／server | 改寫：web/src/shared/http/guard.test.ts（Origin、body 上限、回應標頭；見計畫缺口 4）；步驟 11 |
@@ -314,7 +314,7 @@ Backend：74 個測試檔，629 個 `def test_`（`rg -c "def test_" backend/tes
 | test_submission_transports.py (6) | bootstrap/ | Email 與 Freelancer sender | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7） |
 | test_submissions.py (14) | bootstrap/ | submission 狀態機 | 延後：計畫「延後」第 1 項：Will 決定要配置 Email 或 Freelancer 通道（D7）；trigger 層的不可變測試在步驟 4a 另寫 |
 | test_tracking_http.py (2) | bootstrap/ | feedback HTTP | 改寫：web/src/modules/preferences/actions.test.ts；步驟 11 |
-| test_workbench_http.py (3) | bootstrap/ | workbench HTTP | 改寫：applications／relationships／proposals 的 actions.test.ts；步驟 11 |
+| test_workbench_http.py (3) | bootstrap/ | workbench HTTP | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：applications／relationships／proposals 的 actions.test.ts；步驟 11 |
 | test_worker.py (2) | bootstrap/ | worker 鎖與 run_once | 取代：`daily_runs` claim 測試（重複觸發只跑一次，D2、D5），步驟 5 |
 | collection/ 共 36 檔、312 個測試 | backend/tests/collection/ | 各來源 parser 與 connector（arbeitnow 17、cake_mail 8、chickpt 7、community_jobs 8、cryptojobslist 4、dynamitejobs 8、free_jobs 6、freelancer 17、getonboard 5、glassdoor_mail 9、gmail_auth 17、gmail_session 8、gmail_sync 14、gmail_transport 10、gmail 6、guru 6、himalayas 6、indeed_mail 4、indeed_new_mail 5、intake 3、jobbank104_mail 5、jobbank518 7、justremote 4、linkedin_mail 10、mail 8、nodesk 7、ptt_codejob 6、ptt_soho 13、public_feeds 17、resend_preview 12、resend_sync 12、source_batch 3、source_registry 5、taiwanjobs 11、talent_mail 11、tasker 13） | 改寫：web/src/modules/collection/**/*.test.ts，依來源分到步驟 6（free_jobs）、7（cryptojobslist）、8（其餘免登入）、9（mail、resend_sync）、4b（source_batch）、5（source_registry，見計畫缺口 2）；例外：gmail_* 5 檔與 intake、resend_preview 的 CLI 案例刪除（Gmail dormant），ptt_* 刪除（D12），guru、indeed_* 延後（計畫「延後」第 3 項） |
 | test_discovery.py (14) | backend/tests/discovery/ | 分組、排序、投影 | 改寫：web/src/modules/discovery/rules.test.ts（分組、排序、投影）；步驟 4b |
@@ -325,9 +325,9 @@ Backend：74 個測試檔，629 個 `def test_`（`rg -c "def test_" backend/tes
 | test_postgres.py (17) | legacy/ | Postgres adapter（需 `FREELANCE_TEST_DSN`，空值時跳過） | 刪除：舊 PG adapter 不改寫（D8） |
 | test_review.py (11) | legacy/ | 歷史 review 與核准失效 | 改寫：web/src/modules/legacy/review.test.ts，11 個案例全部移植（D8）；步驟 11 |
 | test_daily.py (11) | backend/tests/notifications/ | daily run 狀態機 | 改寫：web/tests/daily.test.ts（claim、run_daily 的 golden 情境）；claim 案例步驟 5，其餘步驟 10b、10c |
-| test_digest.py (7) | notifications/ | 摘要渲染與 novelty | 改寫：web/src/modules/notifications/digest.test.ts（渲染與 novelty）；步驟 10 |
+| test_digest.py (7) | notifications/ | 摘要渲染與 novelty | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：web/src/modules/notifications/digest.test.ts（渲染與 novelty）；步驟 10 |
 | test_gmail_send.py (10) | notifications/ | Gmail API 寄送 | 刪除：Gmail API 寄送 dormant（D9）；其中 MIME 建構的案例移到 web/src/modules/notifications/mime.test.ts（步驟 10） |
-| test_gmail_smtp.py (5) | notifications/ | SMTP 寄送 | 改寫：web/src/modules/notifications/gmail-smtp.test.ts；步驟 10 |
+| test_gmail_smtp.py (5) | notifications/ | SMTP 寄送 | 刪除：D22（不建摘要、不寄信，步驟 10f）；原定 改寫：web/src/modules/notifications/gmail-smtp.test.ts；步驟 10 |
 | test_operations.py (3) | notifications/ | dashboard operations 投影 | 改寫：web/src/modules/notifications/operations.test.ts（dashboard operations 投影）；步驟 11 |
 | test_resend_delivery.py (5) | notifications/ | Resend delivery | 刪除：D9 不用 Resend 寄送 |
 | test_resend_send.py (11) | notifications/ | Resend 寄送 | 刪除：D9 不用 Resend 寄送 |
@@ -340,7 +340,7 @@ Frontend：
 |---|---|---|---|
 | contracts.ts | frontend/tests/contracts.ts | 編譯期負向測試，4 個 `@ts-expect-error` | 取代：zod 型別測試（D10），步驟 11 |
 | smoke.mjs | frontend/tests/smoke.mjs（221 行，43 個 assert） | Playwright 加暫存合成 SQLite：探索、分組、版本差異、收藏／略過、偏好、投案；也驗 proxy 拒絕 `/api/review/*` | 改寫：web/e2e/smoke.spec.ts（Playwright 對合成 Postgres）；「拒絕 `/api/review/*`」改成驗該路徑不存在（404）；步驟 11 |
-| workbench.mjs | frontend/tests/workbench.mjs（70 行，9 個 assert） | 客戶、提案、送出流程（route mock `**/api/**`） | 改寫：web/e2e/workbench.spec.ts（送出流程只驗「未配置」，D7）；步驟 11 |
+| workbench.mjs | frontend/tests/workbench.mjs（70 行，9 個 assert） | 客戶、提案、送出流程（route mock `**/api/**`） | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/e2e/workbench.spec.ts（送出流程只驗「未配置」，D7）；步驟 11 |
 | manual-application-load.mjs | frontend/tests/manual-application-load.mjs（23 行，2 個 assert） | 手動轉介不依賴 discovery 服務 | 改寫：web/e2e/manual-application-load.spec.ts；步驟 11 |
 
 ---
@@ -359,7 +359,7 @@ Frontend：
 | legacy/proposals.py、portfolio.py | legacy/proposals.py:1、portfolio.py:1 | 舊提案模板與作品集事實 | 只有 ai_drafts.py:7、postgres.py:12 使用 | 刪除：只有 ai_drafts.py 與 postgres.py 使用，兩者都刪（D8） |
 | legacy/postgres.py | legacy/postgres.py | PostgreSQL repository 與 migrate（001_initial.sql） | 只有 legacy CLI（scheduler_cli.py:26、mail_sync.py:129，兩者的 `--backend` 預設都是 postgres）與 legacy 測試使用；optional dep `postgres` | 刪除：只有 legacy CLI 與測試使用（D8）；optional dep `postgres` 一併移除 |
 | ai_draft_attempts／proposal_revisions 表 | 001_sqlite.sql:72、:8 | 歷史 AI 嘗試與提案版本 | 只保留歷史資料；新職缺不會產生 proposal（records.save 只在 `item.proposal` 存在時寫入） | 只搬資料：兩表照 §1 的去向建表與收斂（步驟 4a、4c）；不產生新的 AI 嘗試；proposal_revisions 只在歷史列被 records.ts `save` 時追加（D8） |
-| modules/proposals（新） | backend/src/freelance/modules/proposals/ | 第三階段的人工模板與草稿，**不是** legacy | production（workbench API） | 改寫：web/src/modules/proposals/（模板、草稿、不可變版本）；步驟 11 |
+| modules/proposals（新） | backend/src/freelance/modules/proposals/ | 第三階段的人工模板與草稿，**不是** legacy | production（workbench API） | 延後：計畫範圍的延後（D22、D23：工作台與離線 demo 要用時再做，資料照搬）；原定 改寫：web/src/modules/proposals/（模板、草稿、不可變版本）；步驟 11 |
 
 ---
 

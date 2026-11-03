@@ -14,10 +14,9 @@ import { migrateD1 } from "@/db/migrate";
 import { opportunities } from "@/db/schema";
 import { DAILY_WRITE, writeUnit } from "@/db/unit";
 import { ingestSource } from "@/modules/collection/public";
-import { copiedDigests, copiedDiscovery, importCopy } from "@/ops/import";
+import { copiedDiscovery, importCopy } from "@/ops/import";
 import { PyDateTime } from "@/platform/py/datetime";
-import { rebuildNovelty, rebuildProjection } from "@/services/digest";
-import { replaceSettings, track } from "@/services/discovery";
+import { rebuildProjection, replaceSettings, track } from "@/services/discovery";
 import { readSettings } from "@/modules/discovery/public";
 import { PyDict } from "@/platform/py/value";
 import { sqliteWithSchema } from "./helpers/db";
@@ -132,8 +131,7 @@ describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () =>
     lite.prepare("insert into tracking_events (opportunity_id, revision, state, created_at) values ('o1',1,'{}','t1')").run();
     lite.prepare("insert into digest_outbox values ('d1','2026-10-22','owner@example.invalid','{\"items\": []}','sent','c',null,null,'receipt')").run();
     lite.close();
-    const report = await importCopy(file, db, async (target, copy, send) =>
-      await rebuildNovelty(target, copiedDigests(copy)) + await rebuildProjection(target, copiedDiscovery(copy), send));
+    const report = await importCopy(file, db, (target, copy, send) => rebuildProjection(target, copiedDiscovery(copy), send));
     expect(report.ok).toBe(true);
     expect(report.tables.opportunities.target.rows).toBe(2);
     expect(await rows("select item from opportunities where id = 'o1'")).toEqual([[item("o1")]]);
