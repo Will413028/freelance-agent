@@ -213,3 +213,21 @@ describe("markup", () => {
     expect(html).toContain("部分資料取得 · 讀取 4 筆");
   });
 });
+
+describe("page usage log", () => {
+  it("logs each page request's D1 usage, also when it throws", async () => {
+    const { withPageDb } = await import("@/app/_lib/usage");
+    const lines: string[] = [];
+    const original = console.info;
+    console.info = (line: string) => { lines.push(line); };
+    try {
+      await withPageDb("/settings", settingsPage, db);
+      await expect(withPageDb("/jobs/[id]", (d) => jobDetail(d, now, "missing"), db)).rejects.toBeInstanceOf(NotFound);
+    } finally {
+      console.info = original;
+    }
+    // The test database's client is shared, so its counters include earlier tests; a page gets a fresh one.
+    expect(lines[0]).toMatch(/^page usage \/settings outcome=ok ms=\d+ d1_requests=[1-9]\d* rows_read=\d+ rows_written=\d+ read_retries=\d+ lease_wait_ms=\d+$/);
+    expect(lines[1]).toMatch(/^page usage \/jobs\/\[id\] outcome=NotFound /);
+  });
+});
