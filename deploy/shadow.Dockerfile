@@ -1,5 +1,5 @@
-# Shadow copy/compare job for the Next.js migration (plan steps 4c/4d). Reads the product SQLite
-# file through a read-only mount; writes only its own copies, reports and the Neon shadow branch.
+# Shadow job for the Next.js migration (plan step 4e3). Reads the product SQLite file through a
+# read-only mount; writes only its own copies and reports, and the D1 shadow (the one-time import).
 FROM node:24-slim
 RUN npm install -g pnpm@11.2.2
 WORKDIR /app/web

@@ -1,12 +1,11 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { PyDateTime } from "@/platform/py/datetime";
-import { db, pool, resetSchema } from "../../../tests/helpers/db";
+import { db, resetSchema } from "../../../tests/helpers/db";
 import { claimDailyRun, dailyRecipient, finishDailyRun, getDailyRun, taipeiLocal } from "./daily-runs";
 
 const at = (h: number) => new PyDateTime(2026, 10, 24, h, 0, 0, 0, 0n);
 
 beforeEach(resetSchema);
-afterAll(async () => { await pool.end(); });
 
 describe("daily runs", () => {
   it("uses the Asia/Taipei day and hour", () => {

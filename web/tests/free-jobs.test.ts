@@ -1,7 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { existingSourceIds, runSource, sourcesIn, syncFreeJobs } from "@/modules/collection/public";
+import { runSource, sourceStatuses, syncFreeJobs } from "@/modules/collection/public";
 import { PyDict, type PyValue } from "@/platform/py/value";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, query, resetSchema } from "./helpers/db";
+import { existingSourceIds } from "./helpers/intake";
 
 // The two store cases of backend/tests/collection/test_free_jobs.py. runSource marks the source
 // failed first, as free_jobs.sync does on its first line.
@@ -14,7 +15,6 @@ const rem = (changes: Record<string, PyValue> = {}) => PyDict.of({
 const feed = (jobs: PyValue[]) => async () => PyDict.of({ jobs });
 
 beforeEach(resetSchema);
-afterAll(() => pool.end());
 
 describe("free_jobs.sync", () => {
   it("imports only matching non-full-time listings", async () => {
@@ -22,14 +22,14 @@ describe("free_jobs.sync", () => {
     const result = await syncFreeJobs(db, "remotive", reader);
     expect(result.at("jobs")).toBe(1n);
     expect(result.at("seen")).toBe(3n);
-    expect([...(await existingSourceIds(db, "remotive"))]).toEqual(["1"]);
-    expect((await sourcesIn(db)).at("remotive")).toBe("ok");
+    expect([...(await existingSourceIds("remotive"))]).toEqual(["1"]);
+    expect((await sourceStatuses(db)).at("remotive")).toBe("ok");
   });
 
   it("fails a malformed batch instead of reporting an empty success", async () => {
     const status = await runSource(db, "remotive", (d) => syncFreeJobs(d, "remotive", feed([rem(), rem({ id: 2n, description: null })])));
     expect(status.status).toBe("failed");
-    expect((await existingSourceIds(db, "remotive")).size).toBe(0);
-    expect((await sourcesIn(db)).at("remotive")).toBe("failed");
+    expect((await existingSourceIds("remotive")).size).toBe(0);
+    expect((await sourceStatuses(db)).at("remotive")).toBe("failed");
   });
 });

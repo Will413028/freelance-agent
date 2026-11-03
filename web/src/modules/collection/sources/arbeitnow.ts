@@ -8,7 +8,7 @@ import { pyFullmatch } from "@/platform/py/re";
 import { pyLen, pyLower, pyRstrip, pyStrip } from "@/platform/py/unicode";
 import { urlsplit, urlunsplit } from "@/platform/py/url";
 import { isDict, isList, PyDict, PyError, pyGet, pySorted, type PyValue } from "@/platform/py/value";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { text } from "./text";
 
 // Port of collection/arbeitnow.py: a bounded read of Arbeitnow's official free job-board API;
@@ -193,21 +193,12 @@ export async function syncArbeitnow(db: Db, o: ScanOptions = {}): Promise<PyDict
   const incomplete = !coverage.at("complete_scan");
   const now = PyDateTime.now();
   const oldest = PyDateTime.fromUtcMicros(now.utcMicros() - 90n * DAY_US);
-  const selected = await sourceBatch(db, "arbeitnow", now, async (batch) => {
-    const existing = await batch.existingIds();
-    const out: PyDict[] = [];
-    for (const job of jobs) {
-      const published = fromisoformat(job.at("published_at")).utcMicros();
-      const fresh = oldest.utcMicros() <= published && published <= now.utcMicros();
-      const evaluation = qualifyForIntake(job, now);
-      if (existing.has(job.str("external_id")) || (fresh && job.at("remote_evidence") === true
-          && job.at("kind") === "contract" && evaluation.at("status") !== "excluded" && (evaluation.at("score") as bigint) > 0n)) {
-        await batch.ingest(job, job.at("receipt_id"));
-        out.push(job);
-      }
-    }
-    await batch.finish(incomplete ? "failed" : "ok");
-    return out;
-  });
+  const selected = await ingestSource(db, "arbeitnow", now, listings(jobs), (job, exists) => {
+    const published = fromisoformat(job.at("published_at")).utcMicros();
+    const fresh = oldest.utcMicros() <= published && published <= now.utcMicros();
+    const evaluation = qualifyForIntake(job, now);
+    return exists || (fresh && job.at("remote_evidence") === true
+      && job.at("kind") === "contract" && evaluation.at("status") !== "excluded" && (evaluation.at("score") as bigint) > 0n);
+  }, incomplete ? "failed" : "ok");
   return new PyDict([["status", incomplete ? "partial" : "ok"], ["jobs", BigInt(selected.length)], ...coverage]);
 }

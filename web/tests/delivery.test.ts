@@ -6,10 +6,10 @@ import type { SmtpClient } from "@/platform/smtp";
 import { beginDailyRun, finishDaily } from "@/services/daily";
 import { createDigest } from "@/services/digest";
 import { finishStep } from "@/workflows/daily";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, migrationStatement, query, resetSchema } from "./helpers/db";
 
 // Plan step 10c: dispatch and deliver (notifications/scheduler.py, gmail_smtp.py) with a fake SMTP
-// client; the outbox, its claim and its immutability trigger are the real Postgres ones.
+// client; the outbox, its claim and its immutability trigger are the real SQLite ones, on the D1 stand-in.
 
 const EMAIL = "owner@example.invalid";
 const at = (h: number) => new PyDateTime(2026, 10, 24, h, 0, 0, 0, 0n);
@@ -32,7 +32,7 @@ const digest = () => createDigest(db, "2026-10-24", EMAIL, at(1));
 const shaOf = async (id: string) => messageSha256(buildMessage((await getDigest(db, id)).snapshot, id, EMAIL));
 
 beforeEach(async () => { await resetSchema(); process.env.DIGEST_RECIPIENT = EMAIL; });
-afterAll(async () => { delete process.env.DIGEST_RECIPIENT; await pool.end(); });
+afterAll(() => { delete process.env.DIGEST_RECIPIENT; });
 
 describe("uncertain delivery is never retried", () => {
   it("records unknown when the sender throws, and a second delivery sends nothing", async () => {
@@ -111,9 +111,9 @@ describe("delivery checks", () => {
     // The immutability trigger makes this impossible in production; the sender check is the second line.
     const fake = fakeSmtp({ open: () => {} });
     const opener: SmtpOpener = async (email) => {
-      await pool.query("alter table digest_outbox disable trigger digest_immutable");
-      await pool.query("update digest_outbox set snapshot = replace(snapshot, '\"unseen_count\": 0', '\"unseen_count\": 1') where id = $1", [intent.id]);
-      await pool.query("alter table digest_outbox enable trigger digest_immutable");
+      await query("drop trigger digest_immutable");
+      await query("update digest_outbox set snapshot = replace(snapshot, '\"unseen_count\": 0', '\"unseen_count\": 1') where id = ?1", [intent.id]);
+      await query(migrationStatement(/TRIGGER IF NOT EXISTS digest_immutable /));
       return fake.opener(email);
     };
     expect((await deliver(db, intent.id, EMAIL, sha, opener)).status).toBe("unknown");

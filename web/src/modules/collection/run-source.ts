@@ -1,4 +1,5 @@
 import type { Db } from "@/db/client";
+import { storageFailure } from "@/db/unit";
 import { PyDict, type PyValue } from "@/platform/py/value";
 import { setSourceHealth } from "./ingest";
 import type { SourceRunner } from "./registry";
@@ -46,14 +47,15 @@ export const succeeded = (detail: SourceDetail) => detail.status === "ok" || det
 
 // Mirrors the Python connectors: a sync is marked failed before it starts, so an interrupted run
 // never leaves a stale ok behind. A connector that finishes sets its own final health. Where a TS
-// connector throws, its Python sync returns {'status': 'failed', 'reason': <fixed per module>}.
+// connector throws, its Python sync returns {'status': 'failed', 'reason': <fixed per module>}; a
+// failure of D1 or of the writer lease is recorded as such (storage_<kind>), not as the source's.
 export async function runSource(db: Db, source: string, runner: SourceRunner, failure = "source_unavailable"): Promise<SourceDetail> {
   await setSourceHealth(db, source, "failed");
   let result: unknown;
   try {
     result = await runner(db);
-  } catch {
-    return { status: "failed", reason: failure };
+  } catch (e) {
+    return { status: "failed", reason: storageFailure(e) ?? failure };
   }
   return detailOf(result) ?? { status: "failed", reason: "invalid_source_result" };
 }

@@ -7,7 +7,7 @@ import { pyFullmatch, pyMatch } from "@/platform/py/re";
 import { codePoints, pyInt, pyIsDigit, pyLen, pySplit, pyStrip } from "@/platform/py/unicode";
 import { urlsplit } from "@/platform/py/url";
 import { PyDict, PyError, truthy, type PyValue } from "@/platform/py/value";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { attr, canonicalOn, pageReader, pageText, rejectsDetail, seams, SOURCE_BUDGET_MS, type FetchSeams } from "./job-pages";
 
 // Port of collection/chickpt.py: the public computer-task category and visible task sections; no
@@ -145,18 +145,9 @@ export type JobsReader = () => Promise<PyDict>;
 export async function syncChickpt(db: Db, reader: JobsReader = () => fetchChickpt()): Promise<PyDict> {
   const result = await reader();
   const partial = truthy(result.req("rejected_count")) || truthy(result.req("truncated"));
-  const count = await sourceBatch(db, "chickpt", PyDateTime.now(), async (batch) => {
-    const old = await batch.existingIds();
-    let n = 0n;
-    for (const job of result.req("jobs") as PyDict[]) {
-      if (old.has(job.str("external_id")) || qualifyForIntake(job, PyDateTime.now()).at("status") !== "excluded") {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(partial ? "failed" : "ok");
-    return n;
-  });
+  const count = BigInt((await ingestSource(db, "chickpt", PyDateTime.now(), listings(result.req("jobs") as PyDict[]), (job, exists) =>
+    exists || qualifyForIntake(job, PyDateTime.now()).at("status") !== "excluded",
+  partial ? "failed" : "ok")).length);
   const out = new PyDict([...result].filter(([k]) => k !== "jobs"));
   return out.update({ jobs: count, status: partial ? "partial" : "ok" });
 }

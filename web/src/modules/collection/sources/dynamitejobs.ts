@@ -6,7 +6,7 @@ import { htmlFeed } from "@/platform/py/html";
 import { pyLen, pyLower } from "@/platform/py/unicode";
 import { urlsplit } from "@/platform/py/url";
 import { isDict, isList, PyDict, PyError, pyGet, pySorted, truthy, type PyValue } from "@/platform/py/value";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { attr, canonicalOn, employmentTypes, jobPostings, kindOf, pageReader, pageText, rejectsDetail, seams, SOURCE_BUDGET_MS, type FetchSeams } from "./job-pages";
 import { published, text } from "./text";
 
@@ -115,21 +115,11 @@ export async function syncDynamiteJobs(db: Db, reader: JobsReader = () => fetchD
   const now = PyDateTime.now();
   const nowUs = now.utcMicros();
   const partial = truthy(result.req("rejected_count")) || truthy(result.req("truncated"));
-  const count = await sourceBatch(db, "dynamitejobs", now, async (batch) => {
-    const old = await batch.existingIds();
-    let n = 0n;
-    for (const job of result.req("jobs") as PyDict[]) {
-      const at = published(job.req("published_at")).utcMicros();
-      const recent = nowUs - 90n * DAY_US <= at && at <= nowUs;
-      if (old.has(job.str("external_id")) || (recent && truthy(job.at("remote_evidence")) && job.at("kind") === "contract"
-        && qualifyForIntake(job, now).at("status") !== "excluded")) {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(partial ? "failed" : "ok");
-    return n;
-  });
+  const count = BigInt((await ingestSource(db, "dynamitejobs", now, listings(result.req("jobs") as PyDict[]), (job, exists) => {
+    const at = published(job.req("published_at")).utcMicros();
+    const recent = nowUs - 90n * DAY_US <= at && at <= nowUs;
+    return exists || (recent && truthy(job.at("remote_evidence")) && job.at("kind") === "contract" && qualifyForIntake(job, now).at("status") !== "excluded");
+  }, partial ? "failed" : "ok")).length);
   const out = new PyDict([...result].filter(([k]) => k !== "jobs"));
   return out.update({ jobs: count, status: partial ? "partial" : "ok" });
 }

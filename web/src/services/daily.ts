@@ -1,4 +1,5 @@
-import type { Db } from "@/db/client";
+import { usageOf, type Db } from "@/db/client";
+import { addUsage, NO_USAGE, type Usage } from "@/db/usage";
 import { detailDict, enabledSources, FAILURE_REASON, runSource, RUNNERS, succeeded, type SourceDetail, type SourceRunner } from "@/modules/collection/public";
 import { buildMessage, claimDailyRun, dailyRecipient, deliver, findDigest, finishDailyRun, gmailOpener, messageSha256, smtpPassword, taipeiLocal, type SmtpOpener } from "@/modules/notifications/public";
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
@@ -53,10 +54,13 @@ const configuredOpener = (): SmtpOpener | null => {
  * delivery is configured, and finish the claimed run. `details` is null when the claim found an
  * existing digest. Any failure finishes the run as daily_processing_failed, never leaving it running;
  * a process that dies after the claim leaves the run running and the digest attempted, for a person
- * to reconcile (no automatic retry: the workflow step has maxRetries 0).
+ * to reconcile (no automatic retry: the workflow step has maxRetries 0). `earlier` is what the run's
+ * earlier steps spent on D1; with this step's own requests up to the final write it goes into the
+ * result's top level (d1_requests, d1_rows_written, lease_wait_ms; plan step 4e), never into
+ * source_details, where every key is read as a source.
  */
 export async function finishDaily(db: Db, localDate: string, startedAt: string, details: Record<string, SourceDetail> | null,
-  open: SmtpOpener | null = configuredOpener()): Promise<{ status: "complete" | "failed"; delivery: DeliveryOutcome }> {
+  open: SmtpOpener | null = configuredOpener(), earlier: Usage = NO_USAGE): Promise<{ status: "complete" | "failed"; delivery: DeliveryOutcome }> {
   const now = fromisoformat(startedAt), recipient = dailyRecipient();
   let status: "complete" | "failed", result: PyDict, delivery: DeliveryOutcome = open ? "pending" : "not_configured";
   try {
@@ -100,6 +104,9 @@ export async function finishDaily(db: Db, localDate: string, startedAt: string, 
   } catch {
     status = "failed";
     result = PyDict.of({ status: "failed", local_date: localDate, reason: "daily_processing_failed" });
+  }
+  for (const [k, v] of Object.entries(addUsage(earlier, usageOf(db)))) {
+    result.set(k, typeof v === "number" ? BigInt(v) : new PyDict(Object.entries(v).map(([kind, n]) => [kind, BigInt(n)])));
   }
   await finishDailyRun(db, localDate, recipient, status, result, PyDateTime.now());
   return { status, delivery };

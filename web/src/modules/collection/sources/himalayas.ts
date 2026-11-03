@@ -6,7 +6,7 @@ import { asciiHash } from "@/platform/py/json";
 import { pyFloat, pyIntToFloat, pyLen, pyLower, pySplit, pyStrip } from "@/platform/py/unicode";
 import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { isDict, isList, or, PyDict, PyError, pyGet, type PyValue } from "@/platform/py/value";
-import { ingest, setSourceHealth } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { htmlText } from "./text";
 
 // Port of collection/himalayas.py: bounded, daily public Himalayas searches; listings remain
@@ -121,12 +121,12 @@ export async function fetchListings(request: Get = httpGet, pause: (ms: number) 
 
 /**
  * himalayas.sync minus its first line: runSource has already marked the source failed. Throws where
- * Python returns {'status': 'failed'}; every listing is normalized before anything is ingested.
+ * Python returns {'status': 'failed'}; every listing is normalized before anything is ingested. The
+ * listings and the health are one unit, where Python ingests each on its own (D20 common basis 3, accepted).
  */
 export async function syncHimalayas(db: Db, reader: ListingReader = () => fetchListings()): Promise<PyDict> {
   const jobs = (await reader()).map(normalize);
   const selected = jobs.filter((j) => j.at("kind") === "contract" && qualifyForIntake(j, PyDateTime.now()).at("status") !== "excluded");
-  for (const job of selected) await ingest(db, job, job.at("receipt_id"), PyDateTime.now());
-  await setSourceHealth(db, "himalayas", "ok");
+  await ingestSource(db, "himalayas", PyDateTime.now(), listings(selected), () => true, "ok");
   return PyDict.of({ status: "ok", seen: BigInt(jobs.length), jobs: BigInt(selected.length), scope: "8_searches_first_page_max_160" });
 }

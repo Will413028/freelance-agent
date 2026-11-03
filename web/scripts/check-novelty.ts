@@ -1,23 +1,13 @@
-// Rederive the digest_novelty ledger from the stored snapshots and compare (plan step 10b2, D15).
-// Needs only the snapshots, so it keeps working after the shadow replay is deleted in step 14.
-//   SHADOW_DATABASE_URL=… pnpm exec tsx scripts/check-novelty.ts [--since YYYY-MM-DD]
+// Rederive the digest_novelty ledger from the stored snapshots and compare (plan step 10b2, D15), with
+// read-only queries on D1. No digest since the day fails: the day's TS run should have built one.
+//   CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scripts/check-novelty.ts --since YYYY-MM-DD
 import { parseArgs } from "node:util";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
-import { readTransaction, strictSslUrl } from "../src/db/client";
-import * as schema from "../src/db/schema";
-import { checkNoveltyIn } from "../src/modules/notifications/public";
+import { getDb } from "../src/db/client";
+import { checkLedger } from "../src/services/digest";
 
 const { values } = parseArgs({ options: { since: { type: "string" } } });
-const url = process.env.SHADOW_DATABASE_URL;
-if (!url) throw new Error("usage: SHADOW_DATABASE_URL=… check-novelty.ts [--since YYYY-MM-DD]");
-
-const pool = new Pool({ connectionString: strictSslUrl(url), max: 1 });
-try {
-  const check = await readTransaction(drizzle(pool, { schema }), (tx) => checkNoveltyIn(tx, values.since));
-  const ok = check.missing === 0 && check.extra === 0;
-  console.log(`novelty ledger ${ok ? "same" : "DIFFERENT"}: ${check.digests} digests, ${check.rows} rows, ${check.missing} missing, ${check.extra} extra`);
-  process.exitCode = ok ? 0 : 1;
-} finally {
-  await pool.end();
-}
+if (!values.since) throw new Error("usage: check-novelty.ts --since YYYY-MM-DD");
+const check = await checkLedger(getDb(), values.since);
+console.log(check.digests === 0 ? `novelty ledger: NO DIGEST since ${values.since}`
+  : `novelty ledger ${check.ok ? "same" : "DIFFERENT"}: ${check.digests} digests, ${check.rows} rows, ${check.missing} missing, ${check.extra} extra`);
+process.exitCode = check.ok ? 0 : 1;

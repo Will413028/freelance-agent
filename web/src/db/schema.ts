@@ -1,18 +1,19 @@
 import { sql } from "drizzle-orm";
-import { check, customType, foreignKey, index, integer, pgTable, primaryKey, unique } from "drizzle-orm/pg-core";
+import { check, foreignKey, index, integer, primaryKey, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
-// Shape mirrors backend/src/freelance/platform/schema/001_sqlite.sql so the daily copy and the
-// reverse script move rows 1:1. Deliberate carry-overs (re-evaluated after the step 13 rollback window):
-// - every text column uses COLLATE "C", matching SQLite's BINARY ordering and comparison;
+// Cloudflare D1 (SQLite) since plan step 4e. Tables and columns are those of
+// backend/src/freelance/platform/schema/001_sqlite.sql (tests/schema.test.ts compares them), so the
+// daily copy and the reverse script move rows 1:1. Deliberate carry-overs, re-evaluated after the
+// step 13 rollback window:
 // - JSON stays text: stored bytes feed fingerprints and approval hashes (spike 1c rule 1);
 // - timestamps stay text in the format the Python writer produced, so copied rows keep exact values;
 // - 0/1 flags stay integer for the same reason.
-const text = customType<{ data: string; driverData: string }>({ dataType: () => 'text COLLATE "C"' });
+// The immutability triggers are SQL in drizzle/0001_triggers.sql; drizzle-kit does not model triggers.
 
-// SQLite CURRENT_TIMESTAMP: UTC, 'YYYY-MM-DD HH:MM:SS'.
-export const utcNowText = sql`to_char(now() at time zone 'utc', 'YYYY-MM-DD HH24:MI:SS')`;
+// SQLite CURRENT_TIMESTAMP: UTC, 'YYYY-MM-DD HH:MM:SS', as the Python schema's column defaults.
+export const utcNowText = sql`CURRENT_TIMESTAMP`;
 
-export const opportunities = pgTable(
+export const opportunities = sqliteTable(
   "opportunities",
   {
     id: text("id").primaryKey(),
@@ -23,7 +24,7 @@ export const opportunities = pgTable(
   (t) => [unique("opportunities_source_external_id").on(t.source, t.externalId)],
 );
 
-export const proposalRevisions = pgTable(
+export const proposalRevisions = sqliteTable(
   "proposal_revisions",
   {
     opportunityId: text("opportunity_id").notNull().references(() => opportunities.id),
@@ -35,7 +36,7 @@ export const proposalRevisions = pgTable(
   (t) => [primaryKey({ columns: [t.opportunityId, t.version] }), check("proposal_revisions_version", sql`${t.version} > 0`)],
 );
 
-export const sourceReceipts = pgTable(
+export const sourceReceipts = sqliteTable(
   "source_receipts",
   {
     source: text("source").notNull(),
@@ -46,7 +47,7 @@ export const sourceReceipts = pgTable(
   (t) => [primaryKey({ columns: [t.source, t.receiptId] })],
 );
 
-export const sourceHealth = pgTable(
+export const sourceHealth = sqliteTable(
   "source_health",
   {
     source: text("source").primaryKey(),
@@ -58,7 +59,7 @@ export const sourceHealth = pgTable(
 
 export type SourceStatus = "not_connected" | "ok" | "failed" | "waiting";
 
-export const digestOutbox = pgTable(
+export const digestOutbox = sqliteTable(
   "digest_outbox",
   {
     id: text("id").primaryKey(),
@@ -85,7 +86,7 @@ export const digestOutbox = pgTable(
 // derived from the snapshot in the same write and never changed, so selection reads the pairs of
 // the current candidates instead of every stored snapshot. Rebuilt from the snapshots after each copy.
 // The key-first primary key is the lookup index.
-export const digestNovelty = pgTable(
+export const digestNovelty = sqliteTable(
   "digest_novelty",
   {
     digestId: text("digest_id").notNull().references(() => digestOutbox.id),
@@ -95,7 +96,7 @@ export const digestNovelty = pgTable(
   (t) => [primaryKey({ columns: [t.key, t.fingerprint, t.digestId] })],
 );
 
-export const dailyRuns = pgTable(
+export const dailyRuns = sqliteTable(
   "daily_runs",
   {
     localDate: text("local_date").notNull(),
@@ -111,15 +112,15 @@ export const dailyRuns = pgTable(
   ],
 );
 
-export const opportunityTracking = pgTable("opportunity_tracking", {
+export const opportunityTracking = sqliteTable("opportunity_tracking", {
   opportunityId: text("opportunity_id").primaryKey().references(() => opportunities.id),
   state: text("state").notNull(),
 });
 
-export const trackingEvents = pgTable(
+export const trackingEvents = sqliteTable(
   "tracking_events",
   {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     opportunityId: text("opportunity_id").notNull().references(() => opportunities.id),
     revision: integer("revision").notNull(),
     state: text("state").notNull(),
@@ -128,7 +129,7 @@ export const trackingEvents = pgTable(
   (t) => [unique("tracking_events_opportunity_revision").on(t.opportunityId, t.revision)],
 );
 
-export const aiDraftAttempts = pgTable(
+export const aiDraftAttempts = sqliteTable(
   "ai_draft_attempts",
   {
     opportunityId: text("opportunity_id").notNull().references(() => opportunities.id),
@@ -151,7 +152,7 @@ export const aiDraftAttempts = pgTable(
   ],
 );
 
-export const discoverySettings = pgTable(
+export const discoverySettings = sqliteTable(
   "discovery_settings",
   {
     id: integer("id").primaryKey(),
@@ -161,7 +162,7 @@ export const discoverySettings = pgTable(
   (t) => [check("discovery_settings_singleton", sql`${t.id} = 1`)],
 );
 
-export const mailSyncState = pgTable(
+export const mailSyncState = sqliteTable(
   "mail_sync_state",
   {
     source: text("source").notNull(),
@@ -171,7 +172,7 @@ export const mailSyncState = pgTable(
   (t) => [primaryKey({ columns: [t.source, t.recipient] })],
 );
 
-export const mailIngestion = pgTable(
+export const mailIngestion = sqliteTable(
   "mail_ingestion",
   {
     source: text("source").notNull(),
@@ -189,7 +190,7 @@ export const mailIngestion = pgTable(
   ],
 );
 
-export const mailContentVersions = pgTable(
+export const mailContentVersions = sqliteTable(
   "mail_content_versions",
   {
     opportunityId: text("opportunity_id").notNull().references(() => opportunities.id),
@@ -199,7 +200,7 @@ export const mailContentVersions = pgTable(
   (t) => [primaryKey({ columns: [t.opportunityId, t.fingerprint] })],
 );
 
-export const manualApplications = pgTable(
+export const manualApplications = sqliteTable(
   "manual_applications",
   {
     id: text("id").primaryKey(),
@@ -223,7 +224,7 @@ export const manualApplications = pgTable(
   ],
 );
 
-export const manualApplicationOpportunities = pgTable(
+export const manualApplicationOpportunities = sqliteTable(
   "manual_application_opportunities",
   {
     applicationId: text("application_id").notNull().references(() => manualApplications.id),
@@ -232,7 +233,7 @@ export const manualApplicationOpportunities = pgTable(
   (t) => [primaryKey({ columns: [t.applicationId, t.opportunityId] }), index("manual_application_links").on(t.opportunityId)],
 );
 
-export const manualApplicationEvents = pgTable(
+export const manualApplicationEvents = sqliteTable(
   "manual_application_events",
   {
     applicationId: text("application_id").notNull().references(() => manualApplications.id),
@@ -247,7 +248,7 @@ export const manualApplicationEvents = pgTable(
   ],
 );
 
-export const clients = pgTable(
+export const clients = sqliteTable(
   "clients",
   {
     id: text("id").primaryKey(),
@@ -263,7 +264,7 @@ export const clients = pgTable(
   (t) => [check("clients_revision", sql`${t.revision} > 0`)],
 );
 
-export const clientContacts = pgTable(
+export const clientContacts = sqliteTable(
   "client_contacts",
   {
     id: text("id").primaryKey(),
@@ -281,7 +282,7 @@ export const clientContacts = pgTable(
   (t) => [index("contacts_by_client").on(t.clientId, t.name, t.id), check("client_contacts_revision", sql`${t.revision} > 0`)],
 );
 
-export const applicationParties = pgTable(
+export const applicationParties = sqliteTable(
   "application_parties",
   {
     applicationId: text("application_id").primaryKey().references(() => manualApplications.id),
@@ -292,7 +293,7 @@ export const applicationParties = pgTable(
   (t) => [index("application_parties_by_client").on(t.clientId, t.applicationId)],
 );
 
-export const proposalTemplates = pgTable(
+export const proposalTemplates = sqliteTable(
   "proposal_templates",
   {
     id: text("id").primaryKey(),
@@ -308,7 +309,7 @@ export const proposalTemplates = pgTable(
   (t) => [check("proposal_templates_revision", sql`${t.revision} > 0`)],
 );
 
-export const proposalDrafts = pgTable(
+export const proposalDrafts = sqliteTable(
   "proposal_drafts",
   {
     id: text("id").primaryKey(),
@@ -326,7 +327,7 @@ export const proposalDrafts = pgTable(
   (t) => [check("proposal_drafts_revision", sql`${t.revision} > 0`)],
 );
 
-export const proposalDraftRevisions = pgTable(
+export const proposalDraftRevisions = sqliteTable(
   "proposal_draft_revisions",
   {
     draftId: text("draft_id").notNull().references(() => proposalDrafts.id),
@@ -346,7 +347,7 @@ export const proposalDraftRevisions = pgTable(
   ],
 );
 
-export const submissionIntents = pgTable(
+export const submissionIntents = sqliteTable(
   "submission_intents",
   {
     id: text("id").primaryKey(),
@@ -380,7 +381,7 @@ export const submissionIntents = pgTable(
   ],
 );
 
-export const submissionEvents = pgTable(
+export const submissionEvents = sqliteTable(
   "submission_events",
   {
     intentId: text("intent_id").notNull().references(() => submissionIntents.id),
@@ -392,7 +393,7 @@ export const submissionEvents = pgTable(
   (t) => [primaryKey({ columns: [t.intentId, t.revision] })],
 );
 
-export const applicationProposals = pgTable(
+export const applicationProposals = sqliteTable(
   "application_proposals",
   {
     applicationId: text("application_id").primaryKey().references(() => manualApplications.id),
@@ -408,4 +409,42 @@ export const applicationProposals = pgTable(
       foreignColumns: [proposalDraftRevisions.draftId, proposalDraftRevisions.version],
     }),
   ],
+);
+
+// D1-only tables (plan step 4e): not in the Python schema or ops TABLES, never copied, compared or
+// written back; the one-time import (step 4e3) leaves them alone.
+
+/**
+ * Write batches that may have committed although the response was lost (D20 common basis 6): the
+ * last statement of each such batch records its random attempt id, so a later read tells whether it
+ * committed. Kept 7 days; the writers that add rows (plan step 4e2b) also delete the older ones.
+ */
+export const writeAttempts = sqliteTable("write_attempts", {
+  attemptId: text("attempt_id").primaryKey(),
+  at: integer("at").notNull().default(sql`(unixepoch())`),
+});
+
+/**
+ * A precondition inside a batch (spike 1f (d)): `insert into guard (ok) select 0 where not
+ * (<condition>)` inserts nothing when the condition holds; otherwise the trigger in
+ * drizzle/0001_triggers.sql aborts with 'guard failed', and with it the whole batch. Always empty.
+ */
+export const guard = sqliteTable("guard", {
+  ok: integer("ok").notNull(),
+});
+
+/**
+ * The writer lease (D20-B, a lease with a fencing token): one row, id 1, created by the first
+ * acquire. Every acquire adds one to token; a write batch starts with a guard that the row still
+ * names its holder and token (src/db/unit.ts). expires_at is D1's own clock (unixepoch()).
+ */
+export const writerLease = sqliteTable(
+  "writer_lease",
+  {
+    id: integer("id").primaryKey(),
+    holder: text("holder"),
+    token: integer("token").notNull(),
+    expiresAt: integer("expires_at").notNull(),
+  },
+  (t) => [check("writer_lease_singleton", sql`${t.id} = 1`)],
 );

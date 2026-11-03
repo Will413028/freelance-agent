@@ -10,7 +10,7 @@ import { pyLen, pyStrip } from "@/platform/py/unicode";
 import { urlsplit, urlunsplit } from "@/platform/py/url";
 import { cmpStr, PyDict, PyError } from "@/platform/py/value";
 import { xmlFind, xmlFindAll, xmlFindText, xmlFromBytes, type XmlElement } from "@/platform/py/xml";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { published, text } from "./text";
 
 // Port of collection/cryptojobslist.py: the official advertised RSS, without API keys or account access.
@@ -127,19 +127,9 @@ export async function fetchRss(): Promise<PyDict> {
 export async function syncCryptoJobsList(db: Db, reader: RssReader = fetchRss): Promise<PyDict> {
   const result = await reader();
   const rejected = result.req("rejected_count") as bigint;
-  const count = await sourceBatch(db, "cryptojobslist", PyDateTime.now(), async (batch) => {
-    const existing = await batch.existingIds();
-    let n = 0n;
-    for (const job of result.req("jobs") as PyDict[]) {
-      if (existing.has(job.str("external_id"))
-        || (job.at("remote_evidence") === true && job.at("kind") === "contract" && qualifyForIntake(job, PyDateTime.now()).at("status") !== "excluded")) {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(rejected ? "failed" : "ok");
-    return n;
-  });
+  const count = BigInt((await ingestSource(db, "cryptojobslist", PyDateTime.now(), listings(result.req("jobs") as PyDict[]), (job, exists) =>
+    exists || (job.at("remote_evidence") === true && job.at("kind") === "contract" && qualifyForIntake(job, PyDateTime.now()).at("status") !== "excluded"),
+  rejected ? "failed" : "ok")).length);
   // feed_built_at is the feed's own date text, which a step's SourceDetail refuses; nothing reads it (D17).
   const out = new PyDict([...result].filter(([k]) => k !== "jobs" && k !== "feed_built_at"));
   out.set("jobs", count);
