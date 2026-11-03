@@ -466,28 +466,41 @@
           - 設計審查（fresh subagent，完成前，8 項）：改 4（投影表加外鍵到 `opportunities`、`Writes.statement()` 的註解寫明正式用途、當頁 applications 只讀當頁、本段補實際形狀）；記 2（時間存文字，理由見上；兩個請求加重試：單一請求要在每句重複排名子查詢、讀取列數倍增，交 10e2 依 D13 量測決定，觸發：重試次數或核對失敗出現在 log）；交 Will 1（下一點）；駁回 1（nit：replay 經 `services/digest.ts` 轉出 `rebuildProjection`，因為 replay 重建的就是摘要要讀的資料）。另外自己補的：原地重建指令 `scripts/rebuild-projection.ts`（`rebuildProjectionInPlace`；增量測試改用它當「整批重建」的對照，並從空表開始驗一次）。另記：每次讀取的一致性檢查約多讀 4–6 × 筆數列，併入 10e2 的 D13 讀取量測。
           - code review（`/code-review` medium，2026-11-03，10 項）：改 6（部署順序改成重建在部署之後；`Writes.statement()` 帶位元組數，最後一批超過 4 MB 時在寫入前失敗，`write-units.test.ts` 加案例、拿掉檢查時紅；`json_each` 分塊用位元組計算；`rebuild-projection.ts` 結束時檢查完整性；它在 09:00–09:59 拒絕執行；重建與 `settingsRead` 共用 `settingsOf` 的預設設定）；記 2（改設定在租約內讀全表 3.2–3.4 秒：觸發條件見下一點；排名查詢裡版本子查詢重複計算：10e2 從 iad1 量 `listPage`，超過 1 秒就改成先算一次的子查詢）；駁回 2（「daily 與 replay 傳台北時間的 `now`」不成立：`daily.py:20` 與 `PyDateTime.now()` 都是 UTC，golden 的 `generated_at` 全是 `+00:00`，非 UTC 時讀取 fail closed；「`novelty` 欄位 10e1 沒有讀取端」是計畫要求存的，紀錄本身不帶 `novelty_keys`，只有 snapshot 的 item 帶）。修正後 `pnpm test` 38 檔 447 過、7 skip，typecheck、boundaries、build 0。
           - 真 D1 正式量級（2026-11-03 13:0x，Will 同意，對 `freelance-agent-ci-test`，Mac → ENAM，不是 iad1；一次性腳本只印計數與耗時）：灌 2,450 筆（每筆約 3.5 KB）12 個請求、17.3 秒、寫 12,396 列。`replaceSettings` 3 次：每次 4.5–5.8 秒，其中「取租約＋讀全表」的請求 3.2–3.4 秒、寫入請求 9 句 181 KB 0.5–1.3 秒，每次寫 2,456 列；`listPage`（50 筆）1.0–1.4 秒。結論：改設定在一個寫入請求內成立（4e2b 交接 (2) 解決）。原文「實測要在寫入鎖 5 秒等待內」：5 秒是 UI 等租約的上限，不是單元本身的耗時；但改設定持有租約約 4–6 秒，期間另一個 UI 寫入可能等滿 5 秒回 409（推論）。iad1 的讀取應較快（1f 補充：Mac 讀 17.2 MB 要 2.63 秒），10e2 從 Vercel 再量一次，連同 `listPage` 的耗時與列讀取併入 D13；觸發：iad1 上改設定超過 5 秒，就改成不在同一單元讀全表（例如只讀投影列與 job 欄位）。量測連灌資料共寫 19,764 列（當天 UTC 另有 4e4 匯入 28,814 列）。部署順序：合併後先 `scripts/migrate.ts`（建出空的新表），再部署 Vercel 與 VM 映像（會維護投影的程式），最後 `scripts/rebuild-projection.ts`（在 D1 上原地重建，持有租約、讀 D1 自己的列，不重載副本；09:00–09:59 拒絕執行；結束時檢查列數與 revision，不完整就 exit 非 0，重跑即可）。順序不能反過來：重建之後若舊程式還在寫，新紀錄沒有投影列，讀取會一直拒絕（code review 指出）。投影的推導改變時也重跑它。
-      - 10e2 讀取端切換：`list`／`group`／`feedback`／`createDigestIn` 改讀投影；刪 `listIn` 與跨來源合併（`groupItems` 只剩單筆群組的組裝）；ranking 與 render 的 Python `round`／格式化改原生（步驟 14「現在就原生」那一項）；在 TS 每日執行記錄「近 7 天候選裡跨來源同（正規化）職稱的配對數」（D18 的觸發量測，切換後仍會跑）。驗收：正式量級下一次清單與一次回饋的 Neon 讀取量、摘要耗時；replay 照常逐位元組比對，差異逐項解釋。mutation：token 拿掉內容版本雜湊（舊畫面在新版本後仍可回饋）、`unseen` 不讀 `observation_fingerprints`（已通知職缺的新版本不再出現於摘要）、主卡不依可能符合的版本選擇，測試各自失敗。
-        - 10e2 設計盤點（2026-11-03，分支 `10e2`，疊在 `10e1` 上；開工前交設計審查）：舊實作就是規格，每項寫去向。
-          - 讀取路徑（`services/discovery.ts`、`services/digest.ts`）：
-            - `list(db, now)`：改寫成 `listPage` 讀全部（SQL 排名，再補讀全部列）。輸出不變。分頁的呼叫端是步驟 11 的 UI。
-            - `group(db, key, now)`：改寫成只組那一筆，成為單一成員群組（D18 A3）。
-            - `feedback`：改寫成寫入單元只讀那一筆的紀錄、版本、tracking、applications 與設定（不再讀全表），token 比對與寫入照舊。
-            - `createDigest`：改寫成三步。
-              1. SQL 排出全部候選，含順序與數量，順便讀投影的 `novelty` 與版本 fingerprint。
-              2. 已通知帳本查詢與 `selectUnseen` 在這些輕量的候選上跑：`observation_fingerprints` 等於紀錄的 fingerprint 加上版本的 fingerprint，novelty 用 `noveltyOf`。
-              3. 只補讀入選者的原始列，組 snapshot item。snapshot 的形狀、順序與計數不變。
-            - `listReads`、`assembleList`（全表的 `listIn`）：刪除。`track` 已經只讀單筆，保留。
-          - 分組：`groupItems` 的 union-find 跨來源合併刪除，改成 `asGroup(item)` 組單一成員群組。members、token 公式、`observation_fingerprints`、`novelty_keys`、`display_basis` 照舊。`identityKeys` 保留，novelty 還要用。render 對沒有 `members` 的 item 呼叫 `groupItems` 的那處改用 `asGroup`。
-          - golden：拿掉合併後有 5 個測試紅（2026-11-03 實驗：`discovery.test.ts` 的 bridge 案例；`scenarios.test.ts` 的 `url_and_content_grouping`、`group_feedback_atomic_and_stale`、`digest_novelty_and_uncertain_delivery`；`ops.test.ts` 的 replay 合成案例）。全都是合成情境刻意讓兩筆共用 URL key 而合併，正式資料從未合併過（D18 事實）。處置如下。
+      - 10e2 讀取端切換：`list`／`group`／`feedback`／`createDigestIn` 改讀投影；刪 `listIn` 與跨來源合併（`groupItems` 只剩單筆群組的組裝）；ranking 與 render 的 Python `round`／格式化改原生（步驟 14「現在就原生」那一項）；在 TS 每日執行記錄「近 7 天候選裡跨來源同（正規化）職稱的配對數」（D18 的觸發量測，切換後仍會跑）。驗收：正式量級下一頁清單與一次回饋的 D1 列讀取量、摘要耗時；replay 照常逐位元組比對，差異逐項解釋。mutation：token 拿掉內容版本雜湊（舊畫面在新版本後仍可回饋）、`unseen` 不讀 `observation_fingerprints`（已通知職缺的新版本不再出現於摘要）、主卡不依可能符合的版本選擇，測試各自失敗。
+        - 10e2 設計盤點（2026-11-03，分支 `10e2`，疊在 `10e1` 上；開工時設計審查 11 項已分流，結果併入本段）：舊實作就是規格，每項寫去向。
+          - 讀取路徑：
+            - `list(db, now)`：從正式程式刪除。
+              - 全表組裝（`listReads`、`assembleList`）搬到 `web/tests/helpers/reference.ts`，當投影讀取的參考實作。
+              - 正式只有分頁的 `listPage`，步驟 11 的 UI 用它，不得一次讀全部（ADR 2026-10-26「no full-table recompute remains」）。
+            - `group(db, key, now)`：改成只組那一筆，成為單一成員群組（D18 A3）。
+            - `feedback`：寫入單元只讀那一筆的紀錄、版本、tracking、applications 與設定，不再讀全表；token 比對照舊。
+            - `createDigest`：改成 `listPage` 讀全部候選（SQL 排名，每筆經 TS 重算核對），再 `asGroup`，再沿用現有的 `selectUnseen` 與帳本。
+              - 不另做輕量候選。審查指出必要條件沒有證據：D1 不收傳輸費，摘要一天一次，約 2,450 列；而輕量路徑會讓被壓下的候選不經核對。
+              - 當天既有的 digest 與來源狀態放進排名同一個請求。
+          - 摘要的一致性規則（記）：
+            - 投影過期或不完整（`checkState`），或兩次請求之間有寫入且重試一次後仍不符時，建摘要失敗。daily run 記 `failed`／`daily_processing_failed`，照規範不自動重試。
+            - 復原：先跑 `scripts/rebuild-projection.ts`，再用 10d 的復原頁重跑當天。10d 之前的復原方式是手動刪掉當天 `daily_runs` 那列，再觸發 cron，每次先問 Will。
+            - `ProjectionMismatch` 重試有計數：client 計數器 `projection_retries`，寫進 `daily_runs.result` 頂層；`check-storage-triggers` 遇到大於 0 就標出。
+          - 分組：`groupItems` 的 union-find 跨來源合併刪除，改成 `asGroup(item)` 組單一成員群組。
+            - members、token 公式、`observation_fingerprints`、`novelty_keys`、`display_basis` 照舊。
+            - `identityKeys` 保留，novelty 還要用。
+            - render 對沒有 `members` 的 item 重新分組的後備分支刪除：唯一呼叫端渲染的是 snapshot，item 一律帶 `members`。
+          - golden：拿掉合併後有 5 個測試紅（2026-11-03 實驗：`discovery.test.ts` 的 bridge 案例；`scenarios.test.ts` 的 `url_and_content_grouping`、`group_feedback_atomic_and_stale`、`digest_novelty_and_uncertain_delivery`；`ops.test.ts` 的 replay 合成案例）。全都是合成情境刻意讓兩筆共用 URL key 而合併；正式資料從未合併過（D18 事實）。
             - bridge 案例：刪除，它驗的機制已經不存在。
-            - 三個情境：改 `gen_golden.py` 的輸入，讓共用 key 的那幾筆改成各自不同的 URL，重產 golden。原本靠合併驗的群組回饋原子性，改用同一筆的兩次回饋（舊 token）驗。這是 D18 已決的差異（A3），不另外請示。
+            - 三個情境：改 `gen_golden.py` 的輸入，讓共用 key 的那幾筆改用各自不同的 URL，然後重產 golden。群組回饋的原子性改用同一筆的舊 token 驗。
+            - 補一個只在 TS 跑的情境：兩筆共用 URL key、各自成卡，前一筆已通知後，後一筆因為共用 URL key 而被壓下。這列為 D17 差異：Python 在回滾窗口內會把它們合併成一張卡。
             - replay：真實副本照常逐位元組比對。
-          - 原生化（步驟 14「現在就原生」）：只換輸出逐位元組不變的部分。
-            - ranking 的 `roundFloat(score, 1)`、`roundToInt(completeness)` 換成原生。分數都是 0.5 的倍數；完整度是 n/6，沒有剛好 .5 的情況。
-            - `formatG`、`formatThousands0f`（評估理由與 render 的工時文字）不換。評估文字存在 `opportunities` 列，Python 回滾時會讀到；JS 的最短表示和 `%g` 在小數上不同（例如 7.123456789）。等 D6 窗口結束後隨步驟 14 再換。
-          - D18 觸發量測：建摘要時一起算「候選中近 7 天發布（`published_at` 在 now 前 7 天內，未知的不算）、跨來源、職稱經 `text()` 正規化後相同的配對數」，寫進 `daily_runs.result` 頂層的 `cross_source_title_pairs`。一個 SQL 讀取，從投影 join `opportunities` 取 `json_extract(item, '$.job.title')`；正規化在 TS 做。
-          - 驗收量測：替身回報的 `rowsRead` 是傳回列數，不是 D1 計費的掃描列數。正式量級下一次清單、一次回饋的列讀取與摘要耗時，要在真 D1（`freelance-agent-ci-test`）上量，沿用 10e1 的一次性腳本。
-          - 新機制與必要條件：沒有新表。新增的是 createDigest 的「輕量候選」形狀，必要條件是 P1「只補讀當頁／入選者」：正式量級每天約 2,400 個候選、約 55 筆入選。
+          - 原生化（步驟 14「現在就原生」）：
+            - ranking 的 `roundFloat(score, 1)`、`roundToInt(completeness)` 換成原生。證據是窮舉全部分數組合，原生與原寫法結果相同，寫成測試。注意分數在浮點裡不一定剛好是 0.5 的倍數，例如 59.49999999999999。
+            - render 的工時格式化換成原生：render 輸出不存資料庫。golden 若有差異就逐項列出。
+            - 評估理由裡的 `formatG`、`formatThousands0f` 不換：評估文字存在 `opportunities` 列，Python 回滾時會讀到。D6 窗口結束後隨步驟 14 再換。
+          - D18 觸發量測：建摘要之後的獨立步驟，失敗只記錄、不影響摘要。
+            - 範圍是當天候選中發布在 now 前 7 天內、跨來源、職稱經 `text()` 正規化後相同的配對數，寫進 `daily_runs.result` 頂層的 `cross_source_title_pairs`。發布時間未知的候選另記 `cross_source_unknown_published`，不默默排除。
+            - 讀它的人：`check-storage-triggers`（VM after job）在配對數達 3 時標出、exit 1，接著由 Will 人工抽樣（D18）。
+          - 量測：
+            - 替身回報的 `rowsRead` 是傳回列數，不是 D1 計費的掃描列數。一頁清單、一次回饋的列讀取，要在真 D1（`freelance-agent-ci-test`）上量，要 Will 同意。
+            - iad1 的耗時：建摘要由部署後每日執行的 step 耗時量（`workflow inspect`）；改設定與分頁由步驟 11 接上 UI 後量。10e1 的兩個觸發條件照舊。
+          - 新機制：沒有新表、沒有新的讀取形狀。新增的只有兩個計數（`projection_retries`、`cross_source_*`），必要條件分別是 10e1 的重試觸發與 D18 的觸發量測。
     - 10d 受保護的操作頁（被擋於：步驟 11 的 Origin 檢查與 body 上限）：`/ops/recovery`（列出隔離信件與卡住的 `running`；把一封 rejected 標回 `retry_pending`，取代 `bootstrap/recovery.py`）、`/ops/digest`（預覽 MIME 與 sha256，帶相符的 sha256 才寄既有 `pending`，取代 `gmail_smtp_cli`）。憑證只在 Vercel，不複製到本機，所以用頁面不用本機 script（盤點 §4 已定）。驗收：`retry_mail` 的 Python 案例 TS 版、sha256 不符拒寄、跨來源 Origin 被擋。mutation：拿掉 sha256 比對，測試要失敗。
 
 - [ ] **11. UI、API、契約與離線 demo**（被擋於：步驟 4、D10；可以和步驟 6–10 並行）
