@@ -239,7 +239,7 @@ describe("daily run usage", () => {
     const step = recording().db; // a client of its own, as each workflow step has
     const begin = await beginDailyRun(step, now);
     const earlier = { d1_requests: 5, d1_rows_written: 7, lease_wait_ms: 3, lease_timeouts: 1, lease_lost: 0, d1_errors: { rate_limited: 1 }, lost_steps: 1, read_retries: 2 };
-    await finishDaily(step, begin.localDate, begin.startedAt!, {}, null, earlier);
+    await finishDaily(step, begin.localDate, begin.startedAt!, {}, earlier);
     const result = asDict((await getDailyRun(db, begin.localDate, "owner@example.invalid"))!.result);
     expect(result.req("d1_requests")).toBeGreaterThan(5n);
     expect(result.req("d1_rows_written")).toBeGreaterThanOrEqual(7n);

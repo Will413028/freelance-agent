@@ -1,11 +1,11 @@
-import { clientOf, insertChunks, readAll, type Db, type Read, type ReadValues } from "@/db/client";
+import { clientOf, insertChunks, readAll, type Db, type ReadValues } from "@/db/client";
 import type { D1Statement } from "@/db/d1/client";
 import { discoveryItems, discoveryVersions } from "@/db/schema";
 import { DAILY_WRITE, UI_WAIT_MS, withLease, writeUnit, type WritePolicy } from "@/db/unit";
-import { applicationProjectionsFor, applicationProjectionsRead, type ApplicationProjection } from "@/modules/applications/public";
+import { applicationProjectionsFor, type ApplicationProjection } from "@/modules/applications/public";
 import { contentVersionsFor, contentVersionsRead, type ContentVersionRow } from "@/modules/collection/public";
 import { allRecordsRead, Records, recordsRead } from "@/modules/legacy/public";
-import { emptyTracking, track as trackIn, trackingRead, Trackings, trackingStatesRead, trackReads, type TrackingChange } from "@/modules/preferences/public";
+import { emptyTracking, track as trackIn, trackingRead, Trackings, trackReads, type TrackingChange } from "@/modules/preferences/public";
 import { Conflict, InvalidAction, uiBusy } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { text } from "@/platform/py/unicode";
@@ -144,7 +144,7 @@ export async function rebuildProjection(db: Db, source: ProjectionSource, send: 
   return items.length + versions.length;
 }
 
-/** No LIMIT: every listing in rank order, for the daily digest and the D18 measurement only. */
+/** No LIMIT: every listing in rank order, for the D18 measurement only. */
 const EVERY = { offset: 0, limit: -1 };
 
 /**
@@ -156,21 +156,11 @@ const EVERY = { offset: 0, limit: -1 };
  */
 export async function listPage(db: Db, now: PyDateTime, page: { offset: number; limit: number }): Promise<PyDict[]> {
   if (!(page.limit >= 1 && page.limit <= MAX_PAGE)) throw new Error(`a page holds 1 to ${MAX_PAGE} listings`);
-  return retried(db, () => rankedThenRows(db, now, page, false, [] as const, () => false)).then(([items]) => items!);
+  return retried(db, () => rankedThenRows(db, now, page));
 }
 
 /** The largest page a page request may ask for (the UI, plan step 11). */
 export const MAX_PAGE = 200;
-
-/**
- * The digest's candidates (plan step 10e2): all of them, ranked in SQL and checked against the TS
- * recompute, read from whole-table reads rather than id lists; `extra` reads go with the ranking, and
- * when `stop` says so from their values (the day's digest already exists) no rows are read at all.
- */
-export function digestCandidates<const R extends readonly Read<unknown>[]>(db: Db, now: PyDateTime, extra: R, stop: (values: ReadValues<R>) => boolean):
-  Promise<[PyDict[] | null, ...ReadValues<R>]> {
-  return retried(db, () => rankedThenRows(db, now, EVERY, true, extra, stop));
-}
 
 async function retried<T>(db: Db, read: () => Promise<T>): Promise<T> {
   for (let attempt = 0; ; attempt++) {
@@ -184,24 +174,16 @@ async function retried<T>(db: Db, read: () => Promise<T>): Promise<T> {
   }
 }
 
-async function rankedThenRows<const R extends readonly Read<unknown>[]>(db: Db, now: PyDateTime, page: { offset: number; limit: number }, candidatesOnly: boolean,
-  extra: R, stop: (values: ReadValues<R>) => boolean): Promise<[PyDict[] | null, ...ReadValues<R>]> {
-  const [state, s, all, ...more] = await readAll(db, [projectionStateRead(db), settingsRead(db), rankedRead(db, now, page), ...extra] as const);
-  if (stop(more as unknown as ReadValues<R>)) return [null, ...more] as unknown as [PyDict[] | null, ...ReadValues<R>];
+async function rankedThenRows(db: Db, now: PyDateTime, page: { offset: number; limit: number }): Promise<PyDict[]> {
+  const [state, s, ranked] = await readAll(db, [projectionStateRead(db), settingsRead(db), rankedRead(db, now, page)]);
   checkState(state);
-  const ranked = candidatesOnly ? all.filter((r) => r.candidate) : all;
   const ids = ranked.map((r) => r.id);
-  // A page names its ids; every candidate is nearly the whole table, read without an id list.
-  const reads = candidatesOnly
-    ? [allRecordsRead(db), contentVersionsRead(db), trackingStatesRead(db), applicationProjectionsRead(db), settingsRead(db)] as const
-    : [...itemReads(db, ids), settingsRead(db)] as const;
-  const [found, contentRows, states, applications, again] = await readAll(db, reads);
+  const [records, contentRows, states, applications, again] = await readAll(db, [...itemReads(db, ids), settingsRead(db)]);
   if (again.revision !== s.revision) throw new ProjectionMismatch("discovery settings changed between the ranking and the rows");
-  const byId = new Map<string, PyDict | null>(found instanceof Map ? found : found.map((item) => [item.str("id"), item]));
-  const rows = ids.map((id) => byId.get(id) ?? (() => { throw new ProjectionMismatch(`record ${id} disappeared between the ranking and the rows`); })());
+  const rows = ids.map((id) => records.get(id) ?? (() => { throw new ProjectionMismatch(`record ${id} disappeared between the ranking and the rows`); })());
   const items = assembleItems(rows, s.settings, contentRows, states, applications, now);
   items.forEach((item, i) => checkRanked(item, isCandidate(item), ranked[i]));
-  return [items, ...more] as unknown as [PyDict[] | null, ...ReadValues<R>];
+  return items;
 }
 
 /**

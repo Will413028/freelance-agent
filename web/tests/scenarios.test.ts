@@ -3,8 +3,6 @@ import { ingestSource, setSourceHealth, sourceStatuses } from "@/modules/collect
 import { readSettings, settingsDict } from "@/modules/discovery/public";
 import { replaceSettings } from "@/services/discovery";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
-import { checkNovelty, claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
-import { createDigest } from "@/services/digest";
 import { feedback, memberVersions, track } from "@/services/discovery";
 import { list } from "./helpers/reference";
 import { identityHash } from "@/platform/py/json";
@@ -31,6 +29,10 @@ const TABLES: [string, string, string][] = [
   ["discovery_settings", "id,revision,settings", "id"],
   ["digest_outbox", "local_date,recipient,snapshot,status,delivery_receipt", "local_date,recipient"],
 ];
+
+// The TS app builds no digest since plan step 10f (D22): Python's digest steps are skipped, every other step compared.
+const DIGEST_OPS = new Set(["digest", "render", "deliver"]);
+const withoutOutbox = (tables: Record<string, unknown[][]>) => Object.fromEntries(Object.entries(tables).filter(([t]) => t !== "digest_outbox"));
 
 const refId = (ref: string | string[]) => (typeof ref === "string" ? ref : identityHash(ref));
 const groupOf = async (key: string, now: PyDateTime) =>
@@ -73,19 +75,9 @@ async function replay(s: Scenario) {
       preferences: async () => settingsDict(await readSettings(db)),
       sources: async () => sourceStatuses(db),
       existing: async () => pySorted(await existingSourceIds(op.source)),
-      digest: async () => (await createDigest(db, op.local_date, op.recipient, now)).snapshot,
-      render: async () => {
-        const snap = (await findDigest(db, op.local_date, op.recipient))!.snapshot;
-        return render(asList(snap.req("items")).map(asDict), snap.dict("sources"), { mode: "sqlite", email: op.email ?? false, counts: snap });
-      },
-      deliver: async () => {
-        const intent = (await findDigest(db, op.local_date, op.recipient))!;
-        const claimed = await claimDigest(db, intent.id);
-        if (claimed === null || op.outcome === "attempted") return claimed?.status ?? null;
-        return (await finishDigest(db, intent.id, op.outcome, op.receipt ?? null)).status;
-      },
     };
-    results.push(await attemptAsync(async () => encode(await run[op.op]())));
+    // Digest steps have no TS counterpart since plan step 10f (D22): recorded as skipped, compared by nobody.
+    results.push(DIGEST_OPS.has(op.op) ? null as unknown as Expect<string> : await attemptAsync(async () => encode(await run[op.op]())));
   }
   const tables: Record<string, unknown[][]> = {};
   for (const [table, columns, order] of TABLES) {
@@ -98,15 +90,19 @@ async function replay(s: Scenario) {
 beforeEach(resetSchema);
 
 describe("store scenarios replay the Python store byte for byte", () => {
+  it("skips only the digest steps, in the one scenario that has them", () => {
+    expect(Object.entries(golden.scenarios).filter(([, sc]) => sc.ops.some((op) => DIGEST_OPS.has(op.op))).map(([n]) => n))
+      .toEqual(["digest_novelty_and_uncertain_delivery"]);
+  });
   for (const [name, scenario] of Object.entries(golden.scenarios)) {
     it(name, async () => {
       const got = await replay(scenario);
       const steps = scenario.ops.map((op, n) => ({ n, op: op.op, want: scenario.results[n], got: got.results[n] }))
-        .filter((s) => JSON.stringify(s.want) !== JSON.stringify(s.got));
+        .filter((s) => !DIGEST_OPS.has(s.op) && JSON.stringify(s.want) !== JSON.stringify(s.got));
       expect(steps).toEqual([]);
-      expect(got.tables).toEqual(scenario.tables);
-      // Every digest was selected through the ledger; it must hold exactly what the snapshots announced.
-      expect(await checkNovelty(db)).toMatchObject({ missing: 0, extra: 0 });
+      // digest_outbox holds only Python's digests: TS writes none.
+      expect(withoutOutbox(got.tables)).toEqual(withoutOutbox(scenario.tables));
+      expect(got.tables.digest_outbox).toEqual([]);
     });
   }
 });

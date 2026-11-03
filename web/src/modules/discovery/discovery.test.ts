@@ -122,8 +122,7 @@ describe("qualification rules", () => {
 // Python iterates identity_keys as a set whose order follows PYTHONHASHSEED; for this shape the
 // Python partition changes between processes (measured: 5 of 10 seeds each way). The port sorts
 // the keys, so the content key ("content:…" < "url:…") always decides first.
-// D18 A3 (plan step 10e2): listings sharing an identity key are no longer merged; the key still
-// enters each listing's novelty pairs, so an announced one suppresses the other (tests/projection.test.ts).
+// D18 A3 (plan step 10e2): listings sharing an identity key are no longer merged.
 describe("grouping keeps every listing on its own", () => {
   const body = "Build an agent integration with API, database, tests and deployment. ".repeat(3);
   const item = (i: number, changes: Record<string, unknown>) => PyDict.of({

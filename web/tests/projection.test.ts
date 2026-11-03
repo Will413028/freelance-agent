@@ -5,7 +5,6 @@ import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, asList, PyDict } from "@/platform/py/value";
 import { crossSourceTitles, feedback, group, listPage, memberVersions, rebuildProjectionInPlace, replaceSettings, track } from "@/services/discovery";
-import { createDigest } from "@/services/digest";
 import { referenceList as list } from "./helpers/reference";
 import { client, db, intercepting, leased, query, resetSchema } from "./helpers/db";
 import { job } from "./helpers/jobs";
@@ -182,36 +181,6 @@ describe("discovery projection (plan step 10e1)", () => {
     await ingestResendBatch(db, [mail("closed", "m-9", { listing_closed: false, deadline: "2026-11-10", title: "AI agent workflow v3" })], ingestNow);
     await expect(feedback(db, key("closed"), memberVersions(g), "skipped", NOWS[0])).rejects.toThrow("請重新載入");
     await expect(group(db, key("missing"), NOWS[0])).rejects.toThrow(key("missing"));
-  });
-
-  it("keeps listings sharing a URL apart, and an announced one suppresses the other (D18 A3; D17 difference: Python merges them)", async () => {
-    process.env.DIGEST_RECIPIENT = "owner@example.invalid";
-    const url = "https://www.freelancer.com/projects/shared-1";
-    await ingestSource(db, "freelancer", ingestNow, [[job({ source: "freelancer", external_id: "a1", url }), null]], () => true, "ok");
-    const first = await createDigest(db, "2026-11-01", "owner@example.invalid", at("2026-11-01T01:00:00Z"));
-    expect(asList(first.snapshot.req("items")).map((i) => asDict(i).str("id"))).toEqual([opportunityId("freelancer", "a1")]);
-    await query("update digest_outbox set status = 'attempted' where id = ?1", [first.id]); // announced, as sent and unknown are
-    await intake([[job({ source: "tasker", external_id: "b1", url }), null]]);
-    const items = await list(db, at("2026-11-02T01:00:00Z"));
-    expect(items.map((i) => i.str("id")).sort()).toEqual([opportunityId("freelancer", "a1"), key("b1")].sort());
-    const second = await createDigest(db, "2026-11-02", "owner@example.invalid", at("2026-11-02T01:00:00Z"));
-    expect(asList(second.snapshot.req("items"))).toEqual([]);
-    expect(second.snapshot.req("suppressed_count")).toBe(2n);
-  });
-
-  it("announces an already-announced listing again when a new content version arrives", async () => {
-    process.env.DIGEST_RECIPIENT = "owner@example.invalid";
-    await ingestResendBatch(db, [mail("v1", "m-1", {})], ingestNow);
-    const first = await createDigest(db, "2026-11-01", "owner@example.invalid", at("2026-11-01T01:00:00Z"));
-    expect(asList(first.snapshot.req("items")).map((i) => asDict(i).str("id"))).toEqual([key("v1")]);
-    await query("update digest_outbox set status = 'attempted' where id = ?1", [first.id]);
-    const unchanged = await createDigest(db, "2026-11-02", "owner@example.invalid", at("2026-11-02T01:00:00Z"));
-    expect(asList(unchanged.snapshot.req("items"))).toEqual([]);
-    await query("update digest_outbox set status = 'attempted' where id = ?1", [unchanged.id]);
-    // Another notification of the same listing with different content: a content version the digest has not announced.
-    await ingestResendBatch(db, [mail("v1", "m-2", { description: "Scope changed: the agent now also needs a billing API." })], ingestNow);
-    const changed = await createDigest(db, "2026-11-03", "owner@example.invalid", at("2026-11-03T01:00:00Z"));
-    expect(asList(changed.snapshot.req("items")).map((i) => asDict(i).str("id"))).toEqual([key("v1")]);
   });
 
   it("counts cross-source title pairs among recent candidates, and those of unknown publication apart", async () => {

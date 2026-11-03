@@ -102,18 +102,18 @@ describe("immutability triggers", () => {
   });
 
   it("keeps digest snapshots immutable and allows only pending→attempted→sent|unknown", async () => {
-    await query("insert into digest_outbox (id, local_date, recipient, snapshot) values ('i1','2026-10-23','r','{}')");
-    await expect(query("update digest_outbox set snapshot='{ }'")).rejects.toThrow("Digest identity and snapshot are immutable");
-    await expect(query("update digest_outbox set status='sent', delivery_receipt='x'")).rejects.toThrow("Unsafe digest state transition");
-    await query("update digest_outbox set status='attempted'");
-    await expect(query("update digest_outbox set status='sent'")).rejects.toThrow("digest_outbox_sent_receipt");
-    await query("update digest_outbox set status='sent', delivery_receipt='receipt'");
-    await expect(query("update digest_outbox set status='attempted'")).rejects.toThrow("Unsafe digest state transition");
+    await leased("insert into digest_outbox (id, local_date, recipient, snapshot) values ('i1','2026-10-23','r','{}')");
+    await expect(leased("update digest_outbox set snapshot='{ }'")).rejects.toThrow("Digest identity and snapshot are immutable");
+    await expect(leased("update digest_outbox set status='sent', delivery_receipt='x'")).rejects.toThrow("Unsafe digest state transition");
+    await leased("update digest_outbox set status='attempted'");
+    await expect(leased("update digest_outbox set status='sent'")).rejects.toThrow("digest_outbox_sent_receipt");
+    await leased("update digest_outbox set status='sent', delivery_receipt='receipt'");
+    await expect(leased("update digest_outbox set status='attempted'")).rejects.toThrow("Unsafe digest state transition");
   });
 
   it("still allows mutable columns to change", async () => {
-    await query("insert into digest_outbox (id, local_date, recipient, snapshot) values ('i1','2026-10-23','r','{}')");
-    await query("update digest_outbox set attempted_at='t'");
+    await leased("insert into digest_outbox (id, local_date, recipient, snapshot) values ('i1','2026-10-23','r','{}')");
+    await leased("update digest_outbox set attempted_at='t'");
     await seedIntent();
     await leased("update submission_intents set reconciliation='{}'");
   });

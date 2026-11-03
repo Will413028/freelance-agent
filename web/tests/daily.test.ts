@@ -1,15 +1,13 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { enabledSources, FAILURE_REASON, RUNNERS, runSource, setSourceHealth, sourceStatuses, type SourceDetail } from "@/modules/collection/public";
-import { findDigest, getDailyRun } from "@/modules/notifications/public";
-import { createDigest } from "@/services/digest";
-import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
+import { enabledSources, FAILURE_REASON, RUNNERS, runSource, sourceStatuses } from "@/modules/collection/public";
+import { getDailyRun } from "@/modules/notifications/public";
+import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, PyDict } from "@/platform/py/value";
 import { beginDailyRun, finishDaily, syncDailySource } from "@/services/daily";
 import { syncInOrder } from "@/workflows/in-order";
-import { db, query, resetSchema } from "./helpers/db";
-import { fixture, untag, type Tagged } from "./helpers/golden";
-import { ingestOne } from "./helpers/intake";
+import { db, leased, query, resetSchema } from "./helpers/db";
+import { fixture } from "./helpers/golden";
 
 // Plan step 5: the daily entry claims daily_runs first; a second trigger the same day returns.
 const at = (h: number, m = 0) => new PyDateTime(2026, 10, 24, h, m, 0, 0, 0n);
@@ -138,49 +136,39 @@ describe("source details", () => {
   });
 });
 
-// Plan step 10b: the finished run and its digest against notifications/daily.py run_daily, with the
-// same injected source results (gen_golden.py daily_run_golden).
-type DailyCase = { source: Tagged; job: Tagged; now: string; status: string; started_at: string; finished_at: string; result: string; snapshot: string };
-const dailyCases = fixture<{ daily_run: Record<string, DailyCase> }>("golden.json").daily_run;
+// Plan step 10f (D22): the run records its sources and builds no digest. The result keeps the keys
+// a Python rollback reads (notifications/store.py reads source_details) and never anything of a digest.
+describe("daily run without a digest", () => {
+  const USAGE = ["d1_requests", "d1_rows_written", "lease_wait_ms", "lease_timeouts", "lease_lost", "d1_errors", "lost_steps", "read_retries"];
 
-describe("daily run with digest replays run_daily", () => {
-  it.each(Object.entries(dailyCases))("%s", async (name, c) => {
-    process.env.DIGEST_RECIPIENT = " Owner@Example.invalid ";
-    const now = fromisoformat(c.now);
-    await ingestOne(db, untag(c.job), null, now);
-    await setSourceHealth(db, "freelancer", "ok");
-    if (name === "reused") await createDigest(db, "2026-09-28", "owner@example.invalid", now);
-    const begin = await beginDailyRun(db, now);
-    expect([begin.outcome, begin.reused]).toEqual(["claimed", name === "reused"]);
-    const source = untag(c.source);
-    const details = source === null ? null : Object.fromEntries(Object.entries(JSON.parse(encode(source)) as Record<string, SourceDetail>)
-      .filter(([k]) => k !== "status" && k !== "reason"));
-    expect((await finishDaily(db, begin.localDate, begin.startedAt!, details)).status).toBe(c.status);
-    const row = (await getDailyRun(db, "2026-09-28", "owner@example.invalid"))!;
-    const intent = (await findDigest(db, "2026-09-28", "owner@example.invalid"))!;
+  it("records the sources, D18's measurement and the run's usage, and writes no digest", async () => {
+    const begin = await beginDailyRun(db, at(1));
+    const ok = await syncDailySource(db, "tasker", { tasker: async () => PyDict.of({ status: "ok", seen: 2n, jobs: 1n }) });
+    expect((await finishDaily(db, begin.localDate, begin.startedAt!, { tasker: ok })).status).toBe("complete");
+    const row = (await getDailyRun(db, "2026-10-24", "owner@example.invalid"))!;
     const result = asDict(row.result);
-    // D1 usage is TS-only (plan step 4e); the rest is run_daily's result.
-    for (const key of ["d1_requests", "d1_rows_written", "lease_wait_ms", "lease_timeouts", "lease_lost", "d1_errors", "lost_steps", "read_retries", "cross_source_title_pairs", "cross_source_unknown_published"]) {
-      expect(result.has(key)).toBe(true);
-      result.delete(key);
-    }
-    if (result.has("intent_id")) {
-      expect(result.req("intent_id")).toBe(intent.id);
-      result.set("intent_id", "INTENT");
-    }
-    // finished_at is the actual finish time in TS (Python reuses the start time).
-    expect([row.status, row.startedAt]).toEqual([c.status, c.started_at]);
+    expect([...result.keys()]).toEqual(["status", "local_date", "source_status", "source_reason", "source_details",
+      "cross_source_title_pairs", "cross_source_unknown_published", ...USAGE]);
+    expect(encode(result.req("source_details"))).toBe('{"status": "ok", "reason": null, "tasker": {"status": "ok", "seen": 2, "jobs": 1}}');
+    expect([result.req("status"), result.req("source_status")]).toEqual(["collected", "ok"]);
     expect(row.finishedAt! > row.startedAt).toBe(true);
-    expect(encode(result)).toBe(c.result);
-    expect(encode(intent.snapshot)).toBe(c.snapshot);
+    expect(await query("select count(*) as n from digest_outbox")).toEqual([{ n: 0 }]);
   });
 
-  it("finishes as daily_processing_failed when the digest cannot be built, never leaving it running", async () => {
+  it("marks the day failed with the sources' reason when one failed", async () => {
     const begin = await beginDailyRun(db, at(1));
-    await query("insert into digest_outbox (id, local_date, recipient, snapshot) values ('x', '2026-10-24', 'owner@example.invalid', 'not json')");
-    expect((await finishDaily(db, begin.localDate, begin.startedAt!, {})).status).toBe("failed");
-    const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
-    expect(encode(row!.result)).toMatch(/^\{"status": "failed", "local_date": "2026-10-24", "reason": "daily_processing_failed", "cross_source_title_pairs": 0, "cross_source_unknown_published": 0, "d1_requests": \d+, "d1_rows_written": \d+, "lease_wait_ms": 0, "lease_timeouts": 0, "lease_lost": 0, "d1_errors": \{\}, "lost_steps": 0, "read_retries": 0\}$/);
+    const down = await syncDailySource(db, "remotive", { remotive: async () => { throw new Error("down"); } });
+    expect((await finishDaily(db, begin.localDate, begin.startedAt!, { remotive: down })).status).toBe("failed");
+    const result = asDict((await getDailyRun(db, "2026-10-24", "owner@example.invalid"))!.result);
+    expect([result.req("status"), result.req("source_status"), result.req("source_reason")]).toEqual(["source_failed", "failed", "one_or_more_sources_failed"]);
+  });
+
+  it("records a failed measurement as null and still finishes the run", async () => {
+    const begin = await beginDailyRun(db, at(1));
+    await leased("drop table discovery_versions"); // the measurement's ranking reads it
+    expect((await finishDaily(db, begin.localDate, begin.startedAt!, {})).status).toBe("complete");
+    const result = asDict((await getDailyRun(db, "2026-10-24", "owner@example.invalid"))!.result);
+    expect(result.req("cross_source_title_pairs")).toBeNull();
   });
 
   it("executes the date of its own claim: a run that starts the next day never runs the day it was queued for", async () => {
@@ -189,6 +177,6 @@ describe("daily run with digest replays run_daily", () => {
     const late = await beginDailyRun(db, new PyDateTime(2026, 10, 25, 1, 5, 0, 0, 0n));
     expect([late.outcome, late.localDate]).toEqual(["claimed", "2026-10-25"]);
     expect((await beginDailyRun(db, at(4))).outcome).toBe("already_run");
-    expect((await query("select local_date from digest_outbox order by local_date")).map((r) => r.local_date)).toEqual(["2026-10-24"]);
+    expect((await query("select local_date from daily_runs order by local_date")).map((r) => r.local_date)).toEqual(["2026-10-24", "2026-10-25"]);
   });
 });

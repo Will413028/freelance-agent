@@ -1,37 +1,22 @@
 import { randomBytes } from "node:crypto";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { ingestSource, type Listing } from "@/modules/collection/public";
-import { groupItems, isCandidate } from "@/modules/discovery/public";
-import { backfillNovelty, noveltyRows } from "@/modules/notifications/public";
-import { selectUnseen } from "@/modules/notifications/outbox";
+import { groupItems, readSettings } from "@/modules/discovery/public";
 import { PyDateTime } from "@/platform/py/datetime";
-import { encode, loadsDict } from "@/platform/py/json";
-import { asDict, asList, PyDict, TupleSet } from "@/platform/py/value";
-import { createDigest } from "@/services/digest";
+import { PyDict } from "@/platform/py/value";
 import { listPage, replaceSettings } from "@/services/discovery";
 import { referenceList as list } from "./helpers/reference";
-import { readSettings } from "@/modules/discovery/public";
 import { client, db, query, resetSchema } from "./helpers/db";
 import { job } from "./helpers/jobs";
 
-// Cost guard at production scale. On 2026-10-25 createDigestIn ran past 10 minutes on the
-// production copy: unseen() rebuilt the seen-id set for every candidate and groupItems
-// re-normalized both jobs' fields for every member pair (Python does the same, in C). The golden
-// tests prove the output on small data; this bounds the pure, CPU-bound phases on
-// production-sized data, so a port that is correct but quadratic fails in CI instead of on
-// Vercel's 300 s step limit. Database time is left out of the tight bounds because it is noisy.
-// Scale: production had 2,226 opportunities and 37 digests on 2026-10-23; this uses 2,500 and 60.
-// Measured on an M-series Mac: grouping about 1.4 s, selection about 0.7 s (with the
-// per-candidate rebuild the selection took over 20 s). Since plan step 10b2 the digest reads the
-// announced pairs from the digest_novelty ledger; the history here is backfilled into it, and part
-// of it announced real candidates (some since changed) so the ledger lookup has to suppress.
-const OPPORTUNITIES = 2_500, PRIOR_DIGESTS = 60, ITEMS_PER_DIGEST = 100, KEYS_PER_ITEM = 6;
+// Cost guard at production scale (production had 2,226 opportunities on 2026-10-23; this uses
+// 2,500): the CPU-bound grouping and the projection's page read and settings rewrite, so a port
+// that is correct but quadratic fails in CI instead of on Vercel's 300 s step limit. The digest's
+// selection and build were measured here until plan step 10f removed the digest (D22).
+const OPPORTUNITIES = 2_500;
 const now = new PyDateTime(2026, 10, 26, 1, 0, 0, 0, 0n);
 const hex = (n: number) => randomBytes(n).toString("hex");
 let items: PyDict[] = [];
-let prior: string[] = [];
-let candidates: PyDict[] = [];
-const scanned = () => new TupleSet(prior.flatMap((text) => noveltyRows(loadsDict(text))));
 
 const timed = <T>(fn: () => T): [T, number] => {
   const started = Date.now();
@@ -43,60 +28,25 @@ beforeAll(async () => {
   await resetSchema();
   const bySource = new Map<string, Listing[]>([["freelancer", []], ["tasker", []]]);
   for (let i = 0; i < OPPORTUNITIES; i++) {
-    // Each block of five listings shares a URL and title across two sources, so groups form; one
-    // in five carries a different budget, so some merges are refused after the pair checks.
+    // Each block of five listings shares a URL and title across two sources; one in five carries a different budget.
     const block = i - (i % 5), source = i % 2 ? "tasker" : "freelancer";
     bySource.get(source)!.push([job({ external_id: `s${i}`, url: `https://www.freelancer.com/projects/scale-${block}`, title: `AI agent workflow ${block}`,
       description: `Build an agent API ${i} ${hex(8)}`, source, ...(i % 5 === 4 ? { budget_max: 9000n } : {}) }), null]);
   }
   // 1,250 new records per source: more than one write batch, so this also loads through the split.
-  for (const [source, items] of bySource) {
-    await ingestSource(db, source, now, items, () => true, null);
+  for (const [source, listed] of bySource) {
+    await ingestSource(db, source, now, listed, () => true, null);
   }
   items = await list(db, now);
-  candidates = groupItems(items).filter(isCandidate);
-  // Prior digests only feed novelty suppression, which reads their items' novelty_keys. The first
-  // 300 candidates were announced; every third of them with a fingerprint that has since changed.
-  const announced = candidates.slice(0, 300).map((item, n) => PyDict.of({ novelty_keys: asList(item.req("novelty_keys")).map((k) => {
-    const [key, fp] = asList(k).map(String);
-    return [key, n % 3 === 0 && key === item.str("id") ? hex(32) : fp];
-  }) }));
-  prior = Array.from({ length: PRIOR_DIGESTS }, (_, d) => encode(PyDict.of({
-    items: [...Array.from({ length: ITEMS_PER_DIGEST }, () => PyDict.of({ novelty_keys: Array.from({ length: KEYS_PER_ITEM }, () => [hex(32), hex(32)]) })),
-      ...announced.filter((_, n) => n % PRIOR_DIGESTS === d)],
-  })));
 }, 600_000);
 
-describe("digest at production scale", () => {
+describe("grouping at production scale", () => {
   it("groups production-sized listings within 10 s", () => {
     const [groups, ms] = timed(() => groupItems(items));
     process.stderr.write(`groupItems: ${items.length} items → ${groups.length} groups in ${ms} ms\n`);
+    expect(groups).toHaveLength(items.length); // D18 A3: one listing per group
     expect(ms).toBeLessThan(10_000);
   });
-
-  it("selects unseen candidates against 60 days of history within 5 s", () => {
-    const seen = scanned();
-    const [fresh, ms] = timed(() => selectUnseen(candidates, seen));
-    process.stderr.write(`selectUnseen: ${candidates.length} candidates, ${fresh.length} unseen in ${ms} ms\n`);
-    expect(fresh.length).toBeGreaterThan(0);
-    expect(fresh.length).toBeLessThan(candidates.length);
-    expect(ms).toBeLessThan(5_000);
-  });
-
-  it("builds the whole digest from the ledger well inside the 300 s step limit, choosing what a full scan would", async () => {
-    for (const [n, text] of prior.entries()) {
-      await query("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values (?1, ?2, 'owner@example.invalid', ?3, 'sent', 'r')",
-        [`prior-${n}`, `prior-${n}`, text]);
-    }
-    const digests = (await query("select id, snapshot from digest_outbox")) as { id: string; snapshot: string }[];
-    expect(await backfillNovelty(db, digests)).toBeGreaterThanOrEqual(PRIOR_DIGESTS * ITEMS_PER_DIGEST * KEYS_PER_ITEM);
-    const [digest, ms] = await (async () => { const s = Date.now(); const d = await createDigest(db, "2026-10-26", "owner@example.invalid", now); return [d, Date.now() - s] as const; })();
-    process.stderr.write(`createDigest: ${ms} ms\n`);
-    const ids = (list: PyDict[]) => list.map((item) => item.str("id"));
-    expect(ids(asList(digest.snapshot.req("items")).map(asDict))).toEqual(ids(selectUnseen(candidates, scanned())));
-    expect(digest.snapshot.req("suppressed_count")).toBeGreaterThan(0n);
-    expect(ms).toBeLessThan(60_000);
-  }, 120_000);
 });
 
 describe("discovery projection at production scale (plan step 10e1)", () => {

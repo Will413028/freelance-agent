@@ -172,16 +172,6 @@ export function negate(v: PyValue): PyValue {
   throw new PyError("TypeError", "bad operand type for unary -");
 }
 
-/** The ids `seen` holds; unseen() needs them for every candidate, so a caller looping computes them once. */
-export const seenIds = (seen: TupleSet) => new Set([...seen.values()].map(([id]) => id));
-
-export function unseen(item: PyDict, seen: TupleSet, knownIds: Set<string> = seenIds(seen)): boolean {
-  const members = item.has("members") ? asList(item.get("members")!).map(asDict) : [item];
-  const changed = members.some((m) => knownIds.has(m.str("id")) && asList(m.has("observation_fingerprints")
-    ? m.get("observation_fingerprints")! : [m.req("fingerprint")]).some((fp) => !seen.has([m.str("id"), String(fp)])));
-  return changed || !novelty(item).intersects(seen);
-}
-
 /** The discovery API does not expose proposal or CRM payloads. */
 export function publicItem(item: PyDict): PyDict {
   const result = new PyDict();

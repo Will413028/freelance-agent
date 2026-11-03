@@ -1,6 +1,6 @@
 # 搬離 VM：改寫成 Next.js 全端並部署到 Vercel
 
-**Goal：** 正式環境不再依賴 `oci-a1`。收案、篩選與分組、每日摘要寄送、收藏／略過、投案、客戶與草稿工作台，全部由同一個 Next.js（TypeScript）app 提供，部署在 Vercel，資料放 Cloudflare D1（D19）。Python backend、Huey、Compose、舊 `frontend/` 與 `contracts/` 都已刪除。驗收見步驟 14。
+**Goal：** 正式環境不再依賴 `oci-a1`。收案、篩選與排名、網頁上看職缺與收藏／略過，由同一個 Next.js（TypeScript）app 提供，部署在 Vercel，資料放 Cloudflare D1（D19）。不建每日摘要、不寄信（D22，Will 2026-11-03）；投案、客戶與草稿工作台延後（見範圍）。Python backend、Huey、Compose、舊 `frontend/` 與 `contracts/` 都已刪除。驗收見步驟 14。
 
 **上層：** 主清單見本機個人脈絡檔（`AGENTS.local.md`）。本計畫暫代主計畫，所以保留下面的「全域約束與完成定義」。
 
@@ -20,7 +20,7 @@
   - 離線 demo 不讀憑證、不連外、不寄信。
   - 不新增自動提案或自動應徵。
   - email 內文與 token 不寫 log。
-- **切換前 Python／VM 是唯一對外寄信、寫正式資料的系統。** TS 版在 shadow 期（影子期）只寫 shadow DB。Vercel production env 裡沒有任何寄送憑證，這是結構性防護，不是只靠程式碼守住；驗收方式是 `vercel env ls production` 的 key 名稱清單。唯一例外（D14，Will 2026-10-25）：讀 Resend Receiving 的 `RESEND_API_KEY`。Resend 沒有唯讀 key，這把 `full_access` key 技術上能寄信與管理帳號；對它的防護是程式加測試：`ReceivingClient` 只送 GET，且每個請求先過 `assertReceivingUrl`（只允許 `https://api.resend.com/emails/receiving` 底下），`web/src` 裡只有 `receiving.ts` 寫到 Resend 的網址。驗收改成精確的 key 名稱白名單：允許 `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN`（4e4 起取代 `DATABASE_URL`）、`CRON_SECRET`、`DIGEST_RECIPIENT`、`PORTFOLIO_CATEGORY_PROJECTS`、`RESEND_API_KEY`、`RESEND_INBOX`，其他名稱（含任何 SMTP 相關的 key）出現就不通過。
+- **切換前 Python／VM 是唯一寫正式資料的系統；沒有任何系統寄摘要信（D22：Python 自 2026-11-03 起 `live_send: false`，TS 不建摘要）。** TS 版在 shadow 期（影子期）只寫 shadow DB。Vercel production env 裡沒有任何寄送憑證，這是結構性防護，不是只靠程式碼守住；驗收方式是 `vercel env ls production` 的 key 名稱清單。唯一例外（D14，Will 2026-10-25）：讀 Resend Receiving 的 `RESEND_API_KEY`。Resend 沒有唯讀 key，這把 `full_access` key 技術上能寄信與管理帳號；對它的防護是程式加測試：`ReceivingClient` 只送 GET，且每個請求先過 `assertReceivingUrl`（只允許 `https://api.resend.com/emails/receiving` 底下），`web/src` 裡只有 `receiving.ts` 寫到 Resend 的網址。驗收改成精確的 key 名稱白名單：允許 `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN`（4e4 起取代 `DATABASE_URL`）、`CRON_SECRET`、`DIGEST_RECIPIENT`（D22 後只當 `daily_runs` 的鍵，不寄信）、`PORTFOLIO_CATEGORY_PROJECTS`、`RESEND_API_KEY`、`RESEND_INBOX`、`WEB_WRITES`（D23，切換時才設），其他名稱（含任何 SMTP 相關的 key）出現就不通過；切換（步驟 13）也不加寄送憑證。
 - **Workflow step 的輸入輸出只放 ID、計數與狀態。** 信件正文、職缺內文與憑證只在 step 內讀寫 DB，因為 Vercel Workflows 會記錄每個 step 的輸入、輸出與錯誤（[Workflows](https://vercel.com/docs/workflows)）。
 - 憑證只放 Vercel 的 Sensitive Environment Variables 或本機 `secrets/`。Will 存好後回 `done`，agent 只看 key 名稱，不讀值。
 - 每次部署到 Vercel 正式專案、每次改 VM 上的設定，都要 Will 先授權。preview 部署不算。
@@ -32,7 +32,7 @@
 
 ## 前提（開工時核對過，2026-10-23）
 
-- **會被取代的既有部署是否在線：在線。** `oci-a1` 每天 09:00 Asia/Taipei 收案並寄出摘要。本 session 唯讀查正式 DB 量到：2026-10-23 的 `daily_runs` 是 `failed`（來源部分失敗），`delivery_status: sent`。
+- **會被取代的既有部署是否在線：在線。** `oci-a1` 每天 09:00 Asia/Taipei 收案；2026-11-03 起不再寄摘要（D22：`worker.json` 的 `live_send` 改成 `false`、拿掉 `smtp_config`，備份 `worker.pre-nosend-20261103.json`，worker 15:5x 重啟；摘要照建、停在 `pending`；回滾是複製備份回去並 `restart worker`）。證據（2026-11-03 量到，只看鍵名與布林值，不印值）：容器內 `DailySettings` 驗證通過、`live_send in container: False`；`docker compose ps` 顯示 worker `Up 31 seconds (healthy)`，api、web 未動。待查：11-04 當天 `digest_outbox` 那列停在 `pending`（和 4e4 驗收一起查，見進度表第 4e 列）。本 session 唯讀查正式 DB 量到：2026-10-23 的 `daily_runs` 是 `failed`（來源部分失敗），`delivery_status: sent`。
   - 會改到正式資料、部署或設定的步驟（4c、6–10 的 shadow 部署、12、13）都附回滾、相容性窗口與資料搬移。
   - 只在本機、分支或 preview 上的步驟，回滾就是 revert。
 - Will 選了 C：Next.js 全端改寫並部署到 Vercel，不採保留 Python 換主機或容器平台。（來源：對話，2026-10-23；已確認）
@@ -44,7 +44,7 @@
   - Instant Rollback 會恢復舊 deployment 的 cron 定義。
   - Hobby 限個人或非商業用途。
 - Vercel Authentication（All Deployments）各方案都有，可以把正式網址也限定成 Vercel 帳號登入才能看。（來源：[Deployment Protection](https://vercel.com/docs/deployment-protection)，2026-10-23 兩位 subagent 各自查文件；未在帳號上驗證 → spike 1a）
-- **正式寄送通道是 Gmail SMTP（已確認，量到）。** 2026-10-23 唯讀查正式 DB：最近 3 天 `digest_outbox.delivery_receipt` 的前綴都是 `smtp-accepted`，這個字串只有 `notifications/gmail_smtp.py:21` 會寫入；接線在 `bootstrap/jobs.py:17-24`。
+- **（D22 前的事實，保留為紀錄）正式寄送通道是 Gmail SMTP（已確認，量到）。** 2026-10-23 唯讀查正式 DB：最近 3 天 `digest_outbox.delivery_receipt` 的前綴都是 `smtp-accepted`，這個字串只有 `notifications/gmail_smtp.py:21` 會寫入；接線在 `bootstrap/jobs.py:17-24`。
 - 今天的收案約 5 分鐘：27 個來源的 `source_health.checked_at` 從 01:01:02 到 01:05:56 UTC（量到，只有今天一個樣本，不含寄信時間）。
 - 所有 connector 只用 Python 標準函式庫。（來源：`inventory-sources.md` §0；讀程式得出）
 - 雜湊點有 131 行命中（`rg -n "sha256|json.dumps" backend/src | wc -l`，subagent 量到）。各處的 `ensure_ascii` 與 separators 不一致，例如：
@@ -73,10 +73,11 @@
 
 | 不變量 | 依賴它的機制 |
 |---|---|
-| 同一天、同一收件者最多一份摘要 intent；snapshot 寫入後不可變 | `digest_outbox`（`001_sqlite.sql:28`、trigger `digest_immutable` :41）、`daily_runs` 主鍵 `(local_date, recipient)`、`notifications/daily.py`、`notifications/scheduler.py`；TS：`daily` 工作流程、D1（SQLite）唯一約束與 trigger |
-| attempted／unknown 的寄送不自動重試，只能人工核對 | `digest_outbox` 狀態機（`inventory-surface.md` §5c）、`notifications/gmail_smtp.py`、`notifications/scheduler.py:20-39` 的 `dispatch`、`bootstrap/recovery.py`；TS：寄送 step 的重試次數固定為 0 |
-| 已有任何 daily run 就不重新呼叫來源或重寄；過期日期不執行 | `scheduler.daily_tick`（`docs/design.md:60`）；TS：cron handler 入口的 `daily_runs` claim。這條同時擋住 Vercel cron 重複觸發 |
-| 同一時間只有一個 writer 寫正式資料、對外寄信 | Huey 單一 consumer 與 `queue.lock`（`bootstrap/queue.py:24`）、SQLite `BEGIN IMMEDIATE`；TS（4e2b 起，D20-B）：`daily_runs` row claim 加 `writer_lease` 租約與 fencing token（`web/src/db/unit.ts`；租約表的寫入 batch 必須以守衛開頭，D1 client 拒送沒有守衛的，`web/src/db/d1/guard.ts`）；切換程序（步驟 13） |
+| （Python 側；TS 自 10f 起不建摘要，D22）同一天、同一收件者最多一份摘要 intent；snapshot 寫入後不可變；歷史 `digest_outbox` 列照搬保留 | `digest_outbox`（`001_sqlite.sql:28`、trigger `digest_immutable` :41）、`daily_runs` 主鍵 `(local_date, recipient)`、`notifications/daily.py`、`notifications/scheduler.py`；TS（10f 起）：不寫 `digest_outbox`，保留它的唯一約束與 `digest_immutable` trigger 守歷史列 |
+| （Python 側；D22 後沒有寄送）attempted／unknown 的寄送不自動重試，只能人工核對 | `digest_outbox` 狀態機（`inventory-surface.md` §5c）、`notifications/gmail_smtp.py`、`notifications/scheduler.py:20-39` 的 `dispatch`、`bootstrap/recovery.py`；TS：10f 起沒有寄送程式 |
+| TS 不寄任何信（D22） | `web/package.json` 沒有 `nodemailer`（10f 刪除）；`rg -n "smtp|nodemailer|sendmail" web/src` 沒有命中；env 白名單（全域約束）；`receiving.ts` 只送 GET（D14） |
+| 已有任何 daily run 就不重新呼叫來源；過期日期不執行 | `scheduler.daily_tick`（`docs/design.md:60`）；TS：cron handler 入口的 `daily_runs` claim。這條同時擋住 Vercel cron 重複觸發 |
+| 同一時間只有一個 writer 寫正式資料 | Huey 單一 consumer 與 `queue.lock`（`bootstrap/queue.py:24`）、SQLite `BEGIN IMMEDIATE`；TS（4e2b 起，D20-B）：`daily_runs` row claim 加 `writer_lease` 租約與 fencing token（`web/src/db/unit.ts`；租約表的寫入 batch 必須以守衛開頭，D1 client 拒送沒有守衛的，`web/src/db/d1/guard.ts`）；切換程序（步驟 13） |
 | 草稿版本、submission 與其事件不可修改、不可刪除 | `draft_revision_immutable`／`draft_revision_retained`／`submission_immutable`／`submission_event_immutable`／`submission_event_retained`（`001_sqlite.sql:192-224`）；TS：同樣的 SQLite trigger（`RAISE(ABORT, …)`），`check-storage-triggers` 每次執行檢查它們還在 |
 | 參與雜湊或 snapshot 的欄位逐位元保存 | `opportunities.item`、`digest_outbox.snapshot`、`proposal_draft_revisions`、`submission_intents` 的 snapshot；TS：這些欄位存 `text`，不經 JSON 函式改寫；序列化集中在 `web/src/platform/py/json.ts` |
 | （D17，2026-10-26 起只限 v1 雜湊邊界：canonical JSON、opportunity id、fingerprint、receipt id、novelty key、核准雜湊，以及產生它們輸入的解析，到 D6 窗口結束；其他程式改原生，不再以 Python 輸出為規格）規格是正式映像的 CPython 3.13.15，不只是 Python 原始碼：`html.parser`、`fromisoformat`、`urlsplit` 在 3.13.13 與 3.13.15 之間行為不同（2026-10-24 量到） | `deploy/backend.Dockerfile` 釘 `python:3.13.15-slim`（2026-10-24 Will 決定；執行中的 `d994cd2` 映像本來就是 3.13.15，下次重建才生效）；TS：`web/src/platform/py/*.ts` 註明的版本、`gen_golden.py` 開頭的版本檢查、本機 `backend/.venv`（3.13.15）。要升 Python 時，Dockerfile、`gen_golden.py` 的版本檢查、本機 venv 一起改，並用新版重跑 `gen_golden.py` 與差異 |
@@ -106,20 +107,22 @@
   - D1（SQLite 方言）schema 與版本化 migration（只經 `scripts/migrate.ts` 套用）。
   - 27 個正式啟用的來源。
   - 每日排程與每個來源各跑一次（fan-out）。
-  - 摘要建置與寄送。
-  - 收藏／略過、設定、投案、客戶、模板與草稿工作台。
-  - 離線 demo。
+  - 網頁前端第一版（D22）：職缺清單分頁、單筆詳情、收藏／略過／想接的回饋、篩選設定。
   - 每日副本管道與 shadow 比對器。
   - 正式 SQLite → D1 的一次性匯入（`import-copy`），與切換回滾用的 D1 → SQLite 反向腳本。
   - CI 與模組邊界檢查、切換，以及刪除 Python、Compose、舊前端。
 - **不做：**
+  - 每日摘要建置與寄送（D22，Will 2026-11-03：「不需要摘要，也不要寄送 email，我先只要有網頁前端可以看就好」）。已寫好的 TS 摘要、已通知帳本、寄送與 replay 在 10f 刪除；歷史 `digest_outbox` 列照搬保留（`AGENTS.md`：歷史 outbox 資料保留）。
   - Submission 對外送出（Email／Freelancer）的程式改寫，因為通道未配置（`docs/compose.md:64`）。資料表與歷史會搬（D7）。
   - Legacy AI 擬稿、Antigravity、舊 PG adapter，因為只有 legacy 測試在用（`inventory-surface.md` §7）。資料搬，程式不改寫。
   - Indeed、Guru，因為正式未啟用。
   - 修 2026-10-16 起的來源失敗，那是既有缺陷，另開工作。
 - **延後：**
+  - 前端的投案紀錄、客戶、模板與草稿工作台，以及離線 demo（觸發條件：Will 要求；D22 只要求看清單與回饋）。資料表與歷史照搬。Will 2026-11-03 接受切換後這些功能暫時沒有入口（D23）。
+  - `DIGEST_RECIPIENT` 只當 `daily_runs` 主鍵的一部分（10f 起）：回滾窗口內 Python 的 `claim_daily_run` 用 `(local_date, recipient)` 判斷當天跑過沒，反向腳本寫回的列必須同一個鍵。觸發條件：D6 窗口結束；處置：鍵改成只有 `local_date`（或固定值）、拿掉這個 env 名稱，`notifications` 模組併進排程。
+  - 重新加回摘要或通知（觸發條件：Will 要求；從 git 歷史的 10b–10c 與 PR #5 的 `76cd816` 恢復，寄送通道重新決定，D9 已被 D22 取代）。
   - Submission 送出改寫（觸發條件：Will 決定要配置 Email 或 Freelancer 通道）。
-  - VM 上本專案資源的退役與 SQLite 檔刪除（觸發條件：D6 窗口結束，且期間每天的自然排程都寄出）。
+  - VM 上本專案資源的退役與 SQLite 檔刪除（觸發條件：D6 窗口結束，且期間每天的自然排程都完成收案）。
   - Indeed、Guru 接入（觸發條件：`platform-connectivity.md` 把它們改成可啟用）。
   - 被 Vercel 出口 IP 擋下的來源（觸發條件：spike 1e 量到被擋；處置見步驟 8 的停止條件）。
 
@@ -421,6 +424,7 @@
     - 記：`readNotification` 對每筆職缺跑一次 `qualify` 並丟掉結果，只因 Python 的 `preview()` 會算，算的時候丟例外就讓整封信變 rejected（stage template）。切換前必須一致；D6 後併入下面步驟 14 的 9a 照抄一起處理。
 
 - [ ] **10. 摘要建置與寄送路徑（shadow 只建不寄）**（被擋於：步驟 9、D9）
+  - **2026-11-03 起被 D22 取代**（Will：不建摘要、不寄信）：10a（來源結果）與 10e（投影）保留並繼續；10b、10b2、10c 的程式由新的 10f 刪除，下面的實作紀錄保留為歷史；10d 取消；驗收改成只看 10a、10e、10f。
   - 範圍：
     - `daily_runs` claim 與 `digest_outbox` 狀態機。
     - 摘要建置、寄送（D9 選的通道）、MIME 預覽 sha256 校驗（`bootstrap/jobs.py:21-24`）。
@@ -536,71 +540,101 @@
               - 寫入 snapshot 的 `insertDigest` 從 4e2a 起就沒改過，不是 10e2 造成的。正式 shadow 每天約 55 筆、約 225 KB。
               - 上限約是 420 筆新職缺（2 MB ÷ 4.7 KB）。超過時當天建摘要失敗、記 `daily_processing_failed`，照規範不自動重試。
               - 可能觸發的情境：新來源第一次上線、連續幾天沒建摘要後累積、切換（步驟 13）的第一天。
-              - 待 Will 決定（記在 Pending）：snapshot 分段存、壓縮存，或限制每份摘要的筆數並把其餘留到隔天。
+              - D22 後不再適用：TS 不建摘要（10f 刪除）。Python 的 SQLite 沒有這個上限。
             - 量測期間寫了兩次種子資料：第一次量測腳本在建摘要時中斷，所以重灌一次，共 24,792 列。之後改成只讀不寫的量測（0 列）。當天（UTC）帳號累計推估約 7.5 萬列，沒有再寫。
           - 未驗證：
             - 真實副本上的 replay：部署到 shadow 後由每天的 after job 跑。
             - iad1 的耗時：部署後由每日執行的 step 耗時量。
-    - 10d 受保護的操作頁（被擋於：步驟 11 的 Origin 檢查與 body 上限）：`/ops/recovery`（列出隔離信件與卡住的 `running`；把一封 rejected 標回 `retry_pending`，取代 `bootstrap/recovery.py`）、`/ops/digest`（預覽 MIME 與 sha256，帶相符的 sha256 才寄既有 `pending`，取代 `gmail_smtp_cli`）。憑證只在 Vercel，不複製到本機，所以用頁面不用本機 script（盤點 §4 已定）。驗收：`retry_mail` 的 Python 案例 TS 版、sha256 不符拒寄、跨來源 Origin 被擋。mutation：拿掉 sha256 比對，測試要失敗。
+    - 10f 刪除 TS 摘要與寄送（D22，2026-11-03 新增；疊在 10e2 之後；合併等 4e4b）：
+      - 範圍（舊實作就是規格，每項寫去向）：
+        - 刪除：`services/digest.ts` 的 `createDigest`、`checkLedger`、`rebuildNovelty`；`modules/notifications/` 的 digest（render）、outbox（`insertDigest`、`selectUnseen`、帳本）、delivery（組信、`deliver`）；`platform/smtp.ts` 與 `nodemailer` 依賴；`verify/replay.ts`、`scripts/replay-digest.ts`、`scripts/check-novelty.ts`；`discovery/rules.ts` 的 `unseen`／`seenIds`／`novelty` 與只給摘要用的 `publicItem` 欄位（若 UI 不用）；`tests/delivery.test.ts`、`novelty.test.ts`、摘要相關的 golden 比對與 `scale.test.ts` 的摘要段；`groupItems`／`asGroup` 只留 UI 需要的部分。
+        - 改寫：`services/daily.ts` 的 `finishDaily` 只記來源結果、D18 量測與 D1 用量，`daily_runs.result` 的 `status` 依來源結果決定，不再有 `intent_id`、`candidates`、`delivery_status`；workflow 收尾 step 照舊 `maxRetries = 0`。
+        - schema：`digest_novelty` 刪除（新 migration：租約下 `DROP TABLE`；`DERIVED_TABLES` 拿掉；匯入不再重建帳本）。`digest_outbox` 保留（歷史資料照搬，TS 不再寫入；不可變 trigger 保留）。
+        - VM shadow after job：拿掉 replay 與 check-novelty，只留 `check-storage-triggers`；`shadow-job.sh` 與 compose 改寫，換映像時一起換。
+        - env：`DIGEST_RECIPIENT` 只當 `daily_runs` 的鍵；`GMAIL_APP_PASSWORD` 這個名稱從程式消失。
+        - `beginDailyRun` 的 `reused`（用 `findDigest` 判斷）與 `finishDaily` 的「沿用既有摘要」分支刪除：沒有摘要後，claim 之後中斷的 run 停在 `running`，照既有規則由人工處理。
+        - `rebuildProjection` 改從 `services/discovery` 匯入（`scripts/import-copy.ts`、`tests/ops.test.ts`、`tests/d1-real-product.test.ts`）。
+        - `daily_runs.result` 保留 `status`、`local_date`、`source_status`、`source_reason`、`source_details` 的形狀：回滾時 Python 讀 `source_details`（`backend/src/freelance/modules/notifications/store.py:32`），加一個測試斷言這幾個鍵與形狀。
+        - `src/db/d1/guard.ts` 的 `SINGLE_STATEMENT_TABLES` 拿掉 `digest_novelty`；`src/ops/tables.ts` 的 `DERIVED_TABLES` 拿掉它；`scripts/import-copy.ts` 不再重建帳本。
+        - 文件同步：`AGENTS.md`（寄信者一句改成「沒有系統寄信」、novelty key 拿掉）；ADR 2026-10-26 加修訂段（帳本決定被 D22 取代）；盤點附件（`inventory-surface.md`、`inventory-sources.md`）的摘要、寄送、recovery 列去向改成「刪除（D22）」；`allowed-residue.md` 加下面的允許殘留；跑 `python3 docs/plans/2026-10-23-nextjs-vercel-migration/check_inventory.py`。
+      - 檔案：刪除 `web/src/modules/notifications/{digest,delivery}.ts` 與摘要部分的 `outbox.ts`、`web/src/platform/smtp.ts`、`web/src/verify/replay.ts`、`web/scripts/{replay-digest,check-novelty}.ts`、`web/tests/{delivery,novelty}.test.ts`；刪除 `web/src/services/digest.ts`、`web/src/modules/notifications/digest.test.ts`、`web/src/platform/smtp.test.ts`；修改 `web/src/services/{daily,discovery}.ts`（`digestCandidates` 刪除）、`web/src/workflows/daily.ts`、`web/src/modules/notifications/public.ts`（只留 daily-runs）、`web/src/modules/discovery/{rules,public}.ts`（`unseen`、`seenIds` 刪除）、`web/src/db/{schema.ts,d1/guard.ts}`、`web/src/ops/{tables,import}.ts`、`web/.dependency-cruiser.cjs`（刪 verify 層的兩條規則）、`web/scripts/{import-copy.ts,shadow-job.sh}`、`deploy/compose.shadow.yaml`、`web/package.json` 與 `web/pnpm-lock.yaml`（pnpm 11.2.2 移除 `nodemailer`）；測試 `web/tests/{daily,d1-paths,projection,scenarios,ops,d1-real-product,scale,write-units}.test.ts`、`web/src/modules/discovery/discovery.test.ts` 改寫（`projection.test.ts` 用 `createDigest` 驗「已通知壓下」與「新版本重新通知」的兩個案例隨 D22 刪除；`scenarios.test.ts` 不再跑摘要的 op 與 `digest_novelty_and_uncertain_delivery` 情境）；新增 migration `web/drizzle/0004_*.sql`（`DROP TABLE digest_novelty`）。
+      - 消費端：`rg -n "digestCandidates|checkNovelty|noveltyRows|services/digest|createDigest|insertDigest|findDigest|claimDigest|finishDigest|announced|backfillNovelty|digest_novelty|checkLedger|rebuildNovelty|replayDigest|deliver\(|buildMessage|messageSha256|gmailOpener|smtpPassword|nodemailer|openGmail|selectUnseen" web deploy`。
+      - 不能動：歷史 `digest_outbox` 列與它的 trigger；`daily_runs` 的 claim 語意（同一天只跑一次、過期不跑）。
+      - 驗收：消費端搜尋只剩允許殘留，且只在這些路徑：已套用的 migration 與 meta（`web/drizzle/000[0-3]_*.sql`、`web/drizzle/meta/000[0-3]_snapshot.json`，不能改寫）、`web/drizzle/0004_*.sql` 的 DROP、`web/tests/fixtures/{gen_golden.py,golden.json}`（Python 側的情境，步驟 14 處理）；`digest_outbox` 的 schema、trigger 與匯入不在搜尋詞內、照留；`check_inventory.py` exit 0；`pnpm typecheck`、`boundaries`、`build`、`test` 全過；每日執行的測試在沒有摘要下記錄來源結果；mutation：收尾 step 仍呼叫建摘要時測試失敗（型別上已不存在，改成檢查 `daily_runs.result` 沒有 `intent_id`）。
+      - 部署順序（合併後，避開 09:00–10:59）：套 0003（10e1 的投影表，新增型）→ 部署 Vercel、換 VM 映像（after job 不再跑 replay、check-novelty；程式不再碰 `digest_novelty`）並在 VM 上 `systemctl disable --now freelance-shadow-morning.timer`、刪掉它的 unit 檔（08:30 副本只給 replay 用，10f 刪除）→ `scripts/rebuild-projection.ts` → 隔天自然執行確認 → 套 0004（刪除型）。回滾：Vercel promote 回前一版、VM `SHADOW_IMAGE` 改回；0004 已套用時，用 10e2 版本（`b30c4a6`）的 `import-copy` 重載 shadow（會重建帳本表；每次先問 Will）。
+      - 10f 實作狀態（2026-11-03，分支 `10f`，本機完成，未推送、未合併、未部署；合併等 4e4b）：照上面範圍做完，差異如下。
+        - `finishDaily` 保留 catch-all：組 result 或寫用量時出錯，記 `failed`／`daily_processing_failed`，當天不會停在 `running`（10d 取消後沒有復原頁）；收尾 step 仍 `maxRetries = 0`。
+        - `digest_outbox` 從不加租約的單一語句表名單拿掉，任何寫入都要經過守衛；只有匯入（在租約內）寫它的歷史列。
+        - `loadCopy` 的 `keep` 參數、`pythonCopy` 的竄改與 tracking 參數刪除（只給 replay 用）。
+        - VM 的 08:30 晨間副本與 `freelance-shadow-morning.{service,timer}` 刪除；10:30 副本保留 7 天給重載用。
+        - scenario 測試只跳過摘要的步驟（`digest`、`render`、`deliver`），同一情境裡收案與 tracking 的步驟照舊和 Python 逐位元組比對；`digest_outbox` 斷言 TS 沒有寫。
+        - `inventory-surface.md` 改了 104 列去向（88 列延後、16 列刪除），逐列核對後修正 3 列誤判（`mail_ingestion`、`finish 呼叫點`、`running 卡住`）。`inventory-sources.md` 的 novelty、摘要、寄送列在沒有「去向」欄的說明表裡，不改。`allowed-residue.md` 是步驟 14 的殘留清單（搜 `oci-a1`、compose 等字），和 10f 的摘要搜尋無關，不改；10f 的允許殘留以本節驗收列的路徑為準。
+        - 驗證：typecheck、boundaries、build 0；`pnpm test` 35 檔 400 過、7 skip（審查修正後重跑見進度表）；`check_inventory.py` 0 錯誤；消費端搜尋只剩允許殘留與 scenario 名稱；mutation：結果裡重新出現 `intent_id` 時 `daily.test.ts` 紅。
+        - 審查（完成前，`/code-review` medium 10 項＋design-review 9 項，合併分流）：
+          - 改：上面列的各項，加上量測失敗時兩個鍵都寫 null、ops 測試斷言重建列數大於 0、拿掉沒用到的 import。
+          - 記：`novelty_keys`、`observation_fingerprints`、`groupItems` 的排序、`publicItem` 的去留交給步驟 11（見步驟 11 範圍）；`DIGEST_RECIPIENT` 的到期處置（範圍的延後）；只剩測試 helper 在用的 `trackingStatesRead`、`applicationProjectionsRead` 匯出留到步驟 11 一起看。
+          - 駁回：把 golden 的摘要情境現在就從 `gen_golden.py` 拿掉。golden 仍是 Python 正式系統的對照，Python 還在建摘要，步驟 14 再處理。
+    - 10d 受保護的操作頁（**D22 取消**：寄送頁不再需要；隔離信件的復原頁移到步驟 11 之後依需要再做，觸發：第一次有信件被隔離而需要重試）（原被擋於：步驟 11 的 Origin 檢查與 body 上限）：`/ops/recovery`（列出隔離信件與卡住的 `running`；把一封 rejected 標回 `retry_pending`，取代 `bootstrap/recovery.py`）、`/ops/digest`（預覽 MIME 與 sha256，帶相符的 sha256 才寄既有 `pending`，取代 `gmail_smtp_cli`）。憑證只在 Vercel，不複製到本機，所以用頁面不用本機 script（盤點 §4 已定）。驗收：`retry_mail` 的 Python 案例 TS 版、sha256 不符拒寄、跨來源 Origin 被擋。mutation：拿掉 sha256 比對，測試要失敗。
 
-- [ ] **11. UI、API、契約與離線 demo**（被擋於：步驟 4、D10；可以和步驟 6–10 並行）
-  - 錯誤模型（2026-10-24 設計審查）：route handler 與 server action 依 `Conflict`／`InvalidAction` 等錯誤類別（`instanceof`）對應 HTTP 狀態，不讀 `PyError.pyType` 字串；字串分類只服務 shadow 期的 Python 對照測試，D6 後移除（見步驟 14）。
+- [ ] **11. 網頁前端第一版**（D22 改寫，2026-11-03；被擋於：10e2；10f 可並行；合併等 4e4b）
+  - 2026-11-03 前的原範圍（42 個 operation、工作台、離線 demo）由 D22 縮減，未做的部分列在「範圍」的延後。
+  - 錯誤模型：route handler 與 server action 依 `Conflict`／`InvalidAction` 等錯誤類別（`instanceof`）對應 HTTP 狀態，不讀 `PyError.pyType` 字串。
   - 範圍：
-    - 42 個 operation 依 D10 改成 route handler 或 server action，47 個前端呼叫點改成直接呼叫。
-    - 移除 proxy 白名單。
-    - 補上 Origin 檢查與 body 上限；回應標頭沿用 `no-store`、`nosniff`；錯誤碼對應沿用現有 API（`inventory-surface.md` §2）。
-    - `/digest` 預覽使用步驟 10 的 render，這一項要排在步驟 10 之後。
-    - 頁面沿用 `frontend/` 的元件。
-    - 歷史核准失效保護依 D8。
-    - 離線 demo 模式：`node:sqlite` 記憶體庫加 network guard，不讀任何 env。
-    - 讀取路徑瘦身（D13）：由步驟 10e 的共用投影（D16）完成，UI 直接讀它；本步只做 UI 的 SQL 篩選分頁與回饋讀取範圍。D13 的月用量驗收仍在本步量。
-  - 消費端：`inventory-surface.md` §3 的 47 個呼叫點；`rg -n "openapi-fetch|api\.d\.ts|contracts/" frontend scripts`；`frontend/tests/{smoke,manual-application-load,workbench}.mjs`。
+    - 頁面：職缺清單（`listPage`，每頁最多 200 筆，候選在前，顯示評估狀態、理由、推薦分與新鮮度）、單筆詳情（`group`：職缺內容、評估、內容版本差異、display basis）、回饋（想接／略過／中立，`feedback` 帶 token，舊 token 回 409）、篩選設定（`replaceSettings`，帶 revision，舊 revision 回 409）。
+    - 切換前唯讀（D23）：回饋與設定的寫入由一個 env 開關控制（`WEB_WRITES=on` 才開），切換前 production 與 preview 都不設，頁面的按鈕停用並標示「切換後開放」；server action 在開關關閉時一律回 403，不靠前端隱藏。切換（步驟 13）時打開。理由：切換時正式 D1 從 Python 資料重載，shadow 期的寫入會消失。
+    - 既有 `web/src/app/page.tsx`（shadow 的來源狀態頁）改成 `/sources`，首頁換成清單。
+    - 檔案：新增 `web/src/app/(jobs)/` 底下的清單、詳情、設定頁與 server actions、`web/src/app/sources/page.tsx`（由 `page.tsx` 搬來）、`web/src/web/guard.ts`（Origin、body 上限、寫入開關）與對應測試；修改 `web/src/app/page.tsx`、`web/src/app/layout.tsx`。
+    - 存取：只有 Will 看得到。Vercel Authentication（All Deployments，spike 1a 已驗）加 route 層的 Origin 檢查與 body 上限；回應 `no-store`、`nosniff`。
+    - 讀寫都經 10e 的投影與寫入單元；UI 的 409（租約等不到或資料已更新）顯示「請稍後再試／請重新載入」（4e2b 交接 (3)）；讀取重試與 409 次數記在 log（Vercel 的 runtime log，Hobby 只留約 1 小時，觸發：要長期看時改寫進 DB）。
+    - 不用 `frontend/` 的 Python API client；元件可沿用 `frontend/` 的樣式。
+    - 決定頁面用的 DTO：`publicItem` 保留或改寫；群組上的 `novelty_keys`、`observation_fingerprints` 與 `groupItems` 的排序在 10f 之後只剩 golden 的 `groups` 比對與 token 在用，UI 不需要的部分隨 golden 退役（步驟 14）拿掉，結論寫回本段。
+  - 消費端：舊首頁的連結與書籤（`/` 改成清單、來源狀態移到 `/sources`）；`rg -l '"use client"' web/src` 的檔案都沒有匯入 `@/services/`（只有 server 端呼叫讀寫）；`frontend/` 是 Python 的前端，不改。
   - 驗收：
-    - 三支前端測試的等價版在 preview 上通過。
-    - stale revision 被拒絕的測試通過。
-    - 斷網且沒有任何 env 時，demo 的 e2e 通過。
-    - mutation：
-      - 移除 revision 檢查，測試要失敗。
-      - 在 demo 路徑加一個 `fetch`，network guard 要讓測試失敗。
-    - D13（4e 起改成 D1 額度）：以正式資料量級量測，一次 UI 清單請求與一次分組回饋各自的 D1 列讀取與列寫入（client 計數器），換算「每天 20 次回饋＋20 次清單＋1 次摘要」加上每日執行的每日用量，低於免費方案每日額度的 20%（比照原本 Neon 預算 1 GB／5 GB 的比例；額度數字執行時查 Cloudflare 文件）；token 與群組結果和參考實作一致（10e1 的測試比對兩種算法；D18 後每組只有一筆）。
-  - 完成後的狀態：preview 讀的是 shadow DB。
+    - 頁面的 server 端測試（Vitest，替身 D1）：清單分頁、詳情、寫入開關關閉時回饋與設定回 403、開關打開時回饋成功與舊 token 409、設定成功與舊 revision 409、跨來源 Origin 被擋、超過 body 上限被擋。
+    - preview 上未登入 `curl -sI <preview url>/` 與 `/sources` 回 401 或 302（Vercel Authentication，在正式專案的 preview 上驗，不靠 spike 1a）。
+    - 不做瀏覽器 e2e（CI 沒有 Playwright job；第一版的頁面邏輯由 server 端測試涵蓋；觸發：前端有用戶端互動邏輯時加 CI e2e job）。
+    - mutation：移除 revision 檢查、移除 Origin 檢查、寫入開關關閉時仍寫入，測試各自失敗。
+    - D13：10e2 已在真 D1 量到（一頁 15,252 列、回饋約 30 列；每天 20 頁＋20 次回饋＋1 次 D18 量測約 32 萬列，是讀取額度的 6.4%；推論；收案的讀取另計，切換後第一週由 `daily_runs.result` 的用量確認），本步只在 preview 上確認頁面的請求數與 10e2 量測相同。
+  - 需要人做的事：preview 部署不需授權；部署到正式專案要授權。
+  - 完成後的狀態：preview 與正式網址讀 shadow D1（切換前）。
 
-- [ ] **12. 反向收斂腳本與切換演練**（被擋於：步驟 10、11、D6）
+- [ ] **12. 反向收斂腳本與切換演練**（被擋於：10f、步驟 11、D6）
   - 範圍：
     - 收斂腳本 v1 定版，加上切換用的計數與指紋報告。
-    - 反向腳本 D1 → SQLite 做全表收斂：停用 cron 後把 D1 的 `TABLES` 匯出成本機 SQLite，再以主鍵 upsert 回寫正式副本，涵蓋切換後的新增列與更新列，例如 `opportunity_tracking.state`、`digest_outbox.status`、`daily_runs`、`mail_sync_state.cursor`、`opportunities.item`、revision。有不可變 trigger 的表只追加。只走 `TABLES`，`DERIVED_TABLES`（`digest_novelty`）不回寫（Python 沒有也不讀）；回滾後再切換時由 `import-copy` 重建帳本。D1 專屬表（`write_attempts`、`guard`、`writer_lease`）不回寫。
+    - 反向腳本 D1 → SQLite 做全表收斂：停用 cron 後把 D1 的 `TABLES` 匯出成本機 SQLite，再以主鍵 upsert 回寫正式副本，涵蓋切換後的新增列與更新列，例如 `opportunity_tracking.state`、`daily_runs`、`mail_sync_state.cursor`、`opportunities.item`、revision。有不可變 trigger 的表只追加。只走 `TABLES`，`DERIVED_TABLES`（10e 的投影）不回寫（Python 沒有也不讀）；回滾後再切換時由 `import-copy` 重建。D1 專屬表（`write_attempts`、`guard`、`writer_lease`）不回寫。
     - 在副本上演練完整切換與回滾各 2 次。
   - 驗收：
     - 2 次演練的指紋報告完全相同。
     - 回寫後的 SQLite 副本通過兩項檢查：
       - `scripts/test_workbench_upgrade.py --database <回寫副本> --previous-source <d994cd2 checkout>`。
       - 用切換前的 Python image 讀取的投影，與 D1 端一致（`scripts/verify_cutover.py` 或新增的投影比對）。
-    - mutation：反向腳本漏掉 `digest_outbox.status` 這類更新欄位，驗收要失敗。
+    - mutation：反向腳本漏掉 `opportunity_tracking.state` 這類更新欄位，驗收要失敗。
   - 需要人做的事：授權讀正式 DB 副本。
 
-- [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、D9；Will 明確授權）
-  - 前提：步驟 11 的 D13 驗收已過（D1 免費方案超過每日額度時，到 UTC 換日前的查詢都會失敗，每日摘要也會停；2026-10-26 量到寫入額度用完時的錯誤）。
+- [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、4e4b；Will 明確授權；D22 後不再被 D9 擋；D23：步驟 11 完成後盡快做）
+  - 前提：D13 讀取預算已量（10e2）（D1 免費方案超過每日額度時，到 UTC 換日前的查詢都會失敗，收案與網頁也會停；2026-10-26 量到寫入額度用完時的錯誤）。
   - D1 沒有資料庫角色（4e 起取代原本「分 runtime 角色、`REVOKE`」的前置決定）：拿到 `D1_API_TOKEN` 的人能改 schema 或刪 trigger（token 範圍是整個帳號的 D1 讀寫，Will 2026-10-26 接受）。不可改的表靠 SQLite trigger 加 client 的租約守衛，`check-storage-triggers` 每次執行檢查 trigger 還在；token 外洩時的處置是撤銷重建。
   - 範圍：
     1. 在 Vercel 專案 Disable Cron Jobs，確認當天 TS 的 shadow run 已結束。
-    2. 確認 VM 當天的 `daily_runs` 已是 complete 或 failed，且 `digest_outbox` 沒有 pending、attempted 或 unknown（pending 要先在 VM 上寄出或人工結案，因為預覽 sha256 不跨語言沿用）。
+    2. 確認 VM 當天的 `daily_runs` 已是 complete 或 failed（D22 後 Python 的摘要都停在 `pending`，照搬保留，不寄出）。
     3. 停 VM 的 API／worker／Web，用 `docker compose ps` 確認沒有 writer。
     4. 做一致備份；建正式 D1 資料庫，用 `import-copy` 載入備份（內含 migration），產出每表計數與 sha256 報告；不記 Time Travel bookmark（Will 2026-10-26）。
-    5. 改 production env：`D1_DATABASE_ID` 指向正式 D1 資料庫；Will 存入寄送憑證（D9 的 Gmail SMTP）後回 `done`；寄送開關打開。`RESEND_API_KEY`、`RESEND_INBOX` 在 shadow 期已存入（D14），沿用；shadow 期超過 6 週或懷疑外洩時先換一把新 key。然後重新部署，並 Enable Cron Jobs。
+    5. 改 production env：`D1_DATABASE_ID` 指向正式 D1 資料庫、設 `WEB_WRITES=on`（D23）；不加寄送憑證（D22）。`RESEND_API_KEY`、`RESEND_INBOX` 在 shadow 期已存入（D14），沿用；shadow 期超過 6 週或懷疑外洩時先換一把新 key。然後重新部署，並 Enable Cron Jobs。
     6. 驗下一次自然排程；Hobby 會在 09:00–09:59 之間觸發。
     7. shadow D1 資料庫保留到 D6 窗口結束。
   - 回滾（D6 窗口內）：
-    1. Disable Cron Jobs。
+    1. Disable Cron Jobs；拿掉 `WEB_WRITES` 並重新部署，確認網頁寫入回 403 後才往下做（D23：反向腳本之後的網頁寫入會留在 D1、回不到 SQLite）。
     2. 跑反向腳本。
-    3. 用切換前的 image 與 env 重啟 VM 的 Compose（`docs/compose.md:60`）。
+    3. 用切換前的 image 與 env 重啟 VM 的 Compose（`docs/compose.md:60`；`worker.json` 維持 D22 的 `live_send: false`）。
     4. 不用 Instant Rollback，因為它會恢復舊的 cron 定義。
     - D1 Time Travel 不是回滾路徑：回滾要的是把切換後的變化寫回 SQLite（反向腳本）；Time Travel 只在 D1 端資料本身損毀、要先還原 D1 時考慮，保留天數依方案，執行前查。
   - 驗收：
     - 第 4 小步的每表計數與指紋，等於第 3 小步備份算出的值。
-    - 隔天 `daily_runs` 有一列、`delivery_status=sent`，Will 確認收到信。
+    - 隔天 `daily_runs` 有一列：`status` 是 complete，或 failed 且 `result.source_status` 是 failed（只有來源失敗）；`source_details` 裡至少一個來源 ok。網頁清單的總筆數等於 D1 `opportunities` 筆數；當天新寫入的 opportunities（D1 在切換前後的筆數差）都出現在清單。Will 在網頁上確認看得到。
+    - `WEB_WRITES=on` 已設，網頁上的回饋寫進正式 D1（D23）。
     - VM 的 worker 確認已停。
-  - 停止條件：指紋不符，或第一次自然排程沒有寄出 → 照回滾程序處理，不重寄。
-  - 需要人做的事：授權部署；存入寄送憑證；確認收到信。
+  - 停止條件：指紋不符，或第一次自然排程沒有完成收案 → 照回滾程序處理。
+  - 需要人做的事：授權部署；在網頁上確認看得到。
   - 完成後的狀態：VM 停機但保留，直到 D6 窗口結束；4c 的副本排程停用。
 
 - [ ] **14. 收尾**
@@ -608,7 +642,7 @@
     - `backend/`、`deploy/`、`frontend/`、`contracts/`。
     - `scripts/test_compose.py`、`test_installed.py`、`test_workbench_upgrade.py`、`verify_cutover.py`。
     - `scripts/check_boundaries.py`，由 dependency-cruiser 取代。
-    - VM 上 4c 的副本容器，以及 `web/src/ops/`、`web/scripts/{import-copy.ts,replay-digest.ts,snapshot.ts,shadow-job.sh,verify-fingerprints.ts}`。
+    - VM 上 4c 的副本容器，以及 `web/src/ops/`、`web/scripts/{import-copy.ts,snapshot.ts,shadow-job.sh,verify-fingerprints.ts}`（`replay-digest.ts`、`check-novelty.ts` 已在 10f 刪除）。
     - `registry.ts` 的 `SCHEDULED` 與 `enabledSources` 的 `scheduled` 參數（release toggle 到期：等於 `RUNNERS` 扣 `DISABLED` 時，最晚步驟 9 的信件來源全部排上後）。`DISABLED` 改成 source catalog 的資料欄位（PTT 被擋是長期事實，不是開關）。執行中可切換的營運開關（ops toggle）不預先做；觸發：第一次有來源需要比一次授權部署更快關掉，那時做 TS 自己的 DB 表加 UI 開關（切換後 DB 不再被覆蓋，Python 設定契約也已刪除）。
     - `web/tests/fixtures/gen_golden.py`（依賴 `backend/`）；`golden.json` 保留。刪 `backend/` 前先把 `001_sqlite.sql` 凍結進 `web/tests/fixtures/`，改 `web/tests/helpers/db.ts` 的 `SQLITE_SCHEMA_PATH`。
   - 更新：
@@ -674,7 +708,7 @@
   - B：同 A，但歷史核准失效保護不改寫，改成「歷史 approval 一律唯讀、不可再用於送出」，並同步改 `AGENTS.md` 的對應規則——程式較少，但規則要改。
   - C：`records.py` 也不改寫，切換時把 envelope 正規化成新欄位——schema 較乾淨，但多一道資料轉換，比對器要多一層對應。
 
-- **D9 摘要寄送通道**（狀態：已決 2026-10-23，Will 照建議（A）；擋住步驟：1d、10、13）
+- **D9 摘要寄送通道**（狀態：已決 2026-10-23，Will 照建議（A）；**2026-11-03 被 D22 取代**；擋住步驟：1d、10、13）
   - A：沿用 Gmail SMTP（app password，smtp.gmail.com:465）——不改寄件人與收件體驗；要 1d 驗證 Vercel 能連出 465。（建議；現況已確認是 SMTP）
   - B：改用 Resend 寄送（repo 已有 `resend_delivery.py`）——HTTP API，serverless 最穩；需要自訂寄件網域（`jobs.py:12`），寄件人會改變。
   - C：Gmail API OAuth——不需要 app password，但要處理 refresh token 的存放。
@@ -709,7 +743,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
   - 終局：切換時這把 key 就是正式的收信 key（步驟 13 第 5 小步）；VM 上的 key 留到 D6 窗口結束才撤銷，因為回滾要用。
   - 狀態更新：已決 2026-10-25，Will 選 A。需要人做的事：在 Resend 建專用 key、存進 Vercel production env（`RESEND_API_KEY`、`RESEND_INBOX`，Sensitive）後回 `done`，再授權部署與排程。
 
-- **D15 摘要怎麼判斷已通知**（狀態：已決 2026-10-26，Will 同意；擋住步驟：10b2）：已通知帳本，和 snapshot 同交易推導、不可改，選取時 join 狀態。否決：每天重掃全部 snapshot（傳輸量隨歷史成長，碰 Neon 免費上限）、只看最近 N 天（改變產品行為）。ADR：`docs/adr/2026-10-26-digest-ledger-shared-read-model-native-port.md`。
+- **D15 摘要怎麼判斷已通知**（狀態：已決 2026-10-26，Will 同意；**2026-11-03 被 D22 取代，帳本在 10f 刪除**；擋住步驟：10b2）：已通知帳本，和 snapshot 同交易推導、不可改，選取時 join 狀態。否決：每天重掃全部 snapshot（傳輸量隨歷史成長，碰 Neon 免費上限）、只看最近 N 天（改變產品行為）。ADR：`docs/adr/2026-10-26-digest-ledger-shared-read-model-native-port.md`。
 - **D16 衍生資料的讀取**（狀態：已決 2026-10-26，Will 同意；擋住步驟：10e、11）：UI 與摘要共用一份寫入時投影，取代 D13 原本「只做 UI」的路徑與步驟 14 的摘要 `listIn`。否決：兩條讀取路徑（同一份衍生資料兩套算法會漂移）、全表加快取（serverless 不共用記憶體、每次回饋都失效）。ADR 同上。
 - **D17 移植忠實度**（狀態：已決 2026-10-26，Will：「也不一定輸出一致，可以用更好的方式重構」；擋住步驟：10c 起所有新程式、步驟 14）：不再照抄 Python 的實作，也不要求輸出和 Python 一致；改原生寫法，shadow 與 replay 的差異逐項列出、經 Will 接受（完成定義原本就允許）。D4 的目的（不重收、不重複通知）由兩條護欄守住：雜湊加演算法版本，只差版本時重新基準化不通知；`external_id` 不變或附舊→新 id 對照表。已存雜湊的演算法只在 D6 窗口結束後換（窗口內 Python 要能回滾），v1 函式保留驗證舊列。修改了 2026-10-23 ADR 的 D0（輸出一致）與 D4（永久逐位元相容）。ADR 同上。
 - **D18 跨來源去重與投影形狀**（狀態：已決 2026-10-26，Will 照建議選 A3、B1；擋住步驟：10e1、10e2、11）：事實（2026-10-26 在 shadow 副本量到）：2,447 筆都只有 URL key、沒有一筆有 content key，沒有任何兩筆共用 key，現行分組在 Python 與 TS 都從未合併；同公司＋同職稱 16 組（跨來源 1）、只看同職稱 55 組（跨來源 7）；內容版本 6 筆在 3 筆 opportunity 上。選 A3：不做跨來源合併，每筆是單一成員群組，DTO／snapshot／token 形狀不變。否決：A1 照現行「衝突保持分開」做增量群組（key 索引、閉包重算，正式資料上合併 0 筆）、A2 現在就做連通分量＋survivorship（在現有 key 下同樣合併 0 筆，要放寬比對才有作用，放寬會誤併）。讀取模型選 B1（衍生投影表）；正規化 `opportunities`（B2）是 D6 窗口結束後的終點（Python 回滾要讀 SQLite 形狀，external）。加回去重的觸發：近 7 天候選裡跨來源同職稱配對達 3 組且人工抽樣確認為同一職缺，或某個 parser 開始廣泛提供 `company`。`docs/design.md` 的「去重與人工狀態」描述的是現行 Python 正式系統，切換（步驟 13）時改寫。ADR 同上（2026-10-26 修訂段）。
@@ -719,6 +753,10 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 - **D21 存取路徑與額度隔離**（狀態：已決 2026-10-26，Will：走 REST、用免費方案、切換後 CI 與正式同一個 Cloudflare 帳號；擋住步驟：4e）：選項與用量見 `d20-d21-brief.md` v2.1。存取：REST 的 `/raw` 端點，token 直接用現有的帳號層級 user token（Will 2026-10-26：「直接用現在的」；2026-11-30 到期，到期前重建並換掉各處的值）。額度：不開 Workers Paid；D1 shadow 不每天收斂（Will 2026-10-26），只在換過去時載入一次，每日寫入約 1–2%（推論），原本的增量 converge（舊 4e5）不需要，1f 的 50% 撤回觸發遠低於門檻。否決：Workers Paid（每月 5 美元）、Worker 代理（多一個 runtime；觸發：任一次 429、一次每日執行請求數超過 600、帳號加入別的專案的資料庫）、CI 放另一個帳號。
 
 拍板順序：D1、D3、D4、D6、D7、D8、D10、D11 已於 2026-10-23 拍板。D9 於同日拍板（A）。D2、D5、D12 在 spike 1 之後於同日拍板（A）。D13 於 2026-10-24 拍板（A）。D14 於 2026-10-25 拍板（A）。D15、D16、D17、D18（含 P1）、D19 於 2026-10-26 拍板；D20、D21 於 2026-10-26 拍板。D2 等 spike 1b，D5 等 D1 與 D2，在步驟 1 完成後再交。
+
+- **D22 不建摘要、不寄信，先只做網頁前端**（狀態：已決 2026-11-03，Will：「不需要摘要，也不要寄送 email，我先只要有網頁前端可以看就好」；四個選項依建議或 Will 的選擇：Python 也現在停寄、TS 摘要程式刪除、前端第一版做清單＋收藏／略過（含設定）、現在在分支上開工）：取代 D9、D15，改寫步驟 10（新增 10f、取消 10d）、11、12、13、14 與範圍、不變量、全域約束。Python 停寄的做法與回滾見前提第一條；11-04 確認當天摘要停在 `pending`。重新加回摘要的觸發見範圍的延後。
+
+- **D23 切換前網頁唯讀、提前切換、切換後暫時沒有工作台**（狀態：已決 2026-11-03，Will：切換前寫入怎麼處理選「提前切換」，工作台選「接受，要用時再做」；計畫審查指出 shadow 期寫入會在切換時消失後提出；擋住步驟：11、13）：選項：切換前唯讀／可寫但標明會丟／切換時合併／提前切換；工作台：接受延後／切換前要有／只要投案紀錄。結論：步驟 11 的寫入由 `WEB_WRITES` 開關控制，切換前關閉；11 完成後接著做 12、13（仍等 4e4b 與 D6 的回滾準備）；投案、客戶、模板、草稿在切換後暫時沒有入口，資料照搬，要用時再改寫。
 
 ## 進度
 
@@ -730,14 +768,14 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 2 盤點去向 | 完成 | `check_inventory.py` exit 0（243＋29 列、20 項缺陷）；改一列為 TBD 時 exit 非 0；6 個計畫缺口已補進步驟 5、10、11、13 | `--residue` 要到步驟 14 才跑 | |
 | 3 Walking skeleton | 完成 | 本機：`pnpm typecheck`、`pnpm boundaries`（違規 import 被擋）、`pnpm test` 5/5（mutation：移除開頭標 failed → 2 失敗）、`pnpm build`；preview 未登入 302、錯誤 secret 401、觸發 cron 後頁面出現 `skeleton ok`；舊路徑 diff 為空。CI：public repo run 39968672002，backend ✓、web ✓ | 無 | `813df86`（archive repo）；公開版 `5b94e25` |
 | 4 共用層 | 完成 | 本機與 CI（run 39986551118、39989561988）全綠；mutation 全部會失敗。VM（2026-10-24）：正式副本收斂 25 表來源／目標指紋相同，同副本收斂兩次報告相同，自我比對 0 差異；Python（正式 `d994cd2` 映像）與 TS 對同一份正式資料的 `list()`（2,226 筆、9,385,428 位元組）與分組（11,379,263 位元組）sha256 相同；`freelance-shadow-morning.timer` 已啟用，正式容器未變動 | 08:30 timer 首次自然執行待觀察；10:30 after timer 在步驟 5 啟用 | `a3de985`、`e7b8c51`、`13d991c` |
-| 4e 儲存層換 D1 | 進行中（拆成 4e1–4e4b；D20、D21 已決）；4e1 完成（`0701406`）、4e2a 完成（`789d83c`）、4e2b 完成（`e988871`、觸發檢查 `253fb17`）、4e3 完成（`fd88c11`、`7a4942c`）、4e4 程式完成待驗收（2026-11-03：PR #2、#3 合進 main `6c33182`，shadow D1 一次匯入 ok，Vercel `fpy1yk482`，VM 映像 `:6c33182`；等 11-04 的 TS run 與 after job） | 4e3（替身）：全套 38 檔 438 過、1 skip、0 紅；`pnpm typecheck`、`pnpm boundaries`、`pnpm build` 全綠（4e 開始以來第一次）；`ops.test.ts` 15 個（匯入兩次報告相同、位元組不變、schema 完整、匯入後可寫；tracking_events id 接續；D1 專屬表不動；帳本重建；斷線後重跑；值型別不符拒絕、NUL 照樣往返；表集合不符拒絕；租約被占時放棄；DDL 取自目錄；migration 經租約套用 ALTER；snapshot；replay 相同、竄改、無 digest、inconclusive）；`scripts/replay-digest.ts` 在合成副本上實跑 same、無 digest 時 inconclusive；mutation 5 項全紅（匯入不重建帳本、匯入漏一張表、反向 drop 改正向、重建不含 trigger、live 資料庫的 migration 不走租約）；設計審查 7 項（改 5、記 1、提 1）。4e2b（替身）：全套 37 檔 421 過、14 紅、1 skip，紅的只有 `tests/ops.test.ts`（4e3 範圍）；新增 `tests/write-units.test.ts` 18 個（一個請求讀、一個請求寫；同一批重複 `external_id` 看得到前面的寫入；1,300 筆分批、每批 receipt 跟著職缺、健康狀態最後；沒有守衛被 client 拒送；租約過期被拿走時舊持有者被擋並重讀重算，兩邊改動都在；釋放後同一 token 被擋；UI 等租約後兩邊都寫進；UI 5 秒逾時與租約一直被搶各回 409；持有者當掉時等過期；`write_attempts` 7 天清理；非收案單元不分批；async 計算被擋；純 INSERT 與 upsert；儲存失敗的 reason 與計數；結果不明時 track 與內容版本都只寫一次；每日用量進 result 頂層）；`novelty.test.ts`、`scale.test.ts`、golden 全過；mutation 4 項全紅（拿掉守衛＋client 檢查、守衛只比 token、疊加層不回傳尚未送出的寫入、結果不明時直接重送），另 1 項（等租約後沿用沒租約時的讀取）紅；`pnpm boundaries` 過；`pnpm typecheck`、`pnpm build`（Turbopack 與 workflow 編譯成功）只紅在 4e3 範圍（`scripts/*`、`src/verify/replay.ts`、`tests/ops.test.ts`）；設計審查兩輪（15 項：改 10、記 2、駁回 2、部分駁回 1）。4e2a（替身）：`schema.test.ts` 10、`delivery.test.ts` 15、`daily-runs.test.ts` 4、`tests/d1-paths.test.ts` 8 個全過；全套 297 過、115 紅、4 skip，紅的全在允許範圍（第 2、3 類寫入與依賴它們的測試、4e3 的 ops），歸因實驗見 4e2a 實作狀態；mutation 10 項全紅（`finishDigest` 拿掉 `status = 'attempted'`、`claimDailyRun` 不讀回、`readAll` 每個讀取一個請求、`insertDigest` 不接唯一鍵失敗、`retrying` 不拆 drizzle 的 cause、欄位型別漂移、唯一鍵變一般 index、submission trigger 本體被拿掉、帳本 key 改成綁定參數、backfill 每份 digest 一個請求）；`pnpm boundaries` 過；`pnpm typecheck`、`pnpm build` 只紅在允許範圍（build：5 個 `writeTransaction` 匯入）；設計審查 6 項（改 4 記 2）。4e1：`src/db/d1` 9 個測試（HTTP 錯誤分類 7 種、bigint／布林編碼、不安全整數 fail closed、替身拒絕交易語句與 101 個參數與 100 KB＋1、batch 原子、drizzle 查詢與 batch）；`tests/d1-real.test.ts` 對 spike D1 通過（沒設 env 時 skip）；mutation 2 項全紅（替身拿掉 BEGIN 檢查、client 拿掉不安全整數檢查）；`pnpm typecheck`、`boundaries`、`build` 過；全套 36 檔 407 過 1 skip（本機 Postgres） | CI（2026-11-03，PR #2 run `41551184578`，`0bb463c`）5 個 job 全過；`d1` job 對 CI 專用庫 `freelance-agent-ci-test` 跑 2 檔 6 個測試（空庫套全部 migration、writer lease 取得／拒絕／fencing、250 個 key 一個 `json_each` 參數、匯入報告相同、寫入額度）；shadow 與正式 D1 尚未套 migration；VM 映像未建 | `0701406`、`789d83c`、`e988871`、`253fb17`、`fd88c11`、`7a4942c`、4e4 準備 `afebf31`（分支 `4e-d1`） |
+| 4e 儲存層換 D1 | 進行中（拆成 4e1–4e4b；D20、D21 已決）；4e1 完成（`0701406`）、4e2a 完成（`789d83c`）、4e2b 完成（`e988871`、觸發檢查 `253fb17`）、4e3 完成（`fd88c11`、`7a4942c`）、4e4 程式完成待驗收（2026-11-03：PR #2、#3 合進 main `6c33182`，shadow D1 一次匯入 ok，Vercel `fpy1yk482`，VM 映像 `:6c33182`；等 11-04 的 TS run 與 after job；同日查 Python 當天摘要停在 `pending`，D22） | 4e3（替身）：全套 38 檔 438 過、1 skip、0 紅；`pnpm typecheck`、`pnpm boundaries`、`pnpm build` 全綠（4e 開始以來第一次）；`ops.test.ts` 15 個（匯入兩次報告相同、位元組不變、schema 完整、匯入後可寫；tracking_events id 接續；D1 專屬表不動；帳本重建；斷線後重跑；值型別不符拒絕、NUL 照樣往返；表集合不符拒絕；租約被占時放棄；DDL 取自目錄；migration 經租約套用 ALTER；snapshot；replay 相同、竄改、無 digest、inconclusive）；`scripts/replay-digest.ts` 在合成副本上實跑 same、無 digest 時 inconclusive；mutation 5 項全紅（匯入不重建帳本、匯入漏一張表、反向 drop 改正向、重建不含 trigger、live 資料庫的 migration 不走租約）；設計審查 7 項（改 5、記 1、提 1）。4e2b（替身）：全套 37 檔 421 過、14 紅、1 skip，紅的只有 `tests/ops.test.ts`（4e3 範圍）；新增 `tests/write-units.test.ts` 18 個（一個請求讀、一個請求寫；同一批重複 `external_id` 看得到前面的寫入；1,300 筆分批、每批 receipt 跟著職缺、健康狀態最後；沒有守衛被 client 拒送；租約過期被拿走時舊持有者被擋並重讀重算，兩邊改動都在；釋放後同一 token 被擋；UI 等租約後兩邊都寫進；UI 5 秒逾時與租約一直被搶各回 409；持有者當掉時等過期；`write_attempts` 7 天清理；非收案單元不分批；async 計算被擋；純 INSERT 與 upsert；儲存失敗的 reason 與計數；結果不明時 track 與內容版本都只寫一次；每日用量進 result 頂層）；`novelty.test.ts`、`scale.test.ts`、golden 全過；mutation 4 項全紅（拿掉守衛＋client 檢查、守衛只比 token、疊加層不回傳尚未送出的寫入、結果不明時直接重送），另 1 項（等租約後沿用沒租約時的讀取）紅；`pnpm boundaries` 過；`pnpm typecheck`、`pnpm build`（Turbopack 與 workflow 編譯成功）只紅在 4e3 範圍（`scripts/*`、`src/verify/replay.ts`、`tests/ops.test.ts`）；設計審查兩輪（15 項：改 10、記 2、駁回 2、部分駁回 1）。4e2a（替身）：`schema.test.ts` 10、`delivery.test.ts` 15、`daily-runs.test.ts` 4、`tests/d1-paths.test.ts` 8 個全過；全套 297 過、115 紅、4 skip，紅的全在允許範圍（第 2、3 類寫入與依賴它們的測試、4e3 的 ops），歸因實驗見 4e2a 實作狀態；mutation 10 項全紅（`finishDigest` 拿掉 `status = 'attempted'`、`claimDailyRun` 不讀回、`readAll` 每個讀取一個請求、`insertDigest` 不接唯一鍵失敗、`retrying` 不拆 drizzle 的 cause、欄位型別漂移、唯一鍵變一般 index、submission trigger 本體被拿掉、帳本 key 改成綁定參數、backfill 每份 digest 一個請求）；`pnpm boundaries` 過；`pnpm typecheck`、`pnpm build` 只紅在允許範圍（build：5 個 `writeTransaction` 匯入）；設計審查 6 項（改 4 記 2）。4e1：`src/db/d1` 9 個測試（HTTP 錯誤分類 7 種、bigint／布林編碼、不安全整數 fail closed、替身拒絕交易語句與 101 個參數與 100 KB＋1、batch 原子、drizzle 查詢與 batch）；`tests/d1-real.test.ts` 對 spike D1 通過（沒設 env 時 skip）；mutation 2 項全紅（替身拿掉 BEGIN 檢查、client 拿掉不安全整數檢查）；`pnpm typecheck`、`boundaries`、`build` 過；全套 36 檔 407 過 1 skip（本機 Postgres） | CI（2026-11-03，PR #2 run `41551184578`，`0bb463c`）5 個 job 全過；`d1` job 對 CI 專用庫 `freelance-agent-ci-test` 跑 2 檔 6 個測試（空庫套全部 migration、writer lease 取得／拒絕／fencing、250 個 key 一個 `json_each` 參數、匯入報告相同、寫入額度）；shadow 與正式 D1 尚未套 migration；VM 映像未建 | `0701406`、`789d83c`、`e988871`、`253fb17`、`fd88c11`、`7a4942c`、4e4 準備 `afebf31`（分支 `4e-d1`） |
 | 5 TS 端排程骨架 | 完成 | 正式專案部署；手動觸發（01:17）回 not due、shadow 無寫入；`vercel env ls production` 只有 4 個 key、無寄送憑證；Neon 傳輸量已量；2026-10-24 自然執行：08:31 morning `converge ok`、09:14 cron 寫唯一一列 `complete`、12:53 cron log「已有 run」 | | `199bef1`、`e6a299c` |
 | 6 試點 Jobicy／Remotive | 進行中 | 本機：golden（HTML 98、normalize 96）、真實 feed 209 筆逐位元組相同、6 個 Python 案例、5 個 mutation、獨立審查 2 份；7 天比對第 1 天（10-25）logic 0、timing 0；第 2 天（10-26）jobicy、remotive 0 差異 | 7 天比對第 3–7 天、比對器 mutation；2026-10-24 已部署、after timer 已 enable；10-25 起比對範圍擴大為 16 個來源 | |
 | 7 CryptoJobsList | 已部署（2026-10-25，`920b6b4`） | 本機：golden（RSS 123、text 127、日期 126、int 26）、真實 feed 100 筆逐位元組相同、4 個 Python 案例、交易邊界 mutation | 3 天比對第 1 天（10-26）0 差異；第 2–3 天未跑；10-26 發現 `source_details` 記成 `invalid_source_result`（10a 缺陷，見步驟 10，已修待部署）；依序執行的 fan-out 隨同一次部署上線 | |
 | 8 其餘免登入來源 | 進行中 | 第 1 批（himalayas、hackernews、v2ex）與 getonboard 程式完成：golden、真實回應逐位元組相同、9 個 store 案例、13 個 mutation、差分模糊測試與設計審查；第 2 批（public_feeds 4 個）程式完成：golden、真實回應 351 筆逐位元組相同、14 個 store 案例、13 個 mutation、設計審查；第 3 批（nodesk、justremote、dynamitejobs、jobbank518、chickpt）程式完成：golden、5 個來源的實抓回應輸出逐位元組相同、37 個 Python 案例、25 個 mutation、設計審查（改 4、記 1） | 第 1–3 批 2026-10-25 已部署（`920b6b4`），3 天比對 10-26 起；jobbank518 索引頁修正（Python 也上 VM，見第 3 批）；最後一批（taiwanjobs、arbeitnow、freelancer）2026-10-25 程式完成：golden、真實回應逐位元組相同、29 個入庫案例、20 個 mutation、設計審查（改 4、記 2），同日部署（`82cd89d`），3 天比對第 1 天（10-26）：logic 1（weworkremotely 的 health，以抓取時間差解釋，見步驟 6 第 2 天）、timing 12（himalayas、remoteok 晚抓看到的新職缺）；第 2–3 天未跑。step 耗時已量（10-26，見步驟 10「10-26 自然執行」）：freelancer 25.5 秒、最長 step 25.5 秒，低於觸發值 | |
 | 9 信件來源 | 進行中 | 9a（共用收信、tasker、linkedin）與 9b（cake、104、talent、glassdoor）程式完成：golden（寄件者、主旨 gate、parser、read_notification、41 個 sync 情境逐表比對）、12＋16 個 mutation、設計審查兩輪（9a 改 2 記 1 提 1 駁回 1；9b 改 5） | 2026-10-25 排程並部署（`f23f052`，`2cqsaiyx1`）；3 天比對第 1 天（10-26）：mail_sync_state 6／6、mail_ingestion 8／8 相同，信件來源 opportunities 0 差異；第 2–3 天未跑。信件 step 耗時已量（最長 linkedin 6.4 秒）；Resend 狀態碼沒有原始紀錄（不記錄、log 只留 1 小時），由結果推論為 200（見步驟 10「10-26 自然執行」） | |
-| 10 摘要與寄送 | 進行中（拆成 10a–10e） | 10a（`51eb12f`，CI run 40193316438 綠）：typecheck、boundaries、build、344 個測試、5 個 mutation、golden `failure_reasons` 21 個；10b（`3add463`、效能修正 `a5b2e6c`）：golden（digest 情境、render 12 例、run_daily 4 例）逐位元組相同、22 個 mutation、replay 測試（相同、竄改、無 digest、inconclusive）、設計審查 9 項已分流；正式副本建摘要 12 秒 | 10a＋10b 已上 shadow（`a5b2e6c`，`8h6bndpwp`，VM `:a5b2e6c`），10-25 副本 replay same；replay 7 天比對、shadow 7 天候選清單比對從 10-26 起算；2026-10-26 依 D15–D17 新增 10b2（帳本）與 10e（共用投影），順序 10b2 → 10c → 10e → 10d；10b2 程式完成待驗收（`7c61740`，CI run 40219932273 web／backend 兩個 job success；本機驗收見 10b2 實作狀態；已上 shadow（`c247200`，`kzojngp21`，VM `:c247200`）；10-26 第一次自然執行：replay 經帳本 same、帳本檢查 0 缺 0 多；其餘 6 天未跑）；10a 缺陷（cryptojobslist 的 `feed_built_at` 讓 detail 被拒）已修（`deabd9e`，CI run 40264261136 web／backend 兩個 job success），已部署（`5knxy7mjg`），10-27 自然執行待查；10c 程式完成待驗收（`48e4684`，CI run 40268230155 web／backend 兩個 job success；與 10a 修正一起已上 shadow（`86b62be`，`5knxy7mjg`，VM 不換），10-27 自然執行待查；本機：typecheck、boundaries、build、34 檔 398 個測試、9 個 mutation、對抗式審查改 3 記 1，見 10c 實作狀態；1d 實寄已跑，Gmail 接受 1／拒收 0，Will 確認收到）；10e 設計已拍板（D18，2026-10-26），拆成 10e1、10e2；10e1 程式完成待驗收（分支 `10e1` 的 `526a1c1`、`f23f2f2`，2026-11-03，本機：typecheck、boundaries、build 0，`pnpm test` 38 檔 447 過、7 skip（審查修正後重跑），10 個 mutation 全紅，設計審查 8 項已分流；真 D1 正式量級已量（改設定 4.5–5.8 秒、一個寫入請求）；CI 過：draft PR #4 run `41584640879`（`0829347`），web、backend、d1 job 全過，d1 對 CI 庫 7 個測試（含新的 `json_each` 與匯入重建）、寫 353 列；見 10e1 實作狀態）；10e2 程式完成待驗收（分支 `10e2`，draft PR #5 疊在 #4 上；CI run `41593863307` web、backend、d1 全過；本機 39 檔 453 過、9 個 mutation 全紅；開工與完成前設計審查、`/code-review` 已分流；真 D1 列讀取量已量（一頁 15,252 列、回饋約 30 列、摘要 19,609 列），量測發現 snapshot 超過 2 MB 會失敗（既有限制，待決）；真實副本 replay 未跑，見 10e2 實作狀態）；10d 未開始 | |
-| 11 UI、API、demo | 未開始 | | | |
+| 10 摘要與寄送 | 進行中（10a、10e 繼續；10b、10b2、10c 由 10f 刪除；10d 取消，D22） | 10a（`51eb12f`，CI run 40193316438 綠）：typecheck、boundaries、build、344 個測試、5 個 mutation、golden `failure_reasons` 21 個；10b（`3add463`、效能修正 `a5b2e6c`）：golden（digest 情境、render 12 例、run_daily 4 例）逐位元組相同、22 個 mutation、replay 測試（相同、竄改、無 digest、inconclusive）、設計審查 9 項已分流；正式副本建摘要 12 秒 | 10a＋10b 已上 shadow（`a5b2e6c`，`8h6bndpwp`，VM `:a5b2e6c`），10-25 副本 replay same；replay 7 天比對、shadow 7 天候選清單比對從 10-26 起算；2026-10-26 依 D15–D17 新增 10b2（帳本）與 10e（共用投影），順序 10b2 → 10c → 10e → 10d；10b2 程式完成待驗收（`7c61740`，CI run 40219932273 web／backend 兩個 job success；本機驗收見 10b2 實作狀態；已上 shadow（`c247200`，`kzojngp21`，VM `:c247200`）；10-26 第一次自然執行：replay 經帳本 same、帳本檢查 0 缺 0 多；其餘 6 天未跑）；10a 缺陷（cryptojobslist 的 `feed_built_at` 讓 detail 被拒）已修（`deabd9e`，CI run 40264261136 web／backend 兩個 job success），已部署（`5knxy7mjg`），10-27 自然執行待查；10c 程式完成待驗收（`48e4684`，CI run 40268230155 web／backend 兩個 job success；與 10a 修正一起已上 shadow（`86b62be`，`5knxy7mjg`，VM 不換），10-27 自然執行待查；本機：typecheck、boundaries、build、34 檔 398 個測試、9 個 mutation、對抗式審查改 3 記 1，見 10c 實作狀態；1d 實寄已跑，Gmail 接受 1／拒收 0，Will 確認收到）；10d 取消（D22）；10f 程式完成待驗收（分支 `10f`，draft PR #6 疊在 #5 上；CI run `41610601132` web、backend、d1 全過，d1 在真 D1 上套用到 0004；本機 35 檔 401 過；見 10f 實作狀態）；10e 設計已拍板（D18，2026-10-26），拆成 10e1、10e2；10e1 程式完成待驗收（分支 `10e1` 的 `526a1c1`、`f23f2f2`，2026-11-03，本機：typecheck、boundaries、build 0，`pnpm test` 38 檔 447 過、7 skip（審查修正後重跑），10 個 mutation 全紅，設計審查 8 項已分流；真 D1 正式量級已量（改設定 4.5–5.8 秒、一個寫入請求）；CI 過：draft PR #4 run `41584640879`（`0829347`），web、backend、d1 job 全過，d1 對 CI 庫 7 個測試（含新的 `json_each` 與匯入重建）、寫 353 列；見 10e1 實作狀態）；10e2 程式完成待驗收（分支 `10e2`，draft PR #5 疊在 #4 上；CI run `41593863307` web、backend、d1 全過；本機 39 檔 453 過、9 個 mutation 全紅；開工與完成前設計審查、`/code-review` 已分流；真 D1 列讀取量已量（一頁 15,252 列、回饋約 30 列、摘要 19,609 列），量測發現 snapshot 超過 2 MB 會失敗（D22 後不再適用）；真實副本 replay 未跑，見 10e2 實作狀態） | |
+| 11 網頁前端第一版（D22、D23 改寫） | 未開始（2026-11-03 起在分支上開工） | | | |
 | 12 反向收斂與演練 | 未開始 | | | |
 | 13 正式切換 | 未開始 | | | |
 | 14 收尾 | 未開始 | | | |

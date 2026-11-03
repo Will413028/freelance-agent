@@ -4,14 +4,12 @@ import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { ingestSource } from "@/modules/collection/public";
-import { checkTableSet, copiedDigests, copiedDiscovery, createStatements, importCopy, type RebuildDerived } from "@/ops/import";
+import { checkTableSet, copiedDiscovery, createStatements, importCopy, type RebuildDerived } from "@/ops/import";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
 import { PyDateTime } from "@/platform/py/datetime";
-import { checkLedger, rebuildNovelty, rebuildProjection } from "@/services/digest";
-import { replayDigest } from "@/verify/replay";
 import { encode } from "@/platform/py/json";
-import { listPage } from "@/services/discovery";
+import { listPage, rebuildProjection } from "@/services/discovery";
 import { referenceList as list } from "./helpers/reference";
 import { db, intercepting, leased, MIGRATIONS, query, recording, resetSchema, sqliteWithSchema } from "./helpers/db";
 import { migrateD1 } from "@/db/migrate";
@@ -22,8 +20,7 @@ import { job } from "./helpers/jobs";
 // copy into D1, the VM snapshot, and the same-start digest replay.
 const dir = mkdtempSync(path.join(os.tmpdir(), "fa-ops-"));
 // What scripts/import-copy.ts passes.
-const rebuild: RebuildDerived = async (target, lite, send) =>
-  await rebuildNovelty(target, copiedDigests(lite)) + await rebuildProjection(target, copiedDiscovery(lite), send);
+const rebuild: RebuildDerived = (target, lite, send) => rebuildProjection(target, copiedDiscovery(lite), send);
 
 /** A synthetic production-shaped copy: every table has rows, with the awkward values production can hold. */
 function seed(lite: DatabaseSync) {
@@ -68,7 +65,7 @@ function copy(name: string, mutate?: (lite: DatabaseSync) => void) {
 }
 
 const scenario = fixture<{ scenarios: Record<string, { tables: Record<string, unknown[][]> }> }>("golden.json").scenarios.digest_novelty_and_uncertain_delivery;
-const pythonCopy = (name: string, tamper = false, tracking = true) => {
+const pythonCopy = (name: string) => {
   const file = path.join(dir, name);
   const lite = sqliteWithSchema(file);
   const t = scenario.tables;
@@ -76,16 +73,12 @@ const pythonCopy = (name: string, tamper = false, tracking = true) => {
   run("insert into opportunities values (?,?,?,?)", t.opportunities);
   run("insert into source_receipts (source, receipt_id, opportunity_id) values (?,?,?)", t.source_receipts);
   run("insert into source_health (source, status) values (?,?)", t.source_health);
-  if (tracking) {
-    run("insert into opportunity_tracking values (?,?)", t.opportunity_tracking);
-    run("insert into tracking_events values (?,?,?,?,?)", t.tracking_events);
-  }
+  run("insert into opportunity_tracking values (?,?)", t.opportunity_tracking);
+  run("insert into tracking_events values (?,?,?,?,?)", t.tracking_events);
   run("insert into discovery_settings values (?,?,?)", t.discovery_settings);
+  // Historical digests are carried over unchanged (D22 keeps digest_outbox's rows).
   t.digest_outbox.forEach(([d, r, snapshot, status, receipt], n) => {
-    // Production has one recipient; the other one's digest of that day cannot affect this one's.
-    if (d === "2026-10-03" && r !== "owner@example.invalid") return;
-    const text = tamper && d === "2026-10-03" && r === "owner@example.invalid" ? (snapshot as string).replace('"unseen_count": 2', '"unseen_count": 3') : snapshot;
-    lite.prepare("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values (?,?,?,?,?,?)").run(`d${n}`, d as string, r as string, text as string, status as string, receipt as string | null);
+    lite.prepare("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values (?,?,?,?,?,?)").run(`d${n}`, d as string, r as string, snapshot as string, status as string, receipt as string | null);
   });
   lite.close();
   return file;
@@ -138,15 +131,15 @@ describe("one-time import into D1", () => {
     expect(await query("select holder from writer_lease")).toEqual([{ holder: null }]);
   });
 
-  it("rebuilds the notified ledger from the copied digests", async () => {
-    // derived counts the ledger and the discovery projection (one row per record and per content version).
+  it("rebuilds the discovery projection from the copy", async () => {
+    // derived counts the projection's rows: one per record and per content version.
     const projected = async () => Number((await query("select (select count(*) from discovery_items) + (select count(*) from discovery_versions) as n"))[0].n);
     const report = await importCopy(base, db, rebuild);
-    expect([report.derived, await projected()]).toEqual([4, 4]); // the base digest announced nothing
-    const ledger = await importCopy(pythonCopy("import-ledger.sqlite3"), db, rebuild);
-    const rows = ledger.derived - await projected();
-    expect(rows).toBeGreaterThan(0);
-    expect(await checkLedger(db, "2000-01-01")).toMatchObject({ rows, missing: 0, extra: 0, ok: true });
+    expect([report.derived, await projected()]).toEqual([4, 4]);
+    const golden = await importCopy(pythonCopy("import-projection.sqlite3"), db, rebuild);
+    expect(golden.derived).toBeGreaterThan(0);
+    expect(golden.derived).toBe(await projected());
+    expect(golden.ok).toBe(true);
     // The imported projection serves the same list as the raw rows.
     const now = new PyDateTime(2026, 10, 26, 1, 0, 0, 0, 0n);
     expect(encode(await listPage(db, now, { offset: 0, limit: 200 }))).toBe(encode(await list(db, now)));
@@ -186,10 +179,10 @@ describe("one-time import into D1", () => {
   });
 
   it("recreates tables in their current shape from SQLite's catalog, with their indexes and triggers", async () => {
-    const ddl = await createStatements(["digest_novelty", "tracking_events"]);
+    const ddl = await createStatements(["digest_outbox", "tracking_events"]);
     expect(ddl.map((sql) => sql.split(/[\s(]/).slice(0, 3).join(" "))).toEqual([
-      "CREATE TABLE `digest_novelty`", "CREATE TABLE `tracking_events`", "CREATE UNIQUE INDEX",
-      "CREATE TRIGGER digest_novelty_immutable", "CREATE TRIGGER digest_novelty_retained",
+      "CREATE TABLE `digest_outbox`", "CREATE TABLE `tracking_events`", "CREATE UNIQUE INDEX", "CREATE UNIQUE INDEX",
+      "CREATE TRIGGER digest_immutable",
     ]);
   });
 });
@@ -226,33 +219,5 @@ describe("snapshot", () => {
     const original = await importCopy(base, db, rebuild);
     expect(report.tables).toEqual(original.tables);
     expect(() => execFileSync(tsx, [script, "--source", base, "--target", target], { stdio: "pipe" })).toThrow();
-  });
-});
-
-// Plan step 10b: the same-start digest replay, on a Python-shaped copy built from the golden
-// scenario's final tables (gen_golden.py ran create_digest on exactly these rows).
-describe("digest replay", () => {
-  it("rebuilds Python's digest byte for byte without touching D1", async () => {
-    await importCopy(base, db, rebuild);
-    const before = await query("select count(*) n from digest_outbox");
-    // Only the scenario's last digest was built from its final rows; earlier days saw fewer jobs.
-    const copy = pythonCopy("replay.sqlite3");
-    const report = await replayDigest({ start: copy, python: copy }, "2026-10-03");
-    expect([report.equal, report.firstDifference, report.python!.items]).toEqual([true, null, 2]);
-    expect(await query("select count(*) n from digest_outbox")).toEqual(before);
-  });
-
-  it("reports a differing snapshot and a day without a Python digest", async () => {
-    const tampered = pythonCopy("replay-tampered.sqlite3", true);
-    const report = await replayDigest({ start: tampered, python: tampered }, "2026-10-03");
-    expect(report.equal).toBe(false);
-    expect(report.firstDifference).toBeGreaterThan(0);
-    const none = pythonCopy("replay-none.sqlite3");
-    expect((await replayDigest({ start: none, python: none }, "2026-11-01")).equal).toBeNull();
-  });
-
-  it("is inconclusive when Will changed a user table between the 08:30 copy and the after-run copy", async () => {
-    const report = await replayDigest({ start: pythonCopy("replay-0830.sqlite3", false, false), python: pythonCopy("replay-1030.sqlite3") }, "2026-10-03");
-    expect([report.equal, report.userChanges, report.python]).toEqual([null, ["opportunity_tracking", "tracking_events"], null]);
   });
 });

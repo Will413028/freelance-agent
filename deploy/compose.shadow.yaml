@@ -1,5 +1,5 @@
 # Shadow job service (plan step 4e3), run by the host timers in deploy/systemd/.
-#   docker compose -f deploy/compose.shadow.yaml run --rm shadow morning|after
+#   docker compose -f deploy/compose.shadow.yaml run --rm shadow after
 # One-time load of the D1 shadow (step 4e4; ask Will before every reload):
 #   docker compose -f deploy/compose.shadow.yaml run --rm --entrypoint pnpm shadow exec tsx scripts/import-copy.ts --sqlite /shadow/copies/<copy> --confirm-drop <database id> --report /shadow/reports/import-<day>.json
 # SHADOW_ENV is a 0600 file holding CLOUDFLARE_ACCOUNT_ID, D1_DATABASE_ID and D1_API_TOKEN (the D1 shadow).
