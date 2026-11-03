@@ -173,7 +173,26 @@ def ref_id(ref):
     return ref if isinstance(ref, str) else identity_hash(list(ref))
 
 
+_GROUP_ITEMS = rules.group_items
+
+
+def single_member_groups(items):
+    """D18 A3 (plan step 10e2): the TS port never merges listings across sources, so the scenarios
+    run Python with every group holding one listing; the rest of group_items (members, tokens,
+    novelty keys, display basis) and its order are Python's own."""
+    groups = [group for item in items for group in _GROUP_ITEMS([item])]
+    return sorted(groups, key=lambda item: (not rules.is_candidate(item),
+                  -item.get('recommendation', {}).get('score', item['evaluation']['score']), item['id']))
+
+
 def run_scenario(ops):
+    with patch.object(rules, 'group_items', single_member_groups), \
+            patch('freelance.modules.discovery.service.group_items', single_member_groups), \
+            patch('freelance.modules.notifications.store.group_items', single_member_groups):
+        return _run_scenario(ops)
+
+
+def _run_scenario(ops):
     with tempfile.TemporaryDirectory() as tmp:
         clock = [NOW]
         store = SQLiteStore(Path(tmp) / 'golden.db', clock=lambda: clock[0])
@@ -2690,7 +2709,6 @@ def digest_render_golden():
         store.ingest(job(external_id='203', kind='mystery', weekly_hours=0.25, location='台北 & remote'))
         store.set_source_health('freelancer', 'ok')
         snap = store.create_digest('2026-09-28', 'owner@example.invalid', NOW)['snapshot']
-        listed = store.list()
     items, sources = snap['items'], snap['sources']
     conflict = copy.deepcopy(items)
     first = conflict[0]
@@ -2722,7 +2740,6 @@ def digest_render_golden():
         dict(items=items, sources=sources, mode='sqlite', email=True, counts={}),
         dict(items=conflict, sources=sources, mode='sqlite', email=True, counts=snap),
         dict(items=fresh, sources=odd_sources, mode='sqlite', email=False, counts=dict(snap, unseen_count=2.9, suppressed_count=True)),
-        dict(items=listed, sources=sources, mode='sqlite', email=False, counts=snap),
         dict(items=unhashable, sources=sources, mode='sqlite', email=False, counts=None),
         dict(items=edge, sources=sources, mode='sqlite', email=False, counts=None),
         dict(items=[], sources={}, mode='sqlite', email=False, counts=None),

@@ -113,106 +113,49 @@ const trackingAt = (item: PyDict, key: string, fallback: PyValue) => {
   return t.has(key) ? t.get(key)! : fallback;
 };
 
-/** Keep every source row; group presentation and feedback with revision tokens. */
-export function groupItems(items: PyDict[]): PyDict[] {
-  const parents = items.map((_, i) => i);
-  const grouped = new Map<number, number[]>(items.map((_, i) => [i, [i]]));
-  const jobs = items.map((item) => item.dict("job"));
+/**
+ * Every listing is its own group (D18 A3, plan step 10e2): no merging across sources. The group keeps
+ * the shape groups always had (members with revision tokens, observation fingerprints, novelty keys,
+ * display basis), so the DTO, the snapshot and the feedback tokens are unchanged.
+ */
+export const groupItems = (items: PyDict[]): PyDict[] => items.map(asGroup).sort((a, b) => pyCmp(rankKey(a), rankKey(b)));
 
-  // Conflicting known conditions remain separate cards for human inspection. A merge compares every
-  // member pair of the two groups, so each job's normalized fields are computed once (text() is
-  // NFKC plus casefold, cheap in CPython's C code but not here); null stands for an unknown field.
-  const COMPAT = ["title", "company", "kind", "currency", "budget_min", "budget_max", "weekly_hours",
-    "taiwan_eligible", "timezone_compatible", "listing_closed"];
-  const known = jobs.map((job) => COMPAT.map((field) => {
-    const v = job.at(field);
-    return v === null || v === "" ? null : text(v);
-  }));
-  const compatible = (left: number, right: number) => {
-    const a = known[left], b = known[right];
-    for (let f = 0; f < COMPAT.length; f++) if (a[f] !== null && b[f] !== null && a[f] !== b[f]) return false;
-    return true;
-  };
-  const root = (index: number) => {
-    while (parents[index] !== index) {
-      parents[index] = parents[parents[index]];
-      index = parents[index];
+/** One listing as a single-member group: the record's own token, tracking and display basis. */
+export function asGroup(item: PyDict): PyDict {
+  const group = deepCopy(item);
+  const fps = conflictVersionsOf(item).map((v) => v.str("fingerprint"));
+  const revision = trackingAt(item, "revision", 0n);
+  let token = item.str("fingerprint") + ":" + pyStr(revision);
+  if (truthy(item.at("content_conflicts"))) token += ":" + identityHash(pySorted(fps));
+  if (truthy(item.at("application_token"))) token += ":applications:" + identityHash(item.get("application_token")!);
+  group.set("members", [PyDict.of({
+    id: item.req("id"), source: item.dict("job").req("source"), url: item.dict("job").at("url"),
+    fingerprint: item.req("fingerprint"),
+    observation_fingerprints: pySorted(new Set([item.str("fingerprint"), ...fps])),
+    token, revision,
+  })]);
+  group.set("member_ids", [item.req("id")]);
+  group.set("application_ids", pySorted(new Set(asList(item.at("application_ids") ?? []).map(String))));
+  group.set("novelty_keys", [...novelty(item).values()].sort(pyCmp));
+  group.set("content_conflicts", conflictsOf(item));
+  if (truthy(group.get("content_conflicts"))) {
+    const basis = group.dict("recommendation").req("basis_fingerprint");
+    const chosen = conflictVersionsOf(group).find((v) => pyEq(v.req("fingerprint"), basis)) ?? null;
+    if (chosen && !truthy(chosen.req("original"))) {
+      group.set("job", deepCopy(chosen.req("job")));
+      group.set("evaluation", deepCopy(chosen.req("evaluation")));
     }
-    return index;
-  };
-
-  const keys = new Map<string, number[]>();
-  items.forEach((item, index) => {
-    // Python iterates a set here, whose order follows the per-process PYTHONHASHSEED. When one
-    // listing's URL key and content key reach two groups that are incompatible with each other,
-    // the first key wins, so Python's partition can differ between processes. Sorted keys make
-    // the TS partition deterministic (a known, accepted comparator difference).
-    for (const key of identityKeys(jobs[index])) {
-      for (const prior of keys.get(key) ?? []) {
-        const left = root(index), right = root(prior);
-        if (left !== right && grouped.get(left)!.every((a) => grouped.get(right)!.every((b) => compatible(a, b)))) {
-          parents[left] = right;
-          grouped.get(right)!.push(...grouped.get(left)!);
-          grouped.delete(left);
-        }
-      }
-      if (!keys.has(key)) keys.set(key, []);
-      keys.get(key)!.push(index);
-    }
-  });
-
-  const buckets = new Map<number, PyDict[]>();
-  items.forEach((item, index) => {
-    const r = root(index);
-    if (!buckets.has(r)) buckets.set(r, []);
-    buckets.get(r)!.push(item);
-  });
-
-  const result: PyDict[] = [];
-  for (const members of buckets.values()) {
-    const representative = members.find((item) => isCandidate(item)) ?? members[0];
-    const group = deepCopy(representative);
-    group.set("members", members.map((item) => {
-      const fps = conflictVersionsOf(item).map((v) => v.str("fingerprint"));
-      const revision = trackingAt(item, "revision", 0n);
-      let token = item.str("fingerprint") + ":" + pyStr(revision);
-      if (truthy(item.at("content_conflicts"))) token += ":" + identityHash(pySorted(fps));
-      if (truthy(item.at("application_token"))) token += ":applications:" + identityHash(item.get("application_token")!);
-      return PyDict.of({
-        id: item.req("id"), source: item.dict("job").req("source"), url: item.dict("job").at("url"),
-        fingerprint: item.req("fingerprint"),
-        observation_fingerprints: pySorted(new Set([item.str("fingerprint"), ...fps])),
-        token, revision,
-      });
+    group.set("display_basis", PyDict.of({
+      source: group.dict("job").req("source"), fingerprint: basis,
+      label: chosen && !truthy(chosen.req("original")) ? "另一份通知內容" : "現有紀錄",
     }));
-    group.set("member_ids", members.map((item) => item.req("id")));
-    group.set("application_ids", pySorted(new Set(members.flatMap((item) => asList(item.at("application_ids") ?? []).map(String)))));
-    const union = new TupleSet();
-    for (const item of members) for (const pair of novelty(item).values()) union.add(pair);
-    group.set("novelty_keys", [...union.values()].sort(pyCmp));
-    group.set("content_conflicts", members.flatMap((item) => conflictsOf(item)));
-    if (truthy(group.get("content_conflicts"))) {
-      const basis = group.dict("recommendation").req("basis_fingerprint");
-      const chosen = conflictVersionsOf(group).find((v) => pyEq(v.req("fingerprint"), basis)) ?? null;
-      if (chosen && !truthy(chosen.req("original"))) {
-        group.set("job", deepCopy(chosen.req("job")));
-        group.set("evaluation", deepCopy(chosen.req("evaluation")));
-      }
-      group.set("display_basis", PyDict.of({
-        source: group.dict("job").req("source"), fingerprint: basis,
-        label: chosen && !truthy(chosen.req("original")) ? "另一份通知內容" : "現有紀錄",
-      }));
-    }
-    const states = members.map((item) => trackingAt(item, "feedback", "neutral"));
-    const feedback = states.some((s) => pyEq(s, "skipped")) ? "skipped" : states.some((s) => pyEq(s, "interested")) ? "interested" : "neutral";
-    if (!group.has("tracking")) group.set("tracking", new PyDict());
-    group.dict("tracking").set("feedback", feedback);
-    if (members.some((item) => pyEq(item.at("review_status"), "skipped"))) group.set("review_status", "skipped");
-    const staged = members.find((item) => !pyEq(trackingAt(item, "stage", "not_applied"), "not_applied"));
-    if (staged) group.dict("tracking").set("stage", trackingOf(staged).req("stage"));
-    result.push(group);
   }
-  return result.sort((a, b) => pyCmp(rankKey(a), rankKey(b)));
+  if (!group.has("tracking")) group.set("tracking", new PyDict());
+  const feedback = trackingAt(item, "feedback", "neutral");
+  group.dict("tracking").set("feedback", pyEq(feedback, "skipped") ? "skipped" : pyEq(feedback, "interested") ? "interested" : "neutral");
+  if (pyEq(item.at("review_status"), "skipped")) group.set("review_status", "skipped");
+  if (!pyEq(trackingAt(item, "stage", "not_applied"), "not_applied")) group.dict("tracking").set("stage", trackingOf(item).req("stage"));
+  return group;
 }
 
 /** sorted key: (not is_candidate(item), -score, id) */

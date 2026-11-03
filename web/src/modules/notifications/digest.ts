@@ -1,4 +1,4 @@
-import { groupItems, isCandidate, number } from "@/modules/discovery/public";
+import { isCandidate, number } from "@/modules/discovery/public";
 import { formatG } from "@/platform/py/format";
 import { escape } from "@/platform/py/html";
 import { encode } from "@/platform/py/json";
@@ -90,8 +90,9 @@ export function render(items: PyDict[], sources: PyDict, o: { mode?: RenderMode;
     if (mode === "demo") throw new PyError("ValueError", "Demo cannot render a delivery message");
     notice = "案件條件仍需人工確認；本信不代表已投遞。";
   }
-  const grouped = items.every((item) => item.has("members")) ? items : groupItems(items);
-  const candidates = grouped.filter(isCandidate);
+  // Snapshot items are groups (publicItem of asGroup); the only caller renders a snapshot (plan step 10e2).
+  if (!items.every((item) => item.has("members"))) throw new Error("render takes snapshot items, which are groups");
+  const candidates = items.filter(isCandidate);
   const blocks: string[] = [];
   for (const item of candidates) {
     const job = item.dict("job"), evaluation = item.dict("evaluation");

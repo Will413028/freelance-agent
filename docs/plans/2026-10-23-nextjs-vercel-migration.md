@@ -492,7 +492,7 @@
             - replay：真實副本照常逐位元組比對。
           - 原生化（步驟 14「現在就原生」）：
             - ranking 的 `roundFloat(score, 1)`、`roundToInt(completeness)` 換成原生。證據是窮舉全部分數組合，原生與原寫法結果相同，寫成測試。注意分數在浮點裡不一定剛好是 0.5 的倍數，例如 59.49999999999999。
-            - render 的工時格式化換成原生：render 輸出不存資料庫。golden 若有差異就逐項列出。
+            - render 的工時格式化不換（審查的 nit，駁回）：render 輸出不存資料庫，但 render 的 golden 用 `%g` 的邊界值（`1e-05`、`10**20`）逐位元組比對，換原生只換來一份差異清單、沒有功能上的好處。步驟 14 刪 Python 時連同 golden 一起換。render 不再接受沒有 `members` 的 item（後備分支刪除），golden 少掉直接傳 `store.list()` 的那一例。
             - 評估理由裡的 `formatG`、`formatThousands0f` 不換：評估文字存在 `opportunities` 列，Python 回滾時會讀到。D6 窗口結束後隨步驟 14 再換。
           - D18 觸發量測：建摘要之後的獨立步驟，失敗只記錄、不影響摘要。
             - 範圍是當天候選中發布在 now 前 7 天內、跨來源、職稱經 `text()` 正規化後相同的配對數，寫進 `daily_runs.result` 頂層的 `cross_source_title_pairs`。發布時間未知的候選另記 `cross_source_unknown_published`，不默默排除。
