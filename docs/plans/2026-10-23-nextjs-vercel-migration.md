@@ -87,6 +87,8 @@
 | 歷史核准失效保護（`AGENTS.md`） | `legacy/review_service.py`、`backend/tests/legacy/test_review.py`（11 個）；TS 去向見 D8 |
 | Workflow run data 不含正文與憑證 | TS：所有 `"use step"` 函式的參數與回傳型別只能是 ID、計數、狀態；用型別測試加 lint 守住 |
 | UI 與 API 只有本人看得到；請求有來源檢查與 body 上限 | 現況：loopback、SSH tunnel、`LocalBoundary` 的 Origin 檢查與 body 上限（`bootstrap/http.py`）；TS：Vercel Authentication 加上 `web/src/app/_lib/guard.ts` 的 `guardedForm`（寫入開關、Origin、Content-Type、body 上限） |
+| D6 窗口內，TS 寫進 `TABLES` 的列，切換前的 Python image 讀得懂，也能接著寫（回滾後由它接手） | `mail_sync_state.state`（Python `collection/store.py` 讀 `cursor`／`after`／`head`）、`daily_runs` 的 `(local_date, recipient)` 與 `result.source_details`、`discovery_settings.settings`、`opportunities.item` 的 envelope、`opportunity_tracking.state`、`tracking_events`；TS：寫入這些欄位的模組（`collection/ingest.ts`、`notifications/daily-runs.ts`、`services/daily.ts`、`discovery/settings.ts`、`preferences/store.ts`）；驗證：步驟 12 演練在寫回的副本上用切換前的 image 讀與寫 |
+| D6 窗口內 `TABLES` 的結構（欄位名稱與型別）和 `001_sqlite.sql` 相同；migration 只能新增衍生表或 D1 專屬表 | `web/src/ops/write-back.ts` 的欄位比對（不同就拒絕）、`web/src/ops/import.ts` 的 `loadCopy` |
 | 離線 demo 不讀憑證、不連外、不寄信 | `bootstrap/http.py` `mode='demo'`、MemoryDatabase；TS：demo 延後（範圍的延後），做的時候用 `node:sqlite` 記憶體庫加 network guard |
 
 ## 規模（搬遷）
@@ -637,14 +639,26 @@
 - [ ] **12. 反向收斂腳本與切換演練**（被擋於：10f、步驟 11、D6）
   - 範圍：
     - 收斂腳本 v1 定版，加上切換用的計數與指紋報告。
-    - 反向腳本 D1 → SQLite 做全表收斂：停用 cron 後把 D1 的 `TABLES` 匯出成本機 SQLite，再以主鍵 upsert 回寫正式副本，涵蓋切換後的新增列與更新列，例如 `opportunity_tracking.state`、`daily_runs`、`mail_sync_state.cursor`、`opportunities.item`、revision。有不可變 trigger 的表只追加。只走 `TABLES`，`DERIVED_TABLES`（10e 的投影）不回寫（Python 沒有也不讀）；回滾後再切換時由 `import-copy` 重建。D1 專屬表（`write_attempts`、`guard`、`writer_lease`）不回寫。
+    - 反向腳本 D1 → SQLite 做全表收斂：停用 cron 後把 D1 的 `TABLES` 匯出成本機 SQLite，再以主鍵 upsert 回寫正式副本，涵蓋切換後的新增列與更新列，例如 `opportunity_tracking.state`、`daily_runs`、`mail_sync_state.cursor`、`opportunities.item`、revision。不可變欄位與允許的狀態轉換由 SQLite 的 trigger 把關。只走 `TABLES`，`DERIVED_TABLES`（10e 的投影）不回寫（Python 沒有也不讀）；回滾後再切換時由 `import-copy` 重建。D1 專屬表（`write_attempts`、`guard`、`writer_lease`）不回寫。
     - 在副本上演練完整切換與回滾各 2 次。
+  - 設計（2026-11-03 開工時寫，開工設計審查已處理）：
+    - 入口 `web/scripts/write-back.ts --sqlite <切換前備份的複本> --report <file>`，邏輯在 `web/src/ops/write-back.ts`。目標檔必須是操作者另外複製的檔案，不是 VM 上的正式 DB（腳本不知道哪個是正式的；程序要求先複製，步驟 13 回滾第 3 小步再換到正式路徑）。
+    - 讀 D1：持有寫入租約讀完 `TABLES` 全部的列（`d1RowsQuery`，整數以 text 讀回）。租約只擋有租約的寫入單元，不擋單句寫入（`guard.ts` 的 `SINGLE_STATEMENT_TABLES`：`daily_runs`、`source_health`、`mail_ingestion`、`mail_sync_state`），所以寫完後再讀一次 D1，任何一張表和第一次不同就整個回滾、要求停掉寫入後重跑；程序上 cron 已停、`WEB_WRITES` 已拿掉、當天的 run 不是 `running`（步驟 13 回滾第 1 小步）。
+    - recipient：D1 上 `daily_runs` 的 recipient 必須是備份裡已有的值，否則拒絕（Python 以 `(local_date, recipient)` 判斷當天跑過沒）。
+    - 執行位置：VM，用 shadow 映像；VM 上已有帳號範圍的 D1 token（`/etc/freelance-agent/shadow-d1.env`），切換後只換 `D1_DATABASE_ID`；正式資料與憑證都不離開 VM。
+    - 比對：每張表先比欄位（名稱與型別，SQLite `pragma table_info` 對 D1），不同就拒絕。依主鍵分三類：只在 D1（新增）、兩邊都有但不同（更新）、只在 SQLite（D1 端被刪）。TS 不刪 `TABLES` 的列（`rg -n 'delete' web/src` 只有投影、`write_attempts`），所以第三類一出現就拒絕、不寫任何東西。
+    - 寫回：一個 SQLite 交易，新增用 `INSERT`、更新只 `UPDATE` 有差異的欄位（依主鍵）。不可變的表（`digest_outbox` 的身分與 snapshot、`proposal_draft_revisions`、`submission_intents`、`submission_events`）由 SQLite 的 trigger 自己擋，trigger 拒絕時整個交易回滾、腳本非 0 結束；不另寫一份「只追加」的清單。`foreign_keys` 開啟，寫完跑 `foreign_key_check` 與 `integrity_check`。
+    - 收斂：寫完後兩邊每張表的列數與指紋（`fingerprint`，和 `import-copy` 同一個函式）都要相同，否則非 0 結束；重跑時沒有差異，報告的新增、更新都是 0，指紋不變。
+    - 報告：每張表的新增數、更新數（含被更新的欄位名稱與次數）、列數、兩邊的 sha256；不含值（值是個人資料）。
+    - 不寫回：`DERIVED_TABLES`、D1 專屬表；`__drizzle_migrations`。
+    - 收斂腳本 v1（`import-copy`）已有每表計數與 sha256 的報告（4e3），步驟 13 第 4 小步用它；本步只補演練，不改它。
+    - 驗收的 Python 部分：用切換前正在跑的 backend 映像（步驟 13 記下的 tag；現在是 VM 上的 `freelance-agent-backend` 現行版本），`--network none`、唯讀掛載寫回的副本的複本，讀 `list`／`preferences`／`sources`，再離線走一次 `claim_daily_run` 與 mail cursor 的讀取（不連外、不寄信）。`scripts/test_workbench_upgrade.py` 不沿用：它驗的是工作台 schema 升級，版本也不是回滾會啟動的那版。
+    - 開工設計審查（1 輪，fresh subagent，9 項，blocking 3）：改 8（Python 讀寫相容的不變量與用切換前映像的驗收；演練改成固定注入的變更、驗收看報告與注入一致；單句寫入不受租約管，寫完重讀 D1；投影一致的驗收改成筆數、狀態計數與 revision；`test_workbench_upgrade.py` 不沿用；步驟 13 回滾補「run 不在跑」與換檔、寫明在 VM 上執行；步驟 14 的 Postgres 句子刪除並加結構凍結的不變量；範圍「只追加」改成 trigger 把關）；recipient 檢查也改（nit，成本低）。實作狀態：`web/src/ops/write-back.ts`、`web/scripts/write-back.ts`，`tests/ops.test.ts` 6 例，mutation 4 項全紅（漏更新、不檢查只在副本的列、不重讀 D1、不檢查 recipient）。
+  - 演練（每次相同，跑 2 次）：在 VM 上用正式 DB 的一致副本，`import-copy` 載入一個 test D1（名稱 `freelance-agent-*-test`）→ 用固定的一組變更腳本在 D1 上做：一筆新的收案（替身來源，不連外）、一筆回饋、一次設定儲存、一列 `daily_runs`、推進一次 mail cursor → 複製副本、`write-back.ts` → 重跑一次（新增與更新都是 0）→ Python 檢查。
   - 驗收：
-    - 2 次演練的指紋報告完全相同。
-    - 回寫後的 SQLite 副本通過兩項檢查：
-      - `scripts/test_workbench_upgrade.py --database <回寫副本> --previous-source <d994cd2 checkout>`。
-      - 用切換前的 Python image 讀取的投影，與 D1 端一致（`scripts/verify_cutover.py` 或新增的投影比對）。
-    - mutation：反向腳本漏掉 `opportunity_tracking.state` 這類更新欄位，驗收要失敗。
+    - 每次演練的報告裡，新增與更新的表與數量等於注入的變更（`opportunities`、`source_receipts`、`opportunity_tracking.state`、`tracking_events`、`discovery_settings`、`daily_runs`、`mail_sync_state`），收斂（寫回後指紋相同，重跑 0 變更）；兩次演練的報告相同。
+    - 寫回的副本：`verify_cutover.py` 的 `fingerprint`（`integrity_check`、`foreign_key_check`）通過；切換前的 Python 映像讀取不出錯，opportunities 筆數、各回饋狀態的計數、設定 revision 與 D1 相同，`claim_daily_run` 對寫回的那天回「已跑過」，mail cursor 讀得出注入的值。
+    - mutation：反向腳本漏掉更新欄位、不檢查只在副本的列、寫完不重讀 D1、不檢查 recipient，測試各自失敗（`tests/ops.test.ts`）。
   - 需要人做的事：授權讀正式 DB 副本。
 
 - [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、4e4b；Will 明確授權；D22 後不再被 D9 擋；D23：步驟 11 完成後盡快做）
@@ -659,10 +673,11 @@
     6. 驗下一次自然排程；Hobby 會在 09:00–09:59 之間觸發。
     7. shadow D1 資料庫保留到 D6 窗口結束。
   - 回滾（D6 窗口內）：
-    1. Disable Cron Jobs；拿掉 `WEB_WRITES` 並重新部署，確認網頁寫入回 403 後才往下做（D23：反向腳本之後的網頁寫入會留在 D1、回不到 SQLite）。
-    2. 跑反向腳本。
-    3. 用切換前的 image 與 env 重啟 VM 的 Compose（`docs/compose.md:60`；`worker.json` 維持 D22 的 `live_send: false`）。
-    4. 不用 Instant Rollback，因為它會恢復舊的 cron 定義。
+    1. Disable Cron Jobs；拿掉 `WEB_WRITES` 並重新部署，確認網頁寫入回 403 後才往下做（D23：反向腳本之後的網頁寫入會留在 D1、回不到 SQLite）。確認當天 TS 的 run 不是 `running`（`daily_runs`；停用 cron 不會中止已在跑的 workflow，單句寫入不受租約管）。
+    2. 在 VM 上複製切換前的備份，對複本跑反向腳本（`write-back.ts`，用 shadow 映像與 VM 上已有的 D1 token，`D1_DATABASE_ID` 指向正式 D1；資料與憑證都不離開 VM），重跑到新增與更新都是 0。
+    3. 停著 Compose，把正式 SQLite 檔改名保留（`.pre-rollback-<日期>`），把寫回的複本放到正式路徑，擁有者與權限照原檔。
+    4. 用切換前的 image 與 env 重啟 VM 的 Compose（`docs/compose.md:60`；`worker.json` 維持 D22 的 `live_send: false`）。
+    5. 不用 Instant Rollback，因為它會恢復舊的 cron 定義。
     - D1 Time Travel 不是回滾路徑：回滾要的是把切換後的變化寫回 SQLite（反向腳本）；Time Travel 只在 D1 端資料本身損毀、要先還原 D1 時考慮，保留天數依方案，執行前查。
   - 驗收：
     - 第 4 小步的每表計數與指紋，等於第 3 小步備份算出的值。
@@ -690,7 +705,7 @@
   - 長期檢查接進 CI：schema 漂移、trigger 測試、指紋相容測試、step 型別檢查。
   - 延後項附觸發條件，搬回主清單。
   - D6 窗口結束時處理（2026-10-24 設計審查記下的終局；2026-10-26 依 D17 改寫：不再是「照抄或原生二選一」，而是分成「現在就原生」與「窗口結束後換版本」兩組）：
-    - 現在就原生（不影響任何已存雜湊，在各自相關的步驟裡做，不等步驟 14）：業務模組改用 TS 原生型別與 `DomainError` 類別階層，移除 `PyError` 字串分類（步驟 10c、11 起，新程式不再用）；`FAILURE_REASON` 併進 runner spec；`readNotification` 只為例外而呼叫的 `qualify` 刪除；`AccessBlocked` 歸到 collection；ranking／render 的 Python `round`／格式化照抄換原生（決定 R1 的投影步驟一起做）；`mailRecords` 的讀取順序改成明寫的規則；非雜湊的時間欄位改 `timestamptz`、0/1 旗標改 `boolean`（反向腳本負責轉回 SQLite 格式）。
+    - 現在就原生（不影響任何已存雜湊，在各自相關的步驟裡做，不等步驟 14）：業務模組改用 TS 原生型別與 `DomainError` 類別階層，移除 `PyError` 字串分類（步驟 10c、11 起，新程式不再用）；`FAILURE_REASON` 併進 runner spec；`readNotification` 只為例外而呼叫的 `qualify` 刪除；`AccessBlocked` 歸到 collection；ranking／render 的 Python `round`／格式化照抄換原生（決定 R1 的投影步驟一起做）；`mailRecords` 的讀取順序改成明寫的規則。（原有「時間欄位改 `timestamptz`、0/1 旗標改 `boolean`，反向腳本轉回」是 Postgres 時代的句子，D19 改 D1 後不成立：D1 是 SQLite 方言；D6 窗口內 `TABLES` 結構凍結，見不變量表。2026-11-03 步驟 12 開工審查刪除。）
     - 窗口結束後換版本（會改到已存雜湊的輸入）：下列照抄在 D6 前必須和 Python 一致，窗口結束後換成標準實作，寫入改用 v2 雜湊並把已知職缺一次重新基準化（只差版本不通知），v1 函式保留來驗證舊列；`external_id`／canonical URL（`url.ts` 的 `urljoin`）不換，或附舊→新 id 對照表。換之前在 VM 量受影響的職缺數。範圍：`html.ts` 與 `http.ts` 的 `loadsBytes`（盤點缺陷 23）；步驟 7 的 `email.ts` `parsedate_to_datetime`、`re.ts` 的 `\b`＋IGNORECASE、`unicode.ts` 的 `pyInt`／`pyIsDigit`／`pyUpperAscii` 與相關表、`xml.ts` 的編碼判斷；步驟 8 各批的 `re.ts`（`translate`、lookahead、dotAll、`pyFindall`／`pySub`／`pyReSplit`、`\Z`／`pyMatch`）、`unicode.ts`（`pyFloat`、`pyIntToFloat`、`space`／`cased`／`upper` 表、`pyUpper`、`pyRstrip`）、`datetime.ts`（`fromTimestamp`、`dateFromIsoformat`）、`json.ts`（4300 位上限、`rawDecode`）、`xml.ts`（`attrib`、BOM、宣告編碼）、`codecs.ts`、`http.ts` 的 `urlopenRead`／`raiseForUrllibStatus`、taiwanjobs 的 `STRPTIME_YMD`；步驟 9a 的 `getaddresses`／`AddrlistClass`、`utf8Length`；步驟 9b 的 glassdoor `received_at` 格式、cake 的 base64／zlib 規則、`queryValues` 的拒收、`html.ts` 未結束 comment。
     - `golden.json` 拆成兩份：v1 雜湊相容（永久保留，驗證舊列用）與 Python 行為對照（刪除）。
     - 照抄清單的原始逐條紀錄（每批的理由與審查來源）見 `git show dbd9b12:docs/plans/2026-10-23-nextjs-vercel-migration.md` 的本段。
