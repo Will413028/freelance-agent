@@ -30,6 +30,14 @@ describe("storage revocation triggers", () => {
     ]);
   });
 
+  it("flags any projection read retry and 3 or more cross-source title pairs (plan step 10e2)", () => {
+    expect(runSignals("2026-11-04", usage({ read_retries: 0n, cross_source_title_pairs: 2n }))).toEqual([]);
+    expect(runSignals("2026-11-04", usage({ read_retries: 1n, cross_source_title_pairs: 3n })).map((s) => [s.decision, s.signal, s.value]))
+      .toEqual([["projection", "read_retries", 1], ["D18", "cross_source_title_pairs", 3]]);
+    // A failed measurement is flagged, not read as zero pairs.
+    expect(runSignals("2026-11-04", encode(PyDict.of({ d1_requests: 1n, cross_source_title_pairs: null }))).map((s) => s.signal)).toEqual(["cross_source_unmeasured"]);
+  });
+
   it("reads the runs from a date on in one request", async () => {
     for (const [date, result] of [["2026-10-25", usage({ lease_timeouts: 1n })], ["2026-10-26", usage()], ["2026-10-27", usage({ d1_requests: 700n })]]) {
       await query("insert into daily_runs (local_date, recipient, status, started_at, result) values (?1, 'o', 'complete', 's', ?2)", [date, result]);

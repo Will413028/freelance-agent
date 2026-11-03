@@ -1,5 +1,4 @@
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
-import { roundFloat, roundToInt } from "@/platform/py/format";
 import { pyStr } from "@/platform/py/unicode";
 import { asDict, asList, isNumber, num, pyCmp, pyEq, PyDict, PyError, truthy, type PyValue } from "@/platform/py/value";
 
@@ -66,6 +65,9 @@ export function publishedAt(job: PyDict): PyDateTime | null {
 export const RECENT_US = 2n * 86_400_000_000n;
 export const WEEK_US = 7n * 86_400_000_000n;
 
+/** A score to one decimal. */
+export const oneDecimal = (score: number) => Math.round(score * 10) / 10;
+
 function recommendationSingle(item: PyDict, now: PyDateTime): PyDict {
   const job = item.dict("job"), evaluation = item.dict("evaluation");
   let score = num(evaluation.req("score")) * 0.7;
@@ -93,11 +95,12 @@ function recommendationSingle(item: PyDict, now: PyDateTime): PyDict {
     && pyCmp(3000n, low) <= 0 && pyCmp(low, high) <= 0;
   const questions = asList(evaluation.req("questions"));
   const fields = [...confirmed, budget, truthy(job.at("deadline")) && !questions.some((q) => typeof q === "string" && q.includes("截止"))];
-  const completeness = roundToInt((fields.filter(Boolean).length / fields.length) * 100);
+  // Native rounding (plan step 10e2): equal to Python's round on every value reachable here (tests/ranking-rounding.test.ts).
+  const completeness = BigInt(Math.round((fields.filter(Boolean).length / fields.length) * 100));
   reasons.push(`資訊完整度 ${completeness}%（非資格保證）`);
   if (evaluation.req("status") === "excluded") reasons.push("硬條件不符，仍不推薦");
   // min(100, score) returns the int 100 on ties and above, and round(int, 1) stays an int.
-  const capped: PyValue = score >= 100 ? 100n : roundFloat(score, 1);
+  const capped: PyValue = score >= 100 ? 100n : oneDecimal(score);
   return PyDict.of({ score: capped, completeness, freshness, reasons, method: "規則排序，非成交機率" });
 }
 

@@ -2,7 +2,6 @@ CREATE TABLE `discovery_items` (
 	`opportunity_id` text PRIMARY KEY NOT NULL,
 	`fingerprint` text NOT NULL,
 	`review_status` text,
-	`novelty` text NOT NULL,
 	`deadline_at` text,
 	`published_at` text,
 	`settings_revision` integer NOT NULL,

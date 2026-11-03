@@ -41,6 +41,8 @@ export function d1ErrorOf(e: unknown): D1Error | undefined {
 export type D1Counters = {
   requests: number; rowsWritten: number; rowsRead: number; errors: Partial<Record<D1ErrorKind, number>>;
   leaseWaitMs: number; leaseTimeouts: number; leaseLost: number;
+  /** Reads a caller ran again because two of its requests saw different states (the discovery projection's page read, plan step 10e2). */
+  readRetries: number;
 };
 
 function encodeParam(value: unknown): string | number | null {
@@ -58,7 +60,7 @@ function encodeParam(value: unknown): string | number | null {
 
 /** Wraps a transport with parameter encoding, the unsafe-integer check and request/row counters. */
 export class D1Client {
-  readonly counters: D1Counters = { requests: 0, rowsWritten: 0, rowsRead: 0, errors: {}, leaseWaitMs: 0, leaseTimeouts: 0, leaseLost: 0 };
+  readonly counters: D1Counters = { requests: 0, rowsWritten: 0, rowsRead: 0, errors: {}, leaseWaitMs: 0, leaseTimeouts: 0, leaseLost: 0, readRetries: 0 };
 
   constructor(private readonly transport: D1Transport) {}
 

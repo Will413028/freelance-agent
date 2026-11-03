@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "cd71cb72-e6dc-4eaf-9418-f8fd588531be",
+  "id": "4c807697-17d1-48d1-a450-c99993c1186d",
   "prevId": "40a2247a-a9de-431c-b39f-4f8e26104e66",
   "tables": {
     "ai_draft_attempts": {
@@ -753,13 +753,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
-        },
-        "novelty": {
-          "name": "novelty",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
           "autoincrement": false
         },
         "deadline_at": {

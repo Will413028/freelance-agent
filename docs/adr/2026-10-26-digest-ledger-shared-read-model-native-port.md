@@ -131,6 +131,16 @@ R1's "store group membership; make grouping order-independent" is replaced. The 
 
 Source: the owner's decision on 2026-10-26, after two independent critiques of the option brief.
 
+## Amendment (2026-11-03): the daily digest recomputes its candidates
+
+Expected Outcome's "no full-table recompute remains" is narrowed to page requests. Will accepted it on 2026-11-03 (plan step 10e2).
+
+**Context.** The sentence came from Neon's transfer budget (D13): reading every row on every list request would have passed 1 GB a month. Since D19 the data is on D1, which has no transfer charge. Its budget is 5 million rows read a day.
+
+**Decision.** Page requests (`listPage`, at most 200 listings) read the projection's ranking and their own rows only. The daily digest (`digestCandidates`) ranks every listing in SQL, reads the whole table once, and recomputes its candidates in TS, about 97% of the rows. Each one is checked against the projection's score, so the TS rules stay the only authority. That is about 2,450 rows once a day, inside the daily read budget (inferred, not measured on D1's billing). A ledger pre-filter in SQL, assembling only the not-yet-announced candidates, was not built: it would add a second read path whose suppressed candidates are never checked.
+
+**Revocation trigger.** Two conditions reopen this. One is the digest's step taking over 60 s in production (`workflow inspect`). The other is D1 rows read for the digest passing 10% of the daily free budget. Either one leads to the ledger pre-filter.
+
 ## Related
 
 - Amends `docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`: D0's shadow output parity and D4's permanent byte compatibility (now N2).

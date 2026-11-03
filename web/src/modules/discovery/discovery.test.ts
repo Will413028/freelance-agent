@@ -122,7 +122,9 @@ describe("qualification rules", () => {
 // Python iterates identity_keys as a set whose order follows PYTHONHASHSEED; for this shape the
 // Python partition changes between processes (measured: 5 of 10 seeds each way). The port sorts
 // the keys, so the content key ("content:…" < "url:…") always decides first.
-describe("grouping order when one listing bridges two incompatible groups", () => {
+// D18 A3 (plan step 10e2): listings sharing an identity key are no longer merged; the key still
+// enters each listing's novelty pairs, so an announced one suppresses the other (tests/projection.test.ts).
+describe("grouping keeps every listing on its own", () => {
   const body = "Build an agent integration with API, database, tests and deployment. ".repeat(3);
   const item = (i: number, changes: Record<string, unknown>) => PyDict.of({
     id: `id-${i}`, fingerprint: String(i),
@@ -130,12 +132,12 @@ describe("grouping order when one listing bridges two incompatible groups", () =
     evaluation: PyDict.of({ status: "qualified", score: 1n }), review_status: "draft",
     recommendation: PyDict.of({ score: 1n, basis_fingerprint: String(i) }),
   });
-  it("is deterministic and lets the content key win", () => {
+  it("does not merge listings that share URL and content keys", () => {
     const a = item(0, { url: "https://x.example/a", description: "short", taiwan_eligible: true });
     const b = item(1, { url: "https://y.example/b", taiwan_eligible: false });
     const c = item(2, { url: "https://x.example/a", taiwan_eligible: null });
     const partition = groupItems([a, b, c]).map((g) => asList(g.req("member_ids")).join(",")).sort();
-    expect(partition).toEqual(["id-0", "id-1,id-2"]);
+    expect(partition).toEqual(["id-0", "id-1", "id-2"]);
   });
 });
 

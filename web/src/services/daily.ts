@@ -5,6 +5,7 @@ import { buildMessage, claimDailyRun, dailyRecipient, deliver, findDigest, finis
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
 import { asList, pyGet, PyDict, type PyValue } from "@/platform/py/value";
 import { createDigest } from "./digest";
+import { crossSourceTitles } from "./discovery";
 
 // The daily run of notifications/daily.py:run_daily, delivery included (plan step 10c). Each function
 // is one workflow step: inputs and outputs carry only dates, source ids, statuses and counts; the
@@ -63,6 +64,17 @@ export async function finishDaily(db: Db, localDate: string, startedAt: string, 
   open: SmtpOpener | null = configuredOpener(), earlier: Usage = NO_USAGE): Promise<{ status: "complete" | "failed"; delivery: DeliveryOutcome }> {
   const now = fromisoformat(startedAt), recipient = dailyRecipient();
   let status: "complete" | "failed", result: PyDict, delivery: DeliveryOutcome = open ? "pending" : "not_configured";
+  // D18's trigger measurement (plan step 10e2), before the digest and its delivery so it never
+  // lengthens the time a sent digest waits to be recorded, and never part of the run's outcome. A
+  // failure is recorded as null, which check-storage-triggers flags.
+  const measured: [string, PyValue][] = [];
+  try {
+    const titles = await crossSourceTitles(db, now);
+    measured.push(["cross_source_title_pairs", BigInt(titles.pairs)], ["cross_source_unknown_published", BigInt(titles.unknownPublished)]);
+  } catch (e) {
+    measured.push(["cross_source_title_pairs", null]);
+    console.warn(`cross-source title measurement failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
   try {
     const reused = details === null;
     const existing = reused ? await findDigest(db, localDate, recipient) : null;
@@ -105,6 +117,7 @@ export async function finishDaily(db: Db, localDate: string, startedAt: string, 
     status = "failed";
     result = PyDict.of({ status: "failed", local_date: localDate, reason: "daily_processing_failed" });
   }
+  for (const [k, v] of measured) result.set(k, v);
   for (const [k, v] of Object.entries(addUsage(earlier, usageOf(db)))) {
     result.set(k, typeof v === "number" ? BigInt(v) : new PyDict(Object.entries(v).map(([kind, n]) => [kind, BigInt(n)])));
   }

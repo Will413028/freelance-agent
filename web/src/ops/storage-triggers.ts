@@ -11,14 +11,17 @@ import { PyDict, type PyValue } from "@/platform/py/value";
 
 /** Over this many milliseconds of lease waiting in one run (D20). */
 export const LEASE_WAIT_LIMIT_MS = 2_000;
+/** At this many cross-source pairs with the same title among a day's recent candidates, Will samples them (D18). */
+export const CROSS_SOURCE_PAIRS = 3;
 /** Over this many D1 requests in one run, a conservative bound for the 1,200 per 5 minutes (D21). */
 export const REQUEST_LIMIT = 600;
 
 export type StorageSignal = {
   localDate: string;
   /** Which decision it reopens: D20 for the lease, D21 for the access path; "totals" only qualifies the run's numbers. */
-  decision: "D20" | "D21" | "totals";
-  signal: "lease_wait_over_limit" | "lease_timeout" | "lease_lost" | "rate_limited" | "requests_over_limit" | "lost_steps";
+  decision: "D20" | "D21" | "totals" | "projection" | "D18";
+  signal: "lease_wait_over_limit" | "lease_timeout" | "lease_lost" | "rate_limited" | "requests_over_limit" | "lost_steps" | "read_retries"
+    | "cross_source_title_pairs" | "cross_source_unmeasured";
   value: number;
 };
 
@@ -42,6 +45,12 @@ export function runSignals(localDate: string, result: string | null): StorageSig
   add("D21", "rate_limited", limited, limited > 0);
   add("D21", "requests_over_limit", requests, requests > REQUEST_LIMIT);
   add("totals", "lost_steps", count(r.get("lost_steps")), count(r.get("lost_steps")) > 0);
+  // Plan step 10e2: a page read of the discovery projection that had to run again (10e1's trigger for
+  // reading the page in one request), and D18's trigger for cross-source deduplication.
+  add("projection", "read_retries", count(r.get("read_retries")), count(r.get("read_retries")) > 0);
+  const pairs = count(r.get("cross_source_title_pairs"));
+  add("D18", "cross_source_title_pairs", pairs, pairs >= CROSS_SOURCE_PAIRS);
+  add("D18", "cross_source_unmeasured", 0, r.has("cross_source_title_pairs") && r.get("cross_source_title_pairs") === null);
   return out;
 }
 

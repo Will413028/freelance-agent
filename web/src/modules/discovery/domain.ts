@@ -19,6 +19,9 @@ const CATEGORIES: Category[] = [
   ["後端／API", 75n, ["backend", "api", "後端", "后端", "串接"]],
 ];
 
+/** Every score qualify can give: each category's, and 0 for none (the rounding test enumerates them). */
+export const CATEGORY_SCORES: readonly bigint[] = [0n, ...CATEGORIES.map(([, score]) => score)];
+
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** job.get(key, '') that must be a str for the `+` in Python to succeed. */

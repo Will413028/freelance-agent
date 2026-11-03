@@ -4,7 +4,7 @@ import { runSource, sourceStatuses } from "@/modules/collection/public";
 import { ENDPOINT as AN_ENDPOINT, MAX_PAGE_ENTRIES, normalize as anNormalize, parseBatch as anParseBatch, PROMOTIONAL_FOOTERS, readerOver, scan, syncArbeitnow } from "@/modules/collection/sources/arbeitnow";
 import { normalize as flNormalize, search, syncFreelancer, type Searcher } from "@/modules/collection/sources/freelancer";
 import { ENDPOINT as TJ_ENDPOINT, fetchTaiwanJobs, LABELS, parse as tjParse, parseBatch as tjParseBatch, syncTaiwanJobs } from "@/modules/collection/sources/taiwanjobs";
-import { list } from "@/services/discovery";
+import { list } from "./helpers/reference";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, PyError, type PyValue } from "@/platform/py/value";

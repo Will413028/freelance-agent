@@ -11,7 +11,8 @@ import { PyDateTime } from "@/platform/py/datetime";
 import { checkLedger, rebuildNovelty, rebuildProjection } from "@/services/digest";
 import { replayDigest } from "@/verify/replay";
 import { encode } from "@/platform/py/json";
-import { list, listPage } from "@/services/discovery";
+import { listPage } from "@/services/discovery";
+import { referenceList as list } from "./helpers/reference";
 import { db, intercepting, leased, MIGRATIONS, query, recording, resetSchema, sqliteWithSchema } from "./helpers/db";
 import { migrateD1 } from "@/db/migrate";
 import { fixture } from "./helpers/golden";
@@ -148,7 +149,7 @@ describe("one-time import into D1", () => {
     expect(await checkLedger(db, "2000-01-01")).toMatchObject({ rows, missing: 0, extra: 0, ok: true });
     // The imported projection serves the same list as the raw rows.
     const now = new PyDateTime(2026, 10, 26, 1, 0, 0, 0, 0n);
-    expect(encode(await listPage(db, now, { offset: 0, limit: 1000 }))).toBe(encode(await list(db, now)));
+    expect(encode(await listPage(db, now, { offset: 0, limit: 200 }))).toBe(encode(await list(db, now)));
   });
 
   it("finishes when run again after an interruption", async () => {
