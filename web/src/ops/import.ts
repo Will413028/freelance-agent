@@ -68,10 +68,9 @@ async function d1Columns(db: Db, table: string): Promise<Column[]> {
 
 /**
  * Loads every row of the copy into the (empty) product tables, in load order, under the caller's
- * lease, and returns what was read. `keep` drops rows (the digest replay leaves out the day it rebuilds).
+ * lease, and returns what was read.
  */
-export async function loadCopy(db: Db, lite: DatabaseSync, send: (statements: D1Statement[]) => Promise<unknown>,
-  keep: (table: string, columns: Column[], row: Row) => boolean = () => true): Promise<Map<string, Row[]>> {
+export async function loadCopy(db: Db, lite: DatabaseSync, send: (statements: D1Statement[]) => Promise<unknown>): Promise<Map<string, Row[]>> {
   const source = new Map<string, Row[]>();
   const statements: D1Statement[] = [];
   for (const spec of TABLES) {
@@ -79,7 +78,7 @@ export async function loadCopy(db: Db, lite: DatabaseSync, send: (statements: D1
     if (sqliteColumns(lite, spec.name).map((c) => `${c.name}:${c.type}`).join() !== columns.map((c) => `${c.name}:${c.type}`).join()) {
       throw new CopyError(`${spec.name}: columns differ between the copy and D1`);
     }
-    const rows = readSqliteRows(lite, spec, columns).filter((row) => keep(spec.name, columns, row));
+    const rows = readSqliteRows(lite, spec, columns);
     source.set(spec.name, rows);
     statements.push(...inserts(spec.name, columns, rows));
   }
@@ -127,7 +126,7 @@ export async function importCopy(sqlitePath: string, db: Db, rebuild: RebuildDer
     checkTableSet(lite);
     await migrateD1(db);
     // The lease keeps product write units out until the report is in. It does not stop the single-
-    // statement writers (daily claim, digest, mail records): a reload runs with the cron off or
+    // statement writers (daily claim, mail records): a reload runs with the cron off or
     // outside 09:00–09:59 Asia/Taipei (plan step 4e3).
     return await withLease(db, waitMs, async (send) => {
       await recreateTables(send);

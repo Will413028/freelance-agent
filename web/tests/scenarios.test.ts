@@ -30,6 +30,10 @@ const TABLES: [string, string, string][] = [
   ["digest_outbox", "local_date,recipient,snapshot,status,delivery_receipt", "local_date,recipient"],
 ];
 
+// The TS app builds no digest since plan step 10f (D22): Python's digest steps are skipped, every other step compared.
+const DIGEST_OPS = new Set(["digest", "render", "deliver"]);
+const withoutOutbox = (tables: Record<string, unknown[][]>) => Object.fromEntries(Object.entries(tables).filter(([t]) => t !== "digest_outbox"));
+
 const refId = (ref: string | string[]) => (typeof ref === "string" ? ref : identityHash(ref));
 const groupOf = async (key: string, now: PyDateTime) =>
   groupItems(await list(db, now)).find((g) => asList(g.req("member_ids")).includes(key))!;
@@ -72,7 +76,8 @@ async function replay(s: Scenario) {
       sources: async () => sourceStatuses(db),
       existing: async () => pySorted(await existingSourceIds(op.source)),
     };
-    results.push(await attemptAsync(async () => encode(await run[op.op]())));
+    // Digest steps have no TS counterpart since plan step 10f (D22): recorded as skipped, compared by nobody.
+    results.push(DIGEST_OPS.has(op.op) ? null as unknown as Expect<string> : await attemptAsync(async () => encode(await run[op.op]())));
   }
   const tables: Record<string, unknown[][]> = {};
   for (const [table, columns, order] of TABLES) {
@@ -84,22 +89,20 @@ async function replay(s: Scenario) {
 
 beforeEach(resetSchema);
 
-// The TS app builds no digest since plan step 10f (D22): the scenarios that build, render or deliver
-// one replay Python's digest only, so they are left out here, by name.
-const DIGEST_OPS = new Set(["digest", "render", "deliver"]);
-const DIGEST_SCENARIOS = ["digest_novelty_and_uncertain_delivery"];
-
 describe("store scenarios replay the Python store byte for byte", () => {
-  it("leaves out exactly the digest scenarios", () => {
-    expect(Object.entries(golden.scenarios).filter(([, sc]) => sc.ops.some((op) => DIGEST_OPS.has(op.op))).map(([n]) => n)).toEqual(DIGEST_SCENARIOS);
+  it("skips only the digest steps, in the one scenario that has them", () => {
+    expect(Object.entries(golden.scenarios).filter(([, sc]) => sc.ops.some((op) => DIGEST_OPS.has(op.op))).map(([n]) => n))
+      .toEqual(["digest_novelty_and_uncertain_delivery"]);
   });
-  for (const [name, scenario] of Object.entries(golden.scenarios).filter(([n]) => !DIGEST_SCENARIOS.includes(n))) {
+  for (const [name, scenario] of Object.entries(golden.scenarios)) {
     it(name, async () => {
       const got = await replay(scenario);
       const steps = scenario.ops.map((op, n) => ({ n, op: op.op, want: scenario.results[n], got: got.results[n] }))
-        .filter((s) => JSON.stringify(s.want) !== JSON.stringify(s.got));
+        .filter((s) => !DIGEST_OPS.has(s.op) && JSON.stringify(s.want) !== JSON.stringify(s.got));
       expect(steps).toEqual([]);
-      expect(got.tables).toEqual(scenario.tables);
+      // digest_outbox holds only Python's digests: TS writes none.
+      expect(withoutOutbox(got.tables)).toEqual(withoutOutbox(scenario.tables));
+      expect(got.tables.digest_outbox).toEqual([]);
     });
   }
 });

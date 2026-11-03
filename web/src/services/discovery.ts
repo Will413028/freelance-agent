@@ -1,4 +1,4 @@
-import { clientOf, insertChunks, readAll, type Db, type Read, type ReadValues } from "@/db/client";
+import { clientOf, insertChunks, readAll, type Db, type ReadValues } from "@/db/client";
 import type { D1Statement } from "@/db/d1/client";
 import { discoveryItems, discoveryVersions } from "@/db/schema";
 import { DAILY_WRITE, UI_WAIT_MS, withLease, writeUnit, type WritePolicy } from "@/db/unit";

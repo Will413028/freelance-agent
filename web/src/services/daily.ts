@@ -43,31 +43,44 @@ export function sourceDetails(details: Record<string, SourceDetail>): PyDict {
  * shape a Python rollback reads (status, local_date, source_status, source_reason, source_details:
  * backend notifications/store.py reads source_details) and adds D18's trigger measurement and the
  * run's D1 usage at the top level, never inside source_details, where every key is read as a source.
- * The run is complete when every source succeeded, failed otherwise; the step is never retried.
+ * The run is complete when every source succeeded, failed otherwise; any error while building the
+ * result finishes it as daily_processing_failed, so the day never stays `running`.
  */
 export async function finishDaily(db: Db, localDate: string, startedAt: string, details: Record<string, SourceDetail>,
   earlier: Usage = NO_USAGE): Promise<{ status: "complete" | "failed" }> {
   const now = fromisoformat(startedAt), recipient = dailyRecipient();
-  const source = sourceDetails(details);
-  const ok = source.at("status") === "ok";
-  const result = new PyDict([
-    ["status", ok ? "collected" : "source_failed"], ["local_date", localDate],
-    ["source_status", source.req("status")], ["source_reason", source.at("reason")], ["source_details", source],
-  ] as [string, PyValue][]);
+  let status: "complete" | "failed", result: PyDict;
+  try {
+    const source = sourceDetails(details);
+    const ok = source.at("status") === "ok";
+    status = ok ? "complete" : "failed";
+    result = new PyDict([
+      ["status", ok ? "collected" : "source_failed"], ["local_date", localDate],
+      ["source_status", source.req("status")], ["source_reason", source.at("reason")], ["source_details", source],
+    ] as [string, PyValue][]);
+  } catch {
+    status = "failed";
+    result = PyDict.of({ status: "failed", local_date: localDate, reason: "daily_processing_failed" });
+  }
   // D18's trigger measurement (plan step 10e2), never part of the run's outcome. A failure is
-  // recorded as null, which check-storage-triggers flags.
+  // recorded as null in both keys, which check-storage-triggers flags.
   try {
     const titles = await crossSourceTitles(db, now);
     result.set("cross_source_title_pairs", BigInt(titles.pairs));
     result.set("cross_source_unknown_published", BigInt(titles.unknownPublished));
   } catch (e) {
     result.set("cross_source_title_pairs", null);
+    result.set("cross_source_unknown_published", null);
     console.warn(`cross-source title measurement failed: ${e instanceof Error ? e.message : String(e)}`);
   }
-  for (const [k, v] of Object.entries(addUsage(earlier, usageOf(db)))) {
-    result.set(k, typeof v === "number" ? BigInt(v) : new PyDict(Object.entries(v).map(([kind, n]) => [kind, BigInt(n)])));
+  try {
+    for (const [k, v] of Object.entries(addUsage(earlier, usageOf(db)))) {
+      result.set(k, typeof v === "number" ? BigInt(Math.round(v)) : new PyDict(Object.entries(v).map(([kind, n]) => [kind, BigInt(Math.round(n))])));
+    }
+  } catch {
+    status = "failed";
+    result.set("reason", "daily_processing_failed");
   }
-  const status = ok ? "complete" : "failed";
   await finishDailyRun(db, localDate, recipient, status, result, PyDateTime.now());
   return { status };
 }

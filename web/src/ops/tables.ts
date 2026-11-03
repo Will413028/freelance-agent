@@ -1,6 +1,6 @@
 // The tables of backend/src/freelance/platform/schema/001_sqlite.sql that a copy of production
 // carries, in load order (parents before the tables that reference them); every table must appear
-// exactly once (tested). Used by the one-time import (plan step 4e3) and the digest replay.
+// exactly once (tested). Used by the one-time import (plan step 4e3).
 
 /**
  * Who writes a table:

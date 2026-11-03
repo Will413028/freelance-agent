@@ -65,7 +65,7 @@ function copy(name: string, mutate?: (lite: DatabaseSync) => void) {
 }
 
 const scenario = fixture<{ scenarios: Record<string, { tables: Record<string, unknown[][]> }> }>("golden.json").scenarios.digest_novelty_and_uncertain_delivery;
-const pythonCopy = (name: string, tamper = false, tracking = true) => {
+const pythonCopy = (name: string) => {
   const file = path.join(dir, name);
   const lite = sqliteWithSchema(file);
   const t = scenario.tables;
@@ -73,16 +73,12 @@ const pythonCopy = (name: string, tamper = false, tracking = true) => {
   run("insert into opportunities values (?,?,?,?)", t.opportunities);
   run("insert into source_receipts (source, receipt_id, opportunity_id) values (?,?,?)", t.source_receipts);
   run("insert into source_health (source, status) values (?,?)", t.source_health);
-  if (tracking) {
-    run("insert into opportunity_tracking values (?,?)", t.opportunity_tracking);
-    run("insert into tracking_events values (?,?,?,?,?)", t.tracking_events);
-  }
+  run("insert into opportunity_tracking values (?,?)", t.opportunity_tracking);
+  run("insert into tracking_events values (?,?,?,?,?)", t.tracking_events);
   run("insert into discovery_settings values (?,?,?)", t.discovery_settings);
+  // Historical digests are carried over unchanged (D22 keeps digest_outbox's rows).
   t.digest_outbox.forEach(([d, r, snapshot, status, receipt], n) => {
-    // Production has one recipient; the other one's digest of that day cannot affect this one's.
-    if (d === "2026-10-03" && r !== "owner@example.invalid") return;
-    const text = tamper && d === "2026-10-03" && r === "owner@example.invalid" ? (snapshot as string).replace('"unseen_count": 2', '"unseen_count": 3') : snapshot;
-    lite.prepare("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values (?,?,?,?,?,?)").run(`d${n}`, d as string, r as string, text as string, status as string, receipt as string | null);
+    lite.prepare("insert into digest_outbox (id, local_date, recipient, snapshot, status, delivery_receipt) values (?,?,?,?,?,?)").run(`d${n}`, d as string, r as string, snapshot as string, status as string, receipt as string | null);
   });
   lite.close();
   return file;
@@ -141,7 +137,9 @@ describe("one-time import into D1", () => {
     const report = await importCopy(base, db, rebuild);
     expect([report.derived, await projected()]).toEqual([4, 4]);
     const golden = await importCopy(pythonCopy("import-projection.sqlite3"), db, rebuild);
+    expect(golden.derived).toBeGreaterThan(0);
     expect(golden.derived).toBe(await projected());
+    expect(golden.ok).toBe(true);
     // The imported projection serves the same list as the raw rows.
     const now = new PyDateTime(2026, 10, 26, 1, 0, 0, 0, 0n);
     expect(encode(await listPage(db, now, { offset: 0, limit: 200 }))).toBe(encode(await list(db, now)));
