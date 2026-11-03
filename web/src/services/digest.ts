@@ -4,6 +4,9 @@ import { backfillNovelty, checkNovelty, findDigestRead, insertDigest, type Diges
 import type { PyDateTime } from "@/platform/py/datetime";
 import { assembleList, listReads } from "./discovery";
 
+/** The replay rebuilds the projection the digest will read (verify may only import this service). */
+export { rebuildProjection } from "./discovery";
+
 /**
  * Notifications.create_digest: discovery's list_in composed with the outbox. The existing intent,
  * the list and the source statuses are read in one request, so the snapshot is built from one state

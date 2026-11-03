@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { read, readAll, type Db } from "@/db/client";
 import { discoverySettings } from "@/db/schema";
-import { UI_WAIT_MS, writeUnit } from "@/db/unit";
-import { Conflict, uiBusy } from "@/platform/errors";
+import type { Writes } from "@/db/unit";
+import { Conflict } from "@/platform/errors";
 import { encode, loadsDict } from "@/platform/py/json";
 import { PyDict, type PyValue } from "@/platform/py/value";
 import { defaults, preferences } from "./rules";
@@ -20,13 +20,14 @@ export async function readSettings(db: Db): Promise<Settings> {
 
 export const settingsDict = (s: Settings) => PyDict.of({ revision: s.revision, settings: s.settings });
 
-/** A page request: compares the revision the caller saw under the writer lease, then writes the next one. */
-export async function replaceSettings(db: Db, revision: PyValue, value: PyValue): Promise<Settings> {
-  const settings = preferences(value);
-  return writeUnit(db, { waitMs: UI_WAIT_MS, busy: uiBusy }, [settingsRead(db)], ([current], writes) => {
-    if (typeof revision !== "bigint" || revision !== current.revision) throw new Conflict("篩選設定已更新，請重新載入");
-    const next = { revision: Number(revision + 1n), settings: encode(settings) };
-    writes.put(discoverySettings, { kind: "update", target: discoverySettings.id, set: [discoverySettings.revision, discoverySettings.settings] }, "1", { id: 1, ...next }, null);
-    return { revision: revision + 1n, settings };
-  });
+/**
+ * The settings write of a settings change, in the caller's unit: compares the revision the caller saw
+ * with the one the unit read under the writer lease, then writes the next one. The caller rewrites
+ * the projection's settings columns in the same unit (services/discovery.ts replaceSettings).
+ */
+export function putSettings(writes: Writes, current: Settings, revision: PyValue, settings: PyDict): Settings {
+  if (typeof revision !== "bigint" || revision !== current.revision) throw new Conflict("篩選設定已更新，請重新載入");
+  writes.put(discoverySettings, { kind: "update", target: discoverySettings.id, set: [discoverySettings.revision, discoverySettings.settings] }, "1",
+    { id: 1, revision: Number(revision + 1n), settings: encode(settings) }, null);
+  return { revision: revision + 1n, settings };
 }

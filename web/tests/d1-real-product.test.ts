@@ -14,10 +14,12 @@ import { migrateD1 } from "@/db/migrate";
 import { opportunities } from "@/db/schema";
 import { DAILY_WRITE, writeUnit } from "@/db/unit";
 import { ingestSource } from "@/modules/collection/public";
-import { copiedDigests, importCopy } from "@/ops/import";
+import { copiedDigests, copiedDiscovery, importCopy } from "@/ops/import";
 import { PyDateTime } from "@/platform/py/datetime";
-import { rebuildNovelty } from "@/services/digest";
-import { track } from "@/services/discovery";
+import { rebuildNovelty, rebuildProjection } from "@/services/digest";
+import { replaceSettings, track } from "@/services/discovery";
+import { readSettings } from "@/modules/discovery/public";
+import { PyDict } from "@/platform/py/value";
 import { sqliteWithSchema } from "./helpers/db";
 import { job } from "./helpers/jobs";
 
@@ -107,19 +109,35 @@ describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () =>
     expect(found).toEqual([]);
   });
 
+  it("rewrites the projection's settings columns through one json_each parameter (plan step 10e1)", async () => {
+    // A parameter of the size the bulk statements use (90 KB) on ids that do not exist: D1 accepts it and writes nothing.
+    const ids = JSON.stringify(Array.from({ length: 2_000 }, (_, i) => [`missing-${i}-${"x".repeat(24)}`, 0, 700]));
+    expect(ids.length).toBeGreaterThan(80_000);
+    // Straight to the transport: the client would refuse a write to a leased table without the guard.
+    const [none] = await http.batch([{ sql: "update discovery_items set excluded = json_extract(j.value, '$[1]') from json_each(?) as j " +
+      "where discovery_items.opportunity_id = json_extract(j.value, '$[0]')", params: [ids] }]);
+    expect(none.changes).toBe(0);
+    // The real unit on the records the lease test left (their projection rows came with them).
+    const current = await readSettings(db);
+    await replaceSettings(db, current.revision, new PyDict(current.settings).update({ max_weekly_hours: 5n }));
+    expect(await rows("select count(*), min(settings_revision) from discovery_items")).toEqual([[2, Number(current.revision) + 1]]);
+  });
+
   it("imports a copy and reports it equal", async () => {
     const file = path.join(dir, "copy.sqlite3");
     const lite = sqliteWithSchema(file);
-    const item = (id: string) => `{"id": "${id}", "job": {"source": "guru", "external_id": "${id}", "budget_max": 1.0}}`;
+    const item = (id: string) => `{"id": "${id}", "job": {"source": "guru", "external_id": "${id}", "budget_max": 1.0}, "fingerprint": "f-${id}", "review_status": "draft"}`;
     for (const id of ["o1", "o2"]) lite.prepare("insert into opportunities values (?,?,?,?)").run(id, "guru", id, item(id));
     lite.prepare("insert into source_receipts values ('guru','r1','o1','2026-10-01 01:02:03')").run();
     lite.prepare("insert into tracking_events (opportunity_id, revision, state, created_at) values ('o1',1,'{}','t1')").run();
     lite.prepare("insert into digest_outbox values ('d1','2026-10-22','owner@example.invalid','{\"items\": []}','sent','c',null,null,'receipt')").run();
     lite.close();
-    const report = await importCopy(file, db, (target, copy) => rebuildNovelty(target, copiedDigests(copy)));
+    const report = await importCopy(file, db, async (target, copy, send) =>
+      await rebuildNovelty(target, copiedDigests(copy)) + await rebuildProjection(target, copiedDiscovery(copy), send));
     expect(report.ok).toBe(true);
     expect(report.tables.opportunities.target.rows).toBe(2);
     expect(await rows("select item from opportunities where id = 'o1'")).toEqual([[item("o1")]]);
+    expect(await rows("select opportunity_id from discovery_items order by 1")).toEqual([["o1"], ["o2"]]);
   });
 
   it("stays within its row-write budget", () => {

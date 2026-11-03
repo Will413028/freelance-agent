@@ -2,7 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { inList, read, readAll, retrying, type Db } from "@/db/client";
 import { mailContentVersions, mailIngestion, mailSyncState, opportunities, sourceHealth, sourceReceipts, utcNowText, type SourceStatus } from "@/db/schema";
 import { INTAKE_WRITE, writeUnit, type Writes } from "@/db/unit";
-import { evaluate, settingsRead } from "@/modules/discovery/public";
+import { evaluate, putVersion, settingsRead, type Settings } from "@/modules/discovery/public";
 import { newObservation, Records, recordsRead, refreshRecord } from "@/modules/legacy/public";
 import { Conflict } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
@@ -137,9 +137,9 @@ export function ingestSource(db: Db, source: PyValue, now: PyDateTime, items: re
   keep: (job: PyDict, exists: boolean) => boolean, health: PyValue | null): Promise<PyDict[]> {
   if (!isSource(source)) throw new PyError("ValueError", "unknown source");
   if (health !== null) checkHealth(source, health);
-  return writeUnit(db, INTAKE_WRITE, intakeReads(db, items), ([{ settings }, found, receipts], writes) => {
+  return writeUnit(db, INTAKE_WRITE, intakeReads(db, items), ([s, found, receipts], writes) => {
     const existed = new Set([...found].filter(([, item]) => item !== null).map(([key]) => key));
-    const unit: Intake = { records: new Records(found, writes), receipts: new Receipts(receipts, writes), settings };
+    const unit: Intake = { records: new Records(found, writes, s), receipts: new Receipts(receipts, writes), settings: s.settings };
     const ingested: PyDict[] = [];
     for (const [jobValue, receiptId] of items) {
       const job = asDict(jobValue);
@@ -180,10 +180,15 @@ export type ContentVersionRow = { opportunityId: string; fingerprint: string; jo
 export const contentVersionsRead = (db: Db) =>
   read(db.select().from(mailContentVersions).orderBy(asc(mailContentVersions.fingerprint)), (rows): ContentVersionRow[] => rows);
 
+/** The content versions of these opportunities only, in the same order (a discovery page, plan step 10e1). */
+export const contentVersionsFor = (db: Db, keys: readonly string[]) =>
+  read(db.select().from(mailContentVersions).where(inList(mailContentVersions.opportunityId, keys)).orderBy(asc(mailContentVersions.fingerprint)),
+    (rows): ContentVersionRow[] => rows);
 
-/** Which (opportunity, fingerprint) content versions exist for a unit's opportunities, plus the ones it adds. */
+
+/** Which (opportunity, fingerprint) content versions exist for a unit's opportunities, plus the ones it adds (each with its projection row, plan step 10e1). */
 class ContentVersions {
-  constructor(private readonly known: Set<string>, private readonly writes: Writes) {}
+  constructor(private readonly known: Set<string>, private readonly writes: Writes, private readonly settings: Settings) {}
 
   has(key: string, fingerprint: string) {
     return this.known.has(pair(key, fingerprint));
@@ -194,6 +199,7 @@ class ContentVersions {
     if (this.has(key, fingerprint)) return false;
     this.known.add(pair(key, fingerprint));
     this.writes.put(mailContentVersions, { kind: "nothing" }, pair(key, fingerprint), { opportunityId: key, fingerprint, job: encode(job) }, key);
+    putVersion(this.writes, key, fingerprint, job, this.settings);
     return true;
   }
 }
@@ -211,10 +217,10 @@ export function ingestResendBatch(db: Db, jobs: PyValue[], now: PyDateTime, keep
   Promise<{ contentVersions: number; kept: PyDict[] }> {
   const items = listings(jobs);
   const keys = items.map(([job]) => listingKey(job)).filter((k) => k !== null);
-  return writeUnit(db, INTAKE_WRITE, [...intakeReads(db, items), versionsRead(db, keys)], ([{ settings }, found, receipts, known], writes) => {
+  return writeUnit(db, INTAKE_WRITE, [...intakeReads(db, items), versionsRead(db, keys)], ([s, found, receipts, known], writes) => {
     const existed = new Set([...found].filter(([, item]) => item !== null).map(([key]) => key));
-    const unit: Intake = { records: new Records(found, writes), receipts: new Receipts(receipts, writes), settings };
-    const versions = new ContentVersions(known, writes);
+    const unit: Intake = { records: new Records(found, writes, s), receipts: new Receipts(receipts, writes), settings: s.settings };
+    const versions = new ContentVersions(known, writes, s);
     let newVersions = 0;
     const kept: PyDict[] = [];
     for (const jobValue of jobs) {

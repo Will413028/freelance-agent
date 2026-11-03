@@ -121,7 +121,11 @@ export class Writes {
     p.rows.set(key, { group, row });
   }
 
-  /** A raw statement for the last batch, under the same guard (test fixtures). */
+  /**
+   * A raw statement for the last batch, under the same guard: test fixtures, and set-based writes the
+   * row API cannot express within one request (the projection's settings columns, UPDATE … FROM
+   * json_each, plan step 10e1). Never split: a unit whose raw statements overflow a request fails.
+   */
   statement(query: BatchItem<"sqlite">) {
     this.tail.push(query);
   }

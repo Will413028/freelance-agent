@@ -124,6 +124,11 @@ export function recommendation(item: PyDict, now: PyDateTime): PyDict {
 
 export function rankItems(items: PyDict[], now: PyDateTime): PyDict[] {
   for (const item of items) item.set("recommendation", recommendation(item, now));
+  return rankOrder(items);
+}
+
+/** Items that carry their recommendation, in rank order: candidates first, then higher score, then id. */
+export function rankOrder(items: readonly PyDict[]): PyDict[] {
   const key = (x: PyDict): PyValue[] => [!isCandidate(x), negateScore(x.dict("recommendation").req("score")), x.req("id")];
   return [...items].sort((a, b) => pyCmp(key(a), key(b)));
 }

@@ -448,3 +448,47 @@ export const writerLease = sqliteTable(
   },
   (t) => [check("writer_lease_singleton", sql`${t.id} = 1`)],
 );
+
+// Not in the Python schema (D16, D18 P1, plan step 10e1): the discovery read model. One row per
+// opportunity (discovery_items) and one per mail content version (discovery_versions), written by the
+// same unit that writes the row it derives from; a settings change rewrites the settings-dependent
+// columns of every row in one unit. It holds only what SQL ranks and filters on: what depends on the
+// clock (expiry, freshness) is computed at read from deadline_at and published_at, and a page is
+// re-evaluated in TS from its own rows, which checks the score SQL ranked it by. Timestamps are UTC
+// text 'YYYY-MM-DDTHH:MM:SS.ffffffZ', ordered as text; '0000-…' stands for before year 1. Rebuilt
+// from the copy after every import and in the replay; never copied or written back (DERIVED_TABLES).
+const projectionColumns = {
+  /** When the listing expires: the deadline instant, or the day after a date-only deadline at 00:00Z; null: never (also past year 9999). */
+  deadlineAt: text("deadline_at"),
+  /** Publication instant; null when unknown or past year 9999. */
+  publishedAt: text("published_at"),
+  /** The discovery_settings revision the columns below were computed under. */
+  settingsRevision: integer("settings_revision").notNull(),
+  /** 1 when evaluate excludes the listing even before its deadline. */
+  excluded: integer("excluded").notNull(),
+  /** The recommendation score in tenths before tracking and freshness: category score × 7 + 25 per confirmed condition. */
+  baseTenths: integer("base_tenths").notNull(),
+};
+
+export const discoveryItems = sqliteTable(
+  "discovery_items",
+  {
+    opportunityId: text("opportunity_id").primaryKey().references(() => opportunities.id),
+    fingerprint: text("fingerprint").notNull(),
+    reviewStatus: text("review_status"),
+    /** The record's own novelty pairs, JSON [[key, fingerprint], …]; each version adds [opportunity id, its fingerprint]. */
+    novelty: text("novelty").notNull(),
+    ...projectionColumns,
+  },
+  (t) => [check("discovery_items_excluded", sql`${t.excluded} in (0, 1)`)],
+);
+
+export const discoveryVersions = sqliteTable(
+  "discovery_versions",
+  {
+    opportunityId: text("opportunity_id").notNull().references(() => opportunities.id),
+    fingerprint: text("fingerprint").notNull(),
+    ...projectionColumns,
+  },
+  (t) => [primaryKey({ columns: [t.opportunityId, t.fingerprint] }), check("discovery_versions_excluded", sql`${t.excluded} in (0, 1)`)],
+);

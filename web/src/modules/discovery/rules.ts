@@ -47,13 +47,15 @@ export const evaluateUnexpired = (job: PyDict, settings: PyDict): Unexpired =>
 /** evaluate at `now`: the deadline first, then the category filter, which only applies to what the deadline left possible. */
 export function evaluationAt(unexpired: Unexpired, settings: PyDict, now: PyDateTime): PyDict {
   const result = expire(unexpired, now);
-  const categories = asList(settings.req("categories"));
-  if (!categories.some((c) => pyEq(c, result.get("category")!)) && result.get("status") !== "excluded") {
+  if (outsideCategories(result, settings) && result.get("status") !== "excluded") {
     (result.get("reasons") as PyValue[]).push("不在目前選擇的專長分類");
     result.set("status", "excluded");
   }
   return result;
 }
+
+/** Whether the evaluated category is one the settings leave out. */
+export const outsideCategories = (result: PyDict, settings: PyDict) => !asList(settings.req("categories")).some((c) => pyEq(c, result.get("category")!));
 
 export const project = (item: PyDict, settings: PyDict, now: PyDateTime): PyDict => withEvaluation(item, evaluate(item.dict("job"), settings, now));
 

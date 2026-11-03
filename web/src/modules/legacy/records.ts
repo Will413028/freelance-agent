@@ -2,7 +2,7 @@ import { asc } from "drizzle-orm";
 import { inList, read, readAll, type Db } from "@/db/client";
 import { opportunities, proposalRevisions } from "@/db/schema";
 import type { Writes } from "@/db/unit";
-import { evaluate } from "@/modules/discovery/public";
+import { evaluate, putItem, type Settings } from "@/modules/discovery/public";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { deepCopy, pyEq, PyDict, truthy, type PyValue } from "@/platform/py/value";
@@ -34,11 +34,14 @@ export const recordsRead = (db: Db, keys: readonly string[]) =>
 export class Records {
   private readonly created = new Set<string>();
 
-  /** `complete` when the unit read every record, so an id it has not seen does not exist. */
-  constructor(private readonly items: Map<string, PyDict | null>, private readonly writes: Writes, private readonly complete = false) {}
+  /**
+   * `settings` are the ones the unit read, for the projection row written with every record (plan
+   * step 10e1); `complete` when the unit read every record, so an id it has not seen does not exist.
+   */
+  constructor(private readonly items: Map<string, PyDict | null>, private readonly writes: Writes, private readonly settings: Settings, private readonly complete = false) {}
 
-  static over(items: readonly PyDict[], writes: Writes) {
-    return new Records(new Map(items.map((item) => [item.str("id"), item])), writes, true);
+  static over(items: readonly PyDict[], writes: Writes, settings: Settings) {
+    return new Records(new Map(items.map((item) => [item.str("id"), item])), writes, settings, true);
   }
 
   get(key: string): PyDict | null {
@@ -67,6 +70,7 @@ export class Records {
     this.items.set(id, deepCopy(item));
     this.writes.put(opportunities, this.created.has(id) ? { kind: "insert" } : { kind: "update", target: opportunities.id, set: [opportunities.item] }, id,
       { id, source: job.str("source"), externalId: job.str("external_id"), item: encode(item) }, id);
+    putItem(this.writes, item, this.settings);
   }
 }
 
