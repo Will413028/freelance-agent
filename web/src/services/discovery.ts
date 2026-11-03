@@ -6,14 +6,14 @@ import { applicationProjectionsFor, type ApplicationProjection } from "@/modules
 import { contentVersionsFor, contentVersionsRead, type ContentVersionRow } from "@/modules/collection/public";
 import { allRecordsRead, Records, recordsRead } from "@/modules/legacy/public";
 import { emptyTracking, track as trackIn, trackingRead, Trackings, trackReads, type TrackingChange } from "@/modules/preferences/public";
-import { Conflict, InvalidAction, uiBusy } from "@/platform/errors";
+import { Conflict, InvalidAction, NotFound, uiBusy } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { text } from "@/platform/py/unicode";
 import { encode, loadsDict } from "@/platform/py/json";
-import { asDict, asList, cmpStr, isDict, pyEq, PyDict, PyError, type PyValue } from "@/platform/py/value";
+import { asDict, asList, cmpStr, isDict, pyEq, PyDict, type PyValue } from "@/platform/py/value";
 import {
   asGroup, checkRanked, checkState, evaluate, isCandidate, titlesRead, utcText, WEEK_US, itemRow, ProjectionMismatch, projectionStateRead, rankedRead, preferences, project, PUBLIC_JOB_FIELDS, putSettings, putSettingsColumns, recommendation, settingsOf, settingsRead, versionRow,
-  type Settings,
+  type Settings, type View,
 } from "@/modules/discovery/public";
 
 // Port of discovery/service.py: discovery queries and atomic group feedback shared by all entry
@@ -65,7 +65,7 @@ export function assembleItems(rows: readonly PyDict[], settings: PyDict, content
 function oneItem(key: string, [s, records, contentRows, states, applications]: ReadValues<[ReturnType<typeof settingsRead>, ...ReturnType<typeof itemReads>]>,
   now: PyDateTime): PyDict {
   const record = records.get(key);
-  if (!record) throw new PyError("KeyError", key);
+  if (!record) throw new NotFound(key);
   return assembleItems([record], s.settings, contentRows, states, applications, now)[0];
 }
 
@@ -154,9 +154,9 @@ const EVERY = { offset: 0, limit: -1 };
  * between the two requests can make them disagree, so the read is tried twice before it fails; the
  * retry is counted (read_retries in daily_runs.result) and logged.
  */
-export async function listPage(db: Db, now: PyDateTime, page: { offset: number; limit: number }): Promise<PyDict[]> {
+export async function listPage(db: Db, now: PyDateTime, page: { offset: number; limit: number }, view: View = "all"): Promise<PyDict[]> {
   if (!(page.limit >= 1 && page.limit <= MAX_PAGE)) throw new Error(`a page holds 1 to ${MAX_PAGE} listings`);
-  return retried(db, () => rankedThenRows(db, now, page));
+  return retried(db, () => rankedThenRows(db, now, page, view));
 }
 
 /** The largest page a page request may ask for (the UI, plan step 11). */
@@ -174,8 +174,8 @@ async function retried<T>(db: Db, read: () => Promise<T>): Promise<T> {
   }
 }
 
-async function rankedThenRows(db: Db, now: PyDateTime, page: { offset: number; limit: number }): Promise<PyDict[]> {
-  const [state, s, ranked] = await readAll(db, [projectionStateRead(db), settingsRead(db), rankedRead(db, now, page)]);
+async function rankedThenRows(db: Db, now: PyDateTime, page: { offset: number; limit: number }, view: View): Promise<PyDict[]> {
+  const [state, s, ranked] = await readAll(db, [projectionStateRead(db), settingsRead(db), rankedRead(db, now, page, view)]);
   checkState(state);
   const ids = ranked.map((r) => r.id);
   const [records, contentRows, states, applications, again] = await readAll(db, [...itemReads(db, ids), settingsRead(db)]);

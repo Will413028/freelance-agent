@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { retrying, type Db } from "@/db/client";
 import { dailyRuns } from "@/db/schema";
 import { PyDateTime } from "@/platform/py/datetime";
@@ -37,6 +37,12 @@ export async function claimDailyRun(db: Db, localDate: string, recipient: string
 
 export async function getDailyRun(db: Db, localDate: string, recipient: string) {
   const [row] = await retrying(() => db.select().from(dailyRuns).where(and(eq(dailyRuns.localDate, localDate), eq(dailyRuns.recipient, recipient))));
+  return row ? { ...row, result: row.result === null ? null : loads(row.result) } : null;
+}
+
+/** The most recent day's run, for the sources page (plan step 11); null before the first run. */
+export async function latestDailyRun(db: Db) {
+  const [row] = await retrying(() => db.select().from(dailyRuns).orderBy(desc(dailyRuns.localDate), desc(dailyRuns.startedAt)).limit(1));
   return row ? { ...row, result: row.result === null ? null : loads(row.result) } : null;
 }
 

@@ -1,25 +1,21 @@
-import { getDb } from "@/db/client";
-import { sourceChecks } from "@/modules/collection/public";
-import { asDict } from "@/platform/py/value";
+import { PyDateTime } from "@/platform/py/datetime";
+import { listJobs, listQuery } from "@/services/pages";
+import { JobList, NoticeLine, ReadOnlyHint, Shell } from "./_lib/views";
+import { writesOn } from "./_lib/guard";
+import { withPageDb } from "./_lib/usage";
 
 export const dynamic = "force-dynamic";
 
-// Shadow-period status page; the real UI arrives in plan step 11.
-export default async function Page() {
-  const checks = await sourceChecks(getDb());
-  return (
-    <main>
-      <h1>來源狀態</h1>
-      <table>
-        <thead>
-          <tr><th>來源</th><th>狀態</th><th>檢查時間（UTC）</th></tr>
-        </thead>
-        <tbody>
-          {[...checks].map(([source, v]) => (
-            <tr key={source}><td>{source}</td><td>{String(asDict(v).at("status"))}</td><td>{String(asDict(v).at("checked_at") ?? "")}</td></tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
-  );
+type Search = Promise<Record<string, string | string[] | undefined>>;
+
+/** The discovery list (plan step 11): one ranked page of a view, candidates first. */
+export default async function Page({ searchParams }: { searchParams: Search }) {
+  const params = await searchParams;
+  const { view, page } = listQuery(params);
+  const data = await withPageDb(`/?view=${view}&page=${page}`, (db) => listJobs(db, PyDateTime.now(), view, page));
+  return <Shell active="jobs">
+    <NoticeLine notice={typeof params.notice === "string" ? params.notice : undefined} />
+    <ReadOnlyHint writes={writesOn()} />
+    <JobList data={data} />
+  </Shell>;
 }

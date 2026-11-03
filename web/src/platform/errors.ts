@@ -14,6 +14,20 @@ export class InvalidAction extends PyError {
   }
 }
 
+/** Settings a person entered that preferences() refuses: a ValueError to Python-shaped callers (golden), a 400 to a page (plan step 11). */
+export class InvalidSettings extends PyError {
+  constructor(message: string) {
+    super("ValueError", message);
+  }
+}
+
+/** A record that does not exist: a KeyError to Python-shaped callers (golden), a 404 to a page (plan step 11). */
+export class NotFound extends PyError {
+  constructor(key: string) {
+    super("KeyError", key);
+  }
+}
+
 /**
  * What a page request answers when its write unit gave up on the writer lease (D20-B): 409 either
  * way; "busy" when the daily run held it past the wait, "reload" when the data kept changing.

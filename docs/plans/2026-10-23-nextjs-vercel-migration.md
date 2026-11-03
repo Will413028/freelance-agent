@@ -83,11 +83,11 @@
 | （D17，2026-10-26 起只限 v1 雜湊邊界：canonical JSON、opportunity id、fingerprint、receipt id、novelty key、核准雜湊，以及產生它們輸入的解析，到 D6 窗口結束；其他程式改原生，不再以 Python 輸出為規格）規格是正式映像的 CPython 3.13.15，不只是 Python 原始碼：`html.parser`、`fromisoformat`、`urlsplit` 在 3.13.13 與 3.13.15 之間行為不同（2026-10-24 量到） | `deploy/backend.Dockerfile` 釘 `python:3.13.15-slim`（2026-10-24 Will 決定；執行中的 `d994cd2` 映像本來就是 3.13.15，下次重建才生效）；TS：`web/src/platform/py/*.ts` 註明的版本、`gen_golden.py` 開頭的版本檢查、本機 `backend/.venv`（3.13.15）。要升 Python 時，Dockerfile、`gen_golden.py` 的版本檢查、本機 venv 一起改，並用新版重跑 `gen_golden.py` 與差異 |
 | `(source, external_id)` 唯一；receipt ID 防重複匯入 | `opportunities`、`source_receipts`、各 connector 的 receipt 規則（`inventory-sources.md` §1）；TS：connector 共用的 `ingest` 與指紋函式庫 |
 | 未知欄位保留為未知 | `discovery/rules.py`、各 connector 的 envelope；TS：envelope 型別（unknown 是明確的值，不用 `null` 推定） |
-| 回饋與設定變更沿用呼叫端的交易，stale revision 被拒絕 | `preferences`、`discovery/settings.py`、`tracking_events` revision；TS：route handler／server action 的交易邊界 |
+| 回饋與設定變更沿用呼叫端的交易，stale revision 被拒絕 | `preferences`、`discovery/settings.py`、`tracking_events` revision；TS：`feedback`、`replaceSettings` 的寫入單元（`web/src/services/discovery.ts`），由步驟 11 的 route handler 呼叫 |
 | 歷史核准失效保護（`AGENTS.md`） | `legacy/review_service.py`、`backend/tests/legacy/test_review.py`（11 個）；TS 去向見 D8 |
 | Workflow run data 不含正文與憑證 | TS：所有 `"use step"` 函式的參數與回傳型別只能是 ID、計數、狀態；用型別測試加 lint 守住 |
-| UI 與 API 只有本人看得到；請求有來源檢查與 body 上限 | 現況：loopback、SSH tunnel、`LocalBoundary` 的 Origin 檢查與 body 上限（`bootstrap/http.py`）；TS：Vercel Authentication 加上 route 層的 Origin 檢查與 body 上限 |
-| 離線 demo 不讀憑證、不連外、不寄信 | `bootstrap/http.py` `mode='demo'`、MemoryDatabase；TS：步驟 11 的 demo 模式（`node:sqlite` 記憶體庫加 network guard） |
+| UI 與 API 只有本人看得到；請求有來源檢查與 body 上限 | 現況：loopback、SSH tunnel、`LocalBoundary` 的 Origin 檢查與 body 上限（`bootstrap/http.py`）；TS：Vercel Authentication 加上 `web/src/app/_lib/guard.ts` 的 `guardedForm`（寫入開關、Origin、Content-Type、body 上限） |
+| 離線 demo 不讀憑證、不連外、不寄信 | `bootstrap/http.py` `mode='demo'`、MemoryDatabase；TS：demo 延後（範圍的延後），做的時候用 `node:sqlite` 記憶體庫加 network guard |
 
 ## 規模（搬遷）
 
@@ -457,7 +457,7 @@
     - 10c 寄送路徑（shadow 結構上不能寄）：`claimDigest`／`finishDigest`／`dispatch`（`scheduler.py`），寄送 step `maxRetries = 0`；MIME 由 TS 自己組（multipart/alternative、utf-8、固定 boundary 與 Message-ID，同一 snapshot 永遠是同一串位元組），預覽 sha256 由 TS 算，不沿用 Python 的值；SMTP 用 nodemailer 只當傳輸層（`raw` 寄出我們組好的位元組，Node 沒有內建 SMTP client），連 `smtp.gmail.com:465`、驗憑證。寄送憑證的 env 名稱在步驟 13 才存入，缺 env 時寄送 step 回 `not_configured`、不 claim。驗收：「不確定寄送不重試」（sender 丟例外、沒有 receipt、程序在 claim 後中斷，三種都留在 `attempted`／`unknown`，再跑一次不會寄）、sha256 不符拒寄、snapshot 改變拒寄、`existing_snapshot_requires_review`。mutation：寄送 step 允許重試、`finishDigest` 接受非 `attempted` 的列，測試各自失敗。1d 實寄（合成信）在這一步做，需要 Will 把 SMTP 憑證存進 spike 專案的 env。
     - 10c 實作狀態（2026-10-26，本機完成，未部署）：`notifications/delivery.ts`（`buildMessage`、`dispatch`、`deliver`、`smtpPassword`）、`platform/smtp.ts`（`openGmail`：nodemailer 的 `SMTPConnection`，一條 TLS 連線 connect → login → send，和 Python `SMTP_SSL`＋`login`＋`sendmail` 同一個流程，所以登入失敗發生在 claim 前、摘要留 pending；不用 `createTransport`，它的 `verify()` 與 `sendMail()` 各開一條連線，第二條在 claim 後才登入失敗會變成 unknown）。寄送接在收尾 step 的 `finishDaily` 裡（和 `run_daily` 同一處），`finishStep` 本來就是 `maxRetries = 0`，回傳改成 `{status, delivery}`；組信取代原本只為檢查而呼叫的 `render`。寄送開關就是 env：只有 `GMAIL_APP_PASSWORD`（帳號就是 `DIGEST_RECIPIENT`，和 Python 設定檔的 email 必須等於收件者同義，所以只多一個 secret），沒設時 `delivery: not_configured`、不 claim、result 不多欄位，shadow 行為不變。和 Python 的刻意差異（D17）：MIME 自己組（base64 的 text 與 html 兩段、From／To 用 snapshot 存的收件者，所以位元組只由 snapshot 與 intent id 決定）；sha256 是 TS 自己的值。依賴：`nodemailer` 10.0.16（2026-10-07 發布，無依賴，自帶型別）。驗證：`tests/delivery.test.ts` 15 例（真 Postgres、假 SMTP client）：sender 丟例外／沒有 receipt／claim 後中斷三種都停在 unknown／attempted 且再跑不寄、`finishDigest` 不收非 attempted、sha256 不符在連線前拒寄、登入失敗留 pending、snapshot 改變拒寄（測試裡暫停不可改 trigger 才做得到）、`existing_snapshot_requires_review`、未設定不 claim、組信位元組固定與只寄給驗證過的帳號；`src/platform/smtp.test.ts` 3 例（本機 socket：對方斷線、對方不回應、格式不符不連線）。mutation 9 項全紅：step 允許重試、`finishDigest` 不限 attempted、sender 失敗後重試、拿掉 sha256 比對、拿掉 snapshot 比對、拿掉收件者接受檢查、拿掉 pending 檢查、reused 也寄、`openGmail` 不聽 error／end 事件（兩個測試逾時）。因為先寫實作再寫測試，測試的鑑別力以這些 mutation 證明，不是先紅後綠。對抗式審查（fresh subagent）：沒有找到重寄或誤標 sent 的路徑；改 3：(MED) 連線、TLS、逾時錯誤在 nodemailer 只走 `error` 事件、不呼叫 connect／login 的 callback，原本 `openGmail` 會永遠不結束、run 停在 running 到函式被殺，改成兩段等待都聽 `error`／`end` 並加上面的 socket 測試；(LOW) 一條對 `PyDict` 用 `toHaveProperty` 的空斷言；(LOW)「沒有 receipt」補再跑不寄。記 1：Workflow SDK 自己說 step 本體在重新投遞時可能跑兩次（`workflow` 5.2.3 的 `step-executed-multiple-times` 文件），`maxRetries = 0` 不是「最多一次」；擋住重寄的是 `claimDigest` 的條件式 UPDATE（`pending → attempted` 只有一個呼叫者拿得到列）與 `deliver` 只處理 pending。1d 實寄（2026-10-26）：從 spike 專案用本步驟的 `buildMessage` 與 `openGmail` 寄出合成信，Gmail 接受 1、拒收 0（`spikes.md` 1d）。Will 確認收件匣收到、顯示正常。正式專案上的寄送要到步驟 13 才有憑證。
     - 10a 修正＋10c 上 shadow（2026-10-26 12:3x，Will 授權部署）：`86b62be` 部署到正式專案（`freelance-agent-5knxy7mjg`，alias 不變；部署前 `vercel env ls production` 仍是白名單 6 個名稱、沒有 `GMAIL_APP_PASSWORD`，所以收尾 step 回 `not_configured`、不 claim；alias 與部署網址的 `/api/cron` 未登入都是 302）。VM 映像不用換（沒有 migration，比對器與 replay 不讀這兩處改動）。回滾：Vercel promote 回 `kzojngp21`。未跑：10-27 第一次自然執行，確認 cryptojobslist 的 detail 是 ok、workflow 回傳 `delivery: not_configured`、`digest_outbox` 仍是 pending。
-    - 10e 共用讀取模型（D16、D18，2026-10-26 新增，排在 10c 後；D19 之後被擋於步驟 4e；Will 2026-11-03 放寬：10e1 可在 4e4b 觀察期間於分支上開工，合併等 4e4b 驗收過，觀察期發現儲存層問題時分支跟著接上修正；一個 session 做不完，拆成 10e1、10e2，依序做）：取代全表 `listIn`，UI 與摘要都讀同一份投影。讀取模型照 D18 的 P1：依 settings revision 存評估狀態與排名基分，SQL 只算和時間有關的部分（是否過期、新鮮度加分）並分頁，只補讀當頁；補讀時用 TS 重算並核對 SQL 給的分數，不符就丟錯。D18：不做跨來源合併，每筆 opportunity 是只有自己一個成員的群組；`members: [自己]`、成員 token 公式（fingerprint、tracking revision、內容版本雜湊、applications token）、`observation_fingerprints`、`novelty_keys`、內容版本的主卡選擇（`display_basis`）照舊，所以 DTO、snapshot 與 Python 回滾時的 render 都不變。
+    - 10e 共用讀取模型（D16、D18，2026-10-26 新增，排在 10c 後；D19 之後被擋於步驟 4e；Will 2026-11-03 放寬：10e1 可在 4e4b 觀察期間於分支上開工，合併等 4e4b 驗收過，觀察期發現儲存層問題時分支跟著接上修正；一個 session 做不完，拆成 10e1、10e2，依序做）：取代全表 `listIn`，UI 與摘要都讀同一份投影。讀取模型照 D18 的 P1：依 settings revision 存評估狀態與排名基分，SQL 只算和時間有關的部分（是否過期、新鮮度加分）並分頁，只補讀當頁；補讀時用 TS 重算並核對 SQL 給的分數，不符就丟錯。D18：不做跨來源合併，每筆 opportunity 是只有自己一個成員的群組；`members: [自己]`、成員 token 公式（fingerprint、tracking revision、內容版本雜湊、applications token）、`observation_fingerprints`、`novelty_keys`、內容版本的主卡選擇（`display_basis`）照舊，所以 DTO、snapshot 與 Python 回滾時的 render 都不變。（2026-11-03 步驟 11 註：D22／10f 刪掉摘要、snapshot 與 render 後，這個理由只剩 golden 比對；`members`、token 公式與 `{id: token}` 的回饋簽名隨 golden 退役改寫，見步驟 11 的完成前設計審查。）
       - 10e1 投影與維護：衍生表 `discovery_items`（每筆 opportunity 一列）與 `discovery_versions`（每個內容版本一列），加進 `DERIVED_TABLES`（converge、replay、步驟 12 反向腳本都從 SQLite 副本重建，不回讀 Neon）。寫入時存：當作未過期算出的狀態、`qualify` 理由與分類理由分開存（讀取時照 `evaluate` 的順序組回）、截止到期時刻（`timestamptz`；只有日期的存隔天 00:00Z，溢位存 null）、排名與卡片要的欄位、novelty 對、settings revision。讀取時算：是否過期、freshness、排名、候選、顯示的 `review_status`、主卡用哪個版本。tracking 與 applications 讀取時從各自的窄表 join。維護：`insertRecord`／`saveRecord` 與 `ingestResendBatch` 同交易重算該筆，`replaceSettings` 同交易重算全部（實測要在寫入鎖 5 秒等待內），讀取時 settings revision 不符就丟錯。新程式用 TS 原生型別，只在既有消費端邊界轉 `PyDict`。這一步讀取端仍走 `listIn`，行為不變。驗收：參考實作（從原始列直接跑 `evaluate`／`recommendation`／`isCandidate`）在多個 `now`（aware 截止前、當下、後；只有日期的截止跨 UTC 日界；只有版本有截止）和投影讀取結果相同；增量投影等於整批重建（含改設定、新增版本）；converge 重建後相同。mutation：寫入時判斷過期、設定變更不重投影、新增版本不重算該筆，測試各自失敗。
         - 10e1 實作狀態（2026-11-03，分支 `10e1` 的 `526a1c1`、`f23f2f2`，本機完成，未推送、未合併、未部署；合併等 4e4b 驗收）：在 D1 上做，和上一條原文的差異與理由：
           - 投影只存 SQL 排名與篩選要的欄位，不存評估理由與卡片欄位：`discovery_items`（`opportunity_id` 主鍵、外鍵到 `opportunities`；`fingerprint`、`review_status`、`deadline_at`（`novelty` 欄位在 10e2 刪除，見 10e2 實作狀態）、`published_at`、`settings_revision`、`excluded`、`base_tenths`）與 `discovery_versions`（`(opportunity_id, fingerprint)` 主鍵，後五欄同）；migration `web/drizzle/0003_discovery_projection.sql`。理由：P1 本來就要求補讀當頁時用 TS 重算並核對，當頁（與 10e2 的摘要入選者）反正要讀原始列，存理由是第二份要維護的衍生資料，必要條件不成立。`excluded` 是「截止前」的狀態（含分類），`base_tenths` 是分類分 ×7 加每個確認條件 25（推薦分的十分位，未計 tracking 與新鮮度）。
@@ -578,23 +578,56 @@
 
 - [ ] **11. 網頁前端第一版**（D22 改寫，2026-11-03；被擋於：10e2；10f 可並行；合併等 4e4b）
   - 2026-11-03 前的原範圍（42 個 operation、工作台、離線 demo）由 D22 縮減，未做的部分列在「範圍」的延後。
-  - 錯誤模型：route handler 與 server action 依 `Conflict`／`InvalidAction` 等錯誤類別（`instanceof`）對應 HTTP 狀態，不讀 `PyError.pyType` 字串。
+  - 錯誤模型：route handler 依錯誤類別對應 HTTP 狀態：`Conflict`（`instanceof`，先判斷，因為它也是 ValueError）→ 409；`NotFound`（新的 `PyError` 子類，`pyType` 仍是 `KeyError`，golden 不變）→ 404；`isValueError`（`platform/errors.ts` 的類別階層，含 `InvalidAction` 與 `preferences()` 的 `ValueError`）→ 400；其他 → 500，頁面寫「結果未知，請重新載入確認是否已儲存」（D1 走 HTTP，逾時的 batch 可能已寫入；舊 Python 回 503 同義）並 `console.error`。驗證只在 `preferences()` 一處：route 只做語法轉換（字串轉整數、空字串轉 null、checkbox 轉 list），不檢查範圍；`preferences()` 不改丟 `InvalidAction`，因為 golden 比對無效設定的錯誤類型 `ValueError`。
   - 範圍：
-    - 頁面：職缺清單（`listPage`，每頁最多 200 筆，候選在前，顯示評估狀態、理由、推薦分與新鮮度）、單筆詳情（`group`：職缺內容、評估、內容版本差異、display basis）、回饋（想接／略過／中立，`feedback` 帶 token，舊 token 回 409）、篩選設定（`replaceSettings`，帶 revision，舊 revision 回 409）。
-    - 切換前唯讀（D23）：回饋與設定的寫入由一個 env 開關控制（`WEB_WRITES=on` 才開），切換前 production 與 preview 都不設，頁面的按鈕停用並標示「切換後開放」；server action 在開關關閉時一律回 403，不靠前端隱藏。切換（步驟 13）時打開。理由：切換時正式 D1 從 Python 資料重載，shadow 期的寫入會消失。
-    - 既有 `web/src/app/page.tsx`（shadow 的來源狀態頁）改成 `/sources`，首頁換成清單。
-    - 檔案：新增 `web/src/app/(jobs)/` 底下的清單、詳情、設定頁與 server actions、`web/src/app/sources/page.tsx`（由 `page.tsx` 搬來）、`web/src/web/guard.ts`（Origin、body 上限、寫入開關）與對應測試；修改 `web/src/app/page.tsx`、`web/src/app/layout.tsx`。
-    - 存取：只有 Will 看得到。Vercel Authentication（All Deployments，spike 1a 已驗）加 route 層的 Origin 檢查與 body 上限；回應 `no-store`、`nosniff`。
-    - 讀寫都經 10e 的投影與寫入單元；UI 的 409（租約等不到或資料已更新）顯示「請稍後再試／請重新載入」（4e2b 交接 (3)）；讀取重試與 409 次數記在 log（Vercel 的 runtime log，Hobby 只留約 1 小時，觸發：要長期看時改寫進 DB）。
+    - 頁面：職缺清單（`listPage`，每頁 50 筆，候選在前，顯示評估狀態、理由、推薦分與新鮮度）、單筆詳情（`group`：職缺內容、評估、內容版本差異、display basis）、回饋（想接／略過／中立，表單帶 token，舊 token 回 409）、篩選設定（`replaceSettings`，帶 revision，舊 revision 回 409）、來源狀態。
+    - 切換前唯讀（D23）：回饋與設定的寫入由 env 開關控制（`WEB_WRITES=on` 才開），切換前 production 與 preview 都不設，頁面的按鈕停用並標示「切換後開放」；寫入 route 在開關關閉時一律回 403，不靠前端隱藏。切換（步驟 13）時打開。理由：切換時正式 D1 從 Python 資料重載，shadow 期的寫入會消失。
+    - 存取：只有 Will 看得到。Vercel Authentication（All Deployments，spike 1a 已驗）加 route 層的守門；回應 `no-store`、`nosniff`。
+    - 讀寫都經 10e 的投影與寫入單元；UI 的 409（租約等不到或資料已更新）顯示「請稍後再試／請重新載入」（4e2b 交接 (3)）。讀取重試與 409 只寫 `console.warn`（Vercel runtime log，Hobby 留約 1 小時）；觸發：Will 回報一週內遇到兩次以上 409 或「請稍後再試」時，改把頁面請求的計數寫進 DB。
     - 不用 `frontend/` 的 Python API client；元件可沿用 `frontend/` 的樣式。
-    - 決定頁面用的 DTO：`publicItem` 保留或改寫；群組上的 `novelty_keys`、`observation_fingerprints` 與 `groupItems` 的排序在 10f 之後只剩 golden 的 `groups` 比對與 token 在用，UI 不需要的部分隨 golden 退役（步驟 14）拿掉，結論寫回本段。
+  - 設計（2026-11-03 開工時寫，開工設計審查 1 輪 13 項已處理，見下方審查紀錄）：
+    - 頁面全是 server component，沒有 `"use client"`；每頁 `export const dynamic = "force-dynamic"`（`no-store` 標頭擋不住 build 時預先渲染），`pnpm build` 的路由表要全部是動態（ƒ）。讀取在 server 端經 services 層的頁面 loader，寫入用一般 HTML `<form method="post">` 送到 route handler：成功回 303 轉回原頁並帶固定代碼 `?notice=saved|restored|skipped|settings`（server 端對應成文字，不收自由文字），失敗回對應狀態碼（400／403／404／409／413／415／500）的一頁簡短 HTML（訊息加返回連結）。不用 server action：它的 Origin 檢查與 body 上限是 Next 內建、在 Vitest 裡呼叫不到，計畫要求這兩項在 route 層測得到；route handler 拿到的是標準 `Request`，守門可以直接測。
+    - 路由：`/`（清單，`?view=candidates|saved|skipped|all&page=N`，預設 candidates，每頁 50 筆，多讀 1 筆判斷有沒有下一頁，不另查總數）、`/jobs/[id]`（詳情，不存在回 404）、`POST /jobs/[id]/feedback`、`/settings`（表單）、`POST /settings/save`、`/sources`（原首頁搬來，加最近一次 `daily_runs` 的狀態與各來源明細）。原 `web/src/app/page.tsx` 改成清單頁。
+    - 檢視篩選：`rankedRead` 加一個可選的篩選，排序不變、分頁照舊：candidates（候選）、saved（`feedback = 'interested'`）、skipped（`feedback = 'skipped'` 或 `review_status = 'skipped'`）、all。必要條件：收藏之後要找得回來、略過的要能恢復（回饋設回 neutral 會把 `review_status` 改回 draft，`legacy/records.ts`），舊 UI 預設只看候選；成本是同一個查詢多一個 where。
+    - 守門 `web/src/app/_lib/guard.ts`（app 的私有目錄，只有 route 用；不另開 `src/web`），每個寫入 route 先過：(1) `WEB_WRITES` 不是 `on` → 403；(2) `Origin` 缺少、`null` 或 host 不等於請求的 host（`x-forwarded-host`，沒有時 `host`；和 Next server action 的比對方式相同）→ 403；(3) Content-Type 不是 `application/x-www-form-urlencoded` → 415；(4) body 超過 16 KiB → 413，`Content-Length` 先擋，沒有時邊讀邊數。轉回的路徑只接受本站路徑（`safePath`）。
+    - DTO：services 層的頁面 loader（`web/src/services/pages.ts`）直接回有型別的 `JobView`／`ListPage`／`SettingsView`／`SourcesView`，只取畫面要的欄位；不經 `publicItem`（它守的是 JSON API 不送出 proposal／CRM 資料，頁面只輸出渲染好的 HTML，`JobView` 本身就是白名單）。`publicItem` 只剩 golden 在用，隨 golden 退役（步驟 14）刪除；`novelty_keys`、`observation_fingerprints` 同。`group()` 已是群組，詳情不再套 `asGroup`。回饋表單只帶一個 `token` 隱藏欄位（D18 A3 後一組一筆），route 組成 `{id: token}` 再呼叫 `feedback`，服務簽名不變。client component（目前只有 Next 規定的 `app/error.tsx`）不得匯入 services、db、modules、platform 或讀 env，由 `tests/structure.test.ts` 檢查（取代原訂的 `server-only` 套件，不加依賴）。
+    - 可測的切法：頁面是 loader 加同步的呈現元件；route handler 是 `handleX(request, deps)`（`deps` 是 db、now、寫入開關），export 的 `POST` 只接線 `getDb()`、`PyDateTime.now()`、`writesOn()`。測試在替身 D1 上呼叫 loader 與 handler，呈現元件用 `react-dom/server` 的 `renderToStaticMarkup` 檢查按鈕停用與跳脫。
+    - 舊實作的去向（`frontend/src/features/discovery`、`preferences`、`sources`，`backend/src/freelance/bootstrap/http.py` 的 `LocalBoundary`）：
+
+      | 舊行為 | 去向 |
+      |---|---|
+      | 待看／收藏／已略過／全部四個檢視（用戶端篩選全部資料） | 改寫：同四個檢視，SQL 篩選加分頁，預設待看 |
+      | 文字搜尋、平台、合作型態篩選 | 延後：分頁後不能在用戶端篩；觸發：Will 要求 |
+      | 概況數字（待看數、收藏數、工時上限、來源成功數） | 刪除（第一版）：要另外計數查詢；工時上限在設定頁、來源狀態在 `/sources` |
+      | 側欄的每日摘要、Email 結果、收案與 Email 設定 | 刪除：D22 沒有摘要與寄信 |
+      | 側欄的最近一次執行狀態（running 時提示需核對是否中斷） | 保留，搬到 `/sources`：中斷的 run 照 `AGENTS.md` 只能人工處理，要看得到 |
+      | 來源區塊的各來源 `latest_daily` 明細 | 保留，搬到 `/sources`（讀最近一次 `daily_runs.result` 的 `source_details`） |
+      | 投案紀錄、提案草稿連結 | 刪除：工作台延後（D23） |
+      | 卡片：平台、條件標籤、職稱、公司、型態、描述、報酬、工時、分類、收藏星號 | 保留，加推薦分與新鮮度 |
+      | 詳情：事實欄位、匹配理由、工作內容、內容差異、display basis、原始連結（只允許 https）、待確認資訊、收藏與略過切換 | 保留 |
+      | 篩選設定表單 | 保留，改成 `/settings` 頁 |
+      | 409 時自動重新載入 | 改寫：409 頁提供重新載入連結 |
+      | demo 模式標示 | 延後（demo 延後） |
+      | 清單與詳情並排（點卡片切換右側詳情） | 改寫：卡片連到 `/jobs/[id]`；server component 沒有用戶端選取狀態 |
+      | 讀取失敗時的錯誤列與重新載入按鈕 | 改寫：`app/error.tsx` |
+      | `LocalBoundary` Origin 白名單（127.0.0.1／localhost:3327） | 改寫：Origin 等於請求的 host |
+      | `LocalBoundary` Content-Type 只收 JSON（415） | 改寫：只收 urlencoded 表單（415）；表單是跨站可送的格式，所以 CSRF 防線是 Origin 檢查加 Vercel Authentication |
+      | `LocalBoundary` Host 白名單 | 刪除：它擋的是 loopback 上的 DNS rebinding，Vercel 上的 host 由平台路由 |
+      | `LocalBoundary` body 64 KiB、5 秒讀取逾時、空 body 413、body 須為 JSON 物件 | 改寫：16 KiB 上限（成本低、不變量要求）；逾時由函式的執行上限涵蓋；空表單由欄位解析回 400；不是 JSON |
+      | 未預期錯誤 503「請重新載入確認修改結果」 | 改寫：500，同義訊息 |
+    - 開工設計審查（1 輪，fresh subagent，13 項）：改 11（漏列 `LocalBoundary`、500 訊息、設定驗證只留一處、`/sources` 加執行狀態與來源明細、`force-dynamic`、範圍與不變量的過時句子、DTO 移到 services 不經 `publicItem`、表單只帶 token、log 觸發改成可觀察、`src/web` 改放 app 私有目錄、notice 用代碼、加回待看檢視）；記 1（D13：設定儲存與詳情頁的讀寫列數在 preview 量，見驗收）；駁回 1（守門的邊讀邊數和 `platform/http.ts` 的 `getCapped` 合併：`getCapped` 超過上限時截斷並回傳部分內容，守門必須拒絕，語意不同）。
+    - 實作狀態（2026-11-03，分支 `11`，程式完成待 preview 驗收）：守門 `web/src/app/_lib/guard.ts`、寫入 `_lib/writes.ts`、呈現 `_lib/views.tsx`、loader `web/src/services/pages.ts`、頁面 `app/page.tsx`、`jobs/[id]`、`settings`、`sources`；`rankedRead`／`listPage` 加 `view`（預設 `all`，既有呼叫端不變）；`NotFound`；`latestDailyRun`。按鈕值是 `interested`／`unsave`／`skipped`／`restore`，route 對應成回饋值與提示代碼。設定的範圍檢查只在 `preferences()`：route 先呼叫它，丟出的錯誤一律 400；其他 ValueError（例如損壞的資料列）是 500「結果未知」。驗證：新 `tests/web-guard.test.ts` 8 例、`tests/web-pages.test.tsx` 20 例；mutation 6 項全紅（拿掉 revision 檢查、拿掉 Origin 檢查、寫入開關關閉仍寫入、收藏檢視不篩選、轉回路徑不檢查、錯誤對應退回 `isValueError`）。`pnpm typecheck`、`boundaries`、`build`（路由全是 ƒ，只有 `/_not-found` 是靜態）通過，`pnpm test` 全套見進度表。
+    - 驗收（2026-11-03 21:1x）：draft PR #7（base `10f`）CI 全綠（web、d1、backend、gate）。preview `freelance-agent-q8ulp3jjm`（`vercel deploy`，target preview）未登入 `curl` 的 `/`、`/sources`、`/settings`、`/jobs/x` 與 `POST /settings/save` 都回 302，轉到 `https://vercel.com/sso-api`（Vercel Authentication）。2026-11-03 21:3x Will 授權後，`CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN` 三個 production 變數的 target 加上 preview（Vercel API PATCH，沒有讀出值）。preview `rc3aitucd` 登入後頁面顯示 `app/error.tsx`，log：`D1 rejected: 7500 no such table: discovery_items`：shadow D1 還沒套 0003／0004，照 10f 的部署順序要在 4e4b 驗收過、Will 授權部署時才套（0004 刪掉 `digest_novelty`，明早 4e4 驗收跑的 production 版本還在用這張表）。所以 preview 的實際瀏覽與 D13 頁面量測等部署那一步一起做；頁面每次請求寫一行 `page usage …`（`web/src/app/_lib/usage.ts`：D1 請求數、讀寫列數、讀取重試、租約等待），量測讀這一行。
+    - 完成前 `/code-review`（medium，1 輪，10 項）：改 9（檢視標籤、分頁與表格沒有樣式；取消收藏顯示成「已恢復待看」；`x-forwarded-host` 多值；原始連結改用紀錄本身的 URL 並補回各版本的來源連結；`partial` 標籤；400 的判斷太寬，資料損壞會被當成輸入錯誤；`Object.hasOwn`；`rankedRead` 註解錯位；`next.config` 的 `no-store` 對頁面無效，只留 `nosniff`）；記 1（待看檢視的讀取量，併入上面的 D13 量測）。
+    - 完成前設計審查（1 輪，fresh subagent，7 項）：改 2（設定驗證改丟 `InvalidSettings`：`pyType` 仍是 `ValueError`，golden 不變，route 依類別回 400，不再預先呼叫一次 `preferences()`；補 `app/error.tsx`：讀取失敗時顯示訊息與重新載入，並用結構測試守住 client component 不匯入 server 程式）；記 5，都在步驟 14 處理：(1) `asGroup`、`memberVersions`、`members`／`member_ids` 與 `{id: token}` 的回饋簽名，隨 golden 退役改成單一 token 的 `feedback(db, id, token, value)`，頁面不經 `asGroup`；(2) `groupItems` 的排序（原為 `insertDigest`，已刪）與只剩測試在用的 `trackingStatesRead`、`applicationProjectionsRead` 匯出，隨 golden 退役刪除或改成測試 helper；(3) `globals.css` 從 `frontend/` 整份搬來，含延後或刪除功能的 class，刪 `frontend/` 時一起清；(4) `WEB_WRITES` 與守門第 (1) 步在 D6 窗口結束後移除（比照 `DIGEST_RECIPIENT`）；(5) 清單與詳情由舊 UI 的並排改成各自一頁（server component 不留用戶端選取狀態），去向表補一列。
+
   - 消費端：舊首頁的連結與書籤（`/` 改成清單、來源狀態移到 `/sources`）；`rg -l '"use client"' web/src` 的檔案都沒有匯入 `@/services/`（只有 server 端呼叫讀寫）；`frontend/` 是 Python 的前端，不改。
   - 驗收：
     - 頁面的 server 端測試（Vitest，替身 D1）：清單分頁、詳情、寫入開關關閉時回饋與設定回 403、開關打開時回饋成功與舊 token 409、設定成功與舊 revision 409、跨來源 Origin 被擋、超過 body 上限被擋。
     - preview 上未登入 `curl -sI <preview url>/` 與 `/sources` 回 401 或 302（Vercel Authentication，在正式專案的 preview 上驗，不靠 spike 1a）。
     - 不做瀏覽器 e2e（CI 沒有 Playwright job；第一版的頁面邏輯由 server 端測試涵蓋；觸發：前端有用戶端互動邏輯時加 CI e2e job）。
     - mutation：移除 revision 檢查、移除 Origin 檢查、寫入開關關閉時仍寫入，測試各自失敗。
-    - D13：10e2 已在真 D1 量到（一頁 15,252 列、回饋約 30 列；每天 20 頁＋20 次回饋＋1 次 D18 量測約 32 萬列，是讀取額度的 6.4%；推論；收案的讀取另計，切換後第一週由 `daily_runs.result` 的用量確認），本步只在 preview 上確認頁面的請求數與 10e2 量測相同。
+    - D13：設定儲存（讀全部紀錄、重寫全部投影的設定欄位）、詳情頁，以及待看檢視與全部檢視各一頁（待看把候選條件放進 WHERE，兩個相關子查詢每列多算一次，`/code-review` 指出；讀取列數超過全部檢視的 1.5 倍時改成外層查詢篩選）的請求數與讀寫列數，在 preview 上各量一次寫進本段（`daily_runs` 不記頁面請求，用 D1 的 `meta` 讀寫列數）。10e2 已在真 D1 量到（一頁 15,252 列、回饋約 30 列；每天 20 頁＋20 次回饋＋1 次 D18 量測約 32 萬列，是讀取額度的 6.4%；推論；收案的讀取另計，切換後第一週由 `daily_runs.result` 的用量確認），本步只在 preview 上確認頁面的請求數與 10e2 量測相同。
   - 需要人做的事：preview 部署不需授權；部署到正式專案要授權。
   - 完成後的狀態：preview 與正式網址讀 shadow D1（切換前）。
 
@@ -645,6 +678,7 @@
     - VM 上 4c 的副本容器，以及 `web/src/ops/`、`web/scripts/{import-copy.ts,snapshot.ts,shadow-job.sh,verify-fingerprints.ts}`（`replay-digest.ts`、`check-novelty.ts` 已在 10f 刪除）。
     - `registry.ts` 的 `SCHEDULED` 與 `enabledSources` 的 `scheduled` 參數（release toggle 到期：等於 `RUNNERS` 扣 `DISABLED` 時，最晚步驟 9 的信件來源全部排上後）。`DISABLED` 改成 source catalog 的資料欄位（PTT 被擋是長期事實，不是開關）。執行中可切換的營運開關（ops toggle）不預先做；觸發：第一次有來源需要比一次授權部署更快關掉，那時做 TS 自己的 DB 表加 UI 開關（切換後 DB 不再被覆蓋，Python 設定契約也已刪除）。
     - `web/tests/fixtures/gen_golden.py`（依賴 `backend/`）；`golden.json` 保留。刪 `backend/` 前先把 `001_sqlite.sql` 凍結進 `web/tests/fixtures/`，改 `web/tests/helpers/db.ts` 的 `SQLITE_SCHEMA_PATH`。
+  - 步驟 11 完成前設計審查記下的五項（`asGroup` 與 `{id: token}` 回饋簽名、`groupItems` 排序與測試專用匯出、`globals.css` 的舊 class、`WEB_WRITES` 退場、去向表）：前兩項在 golden 的 `groups` 比對不再需要時（D6 窗口結束，雜湊邊界解除）一起改；`globals.css` 隨刪 `frontend/`；`WEB_WRITES` 在 D6 窗口結束後。
   - 更新：
     - `AGENTS.md`：收斂遷移期規則與技術棧。
     - `README.md`。
