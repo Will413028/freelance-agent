@@ -164,12 +164,17 @@ export function checkState(state: ProjectionState) {
 /** One ranked listing as SQL ordered it: is it a candidate, and its recommendation score in tenths. */
 export type Ranked = { id: string; candidate: boolean; scoreTenths: number };
 
+/** Which listings a page shows, each in rank order: the candidates, the saved, the skipped or all of them. */
+export type View = "candidates" | "saved" | "skipped" | "all";
+export const VIEWS: readonly View[] = ["candidates", "saved", "skipped", "all"];
+
 /**
  * The ranked page: recommendation's score and is_candidate over the projection, at `now`, ordered as
  * rankItems orders (candidates first, higher score, then id). `now` must be UTC: a date-only deadline
  * expires at the next day of now's own calendar, which the projection stores for UTC.
  */
-export function rankedRead(db: Db, now: PyDateTime, page: { offset: number; limit: number }) {
+
+export function rankedRead(db: Db, now: PyDateTime, page: { offset: number; limit: number }, view: View = "all") {
   if (now.offset !== 0n) throw new Error("the discovery projection is read at a UTC now");
   // The instants are SQL literals, not parameters: each is used many times and D1 binds at most 100.
   const literal = (us: bigint) => {
@@ -196,7 +201,12 @@ export function rankedRead(db: Db, now: PyDateTime, page: { offset: number; limi
     and coalesce(${i.reviewStatus} not in ('skipped', 'sent', 'delivered'), 1)
     and coalesce(${feedback} <> 'skipped', 1)
     and ${stage} is 'not_applied')`;
-  return read(db.select({ id: i.opportunityId, candidate, score }).from(i).leftJoin(t, eq(t.opportunityId, i.opportunityId))
+  // skipped as the page shows it: the feedback, or the legacy review status that feedback "neutral" clears.
+  const filter = view === "candidates" ? sql`${candidate} = 1`
+    : view === "saved" ? sql`coalesce(${feedback} = 'interested', 0)`
+    : view === "skipped" ? sql`(coalesce(${feedback} = 'skipped', 0) or coalesce(${i.reviewStatus} = 'skipped', 0))`
+    : undefined;
+  return read(db.select({ id: i.opportunityId, candidate, score }).from(i).leftJoin(t, eq(t.opportunityId, i.opportunityId)).where(filter)
     .orderBy(desc(candidate), desc(score), asc(i.opportunityId)).limit(page.limit).offset(page.offset),
   (rows): Ranked[] => rows.map((r) => ({ id: r.id, candidate: r.candidate === 1, scoreTenths: r.score })));
 }

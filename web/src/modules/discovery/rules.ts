@@ -1,3 +1,4 @@
+import { InvalidSettings } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { identityHash } from "@/platform/py/json";
 import { pyLen, pyStr, text } from "@/platform/py/unicode";
@@ -26,14 +27,14 @@ export const publicJob = (job: PyDict) => new PyDict([...job].filter(([k]) => PU
 /** Validates discovery preferences; raises ValueError like rules.preferences. */
 export function preferences(value: PyValue): PyDict {
   const keys = ["max_weekly_hours", "min_fixed_twd", "categories"];
-  if (!isDict(value) || value.size !== keys.length || !keys.every((k) => value.has(k))) throw new PyError("ValueError", "篩選設定欄位不符");
+  if (!isDict(value) || value.size !== keys.length || !keys.every((k) => value.has(k))) throw new InvalidSettings("篩選設定欄位不符");
   const hours = value.get("max_weekly_hours")!, budget = value.get("min_fixed_twd")!, categories = value.get("categories")!;
-  if (hours !== null && (!isNumber(hours) || pyCmp(hours, 1n) < 0 || pyCmp(hours, 168n) > 0)) throw new PyError("ValueError", "工時上限需為 1–168 小時，或不限");
-  if (!isNumber(budget) || pyCmp(budget, 0n) < 0 || pyCmp(budget, 10_000_000n) > 0) throw new PyError("ValueError", "最低固定案預算不符範圍");
+  if (hours !== null && (!isNumber(hours) || pyCmp(hours, 1n) < 0 || pyCmp(hours, 168n) > 0)) throw new InvalidSettings("工時上限需為 1–168 小時，或不限");
+  if (!isNumber(budget) || pyCmp(budget, 0n) < 0 || pyCmp(budget, 10_000_000n) > 0) throw new InvalidSettings("最低固定案預算不符範圍");
   if (!Array.isArray(categories) || !categories.length
       || categories.some((c) => typeof c !== "string" || !(CATEGORIES as readonly string[]).includes(c))
       || new Set(categories).size !== categories.length) {
-    throw new PyError("ValueError", "請至少選擇一種專長分類");
+    throw new InvalidSettings("請至少選擇一種專長分類");
   }
   return deepCopy(value);
 }
