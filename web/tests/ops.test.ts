@@ -1,15 +1,16 @@
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { DatabaseSync } from "node:sqlite";
+import { DatabaseSync as Lite, type DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { ingestSource } from "@/modules/collection/public";
 import { checkTableSet, copiedDiscovery, createStatements, importCopy, type RebuildDerived } from "@/ops/import";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
+import { writeBack } from "@/ops/write-back";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
-import { listPage, rebuildProjection } from "@/services/discovery";
+import { listPage, rebuildProjection, track } from "@/services/discovery";
 import { referenceList as list } from "./helpers/reference";
 import { db, intercepting, leased, MIGRATIONS, query, recording, resetSchema, sqliteWithSchema } from "./helpers/db";
 import { migrateD1 } from "@/db/migrate";
@@ -184,6 +185,105 @@ describe("one-time import into D1", () => {
       "CREATE TABLE `digest_outbox`", "CREATE TABLE `tracking_events`", "CREATE UNIQUE INDEX", "CREATE UNIQUE INDEX",
       "CREATE TRIGGER digest_immutable",
     ]);
+  });
+});
+
+describe("write-back from D1 into a copy (plan step 12)", () => {
+  const now = new PyDateTime(2026, 11, 5, 1, 0, 0, 0, 0n);
+  /** The cutover: the copy loaded into D1, and the copy of the backup the rollback writes into. */
+  async function cutover(name: string) {
+    expect((await importCopy(base, db, rebuild)).ok).toBe(true);
+    const target = path.join(dir, name);
+    cpSync(base, target);
+    return target;
+  }
+  /** What TS writes after the cutover: a new listing, feedback on a copied one, a daily run. */
+  async function afterCutover() {
+    await ingestSource(db, "tasker", now, [[job({ source: "tasker", external_id: "new-1" }), null]], () => true, "ok");
+    await track(db, "o1", 2n, { feedback: "interested" }, now);
+    await leased("insert into daily_runs values ('2026-11-05', 'owner@example.invalid', 'complete', 's', 'f', '{}')");
+  }
+  const sha = (file: string, table: string) => {
+    const lite = new Lite(file, { readOnly: true });
+    try {
+      return JSON.stringify(lite.prepare(`select * from "${table}" order by 1, 2`).all());
+    } finally {
+      lite.close();
+    }
+  };
+
+  it("writes back the rows TS added and the columns it changed, and the copy then equals D1", async () => {
+    const target = await cutover("wb-1.sqlite3");
+    await afterCutover();
+    const report = await writeBack(db, target, 0);
+    expect(report.tables.opportunities.inserted).toBe(1);
+    expect(report.tables.opportunity_tracking).toMatchObject({ inserted: 0, updated: 1, updatedColumns: { state: 1 } });
+    expect(report.tables.tracking_events.inserted).toBe(1);
+    expect(report.tables.daily_runs.inserted).toBe(1);
+    for (const t of Object.values(report.tables)) expect(t.sqlite).toBe(t.d1);
+    expect(JSON.parse((await query("select state from opportunity_tracking where opportunity_id = 'o1'"))[0].state).feedback).toBe("interested");
+    expect(sha(target, "opportunity_tracking")).toContain("interested");
+  });
+
+  it("changes nothing when run again", async () => {
+    const target = await cutover("wb-2.sqlite3");
+    await afterCutover();
+    const first = await writeBack(db, target, 0), second = await writeBack(db, target, 0);
+    for (const [name, t] of Object.entries(second.tables)) {
+      expect([name, t.inserted, t.updated]).toEqual([name, 0, 0]);
+      expect(t.sqlite).toBe(first.tables[name].sqlite);
+    }
+  });
+
+  it("refuses, writing nothing, when the copy holds a row D1 does not", async () => {
+    const target = await cutover("wb-3.sqlite3");
+    await afterCutover();
+    const lite = new Lite(target);
+    lite.prepare("insert into source_health values ('extra', 'ok', 't')").run();
+    lite.close();
+    const before = sha(target, "opportunities");
+    await expect(writeBack(db, target, 0)).rejects.toThrow(/source_health: 1 rows of the copy are missing on D1/);
+    expect(sha(target, "opportunities")).toBe(before);
+  });
+
+  it("rolls back when D1 changes while it writes back (a single-statement writer the lease does not stop)", async () => {
+    const target = await cutover("wb-5.sqlite3");
+    await afterCutover();
+    let reads = 0;
+    const racing = intercepting(async (sql) => {
+      // The second read of source_health (after the write) finds a row a daily run just wrote.
+      if (sql.some((q) => q.includes('from "source_health"')) && ++reads === 2) {
+        await query("insert into source_health values ('late', 'ok', 't')");
+      }
+    });
+    const before = sha(target, "opportunities");
+    await expect(writeBack(racing.db, target, 0)).rejects.toThrow(/D1 changed while writing back \(source_health\)/);
+    expect(sha(target, "opportunities")).toBe(before);
+  });
+
+  it("names the table and column when D1 holds a non-integer in an integer column", async () => {
+    const target = await cutover("wb-7.sqlite3");
+    await leased("update discovery_settings set revision = 1.5 where id = 1");
+    await expect(writeBack(db, target, 0)).rejects.toThrow(/discovery_settings: D1 holds non-integer values in revision/);
+  });
+
+  it("refuses a daily run under a recipient the copy never had", async () => {
+    const target = await cutover("wb-6.sqlite3");
+    await leased("insert into daily_runs values ('2026-11-05', 'other@example.invalid', 'complete', 's', 'f', '{}')");
+    await expect(writeBack(db, target, 0)).rejects.toThrow(/daily_runs: 1 rows on D1 use a recipient the copy never had/);
+  });
+
+  it("rolls everything back when a SQLite trigger refuses an update of an immutable row", async () => {
+    const target = await cutover("wb-4.sqlite3");
+    await afterCutover();
+    // The copy's revision differs from D1's: the write-back would have to update an immutable row.
+    const lite = new Lite(target);
+    const trigger = (lite.prepare("select sql from sqlite_master where name = 'submission_event_immutable'").get() as { sql: string }).sql;
+    lite.exec("drop trigger submission_event_immutable; update submission_events set action = 'other'; " + trigger);
+    lite.close();
+    const before = sha(target, "opportunities");
+    await expect(writeBack(db, target, 0)).rejects.toThrow(/submission_events: SQLite refused an update of action/);
+    expect(sha(target, "opportunities")).toBe(before);
   });
 });
 
