@@ -25,24 +25,21 @@ const PUBLISHED_FROM_RECEIVED = ["himalayas", "hackernews", "v2ex"];
 const PUBLISHED_FROM_EVIDENCE = ["jobicy", "remotive"];
 const isOneOf = (v: PyValue, list: string[]) => list.some((s) => pyEq(v, s));
 
-function recommendationSingle(item: PyDict, now: PyDateTime): PyDict {
-  const job = item.dict("job"), evaluation = item.dict("evaluation");
-  let score = num(evaluation.req("score")) * 0.7;
-  const reasons: PyValue[] = [`專長匹配：${pyStr(evaluation.req("category"))}`];
+/** The documented conditions an option meets (Taiwan eligibility, time zone, hours within the limit, complete). */
+function confirmedFields(job: PyDict, evaluation: PyDict): boolean[] {
   const hours = job.at("weekly_hours"), available = evaluation.req("available_hours");
-  const confirmed = [
+  return [
     job.at("taiwan_eligible") === true,
     job.at("timezone_compatible") === true,
     isNumber(hours) && pyCmp(hours, 0n) > 0 && (available === null || pyCmp(hours, available) <= 0),
     job.at("complete") === true,
   ];
-  score += confirmed.filter(Boolean).length * 2.5;
-  if (pyEq(tracking(item).at("feedback"), "interested")) {
-    score += 10;
-    reasons.push("你已標記想接");
-  }
-  let freshness = "unknown";
-  // Known parser contracts use received_at for publication; Tasker never does.
+}
+
+export const confirmedCount = (job: PyDict, evaluation: PyDict) => confirmedFields(job, evaluation).filter(Boolean).length;
+
+/** When the listing was published, aware, or null when that is unknown. Known parser contracts use received_at for publication; Tasker never does. */
+export function publishedAt(job: PyDict): PyDateTime | null {
   try {
     let value = job.at("published_at");
     if (value === null && isOneOf(job.at("source"), PUBLISHED_FROM_RECEIVED)) value = job.at("received_at");
@@ -58,12 +55,36 @@ function recommendationSingle(item: PyDict, now: PyDateTime): PyDict {
       if (isOneOf(job.at("source"), PUBLISHED_FROM_EVIDENCE) && !truthy(job.at("published_at"))) published = published.withUtc();
       else throw new PyError("ValueError", "Publication timezone unknown");
     }
-    const age = now.secondsSince(published) / 86400;
-    if (0 <= age && age <= 2) { score += 10; freshness = "recent"; reasons.push("近兩日發布"); }
-    else if (2 < age && age <= 7) { score += 6; freshness = "week"; reasons.push("近七日發布"); }
-    else if (age > 7) { freshness = "older"; reasons.push("發布超過七日"); }
+    return published;
   } catch (e) {
     if (!(e instanceof PyError) || !["ValueError", "TypeError", "AttributeError", "OverflowError", "OSError"].includes(e.pyType)) throw e;
+    return null;
+  }
+}
+
+/** Ages in microseconds up to which a publication counts as recent (≤ 2 days) or of this week (≤ 7 days). */
+export const RECENT_US = 2n * 86_400_000_000n;
+export const WEEK_US = 7n * 86_400_000_000n;
+
+function recommendationSingle(item: PyDict, now: PyDateTime): PyDict {
+  const job = item.dict("job"), evaluation = item.dict("evaluation");
+  let score = num(evaluation.req("score")) * 0.7;
+  const reasons: PyValue[] = [`專長匹配：${pyStr(evaluation.req("category"))}`];
+  const confirmed = confirmedFields(job, evaluation);
+  score += confirmed.filter(Boolean).length * 2.5;
+  if (pyEq(tracking(item).at("feedback"), "interested")) {
+    score += 10;
+    reasons.push("你已標記想接");
+  }
+  let freshness = "unknown";
+  const published = publishedAt(job);
+  if (published !== null) {
+    // (now - published).total_seconds() / 86400 against 2 and 7 days: exact on whole microseconds,
+    // which is what the projection's SQL compares (plan step 10e1).
+    const age = now.utcMicros() - published.utcMicros();
+    if (0n <= age && age <= RECENT_US) { score += 10; freshness = "recent"; reasons.push("近兩日發布"); }
+    else if (RECENT_US < age && age <= WEEK_US) { score += 6; freshness = "week"; reasons.push("近七日發布"); }
+    else if (age > WEEK_US) { freshness = "older"; reasons.push("發布超過七日"); }
   }
   if (freshness === "unknown") reasons.push("發布時間未確認，不以收信時間代替");
   // Completeness is documented fields, not truth confidence or a win probability.

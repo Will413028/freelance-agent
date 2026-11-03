@@ -31,8 +31,35 @@ function strField(job: PyDict, key: string): string {
 const gt = (a: PyValue, b: PyValue) => pyCmp(a, b) > 0;
 const lt = (a: PyValue, b: PyValue) => pyCmp(a, b) < 0;
 
-export function qualify(job: PyDict, availableHours: PyValue, now: PyDateTime, minimumBudget: PyValue): PyDict {
+/**
+ * When a parsed deadline expires the listing: an aware deadline at its instant (UTC microseconds),
+ * a date-only one from the next day of `now`'s own calendar (day ordinal); null when there is no
+ * parsed deadline.
+ */
+export type Deadline = { instant: bigint } | { day: number } | null;
+
+/** qualify's result for a `now` before any deadline, and the deadline that expires it (plan step 10e1). */
+export type Unexpired = { result: PyDict; deadline: Deadline };
+
+export const isExpired = (deadline: Deadline, now: PyDateTime) =>
+  deadline !== null && ("instant" in deadline ? deadline.instant <= now.utcMicros() : deadline.day < now.dateOrdinal());
+
+/** The only part of qualify that depends on `now`: an expired deadline adds the last reason and excludes. */
+export function expire({ result, deadline }: Unexpired, now: PyDateTime): PyDict {
+  const out = new PyDict(result).update({ reasons: [...(result.get("reasons") as PyValue[])], questions: [...(result.get("questions") as PyValue[])] });
+  if (isExpired(deadline, now)) {
+    (out.get("reasons") as PyValue[]).push("申請已過期");
+    out.set("status", "excluded");
+  }
+  return out;
+}
+
+export const qualify = (job: PyDict, availableHours: PyValue, now: PyDateTime, minimumBudget: PyValue): PyDict =>
+  expire(qualifyUnexpired(job, availableHours, minimumBudget), now);
+
+export function qualifyUnexpired(job: PyDict, availableHours: PyValue, minimumBudget: PyValue): Unexpired {
   const reasons: string[] = [], questions: string[] = [];
+  let expiry: Deadline = null;
   // str.lower() and toLowerCase() differ only on non-ASCII mappings across Unicode versions; the
   // ASCII terms match on [a-z0-9] boundaries and the CJK terms are caseless, so matches are equal.
   const text = (strField(job, "title") + " " + strField(job, "description")).toLowerCase();
@@ -77,19 +104,21 @@ export function qualify(job: PyDict, availableHours: PyValue, now: PyDateTime, m
       if (typeof deadline !== "string") throw new PyError("AttributeError", "deadline has no replace");
       const parsed = fromisoformat(deadline.replaceAll("Z", "+00:00"));
       if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) && !parsed.aware) questions.push("確認截止時間的時區");
-      else if (parsed.aware ? parsed.utcMicros() <= now.utcMicros() : parsed.dateOrdinal() < now.dateOrdinal()) {
-        reasons.push("申請已過期");
-      }
+      else expiry = parsed.aware ? { instant: parsed.utcMicros() } : { day: parsed.dateOrdinal() };
     } catch (e) {
       if (!(e instanceof PyError) || !["ValueError", "AttributeError"].includes(e.pyType)) throw e;
       questions.push("確認有效的截止日期");
     }
   }
   if (job.at("complete") !== true) questions.push("取得完整需求；通知摘要不足以承諾報價與交期");
-  return PyDict.of({
-    status: reasons.length ? "excluded" : questions.length ? "needs_info" : "qualified",
-    category, score, reasons, questions, portfolio_ids: best ? portfolioIds(category) : [], method: "規則評估", available_hours: availableHours,
-  });
+  // "申請已過期" would be the last reason (only a question follows the deadline), so expire() appends it.
+  return {
+    result: PyDict.of({
+      status: reasons.length ? "excluded" : questions.length ? "needs_info" : "qualified",
+      category, score, reasons, questions, portfolio_ids: best ? portfolioIds(category) : [], method: "規則評估", available_hours: availableHours,
+    }),
+    deadline: expiry,
+  };
 }
 
 /** Personal price/hour limits belong to the saved view, not permanent intake loss. */
