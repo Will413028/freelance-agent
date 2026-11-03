@@ -11,7 +11,7 @@ import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, asList, cmpStr, isDict, pyEq, PyDict, PyError, type PyValue } from "@/platform/py/value";
 import {
-  checkRanked, checkState, defaults, evaluate, groupItems, isCandidate, itemRow, ProjectionMismatch, projectionStateRead, rankedRead, preferences, project, PUBLIC_JOB_FIELDS, putSettings, putSettingsColumns, rankOrder, recommendation, settingsRead, versionRow,
+  checkRanked, checkState, evaluate, groupItems, isCandidate, itemRow, ProjectionMismatch, projectionStateRead, rankedRead, preferences, project, PUBLIC_JOB_FIELDS, putSettings, putSettingsColumns, rankOrder, recommendation, settingsOf, settingsRead, versionRow,
   type Settings,
 } from "@/modules/discovery/public";
 
@@ -139,7 +139,7 @@ export type ProjectionSource = {
  * rebuild equals what maintenance produced (tests/projection.test.ts). Returns the rows written.
  */
 export async function rebuildProjection(db: Db, source: ProjectionSource, send: (statements: D1Statement[]) => Promise<unknown>): Promise<number> {
-  const s: Settings = source.settings ? { revision: BigInt(source.settings.revision), settings: loadsDict(source.settings.settings) } : { revision: 0n, settings: preferences(defaults()) };
+  const s = settingsOf(source.settings);
   const items = source.items.map((text) => itemRow(loadsDict(text), s));
   const versions = source.versions.map((v) => versionRow(v.opportunityId, v.fingerprint, loadsDict(v.job), s));
   const statements = [

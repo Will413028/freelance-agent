@@ -11,8 +11,11 @@ import { defaults, preferences } from "./rules";
 
 export type Settings = { revision: bigint; settings: PyDict };
 
-export const settingsRead = (db: Db) => read(db.select().from(discoverySettings).where(eq(discoverySettings.id, 1)), ([row]): Settings =>
-  row ? { revision: BigInt(row.revision), settings: loadsDict(row.settings) } : { revision: 0n, settings: preferences(defaults()) });
+/** The stored settings row, or the defaults at revision 0 before the first change. */
+export const settingsOf = (row: { revision: number; settings: string } | null | undefined): Settings =>
+  row ? { revision: BigInt(row.revision), settings: loadsDict(row.settings) } : { revision: 0n, settings: preferences(defaults()) };
+
+export const settingsRead = (db: Db) => read(db.select().from(discoverySettings).where(eq(discoverySettings.id, 1)), ([row]): Settings => settingsOf(row));
 
 export async function readSettings(db: Db): Promise<Settings> {
   return (await readAll(db, [settingsRead(db)]))[0];

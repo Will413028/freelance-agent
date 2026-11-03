@@ -99,14 +99,14 @@ function chunksOf<T>(items: readonly T[], encode: (item: T) => string): string[]
   const out: string[] = [];
   let current: string[] = [], bytes = 2;
   for (const item of items) {
-    const text = encode(item);
-    if (current.length && bytes + text.length + 1 > BULK_BYTES) {
+    const text = encode(item), size = Buffer.byteLength(text) + 1;
+    if (current.length && bytes + size > BULK_BYTES) {
       out.push(`[${current.join(",")}]`);
       current = [];
       bytes = 2;
     }
     current.push(text);
-    bytes += Buffer.byteLength(text) + 1;
+    bytes += size;
   }
   if (current.length) out.push(`[${current.join(",")}]`);
   return out;
@@ -124,13 +124,13 @@ export function putSettingsColumns(db: Db, writes: Writes, records: readonly PyD
   const items = records.map((item) => [item.str("id"), columns(item.dict("job"), s)] as const);
   for (const chunk of chunksOf(items, ([id, c]) => JSON.stringify([id, c.excluded, c.baseTenths]))) {
     writes.statement(db.run(sql`update discovery_items set settings_revision = ${revision}, excluded = json_extract(j.value, '$[1]'),
-      base_tenths = json_extract(j.value, '$[2]') from json_each(${chunk}) as j where discovery_items.opportunity_id = json_extract(j.value, '$[0]')`));
+      base_tenths = json_extract(j.value, '$[2]') from json_each(${chunk}) as j where discovery_items.opportunity_id = json_extract(j.value, '$[0]')`), Buffer.byteLength(chunk));
   }
   const rows = versions.map((v) => [v.opportunityId, v.fingerprint, columns(v.job, s)] as const);
   for (const chunk of chunksOf(rows, ([id, fp, c]) => JSON.stringify([id, fp, c.excluded, c.baseTenths]))) {
     writes.statement(db.run(sql`update discovery_versions set settings_revision = ${revision}, excluded = json_extract(j.value, '$[2]'),
       base_tenths = json_extract(j.value, '$[3]') from json_each(${chunk}) as j
-      where discovery_versions.opportunity_id = json_extract(j.value, '$[0]') and discovery_versions.fingerprint = json_extract(j.value, '$[1]')`));
+      where discovery_versions.opportunity_id = json_extract(j.value, '$[0]') and discovery_versions.fingerprint = json_extract(j.value, '$[1]')`), Buffer.byteLength(chunk));
   }
 }
 
