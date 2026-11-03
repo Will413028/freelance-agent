@@ -665,6 +665,7 @@
     - 兩輪報告除了 `source_health` 的指紋完全相同：`checked_at` 由資料庫時鐘寫入（`utcNowText`，和 Python 相同），每次都不同，是預期的差異；驗收「兩次報告相同」照此解讀。
     - 清理：臨時 D1 已刪（`cf d1 list` 只剩 shadow、ci-test、spike-1f），VM 上兩份寫回的副本與 log、演練映像、`/tmp` 的腳本已刪；`/var/lib/freelance-shadow/rehearsal/` 只留不含值的報告（import、expected、wb）。
   - 完成前 `/code-review`（medium，1 輪，10 項）：改 7（演練檢查的 NULL 回饋鍵；`rehearse.sh` 用 D1 API 確認目標名稱是 `freelance-agent-*-test` 才繼續，取代只比 shadow ID；Python 映像改讀 worker 正在跑的；D1 整數格先驗格式再轉 BigInt；拿掉永遠為 true 的 `ok`；D1 欄位一個請求、資料列依批次上限合併請求；測試的重複 import）；駁回 3（`digest_outbox` 的狀態跳躍：`rg -n 'digest_outbox' web/src` 只剩 `guard.ts` 的註解，D22 後 TS 不寫它；其他表的 recipient：`mail_sync_state` 的 recipient 是 Resend 收信信箱（`collection/mail/sync.ts` 的 `syncMail` 參數），不是 `DIGEST_RECIPIENT`；逐列 prepare：一次性操作，演練時更新不到 10 列）。名稱檢查在 VM 上單獨驗過（只 GET）：shadow 拒絕、不存在的 ID 拒絕、ci-test 放行；改過的 `rehearse.sh` 沒有再跑一輪完整演練（要再建一個臨時 D1），寫回程式的改動由 `tests/ops.test.ts` 7 例與 mutation 5 項（加「不驗整數」）證明。
+  - CI（PR #8，2026-11-03 23:2x）：web、backend 綠；`d1` job 紅，4 個測試在第一次寫入就收到 `D1 daily_limit: 7500 Your account has exceeded D1's free tier daily row write limit`。帳號當天（UTC 11-03）的 10 萬列寫入額度用完：兩輪演練各匯入一次正式副本、`rebuild-projection` 5,798 列、10e2 的量測與 CI 共用同一帳號。程式不是原因（本機全套 439 過）。PR #8 在看到結果前就合併進 `dev`（`8c7bcfd`，流程錯誤：把等 CI 和合併寫在同一個指令裡）；處置：UTC 換日（台灣 08:00）後重跑 `d1` job，紅了就 revert。教訓：在正式帳號上做會大量寫入的演練前，先估算當天剩餘的 D1 寫入額度（全帳號共用，shadow 與 CI 同一池）。
   - 需要人做的事：授權讀正式 DB 副本。
 
 - [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、4e4b；Will 明確授權；D22 後不再被 D9 擋；D23：步驟 11 完成後盡快做）
