@@ -476,8 +476,6 @@ export const discoveryItems = sqliteTable(
     opportunityId: text("opportunity_id").primaryKey().references(() => opportunities.id),
     fingerprint: text("fingerprint").notNull(),
     reviewStatus: text("review_status"),
-    /** The record's own novelty pairs, JSON [[key, fingerprint], …]; each version adds [opportunity id, its fingerprint]. */
-    novelty: text("novelty").notNull(),
     ...projectionColumns,
   },
   (t) => [check("discovery_items_excluded", sql`${t.excluded} in (0, 1)`)],

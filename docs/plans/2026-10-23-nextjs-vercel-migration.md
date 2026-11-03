@@ -456,7 +456,7 @@
     - 10e 共用讀取模型（D16、D18，2026-10-26 新增，排在 10c 後；D19 之後被擋於步驟 4e；Will 2026-11-03 放寬：10e1 可在 4e4b 觀察期間於分支上開工，合併等 4e4b 驗收過，觀察期發現儲存層問題時分支跟著接上修正；一個 session 做不完，拆成 10e1、10e2，依序做）：取代全表 `listIn`，UI 與摘要都讀同一份投影。讀取模型照 D18 的 P1：依 settings revision 存評估狀態與排名基分，SQL 只算和時間有關的部分（是否過期、新鮮度加分）並分頁，只補讀當頁；補讀時用 TS 重算並核對 SQL 給的分數，不符就丟錯。D18：不做跨來源合併，每筆 opportunity 是只有自己一個成員的群組；`members: [自己]`、成員 token 公式（fingerprint、tracking revision、內容版本雜湊、applications token）、`observation_fingerprints`、`novelty_keys`、內容版本的主卡選擇（`display_basis`）照舊，所以 DTO、snapshot 與 Python 回滾時的 render 都不變。
       - 10e1 投影與維護：衍生表 `discovery_items`（每筆 opportunity 一列）與 `discovery_versions`（每個內容版本一列），加進 `DERIVED_TABLES`（converge、replay、步驟 12 反向腳本都從 SQLite 副本重建，不回讀 Neon）。寫入時存：當作未過期算出的狀態、`qualify` 理由與分類理由分開存（讀取時照 `evaluate` 的順序組回）、截止到期時刻（`timestamptz`；只有日期的存隔天 00:00Z，溢位存 null）、排名與卡片要的欄位、novelty 對、settings revision。讀取時算：是否過期、freshness、排名、候選、顯示的 `review_status`、主卡用哪個版本。tracking 與 applications 讀取時從各自的窄表 join。維護：`insertRecord`／`saveRecord` 與 `ingestResendBatch` 同交易重算該筆，`replaceSettings` 同交易重算全部（實測要在寫入鎖 5 秒等待內），讀取時 settings revision 不符就丟錯。新程式用 TS 原生型別，只在既有消費端邊界轉 `PyDict`。這一步讀取端仍走 `listIn`，行為不變。驗收：參考實作（從原始列直接跑 `evaluate`／`recommendation`／`isCandidate`）在多個 `now`（aware 截止前、當下、後；只有日期的截止跨 UTC 日界；只有版本有截止）和投影讀取結果相同；增量投影等於整批重建（含改設定、新增版本）；converge 重建後相同。mutation：寫入時判斷過期、設定變更不重投影、新增版本不重算該筆，測試各自失敗。
         - 10e1 實作狀態（2026-11-03，分支 `10e1` 的 `526a1c1`、`f23f2f2`，本機完成，未推送、未合併、未部署；合併等 4e4b 驗收）：在 D1 上做，和上一條原文的差異與理由：
-          - 投影只存 SQL 排名與篩選要的欄位，不存評估理由與卡片欄位：`discovery_items`（`opportunity_id` 主鍵、外鍵到 `opportunities`；`fingerprint`、`review_status`、`novelty`（自己的 novelty 對，JSON）、`deadline_at`、`published_at`、`settings_revision`、`excluded`、`base_tenths`）與 `discovery_versions`（`(opportunity_id, fingerprint)` 主鍵，後五欄同）；migration `web/drizzle/0003_discovery_projection.sql`。理由：P1 本來就要求補讀當頁時用 TS 重算並核對，當頁（與 10e2 的摘要入選者）反正要讀原始列，存理由是第二份要維護的衍生資料，必要條件不成立。`excluded` 是「截止前」的狀態（含分類），`base_tenths` 是分類分 ×7 加每個確認條件 25（推薦分的十分位，未計 tracking 與新鮮度）。
+          - 投影只存 SQL 排名與篩選要的欄位，不存評估理由與卡片欄位：`discovery_items`（`opportunity_id` 主鍵、外鍵到 `opportunities`；`fingerprint`、`review_status`、`deadline_at`（`novelty` 欄位在 10e2 刪除，見 10e2 實作狀態）、`published_at`、`settings_revision`、`excluded`、`base_tenths`）與 `discovery_versions`（`(opportunity_id, fingerprint)` 主鍵，後五欄同）；migration `web/drizzle/0003_discovery_projection.sql`。理由：P1 本來就要求補讀當頁時用 TS 重算並核對，當頁（與 10e2 的摘要入選者）反正要讀原始列，存理由是第二份要維護的衍生資料，必要條件不成立。`excluded` 是「截止前」的狀態（含分類），`base_tenths` 是分類分 ×7 加每個確認條件 25（推薦分的十分位，未計 tracking 與新鮮度）。
           - 時間存 UTC 文字 `YYYY-MM-DDTHH:MM:SS.ffffffZ`（以文字排序），不是原文的 `timestamptz`；只有日期的截止存隔天 00:00Z；早於 1 年存 `0000-…`、晚於 9999 年存 null（截止永不到、發布時間未知）。不用整數微秒：9999 年的微秒值超過 2^53，D1 REST 的 JSON 數字會失真、client 讀回時 fail closed（1f (e)）。觸發：要在 SQL 做時間算術時再改。
           - 共用同一份規則：`qualify` 拆成 `qualifyUnexpired`（不看 `now`）與 `expire`（套用截止），`evaluate`＝`evaluationAt(evaluateUnexpired(…))`；推薦分抽出 `publishedAt`、`confirmedCount`。新鮮度的天數比較改成整數微秒，和原本「秒數除以 86400」在整數輸入上結果相同（不是 D17 差異；golden 與全套測試照舊通過，`526a1c1`）。
           - 維護：`Records` 每次寫紀錄、`ContentVersions.add` 每次寫版本，同一單元一起 upsert 投影列（`Records` 建構時帶單元讀到的 `Settings`）。`replaceSettings` 移到 `services/discovery.ts`（discovery 模組不能 import legacy／collection），在同一頁面單元讀全部紀錄與版本，用 `UPDATE … FROM json_each(?)`（每句一個 ≤ 90 KB 的 JSON 參數，經 `Writes.statement()`）重寫每列的設定欄位，所以整表在一個請求內（4e2b 交接 (2) 的解法；2,500 筆在替身上是 2 個請求）。
@@ -501,6 +501,34 @@
             - 替身回報的 `rowsRead` 是傳回列數，不是 D1 計費的掃描列數。一頁清單、一次回饋的列讀取，要在真 D1（`freelance-agent-ci-test`）上量，要 Will 同意。
             - iad1 的耗時：建摘要由部署後每日執行的 step 耗時量（`workflow inspect`）；改設定與分頁由步驟 11 接上 UI 後量。10e1 的兩個觸發條件照舊。
           - 新機制：沒有新表、沒有新的讀取形狀。新增的只有兩個計數（`projection_retries`、`cross_source_*`），必要條件分別是 10e1 的重試觸發與 D18 的觸發量測。
+        - 10e2 實作狀態（2026-11-03，分支 `10e2` 的 `742e662`、`76cd816` 與審查修正，本機完成，未合併、未部署；合併等 4e4b 與 10e1）：和上面設計盤點的差異如下。
+          - golden 改用「讓 Python 也一筆一組」重產，而不是改情境的輸入。`gen_golden.py` 的 `single_member_groups` 把每個綁定了 `group_items` 的已載入模組都 patch 掉（實際是 discovery 的 public／rules／service、notifications 的 digest／store），排序鍵照抄 Python 的 `group_items`。
+            - 理由：改輸入會拿掉 `url_and_content_grouping` 要驗的 URL 正規化，這段讓 key 相撞的程式 novelty 仍在用。
+            - 代價：這三個情境（`url_and_content_grouping`、`group_feedback_atomic_and_stale`、`digest_novelty_and_uncertain_delivery`）記錄的是「A3 之下的 Python」，不是正式 Python 的輸出（正式 Python 會合併）。這是 D17 差異。
+            - 其餘情境逐位元組不變（逐鍵比對）。改成 patch 所有模組之後重產，golden 也逐位元組不變。
+          - 投影的 `novelty` 欄位刪除（0003 migration 重產，未部署過）。原本留給輕量候選用，10e2 不做輕量候選之後它沒有讀取端。
+          - 摘要讀取（`digestCandidates`）：
+            - 第一個請求：一致性檢查、全表排名（不設 LIMIT），以及當天既有的 digest 與來源狀態。已有 digest 就直接回傳，不讀任何列。
+            - 第二個請求：整表讀取（不帶 id 清單；全部候選約 2,400 個 id，做成單一 JSON 參數約 164 KB，沒在真 D1 驗過），只組候選、逐筆核對。
+            - `listPage` 限制每頁 1–200 筆（`MAX_PAGE`），UI 不能一次讀全部；沒有對外匯出的「全部」值。
+          - D18 量測：在建摘要與寄信之前，一個請求內完成（排名＋全表職稱），不拉長「已寄出但還是 running」的時間。失敗記成 `cross_source_title_pairs: null`，`check-storage-triggers` 標出 `cross_source_unmeasured`。
+          - 重試計數叫 `read_retries`（盤點原寫 `projection_retries`），走 D1 client 的計數器與 `Usage`。UI 請求的計數沒有人保存，和 4e2b 交接 (3) 的 409 一起在步驟 11 決定記在哪裡。
+          - 驗證：
+            - typecheck、boundaries、build 0。`pnpm test` 39 檔 453 過、7 skip。
+            - 新測試：重試計數、單筆群組與舊 token 被拒、共用 URL 不合併且被壓下、新版本重新通知、D18 配對數、觸發訊號。
+            - `tests/ranking-rounding.test.ts` 用分類定義窮舉 150 個分數，原生與 Python round 相同。
+            - mutation 全紅：token 拿掉版本雜湊、`unseen` 不讀 `observation_fingerprints`（第一輪存活，補「新版本重新通知」後紅）、主卡不依可能符合的版本、重試不計數、回饋讀全表、同來源也算配對、摘要不核對、已有 digest 仍讀列、量測失敗當成 0。
+          - 審查（完成前，design-review 10 項＋`/code-review` medium 10 項，重疊合併後分流）：
+            - 改：量測位置、已有 digest 提前回傳、摘要只組候選且不帶 id 清單、不匯出「全部」、量測失敗另標、窮舉測試的分數從分類定義推導、render 丟 `PyError`、刪 `novelty` 欄位、golden patch 涵蓋所有模組。
+            - 記：golden 的做法（見上）、`read_retries` 的名稱與 UI 端的計數（步驟 11）。量測每天多做一次全表排名，約 2,450 列讀取，在 D1 每天 500 萬列內，推論。
+            - 交 Will：ADR 2026-10-26 寫的「no full-table recompute remains」。換到 D1 後，摘要每天在 TS 重算全部候選（約 97% 的列）；UI 只讀頁。要嘛修 ADR，要嘛縮小摘要範圍（例如 SQL 先用帳本濾掉已通知的候選）。
+            - 駁回：
+              - 「一筆不符就整份摘要失敗」：P1 明定不符就丟錯，復原步驟見設計盤點。
+              - `groupItems` 保留重新排序：`insertDigest` 對任何輸入順序都要正確，nit。
+          - 未驗證：
+            - 真實副本上的 replay：部署到 shadow 後由每天的 after job 跑。
+            - 正式量級下一頁清單與一次回饋的真 D1 列讀取量：要 Will 同意。
+            - iad1 的耗時：部署後由每日執行的 step 耗時量。
     - 10d 受保護的操作頁（被擋於：步驟 11 的 Origin 檢查與 body 上限）：`/ops/recovery`（列出隔離信件與卡住的 `running`；把一封 rejected 標回 `retry_pending`，取代 `bootstrap/recovery.py`）、`/ops/digest`（預覽 MIME 與 sha256，帶相符的 sha256 才寄既有 `pending`，取代 `gmail_smtp_cli`）。憑證只在 Vercel，不複製到本機，所以用頁面不用本機 script（盤點 §4 已定）。驗收：`retry_mail` 的 Python 案例 TS 版、sha256 不符拒寄、跨來源 Origin 被擋。mutation：拿掉 sha256 比對，測試要失敗。
 
 - [ ] **11. UI、API、契約與離線 demo**（被擋於：步驟 4、D10；可以和步驟 6–10 並行）

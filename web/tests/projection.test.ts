@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ingestResendBatch, ingestSource, opportunityId, type Listing } from "@/modules/collection/public";
-import { novelty, noveltyOf, readSettings } from "@/modules/discovery/public";
+import { readSettings } from "@/modules/discovery/public";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, asList, PyDict } from "@/platform/py/value";
@@ -64,7 +64,7 @@ async function seed() {
   await leased("insert into manual_application_opportunities values ('a1', ?1)", [key("applied")]);
 }
 
-const page = (now: PyDateTime, offset = 0, limit = 1000) => listPage(db, now, { offset, limit });
+const page = (now: PyDateTime, offset = 0, limit = 200) => listPage(db, now, { offset, limit });
 const same = async (now: PyDateTime) => expect(encode(await page(now))).toBe(encode(await list(db, now)));
 
 /** The projection as stored, ordered. */
@@ -101,18 +101,6 @@ describe("discovery projection (plan step 10e1)", () => {
     const all = (await list(db, now)).map((i) => i.str("id"));
     for (const [offset, limit] of [[0, 3], [3, 3], [9, 5]]) {
       expect((await page(now, offset, limit)).map((i) => i.str("id"))).toEqual(all.slice(offset, offset + limit));
-    }
-  });
-
-  it("stores the novelty pairs list_in's items announce", async () => {
-    await seed();
-    const items = await list(db, NOWS[0]);
-    const { items: rows, versions } = await stored();
-    for (const item of items) {
-      const row = rows.find((r) => r.opportunity_id === item.str("id"))!;
-      const fps = versions.filter((v) => v.opportunity_id === item.str("id")).map((v) => String(v.fingerprint));
-      const expected: string[][] = [...novelty(item).values()].map((pair) => [...pair]);
-      expect(noveltyOf(String(row.novelty), item.str("id"), fps)).toEqual(expected.sort((x, y) => (JSON.stringify(x) < JSON.stringify(y) ? -1 : 1)));
     }
   });
 
@@ -177,7 +165,7 @@ describe("discovery projection (plan step 10e1)", () => {
         await track(db, key("open"), 0n, { feedback: "interested" }, ingestNow);
       }
     });
-    const items = await listPage(racing.db, NOWS[0], { offset: 0, limit: 1000 });
+    const items = await listPage(racing.db, NOWS[0], { offset: 0, limit: 200 });
     expect(fired).toBe(true);
     expect(racing.client.counters.readRetries).toBe(1);
     expect(encode(items)).toBe(encode(await list(db, NOWS[0])));

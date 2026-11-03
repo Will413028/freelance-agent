@@ -2,7 +2,7 @@ import type { Db } from "@/db/client";
 import { sourcesRead } from "@/modules/collection/public";
 import { backfillNovelty, checkNovelty, findDigestRead, insertDigest, type DigestRow, type NoveltyCheck, type StoredDigest } from "@/modules/notifications/public";
 import type { PyDateTime } from "@/platform/py/datetime";
-import { ALL, listPageWith } from "./discovery";
+import { digestCandidates } from "./discovery";
 
 /** The replay rebuilds the projection the digest will read (verify may only import this service). */
 export { rebuildProjection } from "./discovery";
@@ -17,9 +17,9 @@ export { rebuildProjection } from "./discovery";
 export async function createDigest(db: Db, localDate: string, recipient: string, now: PyDateTime): Promise<DigestRow> {
   // Every listing from the projection (plan step 10e2), each checked against its TS recompute; the
   // day's intent and the source statuses come with the ranking request.
-  const [items, existing, sources] = await listPageWith(db, now, ALL, [findDigestRead(db, localDate, recipient), sourcesRead(db)]);
+  const [items, existing, sources] = await digestCandidates(db, now, [findDigestRead(db, localDate, recipient), sourcesRead(db)], ([found]) => found !== null);
   if (existing) return existing;
-  return insertDigest(db, items, sources, localDate, recipient, now);
+  return insertDigest(db, items!, sources, localDate, recipient, now);
 }
 
 /** The digest_novelty rows of digests just loaded from a copy (the import, the replay), from the copy's rows. */

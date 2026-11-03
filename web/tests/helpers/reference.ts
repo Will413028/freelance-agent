@@ -6,7 +6,7 @@ import { allRecordsRead } from "@/modules/legacy/public";
 import { trackingStatesRead } from "@/modules/preferences/public";
 import type { PyDateTime } from "@/platform/py/datetime";
 import type { PyDict } from "@/platform/py/value";
-import { ALL, assembleItems, listPage } from "@/services/discovery";
+import { assembleItems, listPage, MAX_PAGE } from "@/services/discovery";
 
 /**
  * list_in as it was before the projection (plan step 10e2 removed it from the product): every row
@@ -18,5 +18,12 @@ export async function referenceList(db: Db, now: PyDateTime): Promise<PyDict[]> 
   return rankOrder(assembleItems(rows, s.settings, contentRows, states, applications, now));
 }
 
-/** The whole list through the product read (the projection), for tests that look at every listing. */
-export const list = (db: Db, now: PyDateTime) => listPage(db, now, ALL);
+/** The whole list through the product read (the projection), page by page, for tests that look at every listing. */
+export async function list(db: Db, now: PyDateTime): Promise<PyDict[]> {
+  const out: PyDict[] = [];
+  for (let offset = 0; ; offset += MAX_PAGE) {
+    const page = await listPage(db, now, { offset, limit: MAX_PAGE });
+    out.push(...page);
+    if (page.length < MAX_PAGE) return out;
+  }
+}

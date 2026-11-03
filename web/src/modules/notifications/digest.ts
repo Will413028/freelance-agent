@@ -91,7 +91,7 @@ export function render(items: PyDict[], sources: PyDict, o: { mode?: RenderMode;
     notice = "案件條件仍需人工確認；本信不代表已投遞。";
   }
   // Snapshot items are groups (publicItem of asGroup); the only caller renders a snapshot (plan step 10e2).
-  if (!items.every((item) => item.has("members"))) throw new Error("render takes snapshot items, which are groups");
+  if (!items.every((item) => item.has("members"))) throw new PyError("ValueError", "render takes snapshot items, which are groups");
   const candidates = items.filter(isCandidate);
   const blocks: string[] = [];
   for (const item of candidates) {

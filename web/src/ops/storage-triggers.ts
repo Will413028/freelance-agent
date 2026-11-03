@@ -21,7 +21,7 @@ export type StorageSignal = {
   /** Which decision it reopens: D20 for the lease, D21 for the access path; "totals" only qualifies the run's numbers. */
   decision: "D20" | "D21" | "totals" | "projection" | "D18";
   signal: "lease_wait_over_limit" | "lease_timeout" | "lease_lost" | "rate_limited" | "requests_over_limit" | "lost_steps" | "read_retries"
-    | "cross_source_title_pairs";
+    | "cross_source_title_pairs" | "cross_source_unmeasured";
   value: number;
 };
 
@@ -50,6 +50,7 @@ export function runSignals(localDate: string, result: string | null): StorageSig
   add("projection", "read_retries", count(r.get("read_retries")), count(r.get("read_retries")) > 0);
   const pairs = count(r.get("cross_source_title_pairs"));
   add("D18", "cross_source_title_pairs", pairs, pairs >= CROSS_SOURCE_PAIRS);
+  add("D18", "cross_source_unmeasured", 0, r.has("cross_source_title_pairs") && r.get("cross_source_title_pairs") === null);
   return out;
 }
 

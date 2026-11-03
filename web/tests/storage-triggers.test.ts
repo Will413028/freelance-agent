@@ -34,6 +34,8 @@ describe("storage revocation triggers", () => {
     expect(runSignals("2026-11-04", usage({ read_retries: 0n, cross_source_title_pairs: 2n }))).toEqual([]);
     expect(runSignals("2026-11-04", usage({ read_retries: 1n, cross_source_title_pairs: 3n })).map((s) => [s.decision, s.signal, s.value]))
       .toEqual([["projection", "read_retries", 1], ["D18", "cross_source_title_pairs", 3]]);
+    // A failed measurement is flagged, not read as zero pairs.
+    expect(runSignals("2026-11-04", encode(PyDict.of({ d1_requests: 1n, cross_source_title_pairs: null }))).map((s) => s.signal)).toEqual(["cross_source_unmeasured"]);
   });
 
   it("reads the runs from a date on in one request", async () => {

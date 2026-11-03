@@ -149,7 +149,7 @@ describe("one-time import into D1", () => {
     expect(await checkLedger(db, "2000-01-01")).toMatchObject({ rows, missing: 0, extra: 0, ok: true });
     // The imported projection serves the same list as the raw rows.
     const now = new PyDateTime(2026, 10, 26, 1, 0, 0, 0, 0n);
-    expect(encode(await listPage(db, now, { offset: 0, limit: 1000 }))).toBe(encode(await list(db, now)));
+    expect(encode(await listPage(db, now, { offset: 0, limit: 200 }))).toBe(encode(await list(db, now)));
   });
 
   it("finishes when run again after an interruption", async () => {

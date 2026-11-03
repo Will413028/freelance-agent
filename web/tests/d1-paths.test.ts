@@ -27,8 +27,9 @@ describe("reads on D1", () => {
     // Ranking, ranked rows and one write: with no candidates there are no announced pairs to look up.
     expect(client.counters.requests - before).toBe(3);
     const again = client.counters.requests;
+    // The day's digest exists: it comes back from the ranking request, without reading any rows.
     await createDigest(db, "2026-10-24", EMAIL, at(2));
-    expect(client.counters.requests - again).toBe(2);
+    expect(client.counters.requests - again).toBe(1);
   });
 });
 

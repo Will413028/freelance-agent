@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CATEGORY_SCORES } from "@/modules/discovery/domain";
 import { oneDecimal } from "@/modules/discovery/ranking";
 import { roundFloat, roundToInt } from "@/platform/py/format";
 
@@ -8,7 +9,7 @@ import { roundFloat, roundToInt } from "@/platform/py/format";
 describe("native rounding in recommendation equals Python's round", () => {
   it("on every reachable score", () => {
     let checked = 0;
-    for (const category of [0, 70, 75, 85, 95]) {
+    for (const category of CATEGORY_SCORES.map(Number)) {
       for (let confirmed = 0; confirmed <= 4; confirmed++) {
         for (const interested of [0, 10]) {
           for (const fresh of [0, 6, 10]) {
@@ -23,7 +24,7 @@ describe("native rounding in recommendation equals Python's round", () => {
         }
       }
     }
-    expect(checked).toBe(150); // 5 categories × 5 confirmed counts × interest × 3 freshness bonuses; none reaches the cap of 100
+    expect(checked).toBe(CATEGORY_SCORES.length * 5 * 2 * 3); // categories × confirmed counts × interest × freshness; none reaches the cap of 100
   });
 
   it("on every completeness ratio", () => {

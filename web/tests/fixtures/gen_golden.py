@@ -186,9 +186,12 @@ def single_member_groups(items):
 
 
 def run_scenario(ops):
-    with patch.object(rules, 'group_items', single_member_groups), \
-            patch('freelance.modules.discovery.service.group_items', single_member_groups), \
-            patch('freelance.modules.notifications.store.group_items', single_member_groups):
+    # Every module that bound group_items by name (rules, discovery.service, notifications.store,
+    # legacy.review, bootstrap...), so no path of the store still merges.
+    from contextlib import ExitStack
+    with ExitStack() as stack:
+        for module in [m for m in list(sys.modules.values()) if getattr(m, 'group_items', None) is _GROUP_ITEMS]:
+            stack.enter_context(patch.object(module, 'group_items', single_member_groups))
         return _run_scenario(ops)
 
 

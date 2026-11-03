@@ -1,12 +1,12 @@
 import { asc, desc, eq, sql, type SQLWrapper } from "drizzle-orm";
-import { inList, read, type Db } from "@/db/client";
+import { read, type Db } from "@/db/client";
 import { discoveryItems, discoverySettings, discoveryVersions, manualApplicationOpportunities, manualApplications, opportunities, mailContentVersions, opportunityTracking } from "@/db/schema";
 import type { Writes } from "@/db/unit";
 import { PyDateTime } from "@/platform/py/datetime";
-import { num, pyCmp, type PyDict, type PyValue } from "@/platform/py/value";
+import { num, type PyDict, type PyValue } from "@/platform/py/value";
 import type { Deadline, Unexpired } from "./domain";
 import { confirmedCount, publishedAt, RECENT_US, WEEK_US } from "./ranking";
-import { evaluateUnexpired, novelty, outsideCategories } from "./rules";
+import { evaluateUnexpired, outsideCategories } from "./rules";
 import type { Settings } from "./settings";
 
 // The discovery read model (D16, D18 P1, plan step 10e1). Every row is derived from one stored row
@@ -41,7 +41,7 @@ export function deadlineText(deadline: Deadline): string | null {
 }
 
 type Columns = { deadlineAt: string | null; publishedAt: string | null; settingsRevision: number; excluded: 0 | 1; baseTenths: number };
-export type ItemRow = Columns & { opportunityId: string; fingerprint: string; reviewStatus: string | null; novelty: string };
+export type ItemRow = Columns & { opportunityId: string; fingerprint: string; reviewStatus: string | null };
 export type VersionRow = Columns & { opportunityId: string; fingerprint: string };
 
 /** The status evaluate gives while the deadline has not passed: the deadline can only add an exclusion. */
@@ -61,21 +61,18 @@ function columns(job: PyDict, s: Settings): Columns {
   };
 }
 
-/** A record's own novelty pairs: novelty() of the record alone, which every content version extends by its own pair. */
-const ownNovelty = (item: PyDict) => JSON.stringify([...novelty(item).values()].sort(pyCmp));
-
 export function itemRow(item: PyDict, s: Settings): ItemRow {
   const review = item.at("review_status");
   return {
     opportunityId: item.str("id"), fingerprint: item.str("fingerprint"), reviewStatus: typeof review === "string" ? review : null,
-    novelty: ownNovelty(item), ...columns(item.dict("job"), s),
+    ...columns(item.dict("job"), s),
   };
 }
 
 export const versionRow = (opportunityId: string, fingerprint: string, job: PyDict, s: Settings): VersionRow =>
   ({ opportunityId, fingerprint, ...columns(job, s) });
 
-const ITEM_SET = [discoveryItems.fingerprint, discoveryItems.reviewStatus, discoveryItems.novelty, discoveryItems.deadlineAt, discoveryItems.publishedAt,
+const ITEM_SET = [discoveryItems.fingerprint, discoveryItems.reviewStatus, discoveryItems.deadlineAt, discoveryItems.publishedAt,
   discoveryItems.settingsRevision, discoveryItems.excluded, discoveryItems.baseTenths];
 const VERSION_SET = [discoveryVersions.deadlineAt, discoveryVersions.publishedAt, discoveryVersions.settingsRevision, discoveryVersions.excluded, discoveryVersions.baseTenths];
 
@@ -215,14 +212,8 @@ export function checkRanked(item: PyDict, candidate: boolean, ranked: Ranked) {
   }
 }
 
-/** The novelty pairs of a record with its content versions, from the projection: what novelty() gives for the assembled item. */
-export function noveltyOf(stored: string, opportunityId: string, versionFingerprints: readonly string[]): string[][] {
-  const pairs = (JSON.parse(stored) as string[][]).map((p) => JSON.stringify(p));
-  const all = new Set([...pairs, ...versionFingerprints.map((fp) => JSON.stringify([opportunityId, fp]))]);
-  return [...all].map((p) => JSON.parse(p) as string[]).sort((a, b) => pyCmp(a, b));
-}
 
-/** Source, raw title and publication instant of these listings (the D18 trigger measurement, plan step 10e2). */
-export const titlesRead = (db: Db, ids: readonly string[]) => read(db.select({
+/** Source, raw title and publication instant of every listing (the D18 trigger measurement, plan step 10e2). */
+export const titlesRead = (db: Db) => read(db.select({
   id: opportunities.id, source: opportunities.source, title: sql<unknown>`json_extract(${opportunities.item}, '$.job.title')`, publishedAt: discoveryItems.publishedAt,
-}).from(opportunities).innerJoin(discoveryItems, eq(discoveryItems.opportunityId, opportunities.id)).where(inList(opportunities.id, ids)), (rows) => rows);
+}).from(opportunities).innerJoin(discoveryItems, eq(discoveryItems.opportunityId, opportunities.id)), (rows) => rows);
