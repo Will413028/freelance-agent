@@ -61,7 +61,7 @@ function inserts(table: string, columns: Column[], rows: Row[]): D1Statement[] {
   }));
 }
 
-async function d1Columns(db: Db, table: string): Promise<Column[]> {
+export async function d1Columns(db: Db, table: string): Promise<Column[]> {
   const [info] = await clientOf(db).batch([{ sql: `pragma table_info(${quoted(table)})`, params: [] }]);
   return columnsOf(table, info.rows.map((r) => ({ name: String(r[info.columns.indexOf("name")]), type: String(r[info.columns.indexOf("type")]) })));
 }
