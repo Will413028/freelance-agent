@@ -1,4 +1,5 @@
 import { clientOf, getDb, type Db } from "@/db/client";
+import { PyError } from "@/platform/py/value";
 
 // One log line per page request with its D1 usage (plan step 11): the D13 page measurement, and the
 // read retries that the daily run's counters never see. Vercel keeps runtime logs about an hour.
@@ -10,7 +11,8 @@ export async function withPageDb<T>(route: string, load: (db: Db) => Promise<T>,
   try {
     return await load(db);
   } catch (e) {
-    outcome = e instanceof Error ? e.constructor.name : "error";
+    // Not constructor.name: the production build minifies class names.
+    outcome = e instanceof PyError ? e.pyType : e instanceof Error ? e.name : "error";
     throw e;
   } finally {
     const c = clientOf(db).counters;

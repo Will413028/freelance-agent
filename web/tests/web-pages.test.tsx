@@ -228,6 +228,6 @@ describe("page usage log", () => {
     }
     // The test database's client is shared, so its counters include earlier tests; a page gets a fresh one.
     expect(lines[0]).toMatch(/^page usage \/settings outcome=ok ms=\d+ d1_requests=[1-9]\d* rows_read=\d+ rows_written=\d+ read_retries=\d+ lease_wait_ms=\d+$/);
-    expect(lines[1]).toMatch(/^page usage \/jobs\/\[id\] outcome=NotFound /);
+    expect(lines[1]).toMatch(/^page usage \/jobs\/\[id\] outcome=KeyError /);
   });
 });
