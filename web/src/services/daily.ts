@@ -5,6 +5,7 @@ import { buildMessage, claimDailyRun, dailyRecipient, deliver, findDigest, finis
 import { fromisoformat, PyDateTime } from "@/platform/py/datetime";
 import { asList, pyGet, PyDict, type PyValue } from "@/platform/py/value";
 import { createDigest } from "./digest";
+import { crossSourceTitles } from "./discovery";
 
 // The daily run of notifications/daily.py:run_daily, delivery included (plan step 10c). Each function
 // is one workflow step: inputs and outputs carry only dates, source ids, statuses and counts; the
@@ -104,6 +105,15 @@ export async function finishDaily(db: Db, localDate: string, startedAt: string, 
   } catch {
     status = "failed";
     result = PyDict.of({ status: "failed", local_date: localDate, reason: "daily_processing_failed" });
+  }
+  // D18's trigger measurement (plan step 10e2): beside the digest, never part of its outcome.
+  try {
+    const titles = await crossSourceTitles(db, now);
+    result.set("cross_source_title_pairs", BigInt(titles.pairs));
+    result.set("cross_source_unknown_published", BigInt(titles.unknownPublished));
+  } catch (e) {
+    result.set("cross_source_title_pairs", null);
+    console.warn(`cross-source title measurement failed: ${e instanceof Error ? e.message : String(e)}`);
   }
   for (const [k, v] of Object.entries(addUsage(earlier, usageOf(db)))) {
     result.set(k, typeof v === "number" ? BigInt(v) : new PyDict(Object.entries(v).map(([kind, n]) => [kind, BigInt(n)])));

@@ -238,13 +238,13 @@ describe("daily run usage", () => {
   it("records D1 requests, rows written and lease waits of the whole run at the top of the result", async () => {
     const step = recording().db; // a client of its own, as each workflow step has
     const begin = await beginDailyRun(step, now);
-    const earlier = { d1_requests: 5, d1_rows_written: 7, lease_wait_ms: 3, lease_timeouts: 1, lease_lost: 0, d1_errors: { rate_limited: 1 }, lost_steps: 1 };
+    const earlier = { d1_requests: 5, d1_rows_written: 7, lease_wait_ms: 3, lease_timeouts: 1, lease_lost: 0, d1_errors: { rate_limited: 1 }, lost_steps: 1, read_retries: 2 };
     await finishDaily(step, begin.localDate, begin.startedAt!, {}, null, earlier);
     const result = asDict((await getDailyRun(db, begin.localDate, "owner@example.invalid"))!.result);
     expect(result.req("d1_requests")).toBeGreaterThan(5n);
     expect(result.req("d1_rows_written")).toBeGreaterThanOrEqual(7n);
     expect(result.req("lease_wait_ms")).toBeGreaterThanOrEqual(3n);
-    expect([result.req("lease_timeouts"), result.req("lost_steps"), encode(result.req("d1_errors"))]).toEqual([1n, 1n, '{"rate_limited": 1}']);
+    expect([result.req("lease_timeouts"), result.req("lost_steps"), result.req("read_retries"), encode(result.req("d1_errors"))]).toEqual([1n, 1n, 2n, '{"rate_limited": 1}']);
     expect(result.dict("source_details").has("d1_requests")).toBe(false);
   });
 });

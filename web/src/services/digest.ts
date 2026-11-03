@@ -1,23 +1,25 @@
-import { readAll, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
 import { sourcesRead } from "@/modules/collection/public";
 import { backfillNovelty, checkNovelty, findDigestRead, insertDigest, type DigestRow, type NoveltyCheck, type StoredDigest } from "@/modules/notifications/public";
 import type { PyDateTime } from "@/platform/py/datetime";
-import { assembleList, listReads } from "./discovery";
+import { ALL, listPageWith } from "./discovery";
 
 /** The replay rebuilds the projection the digest will read (verify may only import this service). */
 export { rebuildProjection } from "./discovery";
 
 /**
- * Notifications.create_digest: discovery's list_in composed with the outbox. The existing intent,
- * the list and the source statuses are read in one request, so the snapshot is built from one state
- * of the database; an existing intent for the day is returned unchanged, never rebuilt. Outside the
+ * Notifications.create_digest: the discovery list composed with the outbox. The existing intent,
+ * the ranking and the source statuses are read in one request, the ranked rows in the next (checked
+ * against the ranking); an existing intent for the day is returned unchanged, never rebuilt. Outside the
  * writer lease (D20 common basis 4): it only adds the day's rows, and the day's unique key decides
  * between two runs.
  */
 export async function createDigest(db: Db, localDate: string, recipient: string, now: PyDateTime): Promise<DigestRow> {
-  const [existing, sources, ...list] = await readAll(db, [findDigestRead(db, localDate, recipient), sourcesRead(db), ...listReads(db)]);
+  // Every listing from the projection (plan step 10e2), each checked against its TS recompute; the
+  // day's intent and the source statuses come with the ranking request.
+  const [items, existing, sources] = await listPageWith(db, now, ALL, [findDigestRead(db, localDate, recipient), sourcesRead(db)]);
   if (existing) return existing;
-  return insertDigest(db, assembleList(list, now), sources, localDate, recipient, now);
+  return insertDigest(db, items, sources, localDate, recipient, now);
 }
 
 /** The digest_novelty rows of digests just loaded from a copy (the import, the replay), from the copy's rows. */

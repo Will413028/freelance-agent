@@ -1,5 +1,5 @@
 import { asc, desc, eq, sql, type SQLWrapper } from "drizzle-orm";
-import { read, type Db } from "@/db/client";
+import { inList, read, type Db } from "@/db/client";
 import { discoveryItems, discoverySettings, discoveryVersions, manualApplicationOpportunities, manualApplications, opportunities, mailContentVersions, opportunityTracking } from "@/db/schema";
 import type { Writes } from "@/db/unit";
 import { PyDateTime } from "@/platform/py/datetime";
@@ -221,3 +221,8 @@ export function noveltyOf(stored: string, opportunityId: string, versionFingerpr
   const all = new Set([...pairs, ...versionFingerprints.map((fp) => JSON.stringify([opportunityId, fp]))]);
   return [...all].map((p) => JSON.parse(p) as string[]).sort((a, b) => pyCmp(a, b));
 }
+
+/** Source, raw title and publication instant of these listings (the D18 trigger measurement, plan step 10e2). */
+export const titlesRead = (db: Db, ids: readonly string[]) => read(db.select({
+  id: opportunities.id, source: opportunities.source, title: sql<unknown>`json_extract(${opportunities.item}, '$.job.title')`, publishedAt: discoveryItems.publishedAt,
+}).from(opportunities).innerJoin(discoveryItems, eq(discoveryItems.opportunityId, opportunities.id)).where(inList(opportunities.id, ids)), (rows) => rows);

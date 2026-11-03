@@ -4,7 +4,7 @@ import { encode } from "@/platform/py/json";
 import { PyDateTime } from "@/platform/py/datetime";
 import { PyDict } from "@/platform/py/value";
 import { createDigest } from "@/services/digest";
-import { list } from "@/services/discovery";
+import { list } from "./helpers/reference";
 import { client, db, losingResponse, query, resetSchema } from "./helpers/db";
 
 // Plan step 4e2a: reads and single statements on D1. No transactions exist, so what used to be a
@@ -15,20 +15,20 @@ const EMAIL = "owner@example.invalid";
 beforeEach(resetSchema);
 
 describe("reads on D1", () => {
-  it("reads every table list_in combines in one request", async () => {
+  it("reads a list in two requests: the ranking over the projection, then the ranked rows (plan step 10e2)", async () => {
     const before = client.counters.requests;
     await list(db, at(1));
-    expect(client.counters.requests - before).toBe(1);
+    expect(client.counters.requests - before).toBe(2);
   });
 
-  it("reads the existing digest, the sources and the list in one request before building a digest", async () => {
+  it("reads the existing digest and the sources with the ranking before building a digest", async () => {
     const before = client.counters.requests;
     await createDigest(db, "2026-10-24", EMAIL, at(1));
-    // One read and one write: with no candidates there are no announced pairs to look up.
-    expect(client.counters.requests - before).toBe(2);
+    // Ranking, ranked rows and one write: with no candidates there are no announced pairs to look up.
+    expect(client.counters.requests - before).toBe(3);
     const again = client.counters.requests;
     await createDigest(db, "2026-10-24", EMAIL, at(2));
-    expect(client.counters.requests - again).toBe(1);
+    expect(client.counters.requests - again).toBe(2);
   });
 });
 

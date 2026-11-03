@@ -1,17 +1,18 @@
-import { insertChunks, readAll, type Db, type ReadValues } from "@/db/client";
+import { clientOf, insertChunks, readAll, type Db, type Read, type ReadValues } from "@/db/client";
 import type { D1Statement } from "@/db/d1/client";
 import { discoveryItems, discoveryVersions } from "@/db/schema";
 import { DAILY_WRITE, UI_WAIT_MS, withLease, writeUnit, type WritePolicy } from "@/db/unit";
-import { applicationProjectionsFor, applicationProjectionsRead, type ApplicationProjection } from "@/modules/applications/public";
+import { applicationProjectionsFor, type ApplicationProjection } from "@/modules/applications/public";
 import { contentVersionsFor, contentVersionsRead, type ContentVersionRow } from "@/modules/collection/public";
 import { allRecordsRead, Records, recordsRead } from "@/modules/legacy/public";
-import { emptyTracking, track as trackIn, trackingRead, Trackings, trackingStatesRead, trackReads, type TrackingChange } from "@/modules/preferences/public";
+import { emptyTracking, track as trackIn, trackingRead, Trackings, trackReads, type TrackingChange } from "@/modules/preferences/public";
 import { Conflict, InvalidAction, uiBusy } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
+import { text } from "@/platform/py/unicode";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, asList, cmpStr, isDict, pyEq, PyDict, PyError, type PyValue } from "@/platform/py/value";
 import {
-  checkRanked, checkState, evaluate, groupItems, isCandidate, itemRow, ProjectionMismatch, projectionStateRead, rankedRead, preferences, project, PUBLIC_JOB_FIELDS, putSettings, putSettingsColumns, rankOrder, recommendation, settingsOf, settingsRead, versionRow,
+  asGroup, checkRanked, checkState, evaluate, isCandidate, titlesRead, utcText, WEEK_US, itemRow, ProjectionMismatch, projectionStateRead, rankedRead, preferences, project, PUBLIC_JOB_FIELDS, putSettings, putSettingsColumns, recommendation, settingsOf, settingsRead, versionRow,
   type Settings,
 } from "@/modules/discovery/public";
 
@@ -24,18 +25,12 @@ const OBSERVATION_ONLY = new Set(["received_at", "receipt_id", "evidence_ref", "
 /** Page requests wait 5 s for the writer lease and answer 409 when they give up (D20-B). */
 const PAGE_WRITE: WritePolicy = { waitMs: UI_WAIT_MS, busy: uiBusy };
 
-/** What list_in reads, to run in one request alone or with a caller's other reads (readAll). */
-export const listReads = (db: Db) =>
-  [allRecordsRead(db), settingsRead(db), contentVersionsRead(db), trackingStatesRead(db), applicationProjectionsRead(db)] as const;
-
-export type ListData = ReadValues<ReturnType<typeof listReads>>;
-
-/** list_in over rows read together by listReads. */
-export const assembleList = ([rows, { settings }, contentRows, states, applications]: ListData, now: PyDateTime): PyDict[] =>
-  rankOrder(assembleItems(rows, settings, contentRows, states, applications, now));
+/** The reads that assemble these records as list_in would: their records, content versions, tracking and applications. */
+const itemReads = (db: Db, ids: readonly string[]) =>
+  [recordsRead(db, ids), contentVersionsFor(db, ids), trackingRead(db, ids), applicationProjectionsFor(db, ids)] as const;
 
 /** Records as list_in builds its items: evaluated at `now`, with tracking, applications and differing content versions. */
-function assembleItems(rows: readonly PyDict[], settings: PyDict, contentRows: readonly ContentVersionRow[], states: Map<string, PyDict>,
+export function assembleItems(rows: readonly PyDict[], settings: PyDict, contentRows: readonly ContentVersionRow[], states: Map<string, PyDict>,
   applications: Map<string, ApplicationProjection>, now: PyDateTime): PyDict[] {
   const items = rows.map((row) => project(row, settings, now));
   const versions = new Map<string, { fingerprint: string; job: string }[]>();
@@ -66,41 +61,40 @@ function assembleItems(rows: readonly PyDict[], settings: PyDict, contentRows: r
   return items;
 }
 
-export const list = async (db: Db, now: PyDateTime) => assembleList(await readAll(db, listReads(db)), now);
+/** One record assembled from itemReads' values, or KeyError when it does not exist. */
+function oneItem(key: string, [s, records, contentRows, states, applications]: ReadValues<[ReturnType<typeof settingsRead>, ...ReturnType<typeof itemReads>]>,
+  now: PyDateTime): PyDict {
+  const record = records.get(key);
+  if (!record) throw new PyError("KeyError", key);
+  return assembleItems([record], s.settings, contentRows, states, applications, now)[0];
+}
 
+/** A listing's group (D18 A3: the listing alone), read without the rest of the list (plan step 10e2). */
 export async function group(db: Db, key: string, now: PyDateTime): Promise<PyDict> {
-  const found = groupItems(await list(db, now)).find((g) => asList(g.req("member_ids")).includes(key));
-  if (!found) throw new PyError("KeyError", key);
-  return found;
+  return asGroup(oneItem(key, await readAll(db, [settingsRead(db), ...itemReads(db, [key])]), now));
 }
 
 /** Versions the caller saw: {member id: token} for every member of the group. */
 export const memberVersions = (g: PyDict) => new PyDict(asList(g.req("members")).map((m) => [asDict(m).str("id"), asDict(m).req("token")]));
 
 /**
- * Group feedback as one unit: the whole list is read with the writer lease (until plan step 10e2
- * reads the group's projection instead), every member's token is compared with what the caller saw,
- * and every member's tracking is written in one batch.
+ * Group feedback as one unit: the listing is read with the writer lease, its token is compared with
+ * what the caller saw (a new content version, tracking revision or application changes it), and its
+ * tracking is written in one batch. A group is one listing since plan step 10e2 (D18 A3).
  */
 export async function feedback(db: Db, key: string, versions: PyValue, value: PyValue, now: PyDateTime) {
   if (!["neutral", "interested", "skipped"].some((s) => pyEq(value, s))) throw new InvalidAction("不支援的職缺狀態");
-  return writeUnit(db, PAGE_WRITE, listReads(db), (data, writes) => {
-    const [rows, s, , states] = data;
-    const settings = s.settings;
-    const items = assembleList(data, now);
-    const g = groupItems(items).find((x) => asList(x.req("member_ids")).includes(key));
-    if (!g) throw new PyError("KeyError", key);
+  return writeUnit(db, PAGE_WRITE, [settingsRead(db), ...itemReads(db, [key])], (data, writes) => {
+    const [s, records, , states] = data;
+    const item = oneItem(key, data, now), g = asGroup(item);
     if (!isDict(versions) || [...versions.values()].some((v) => typeof v !== "string") || !pyEq(versions, memberVersions(g))) {
       throw new Conflict("職缺或收藏狀態已更新，請重新載入");
     }
-    const unit = { records: Records.over(rows, writes, s), trackings: new Trackings(states, writes), settings };
-    const byId = new Map(items.map((item) => [item.str("id"), item]));
-    for (const m of asList(g.req("members")).map(asDict)) {
-      const state = byId.get(m.str("id"))!.dict("tracking");
-      trackIn(unit, m.str("id"), m.req("revision"), {
-        feedback: value, note: state.has("note") ? state.get("note")! : "", evidence: state.has("evidence") ? state.get("evidence")! : "",
-      }, now);
-    }
+    const unit = { records: new Records(records, writes, s), trackings: new Trackings(states, writes), settings: s.settings };
+    const state = item.dict("tracking");
+    trackIn(unit, key, asDict(asList(g.req("members"))[0]).req("revision"), {
+      feedback: value, note: state.has("note") ? state.get("note")! : "", evidence: state.has("evidence") ? state.get("evidence")! : "",
+    }, now);
     return PyDict.of({ status: "saved" });
   });
 }
@@ -150,34 +144,45 @@ export async function rebuildProjection(db: Db, source: ProjectionSource, send: 
   return items.length + versions.length;
 }
 
+/** Every listing, for a reader that needs them all at once (the daily digest), never a page request. */
+export const ALL = { offset: 0, limit: 1_000_000_000 };
+
 /**
- * One page of the discovery list from the projection (D18 P1, plan step 10e1): SQL ranks every
+ * One page of the discovery list from the projection (D18 P1, plan steps 10e1–10e2): SQL ranks every
  * listing at `now` and returns the page's ids; only the page's own rows are read back and assembled
  * as list_in does, and each item's candidacy and score must equal what SQL ranked it by. A write
- * between the two requests can make them disagree, so the read is tried twice before it fails.
- * Plan step 10e2 moves the list, groups, feedback and digest onto this read.
+ * between the two requests can make them disagree, so the read is tried twice before it fails; the
+ * retry is counted (read_retries in daily_runs.result) and logged.
  */
 export async function listPage(db: Db, now: PyDateTime, page: { offset: number; limit: number }): Promise<PyDict[]> {
+  return (await listPageWith(db, now, page, []))[0];
+}
+
+/** listPage plus other reads in the ranking's request, so they see the same state of the database. */
+export async function listPageWith<const R extends readonly Read<unknown>[]>(db: Db, now: PyDateTime, page: { offset: number; limit: number }, extra: R):
+  Promise<[PyDict[], ...ReadValues<R>]> {
   for (let attempt = 0; ; attempt++) {
     try {
-      return await pageOnce(db, now, page);
+      return await pageOnce(db, now, page, extra);
     } catch (e) {
       if (!(e instanceof ProjectionMismatch) || attempt >= 1) throw e;
+      clientOf(db).counters.readRetries++;
+      console.warn(`discovery page read again: ${e.message}`);
     }
   }
 }
 
-async function pageOnce(db: Db, now: PyDateTime, page: { offset: number; limit: number }) {
-  const [state, s, ranked] = await readAll(db, [projectionStateRead(db), settingsRead(db), rankedRead(db, now, page)]);
+async function pageOnce<const R extends readonly Read<unknown>[]>(db: Db, now: PyDateTime, page: { offset: number; limit: number }, extra: R):
+  Promise<[PyDict[], ...ReadValues<R>]> {
+  const [state, s, ranked, ...more] = await readAll(db, [projectionStateRead(db), settingsRead(db), rankedRead(db, now, page), ...extra] as const);
   checkState(state);
   const ids = ranked.map((r) => r.id);
-  const [records, contentRows, states, applications, again] = await readAll(db,
-    [recordsRead(db, ids), contentVersionsFor(db, ids), trackingRead(db, ids), applicationProjectionsFor(db, ids), settingsRead(db)]);
+  const [records, contentRows, states, applications, again] = await readAll(db, [...itemReads(db, ids), settingsRead(db)]);
   if (again.revision !== s.revision) throw new ProjectionMismatch("discovery settings changed between the ranking and the page read");
   const rows = ids.map((id) => records.get(id) ?? (() => { throw new ProjectionMismatch(`record ${id} disappeared between the ranking and the page read`); })());
   const items = assembleItems(rows, s.settings, contentRows, states, applications, now);
   items.forEach((item, i) => checkRanked(item, isCandidate(item), ranked[i]));
-  return items;
+  return [items, ...more] as unknown as [PyDict[], ...ReadValues<R>];
 }
 
 /**
@@ -200,4 +205,34 @@ export async function rebuildProjectionInPlace(db: Db, waitMs = DAILY_WRITE.wait
       settings: row ? { revision: Number(row[0]), settings: String(row[1]) } : null,
     }, send);
   });
+}
+
+/**
+ * D18's trigger for bringing cross-source deduplication back: among the day's candidates published in
+ * the last 7 days, the pairs from different sources whose titles are equal after text() (NFKC,
+ * casefold). Candidates without a known publication are counted apart, not silently left out.
+ * check-storage-triggers flags 3 pairs or more for Will to sample (plan step 10e2).
+ */
+export async function crossSourceTitles(db: Db, now: PyDateTime): Promise<{ pairs: number; unknownPublished: number }> {
+  const [ranked] = await readAll(db, [rankedRead(db, now, ALL)]);
+  const ids = ranked.filter((r) => r.candidate).map((r) => r.id);
+  const [rows] = await readAll(db, [titlesRead(db, ids)]);
+  const since = utcText(now.utcMicros() - WEEK_US), until = utcText(now.utcMicros());
+  const bySource = new Map<string, Map<string, number>>();
+  let unknownPublished = 0;
+  for (const row of rows) {
+    if (row.publishedAt === null) { unknownPublished++; continue; }
+    if (typeof row.title !== "string" || since === null || until === null || row.publishedAt < since || row.publishedAt > until) continue;
+    const title = text(row.title);
+    if (!title) continue;
+    const sources = bySource.get(title) ?? new Map<string, number>();
+    bySource.set(title, sources);
+    sources.set(row.source, (sources.get(row.source) ?? 0) + 1);
+  }
+  let pairs = 0;
+  for (const sources of bySource.values()) {
+    const counts = [...sources.values()], total = counts.reduce((a, b) => a + b, 0);
+    pairs += (total * (total - 1) - counts.reduce((n, c) => n + c * (c - 1), 0)) / 2;
+  }
+  return { pairs, unknownPublished };
 }

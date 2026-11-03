@@ -29,7 +29,7 @@ export function usageOf(db: Db): Usage {
   const c = clientOf(db).counters;
   return {
     d1_requests: c.requests, d1_rows_written: c.rowsWritten, lease_wait_ms: Math.round(c.leaseWaitMs), lease_timeouts: c.leaseTimeouts,
-    lease_lost: c.leaseLost, d1_errors: { ...c.errors }, lost_steps: 0,
+    lease_lost: c.leaseLost, d1_errors: { ...c.errors }, lost_steps: 0, read_retries: c.readRetries,
   };
 }
 

@@ -160,7 +160,7 @@ describe("daily run with digest replays run_daily", () => {
     const intent = (await findDigest(db, "2026-09-28", "owner@example.invalid"))!;
     const result = asDict(row.result);
     // D1 usage is TS-only (plan step 4e); the rest is run_daily's result.
-    for (const key of ["d1_requests", "d1_rows_written", "lease_wait_ms", "lease_timeouts", "lease_lost", "d1_errors", "lost_steps"]) {
+    for (const key of ["d1_requests", "d1_rows_written", "lease_wait_ms", "lease_timeouts", "lease_lost", "d1_errors", "lost_steps", "read_retries", "cross_source_title_pairs", "cross_source_unknown_published"]) {
       expect(result.has(key)).toBe(true);
       result.delete(key);
     }
@@ -180,7 +180,7 @@ describe("daily run with digest replays run_daily", () => {
     await query("insert into digest_outbox (id, local_date, recipient, snapshot) values ('x', '2026-10-24', 'owner@example.invalid', 'not json')");
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, {})).status).toBe("failed");
     const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
-    expect(encode(row!.result)).toMatch(/^\{"status": "failed", "local_date": "2026-10-24", "reason": "daily_processing_failed", "d1_requests": \d+, "d1_rows_written": \d+, "lease_wait_ms": 0, "lease_timeouts": 0, "lease_lost": 0, "d1_errors": \{\}, "lost_steps": 0\}$/);
+    expect(encode(row!.result)).toMatch(/^\{"status": "failed", "local_date": "2026-10-24", "reason": "daily_processing_failed", "cross_source_title_pairs": 0, "cross_source_unknown_published": 0, "d1_requests": \d+, "d1_rows_written": \d+, "lease_wait_ms": 0, "lease_timeouts": 0, "lease_lost": 0, "d1_errors": \{\}, "lost_steps": 0, "read_retries": 0\}$/);
   });
 
   it("executes the date of its own claim: a run that starts the next day never runs the day it was queued for", async () => {

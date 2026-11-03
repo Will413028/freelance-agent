@@ -8,7 +8,7 @@ import { parseArticle as jrArticle, syncJustRemote } from "@/modules/collection/
 import { parseArticle as ndArticle, parseFeed, syncNoDesk } from "@/modules/collection/sources/nodesk";
 import { readSettings } from "@/modules/discovery/public";
 import { replaceSettings } from "@/services/discovery";
-import { list } from "@/services/discovery";
+import { list } from "./helpers/reference";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, type PyValue } from "@/platform/py/value";

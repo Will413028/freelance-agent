@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { list } from "@/services/discovery";
+import { list } from "../../../tests/helpers/reference";
 import { PyDateTime } from "@/platform/py/datetime";
 import { PyDict } from "@/platform/py/value";
 import { db, query, resetSchema } from "../../../tests/helpers/db";

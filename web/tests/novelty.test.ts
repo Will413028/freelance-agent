@@ -5,7 +5,7 @@ import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
 import { asDict, asList, PyDict } from "@/platform/py/value";
 import { createDigest } from "@/services/digest";
-import { list } from "@/services/discovery";
+import { list } from "./helpers/reference";
 import { db, migrationStatement, query, resetSchema } from "./helpers/db";
 import { ingestOne } from "./helpers/intake";
 import { job } from "./helpers/jobs";
