@@ -659,6 +659,11 @@
     - 每次演練的報告裡，新增與更新的表與數量等於注入的變更（`opportunities`、`source_receipts`、`opportunity_tracking.state`、`tracking_events`、`discovery_settings`、`daily_runs`、`mail_sync_state`），收斂（寫回後指紋相同，重跑 0 變更）；兩次演練的報告相同。
     - 寫回的副本：`verify_cutover.py` 的 `fingerprint`（`integrity_check`、`foreign_key_check`）通過；切換前的 Python 映像讀取不出錯，opportunities 筆數、各回饋狀態的計數、設定 revision 與 D1 相同，`claim_daily_run` 對寫回的那天回「已跑過」，mail cursor 讀得出注入的值。
     - mutation：反向腳本漏掉更新欄位、不檢查只在副本的列、寫完不重讀 D1、不檢查 recipient，測試各自失敗（`tests/ops.test.ts`）。
+  - 演練結果（2026-11-03 22:4x–23:1x，Will 授權讀正式副本、選「臨時建一個 test D1，演練完刪」）：
+    - 環境：VM，正式副本 `copies/2026-11-03-1030.sqlite3`；臨時 D1 `freelance-agent-rehearsal-test`（ENAM）；分支 `12` `26cd02a` 以 `git archive` 另建的映像 `freelance-agent-shadow:rehearsal-26cd02a`（不動 shadow 的 checkout 與映像）；Python 是 VM 上正在跑的 `freelance-agent-backend:d994cd2-jb518`，`--network none`。腳本在附件 `rehearsal/`（`rehearse.sh`、`inject.mts`、`check.py`）。
+    - 兩輪都 exit 0：`import ok`；注入 1 筆收案、1 筆回饋、設定 revision 1、`daily_runs` 2026-11-30、1 個 mail cursor；寫回的新增與更新正好是注入的變更：`opportunities` +1、`source_health` ~1（`checked_at`）、`daily_runs` +1、`opportunity_tracking` +1、`tracking_events` +1、`discovery_settings` +1（副本原本沒有設定列）、`mail_sync_state` ~1（`state`）；`source_receipts` 0（替身收案不帶 receipt）。重跑寫回兩輪都是 0 變更。Python 檢查全部 true：筆數 2,882、回饋計數、設定 revision、新職缺在 `list()` 裡、`claim_daily_run` 回「已跑過」、mail cursor、Python 自己再寫一筆回饋成功。
+    - 兩輪報告除了 `source_health` 的指紋完全相同：`checked_at` 由資料庫時鐘寫入（`utcNowText`，和 Python 相同），每次都不同，是預期的差異；驗收「兩次報告相同」照此解讀。
+    - 清理：臨時 D1 已刪（`cf d1 list` 只剩 shadow、ci-test、spike-1f），VM 上兩份寫回的副本與 log、演練映像、`/tmp` 的腳本已刪；`/var/lib/freelance-shadow/rehearsal/` 只留不含值的報告（import、expected、wb）。
   - 需要人做的事：授權讀正式 DB 副本。
 
 - [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、4e4b；Will 明確授權；D22 後不再被 D9 擋；D23：步驟 11 完成後盡快做）
