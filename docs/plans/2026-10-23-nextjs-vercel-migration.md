@@ -1,6 +1,6 @@
 # 搬離 VM：改寫成 Next.js 全端並部署到 Vercel
 
-**Goal：** 正式環境不再依賴 `oci-a1`。收案、篩選與分組、每日摘要寄送、收藏／略過、投案、客戶與草稿工作台，全部由同一個 Next.js（TypeScript）app 提供，部署在 Vercel，資料放代管的 Postgres。Python backend、Huey、Compose、舊 `frontend/` 與 `contracts/` 都已刪除。驗收見步驟 14。
+**Goal：** 正式環境不再依賴 `oci-a1`。收案、篩選與分組、每日摘要寄送、收藏／略過、投案、客戶與草稿工作台，全部由同一個 Next.js（TypeScript）app 提供，部署在 Vercel，資料放 Cloudflare D1（D19）。Python backend、Huey、Compose、舊 `frontend/` 與 `contracts/` 都已刪除。驗收見步驟 14。
 
 **上層：** 主清單見本機個人脈絡檔（`AGENTS.local.md`）。本計畫暫代主計畫，所以保留下面的「全域約束與完成定義」。
 
@@ -20,7 +20,7 @@
   - 離線 demo 不讀憑證、不連外、不寄信。
   - 不新增自動提案或自動應徵。
   - email 內文與 token 不寫 log。
-- **切換前 Python／VM 是唯一對外寄信、寫正式資料的系統。** TS 版在 shadow 期（影子期）只寫 shadow DB。Vercel production env 裡沒有任何寄送憑證，這是結構性防護，不是只靠程式碼守住；驗收方式是 `vercel env ls production` 的 key 名稱清單。唯一例外（D14，Will 2026-10-25）：讀 Resend Receiving 的 `RESEND_API_KEY`。Resend 沒有唯讀 key，這把 `full_access` key 技術上能寄信與管理帳號；對它的防護是程式加測試：`ReceivingClient` 只送 GET，且每個請求先過 `assertReceivingUrl`（只允許 `https://api.resend.com/emails/receiving` 底下），`web/src` 裡只有 `receiving.ts` 寫到 Resend 的網址。驗收改成精確的 key 名稱白名單：允許 `DATABASE_URL`、`CRON_SECRET`、`DIGEST_RECIPIENT`、`PORTFOLIO_CATEGORY_PROJECTS`、`RESEND_API_KEY`、`RESEND_INBOX`，其他名稱（含任何 SMTP 相關的 key）出現就不通過。
+- **切換前 Python／VM 是唯一對外寄信、寫正式資料的系統。** TS 版在 shadow 期（影子期）只寫 shadow DB。Vercel production env 裡沒有任何寄送憑證，這是結構性防護，不是只靠程式碼守住；驗收方式是 `vercel env ls production` 的 key 名稱清單。唯一例外（D14，Will 2026-10-25）：讀 Resend Receiving 的 `RESEND_API_KEY`。Resend 沒有唯讀 key，這把 `full_access` key 技術上能寄信與管理帳號；對它的防護是程式加測試：`ReceivingClient` 只送 GET，且每個請求先過 `assertReceivingUrl`（只允許 `https://api.resend.com/emails/receiving` 底下），`web/src` 裡只有 `receiving.ts` 寫到 Resend 的網址。驗收改成精確的 key 名稱白名單：允許 `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN`（4e4 起取代 `DATABASE_URL`）、`CRON_SECRET`、`DIGEST_RECIPIENT`、`PORTFOLIO_CATEGORY_PROJECTS`、`RESEND_API_KEY`、`RESEND_INBOX`，其他名稱（含任何 SMTP 相關的 key）出現就不通過。
 - **Workflow step 的輸入輸出只放 ID、計數與狀態。** 信件正文、職缺內文與憑證只在 step 內讀寫 DB，因為 Vercel Workflows 會記錄每個 step 的輸入、輸出與錯誤（[Workflows](https://vercel.com/docs/workflows)）。
 - 憑證只放 Vercel 的 Sensitive Environment Variables 或本機 `secrets/`。Will 存好後回 `done`，agent 只看 key 名稱，不讀值。
 - 每次部署到 Vercel 正式專案、每次改 VM 上的設定，都要 Will 先授權。preview 部署不算。
@@ -54,7 +54,7 @@
   另外 Python 的 `sort_keys` 依 code point 排序，JS 預設依 UTF-16 排序。（讀程式得出 → spike 1c）
 - `legacy/records.py` 與 legacy 欄位 `review_status` 仍在正式的收案、回饋與候選判斷路徑上。（來源：`inventory-surface.md` §7；讀程式得出）
 - 正式資料量：2,226 筆 opportunities、2,303 筆 source_receipts（2026-10-23 唯讀查正式 DB，量到；`docs/implementation-plan.md:20` 的 708／726 是 9/28 的舊數字）；DB 檔 22.9 MB（量到）。
-- 環境（2026-10-23 建立）：Vercel 專案 `freelance-agent`（iad1，Deployment Protection All）；Neon 專案 `freelance-agent`（`fancy-water-44947465`，aws-us-east-1，branch `main`、`dev`；preview 用 `dev`）。spike 專案 `freelance-agent-spike` 已於 2026-10-26 1d 完成後刪除（Will 授權；`vercel project ls` 只剩 `freelance-agent`）。
+- 環境（2026-10-23 建立）：Vercel 專案 `freelance-agent`（iad1，Deployment Protection All）；Neon 專案 `freelance-agent`（`fancy-water-44947465`，aws-us-east-1，branch `main`、`dev`；preview 用 `dev`）。spike 專案 `freelance-agent-spike` 已於 2026-10-26 1d 完成後刪除（Will 授權；`vercel project ls` 只剩 `freelance-agent`）。2026-11-03（4e4）起 shadow 在 Cloudflare D1 `freelance-agent-shadow`（ENAM），CI 用 `freelance-agent-ci-test`；Neon 的 shadow branch 在 4e4b 結束後刪，Neon 專案的退役見步驟 14。
 - 工具鏈預設（可推翻）：
   - Next.js 16 App Router、TypeScript、pnpm，沿用 `frontend/` 的版本鎖定。
   - ORM 用 Drizzle，搭版本化的 migration；不用 SQLite 那種「整份 `IF NOT EXISTS` 重跑」。
@@ -73,12 +73,12 @@
 
 | 不變量 | 依賴它的機制 |
 |---|---|
-| 同一天、同一收件者最多一份摘要 intent；snapshot 寫入後不可變 | `digest_outbox`（`001_sqlite.sql:28`、trigger `digest_immutable` :41）、`daily_runs` 主鍵 `(local_date, recipient)`、`notifications/daily.py`、`notifications/scheduler.py`；TS：`daily` 工作流程、Postgres 唯一約束與 trigger |
+| 同一天、同一收件者最多一份摘要 intent；snapshot 寫入後不可變 | `digest_outbox`（`001_sqlite.sql:28`、trigger `digest_immutable` :41）、`daily_runs` 主鍵 `(local_date, recipient)`、`notifications/daily.py`、`notifications/scheduler.py`；TS：`daily` 工作流程、D1（SQLite）唯一約束與 trigger |
 | attempted／unknown 的寄送不自動重試，只能人工核對 | `digest_outbox` 狀態機（`inventory-surface.md` §5c）、`notifications/gmail_smtp.py`、`notifications/scheduler.py:20-39` 的 `dispatch`、`bootstrap/recovery.py`；TS：寄送 step 的重試次數固定為 0 |
 | 已有任何 daily run 就不重新呼叫來源或重寄；過期日期不執行 | `scheduler.daily_tick`（`docs/design.md:60`）；TS：cron handler 入口的 `daily_runs` claim。這條同時擋住 Vercel cron 重複觸發 |
 | 同一時間只有一個 writer 寫正式資料、對外寄信 | Huey 單一 consumer 與 `queue.lock`（`bootstrap/queue.py:24`）、SQLite `BEGIN IMMEDIATE`；TS（4e2b 起，D20-B）：`daily_runs` row claim 加 `writer_lease` 租約與 fencing token（`web/src/db/unit.ts`；租約表的寫入 batch 必須以守衛開頭，D1 client 拒送沒有守衛的，`web/src/db/d1/guard.ts`）；切換程序（步驟 13） |
-| 草稿版本、submission 與其事件不可修改、不可刪除 | `draft_revision_immutable`／`draft_revision_retained`／`submission_immutable`／`submission_event_immutable`／`submission_event_retained`（`001_sqlite.sql:192-224`）；TS：Postgres 等價 trigger |
-| 參與雜湊或 snapshot 的欄位逐位元保存 | `opportunities.item`、`digest_outbox.snapshot`、`proposal_draft_revisions`、`submission_intents` 的 snapshot；TS：這些欄位用 `text` 不用 `jsonb`；序列化集中在 `web/src/platform/py/json.ts` |
+| 草稿版本、submission 與其事件不可修改、不可刪除 | `draft_revision_immutable`／`draft_revision_retained`／`submission_immutable`／`submission_event_immutable`／`submission_event_retained`（`001_sqlite.sql:192-224`）；TS：同樣的 SQLite trigger（`RAISE(ABORT, …)`），`check-storage-triggers` 每次執行檢查它們還在 |
+| 參與雜湊或 snapshot 的欄位逐位元保存 | `opportunities.item`、`digest_outbox.snapshot`、`proposal_draft_revisions`、`submission_intents` 的 snapshot；TS：這些欄位存 `text`，不經 JSON 函式改寫；序列化集中在 `web/src/platform/py/json.ts` |
 | （D17，2026-10-26 起只限 v1 雜湊邊界：canonical JSON、opportunity id、fingerprint、receipt id、novelty key、核准雜湊，以及產生它們輸入的解析，到 D6 窗口結束；其他程式改原生，不再以 Python 輸出為規格）規格是正式映像的 CPython 3.13.15，不只是 Python 原始碼：`html.parser`、`fromisoformat`、`urlsplit` 在 3.13.13 與 3.13.15 之間行為不同（2026-10-24 量到） | `deploy/backend.Dockerfile` 釘 `python:3.13.15-slim`（2026-10-24 Will 決定；執行中的 `d994cd2` 映像本來就是 3.13.15，下次重建才生效）；TS：`web/src/platform/py/*.ts` 註明的版本、`gen_golden.py` 開頭的版本檢查、本機 `backend/.venv`（3.13.15）。要升 Python 時，Dockerfile、`gen_golden.py` 的版本檢查、本機 venv 一起改，並用新版重跑 `gen_golden.py` 與差異 |
 | `(source, external_id)` 唯一；receipt ID 防重複匯入 | `opportunities`、`source_receipts`、各 connector 的 receipt 規則（`inventory-sources.md` §1）；TS：connector 共用的 `ingest` 與指紋函式庫 |
 | 未知欄位保留為未知 | `discovery/rules.py`、各 connector 的 envelope；TS：envelope 型別（unknown 是明確的值，不用 `null` 推定） |
@@ -86,7 +86,7 @@
 | 歷史核准失效保護（`AGENTS.md`） | `legacy/review_service.py`、`backend/tests/legacy/test_review.py`（11 個）；TS 去向見 D8 |
 | Workflow run data 不含正文與憑證 | TS：所有 `"use step"` 函式的參數與回傳型別只能是 ID、計數、狀態；用型別測試加 lint 守住 |
 | UI 與 API 只有本人看得到；請求有來源檢查與 body 上限 | 現況：loopback、SSH tunnel、`LocalBoundary` 的 Origin 檢查與 body 上限（`bootstrap/http.py`）；TS：Vercel Authentication 加上 route 層的 Origin 檢查與 body 上限 |
-| 離線 demo 不讀憑證、不連外、不寄信 | `bootstrap/http.py` `mode='demo'`、MemoryDatabase；TS：步驟 11 的 demo 模式（PGlite 加 network guard） |
+| 離線 demo 不讀憑證、不連外、不寄信 | `bootstrap/http.py` `mode='demo'`、MemoryDatabase；TS：步驟 11 的 demo 模式（`node:sqlite` 記憶體庫加 network guard） |
 
 ## 規模（搬遷）
 
@@ -103,14 +103,14 @@
 
 - **做：**
   - 新 Next.js 全端 app，取代 FastAPI、Huey、`frontend/` 與 `contracts/`。
-  - Postgres schema 與版本化 migration。
+  - D1（SQLite 方言）schema 與版本化 migration（只經 `scripts/migrate.ts` 套用）。
   - 27 個正式啟用的來源。
   - 每日排程與每個來源各跑一次（fan-out）。
   - 摘要建置與寄送。
   - 收藏／略過、設定、投案、客戶、模板與草稿工作台。
   - 離線 demo。
   - 每日副本管道與 shadow 比對器。
-  - SQLite ↔ Postgres 雙向收斂腳本。
+  - 正式 SQLite → D1 的一次性匯入（`import-copy`），與切換回滾用的 D1 → SQLite 反向腳本。
   - CI 與模組邊界檢查、切換，以及刪除 Python、Compose、舊前端。
 - **不做：**
   - Submission 對外送出（Email／Freelancer）的程式改寫，因為通道未配置（`docs/compose.md:64`）。資料表與歷史會搬（D7）。
@@ -277,13 +277,13 @@
     - 進行中的比對窗口（Will 2026-10-26 要求盡快上 shadow，取代原本「排在 10-31 之後」）：replay 的 7 天窗口在 D1 上照算（它在 VM 本機跑，不受 D1 影響）；即時比對器的窗口見共同規格「D1 shadow 不每天收斂」。
     - 已授權（Will 2026-10-26）：把正式副本（VM 08:30 拍的正式 SQLite 快照，和現在每天載入 Neon shadow 的是同一份）載入 D1 shadow（一次；之後重載每次先問）；token 用現有的那把。
     - 需要人做的事：把 token 放進 Vercel、VM 的 shadow env 檔、CI 的 GitHub secrets（agent 從 `secrets/` 直接餵進指令、不印值，動手前問一次）；授權部署 Vercel 正式專案與更新 VM shadow 映像；spike 結束後刪 spike 資料庫。
-    - 4e4 上 shadow（2026-11-03 10:0x–10:5x，Will 授權「現在部署」與刪 `freelance-agent-4e2a-check`）：程式完成待驗收（驗收的「隔天 TS run」與 after job 要等 11-04）。CI：GitHub secrets 三個（`D1_TEST_DATABASE_ID` 指向新建的 CI 專用庫 `freelance-agent-ci-test`）；PR #2（`4e-d1`→dev，merge `8cb4635`）綠；release PR #3 第一輪 `d1` 紅：測試清空資料庫走 client，DDL 守衛擋下租約表的 `DROP TABLE`，所以同一個庫只有第一次能跑；`87ab392` 改走 transport，本機對已用過的 CI 庫 6 過，CI 推送與 PR 兩輪先後對同一個庫都綠；PR #3 merge 進 main `6c33182`。D1：刪 `freelance-agent-4e2a-check`；建 shadow 庫 `freelance-agent-shadow`（ENAM、無 replica，名稱刻意不符 `-(check|test)$`，破壞性測試會拒絕它）。VM：映像 `freelance-agent-shadow:8cb4635`（另 tag `:6c33182`；兩者之間映像用到的 `web/src`、`scripts`、`drizzle`、`deploy`、lockfile 無差異），`/opt/freelance-shadow` checkout `6c33182`；新 env 檔 `/etc/freelance-agent/shadow-d1.env`（root 0600：D1 三個 key＋`PORTFOLIO_CATEGORY_PROJECTS`），舊 `shadow.env`（Neon）保留；10:30 after job 跑完後用它的副本 `2026-11-03-1030.sqlite3` 一次匯入：26 張表 `same`、`digest_novelty` 5831 rebuilt、`d1_rows_written` 28814、`import ok`（報告 `/var/lib/freelance-shadow/reports/import-2026-11-03.json`）；`shadow-compose.env` 改 `SHADOW_IMAGE=freelance-agent-shadow:6c33182`、`SHADOW_ENV=/etc/freelance-agent/shadow-d1.env`（備份 `shadow-compose.env.bak-c247200`），`docker compose config` 過。Vercel：production env 加 `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN`（sensitive），刪 `DATABASE_URL`，`vercel env ls production` 是 8 個名稱、無寄送憑證；`6c33182`（`web/` 與部署時本機 tree 相同）部署到正式專案 `freelance-agent-fpy1yk482`，alias 不變，alias 與部署網址的 `/api/cron` 未登入 302。回滾：Vercel promote 回 `freelance-agent-5knxy7mjg`（它帶部署當時的 `DATABASE_URL`）；VM `cp shadow-compose.env.bak-c247200 shadow-compose.env`。同日舊映像最後一次 after job：replay same（66 項）、novelty 帳本 same，但即時比對器 `opportunities` 有 1 項 logic 差異，job exit 1（11-01 也一樣）；比對器在 4e3 已刪，不追。未跑：11-04 09:xx 的 TS run 在 D1 上 `complete`（或只有來源失敗）、10:30 after job 的 replay、check-novelty、check-storage-triggers；本計畫「在 4e4 合併時一起改寫的段落」尚未改寫。
+    - 4e4 上 shadow（2026-11-03 10:0x–10:5x，Will 授權「現在部署」與刪 `freelance-agent-4e2a-check`）：程式完成待驗收（驗收的「隔天 TS run」與 after job 要等 11-04）。CI：GitHub secrets 三個（`D1_TEST_DATABASE_ID` 指向新建的 CI 專用庫 `freelance-agent-ci-test`）；PR #2（`4e-d1`→dev，merge `8cb4635`）綠；release PR #3 第一輪 `d1` 紅：測試清空資料庫走 client，DDL 守衛擋下租約表的 `DROP TABLE`，所以同一個庫只有第一次能跑；`87ab392` 改走 transport，本機對已用過的 CI 庫 6 過，CI 推送與 PR 兩輪先後對同一個庫都綠；PR #3 merge 進 main `6c33182`。D1：刪 `freelance-agent-4e2a-check`；建 shadow 庫 `freelance-agent-shadow`（ENAM、無 replica，名稱刻意不符 `-(check|test)$`，破壞性測試會拒絕它）。VM：映像 `freelance-agent-shadow:8cb4635`（另 tag `:6c33182`；兩者之間映像用到的 `web/src`、`scripts`、`drizzle`、`deploy`、lockfile 無差異），`/opt/freelance-shadow` checkout `6c33182`；新 env 檔 `/etc/freelance-agent/shadow-d1.env`（root 0600：D1 三個 key＋`PORTFOLIO_CATEGORY_PROJECTS`），舊 `shadow.env`（Neon）保留；10:30 after job 跑完後用它的副本 `2026-11-03-1030.sqlite3` 一次匯入：26 張表 `same`、`digest_novelty` 5831 rebuilt、`d1_rows_written` 28814、`import ok`（報告 `/var/lib/freelance-shadow/reports/import-2026-11-03.json`）；`shadow-compose.env` 改 `SHADOW_IMAGE=freelance-agent-shadow:6c33182`、`SHADOW_ENV=/etc/freelance-agent/shadow-d1.env`（備份 `shadow-compose.env.bak-c247200`），`docker compose config` 過。Vercel：production env 加 `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN`（sensitive），刪 `DATABASE_URL`，`vercel env ls production` 是 8 個名稱、無寄送憑證；`6c33182`（`web/` 與部署時本機 tree 相同）部署到正式專案 `freelance-agent-fpy1yk482`，alias 不變，alias 與部署網址的 `/api/cron` 未登入 302。回滾：Vercel promote 回 `freelance-agent-5knxy7mjg`（它帶部署當時的 `DATABASE_URL`）；VM `cp shadow-compose.env.bak-c247200 shadow-compose.env`。同日舊映像最後一次 after job：replay same（66 項）、novelty 帳本 same，但即時比對器 `opportunities` 有 1 項 logic 差異，job exit 1（11-01 也一樣）；比對器在 4e3 已刪，不追。未跑：11-04 09:xx 的 TS run 在 D1 上 `complete`（或只有來源失敗）、10:30 after job 的 replay、check-novelty、check-storage-triggers。「在 4e4 合併時一起改寫的段落」同日改寫。
     - 4e4 準備（2026-10-26 23:3x，分支 `4e-d1` 的 `afebf31`；不需部署授權的部分，CI 過：PR #2 run `41551184578`（2026-11-03））：CI 的 `web` job 拿掉 Postgres service 與 `TEST_DATABASE_URL`；新增 `d1` job（`pnpm test:d1` = `d1-real-product` 與 `d1-real` 兩檔；fork 的 PR 不跑；`concurrency: d1-real` 一次一個，因為每次都清空同一個資料庫；secrets 缺任一個就失敗，不讓測試自己 skip 成綠）。要的 GitHub secrets：`CLOUDFLARE_ACCOUNT_ID`、`D1_TEST_DATABASE_ID`、`D1_API_TOKEN`；CI 專用資料庫要命名成 `freelance-agent-<…>-test`（例如 `freelance-agent-ci-test`）：`d1-real-product` 在 `beforeAll` 用 Cloudflare API 讀資料庫名稱，不符 `^freelance-agent-[a-z0-9-]*-(check|test)$` 就整組不跑（CI 兩個 env 取自同一個 secret，id 相等的檢查擋不住填錯 id，而 shadow 與之後的正式資料庫在同一個帳號）。假 token 實測：401 時 5 個測試全部沒跑、exit 1。`pg`、`@types/pg` 移除（lockfile 用 pnpm 11.2.2 產生，和 CI、shadow 映像同版）。本機：actionlint 0、`pnpm typecheck` 0、`pnpm boundaries` 過、全套 37 檔 438 過 6 skip、`pnpm build` 0。
   - [ ] **4e4b D1 shadow 觀察 3 天**（被擋於：4e4）：驗收：連 3 天 TS run 在 D1 上結束（`daily_runs` 有當天那列）、replay same 或差異逐項解釋、check-novelty 0 缺 0 多；每日請求數與列寫入（`daily_runs.result` 的 `d1_requests`、`d1_rows_written`）記進進度表；之後刪 Neon shadow branch（Will 授權）與 VM env 的 Neon 那組。
   - 消費端（2026-10-26 量）：`rg -l '@/db/client|\.\./src/db/client' web/src web/scripts web/tests`（38 個檔）；`rg -l '@/db/schema|db/schema"' web/src web/scripts web/tests`（12 個）；`rg -n 'writeTransaction|readTransaction' web/src web/scripts`；`rg -n 'pg_advisory|::text|::jsonb|jsonb|any\(|COLLATE|to_char|lock_timeout|plpgsql' web/src web/scripts web/drizzle -g '!**/meta/**'`；`rg -n 'DATABASE_URL|from "pg"|"pg"|db:migrate' web deploy .github AGENTS.md -g '!**/node_modules/**'`（含 `web/package.json` 的 `pg` 依賴與 `db:migrate`、`web/.dependency-cruiser.cjs`、 `deploy/compose.shadow.yaml`、`deploy/shadow.Dockerfile`、VM 的 shadow env、`web/scripts/verify-fingerprints.ts`、`.github/workflows/ci.yml` 的 postgres service、`web/tests/helpers/db.ts`、`web/drizzle.config.ts`、`AGENTS.md` 的 `TEST_DATABASE_URL`、步驟 11 離線 demo 的 PGlite）。
   - 不能動：已存雜湊與 `external_id`（N2）；snapshot 位元組；10c 的寄送語意（claim 先提交、不確定不重試）；VM 上的 Python 正式系統。
-  - 受影響、在 4e4 合併時一起改寫的段落：全域約束的 production env 白名單（步驟 5 的驗收看 `vercel env ls` 的 key）、Goal（「代管的 Postgres」）、範圍（Postgres schema、SQLite ↔ Postgres 收斂）、前提的環境（Neon 專案）、不變量表（唯一約束、advisory lock、trigger、text JSON、demo 的 PGlite）、步驟 11（demo 改 `node:sqlite`）、12（反向腳本：在停用 cron 後匯出到本機 SQLite，再照原本的 upsert 規則回寫）、13（D1 沒有資料庫角色，runtime 角色與 REVOKE 那個前置決定要改寫；回滾評估 D1 Time Travel）、14（Neon 退役）、`AGENTS.md` 與 README 的驗證段。
-  - 完成後的狀態：10e1 在 D1 上做（`wip/10e1-postgres-projection` 分支只當參考）；D13 的 Neon 傳輸預算改成 D1 的每日列讀取與列寫入預算。
+  - 受影響、在 4e4 合併時一起改寫的段落（2026-11-03 已改寫）：全域約束的 production env 白名單（步驟 5 的驗收看 `vercel env ls` 的 key）、Goal（「代管的 Postgres」）、範圍（Postgres schema、SQLite ↔ Postgres 收斂）、前提的環境（Neon 專案）、不變量表（唯一約束、advisory lock、trigger、text JSON、demo 的 PGlite）、步驟 11（demo 改 `node:sqlite`）、12（反向腳本：在停用 cron 後匯出到本機 SQLite，再照原本的 upsert 規則回寫）、13（D1 沒有資料庫角色，runtime 角色與 REVOKE 那個前置決定要改寫；回滾評估 D1 Time Travel）、14（Neon 退役）、`AGENTS.md` 與 README 的驗證段。
+  - 完成後的狀態：10e1 在 D1 上做（Postgres 版的參考 commit `48b4dd6`，分支 `wip/10e1-postgres-projection` 已於 2026-11-03 刪除）；D13 的 Neon 傳輸預算改成 D1 的每日列讀取與列寫入預算。
 
 - [ ] **5. TS 端排程骨架（shadow 部署）**（被擋於：步驟 4、D2、D5）
   - 實作狀態（2026-10-24，Will 授權部署）：`199bef1` 起正式專案部署（alias `freelance-agent-sigma.vercel.app`，Protection 未登入 302）；production env 只有 `DATABASE_URL`（shadow pooled）、`CRON_SECRET`、`DIGEST_RECIPIENT`、`PORTFOLIO_CATEGORY_PROJECTS`。來源啟用寫在程式（`web/src/modules/collection/registry.ts`），不放 `discovery_settings`：shadow 每天早上被正式副本覆蓋，Python 的設定契約也不收額外 key。手動觸發（01:17）回 `not due before 09:00 Asia/Taipei`，shadow 沒有寫入。
@@ -467,7 +467,7 @@
     - `/digest` 預覽使用步驟 10 的 render，這一項要排在步驟 10 之後。
     - 頁面沿用 `frontend/` 的元件。
     - 歷史核准失效保護依 D8。
-    - 離線 demo 模式：PGlite 加 network guard，不讀任何 env。
+    - 離線 demo 模式：`node:sqlite` 記憶體庫加 network guard，不讀任何 env。
     - 讀取路徑瘦身（D13）：由步驟 10e 的共用投影（D16）完成，UI 直接讀它；本步只做 UI 的 SQL 篩選分頁與回饋讀取範圍。D13 的月用量驗收仍在本步量。
   - 消費端：`inventory-surface.md` §3 的 47 個呼叫點；`rg -n "openapi-fetch|api\.d\.ts|contracts/" frontend scripts`；`frontend/tests/{smoke,manual-application-load,workbench}.mjs`。
   - 驗收：
@@ -477,38 +477,39 @@
     - mutation：
       - 移除 revision 檢查，測試要失敗。
       - 在 demo 路徑加一個 `fetch`，network guard 要讓測試失敗。
-    - D13：以正式資料量級量測，一次 UI 清單請求與一次分組回饋各自從 Neon 讀取的位元組，換算「每天 20 次回饋＋20 次清單＋1 次摘要」的月用量，低於 1 GB；token 與群組結果和參考實作一致（10e1 的測試比對兩種算法；D18 後每組只有一筆）。
+    - D13（4e 起改成 D1 額度）：以正式資料量級量測，一次 UI 清單請求與一次分組回饋各自的 D1 列讀取與列寫入（client 計數器），換算「每天 20 次回饋＋20 次清單＋1 次摘要」加上每日執行的每日用量，低於免費方案每日額度的 20%（比照原本 Neon 預算 1 GB／5 GB 的比例；額度數字執行時查 Cloudflare 文件）；token 與群組結果和參考實作一致（10e1 的測試比對兩種算法；D18 後每組只有一筆）。
   - 完成後的狀態：preview 讀的是 shadow DB。
 
 - [ ] **12. 反向收斂腳本與切換演練**（被擋於：步驟 10、11、D6）
   - 範圍：
     - 收斂腳本 v1 定版，加上切換用的計數與指紋報告。
-    - 反向腳本 Postgres → SQLite 做全表收斂：以主鍵 upsert，涵蓋切換後的新增列與更新列，例如 `opportunity_tracking.state`、`digest_outbox.status`、`daily_runs`、`mail_sync_state.cursor`、`opportunities.item`、revision。有不可變 trigger 的表只追加。只走 `TABLES`，`DERIVED_TABLES`（`digest_novelty`）不回寫（Python 沒有也不讀）；回滾後再切換時由 converge 重建帳本。
+    - 反向腳本 D1 → SQLite 做全表收斂：停用 cron 後把 D1 的 `TABLES` 匯出成本機 SQLite，再以主鍵 upsert 回寫正式副本，涵蓋切換後的新增列與更新列，例如 `opportunity_tracking.state`、`digest_outbox.status`、`daily_runs`、`mail_sync_state.cursor`、`opportunities.item`、revision。有不可變 trigger 的表只追加。只走 `TABLES`，`DERIVED_TABLES`（`digest_novelty`）不回寫（Python 沒有也不讀）；回滾後再切換時由 `import-copy` 重建帳本。D1 專屬表（`write_attempts`、`guard`、`writer_lease`）不回寫。
     - 在副本上演練完整切換與回滾各 2 次。
   - 驗收：
     - 2 次演練的指紋報告完全相同。
     - 回寫後的 SQLite 副本通過兩項檢查：
       - `scripts/test_workbench_upgrade.py --database <回寫副本> --previous-source <d994cd2 checkout>`。
-      - 用切換前的 Python image 讀取的投影，與 Postgres 端一致（`scripts/verify_cutover.py` 或新增的投影比對）。
+      - 用切換前的 Python image 讀取的投影，與 D1 端一致（`scripts/verify_cutover.py` 或新增的投影比對）。
     - mutation：反向腳本漏掉 `digest_outbox.status` 這類更新欄位，驗收要失敗。
   - 需要人做的事：授權讀正式 DB 副本。
 
 - [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、D9；Will 明確授權）
-  - 前提：步驟 11 的 D13 驗收已過（Neon 免費方案超量會暫停 compute，每日摘要也會停）。
-  - 前置決定（步驟 12 結束前交給 Will）：prod branch 是否分出 runtime 角色——migration 用擁有者角色，app 連線角色只拿 DML，並對 `proposal_draft_revisions`、`submission_events` `REVOKE UPDATE, DELETE, TRUNCATE`；trigger 保留當第二道防線。不分的話，任何拿到 app 連線字串的人都能 `DISABLE TRIGGER`。
+  - 前提：步驟 11 的 D13 驗收已過（D1 免費方案超過每日額度時，到 UTC 換日前的查詢都會失敗，每日摘要也會停；2026-10-26 量到寫入額度用完時的錯誤）。
+  - D1 沒有資料庫角色（4e 起取代原本「分 runtime 角色、`REVOKE`」的前置決定）：拿到 `D1_API_TOKEN` 的人能改 schema 或刪 trigger（token 範圍是整個帳號的 D1 讀寫，Will 2026-10-26 接受）。不可改的表靠 SQLite trigger 加 client 的租約守衛，`check-storage-triggers` 每次執行檢查 trigger 還在；token 外洩時的處置是撤銷重建。
   - 範圍：
     1. 在 Vercel 專案 Disable Cron Jobs，確認當天 TS 的 shadow run 已結束。
     2. 確認 VM 當天的 `daily_runs` 已是 complete 或 failed，且 `digest_outbox` 沒有 pending、attempted 或 unknown（pending 要先在 VM 上寄出或人工結案，因為預覽 sha256 不跨語言沿用）。
     3. 停 VM 的 API／worker／Web，用 `docker compose ps` 確認沒有 writer。
-    4. 做一致備份；先在 Neon 的 prod branch 跑 Drizzle migration 到最新版本，再跑收斂腳本與指紋報告。
-    5. 改 production env：`DATABASE_URL` 指向 prod branch；Will 存入寄送憑證（D9 的 Gmail SMTP）後回 `done`；寄送開關打開。`RESEND_API_KEY`、`RESEND_INBOX` 在 shadow 期已存入（D14），沿用；shadow 期超過 6 週或懷疑外洩時先換一把新 key。然後重新部署，並 Enable Cron Jobs。
+    4. 做一致備份；建正式 D1 資料庫，用 `import-copy` 載入備份（內含 migration），產出每表計數與 sha256 報告；不記 Time Travel bookmark（Will 2026-10-26）。
+    5. 改 production env：`D1_DATABASE_ID` 指向正式 D1 資料庫；Will 存入寄送憑證（D9 的 Gmail SMTP）後回 `done`；寄送開關打開。`RESEND_API_KEY`、`RESEND_INBOX` 在 shadow 期已存入（D14），沿用；shadow 期超過 6 週或懷疑外洩時先換一把新 key。然後重新部署，並 Enable Cron Jobs。
     6. 驗下一次自然排程；Hobby 會在 09:00–09:59 之間觸發。
-    7. shadow branch 保留到 D6 窗口結束。
+    7. shadow D1 資料庫保留到 D6 窗口結束。
   - 回滾（D6 窗口內）：
     1. Disable Cron Jobs。
     2. 跑反向腳本。
     3. 用切換前的 image 與 env 重啟 VM 的 Compose（`docs/compose.md:60`）。
     4. 不用 Instant Rollback，因為它會恢復舊的 cron 定義。
+    - D1 Time Travel 不是回滾路徑：回滾要的是把切換後的變化寫回 SQLite（反向腳本）；Time Travel 只在 D1 端資料本身損毀、要先還原 D1 時考慮，保留天數依方案，執行前查。
   - 驗收：
     - 第 4 小步的每表計數與指紋，等於第 3 小步備份算出的值。
     - 隔天 `daily_runs` 有一列、`delivery_status=sent`，Will 確認收到信。
@@ -522,7 +523,7 @@
     - `backend/`、`deploy/`、`frontend/`、`contracts/`。
     - `scripts/test_compose.py`、`test_installed.py`、`test_workbench_upgrade.py`、`verify_cutover.py`。
     - `scripts/check_boundaries.py`，由 dependency-cruiser 取代。
-    - VM 上 4c 的副本容器，以及 `web/src/ops/`、`web/scripts/{converge.ts,compare.ts,snapshot.ts,shadow-job.sh,verify-fingerprints.ts}`。
+    - VM 上 4c 的副本容器，以及 `web/src/ops/`、`web/scripts/{import-copy.ts,replay-digest.ts,snapshot.ts,shadow-job.sh,verify-fingerprints.ts}`。
     - `registry.ts` 的 `SCHEDULED` 與 `enabledSources` 的 `scheduled` 參數（release toggle 到期：等於 `RUNNERS` 扣 `DISABLED` 時，最晚步驟 9 的信件來源全部排上後）。`DISABLED` 改成 source catalog 的資料欄位（PTT 被擋是長期事實，不是開關）。執行中可切換的營運開關（ops toggle）不預先做；觸發：第一次有來源需要比一次授權部署更快關掉，那時做 TS 自己的 DB 表加 UI 開關（切換後 DB 不再被覆蓋，Python 設定契約也已刪除）。
     - `web/tests/fixtures/gen_golden.py`（依賴 `backend/`）；`golden.json` 保留。刪 `backend/` 前先把 `001_sqlite.sql` 凍結進 `web/tests/fixtures/`，改 `web/tests/helpers/db.ts` 的 `SQLITE_SCHEMA_PATH`。
   - 更新：
@@ -539,7 +540,7 @@
     - 照抄清單的原始逐條紀錄（每批的理由與審查來源）見 `git show dbd9b12:docs/plans/2026-10-23-nextjs-vercel-migration.md` 的本段。
   - 需要人做的事：
     - VM 退役。
-    - 確認 Neon 與 Vercel 帳單。
+    - 刪 Neon 專案 `freelance-agent`（Will 授權），確認 Cloudflare 與 Vercel 帳單。
     - 更新 repo 外的 wiki 專案頁（交給 recording 流程）。
   - 驗收：
     - `rg -n -l "oci-a1|compose|huey|8327|3327|freelance\." .` 的輸出交給 `check_inventory.py`，只剩 `allowed-residue.md` 列的命中。
@@ -548,7 +549,7 @@
 
 ## 決定
 
-- **D1 Vercel 方案、資料庫供應商與區域**（狀態：已決 2026-10-23，Will 照建議（A）；擋住步驟：1、2；需要的事實：Workflows 的 Hobby 用量與 Neon 免費方案的 branch／儲存上限，在 1b 量）
+- **D1 Vercel 方案、資料庫供應商與區域**（狀態：已決 2026-10-23，Will 照建議（A）；資料庫供應商由 D19（2026-10-26）改成 Cloudflare D1，Vercel 部分仍有效；擋住步驟：1、2；需要的事實：Workflows 的 Hobby 用量與 Neon 免費方案的 branch／儲存上限，在 1b 量）
   - A：Vercel Hobby（免費）＋ Neon 免費方案，function 與 DB 放同一區（Neon 的 Singapore 搭 Vercel `sin1`，或都放 `iad1`）——預期成本 0，但 Workflows 按用量計費，要 1b 確認。cron 有一小時誤差，函式 300 秒；非商業條款用在找兼職算灰色地帶（推論）。（建議，先用；條款疑慮或時間精度不夠時升 Pro）
   - B：Vercel Pro（每月 20 美元）＋ Neon——cron 可以每分鐘、函式 800 秒、條款沒疑慮。
   - C：Supabase 取代 Neon——多了 auth 與 storage，本專案用不到。
@@ -609,7 +610,7 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
   - A：不搬，切換後停用這兩個來源；歷史資料照搬，`platform-connectivity.md` 標明原因——損失極小（3 筆）。（建議）
   - B：在 VM 或 Mac 保留一個只抓 PTT 的小程式，寫入 Neon——保住來源，但留下要維護的主機，和搬離 VM 的目標衝突。
 
-- **D13 Neon 傳輸量與讀取路徑**（狀態：已決 2026-10-24，Will 照建議；擋住步驟：11、13；事實：步驟 5 量到一次 `list`／分組回饋約 8.1 MB，Neon 免費方案每月 5 GB、超量暫停 compute）
+- **D13 Neon 傳輸量與讀取路徑**（狀態：已決 2026-10-24，Will 照建議；換到 D1 後預算改成 D1 每日列讀取與列寫入，驗收見步驟 11；擋住步驟：11、13；事實：步驟 5 量到一次 `list`／分組回饋約 8.1 MB，Neon 免費方案每月 5 GB、超量暫停 compute）
   - A：讀取路徑瘦身提前到步驟 11，列為切換前提。（建議，已選）
   - B：維持步驟 14 才改——切換後每天約 20 次回饋就可能超額，摘要跟著停。
   - C：升級 Neon 付費方案——每月 500 GB，但多一筆固定費用，且不解決每次讀 8 MB 的延遲。
