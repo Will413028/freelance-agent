@@ -636,7 +636,7 @@
   - 需要人做的事：preview 部署不需授權；部署到正式專案要授權。
   - 完成後的狀態：preview 與正式網址讀 shadow D1（切換前）。
 
-- [ ] **12. 反向收斂腳本與切換演練**（被擋於：10f、步驟 11、D6）
+- [x] **12. 反向收斂腳本與切換演練**（被擋於：10f、步驟 11、D6）
   - 範圍：
     - 收斂腳本 v1 定版，加上切換用的計數與指紋報告。
     - 反向腳本 D1 → SQLite 做全表收斂：停用 cron 後把 D1 的 `TABLES` 匯出成本機 SQLite，再以主鍵 upsert 回寫正式副本，涵蓋切換後的新增列與更新列，例如 `opportunity_tracking.state`、`daily_runs`、`mail_sync_state.cursor`、`opportunities.item`、revision。不可變欄位與允許的狀態轉換由 SQLite 的 trigger 把關。只走 `TABLES`，`DERIVED_TABLES`（10e 的投影）不回寫（Python 沒有也不讀）；回滾後再切換時由 `import-copy` 重建。D1 專屬表（`write_attempts`、`guard`、`writer_lease`）不回寫。
@@ -664,6 +664,7 @@
     - 兩輪都 exit 0：`import ok`；注入 1 筆收案、1 筆回饋、設定 revision 1、`daily_runs` 2026-11-30、1 個 mail cursor；寫回的新增與更新正好是注入的變更：`opportunities` +1、`source_health` ~1（`checked_at`）、`daily_runs` +1、`opportunity_tracking` +1、`tracking_events` +1、`discovery_settings` +1（副本原本沒有設定列）、`mail_sync_state` ~1（`state`）；`source_receipts` 0（替身收案不帶 receipt）。重跑寫回兩輪都是 0 變更。Python 檢查全部 true：筆數 2,882、回饋計數、設定 revision、新職缺在 `list()` 裡、`claim_daily_run` 回「已跑過」、mail cursor、Python 自己再寫一筆回饋成功。
     - 兩輪報告除了 `source_health` 的指紋完全相同：`checked_at` 由資料庫時鐘寫入（`utcNowText`，和 Python 相同），每次都不同，是預期的差異；驗收「兩次報告相同」照此解讀。
     - 清理：臨時 D1 已刪（`cf d1 list` 只剩 shadow、ci-test、spike-1f），VM 上兩份寫回的副本與 log、演練映像、`/tmp` 的腳本已刪；`/var/lib/freelance-shadow/rehearsal/` 只留不含值的報告（import、expected、wb）。
+  - 完成前 `/code-review`（medium，1 輪，10 項）：改 7（演練檢查的 NULL 回饋鍵；`rehearse.sh` 用 D1 API 確認目標名稱是 `freelance-agent-*-test` 才繼續，取代只比 shadow ID；Python 映像改讀 worker 正在跑的；D1 整數格先驗格式再轉 BigInt；拿掉永遠為 true 的 `ok`；D1 欄位一個請求、資料列依批次上限合併請求；測試的重複 import）；駁回 3（`digest_outbox` 的狀態跳躍：`rg -n 'digest_outbox' web/src` 只剩 `guard.ts` 的註解，D22 後 TS 不寫它；其他表的 recipient：`mail_sync_state` 的 recipient 是 Resend 收信信箱（`collection/mail/sync.ts` 的 `syncMail` 參數），不是 `DIGEST_RECIPIENT`；逐列 prepare：一次性操作，演練時更新不到 10 列）。名稱檢查在 VM 上單獨驗過（只 GET）：shadow 拒絕、不存在的 ID 拒絕、ci-test 放行；改過的 `rehearse.sh` 沒有再跑一輪完整演練（要再建一個臨時 D1），寫回程式的改動由 `tests/ops.test.ts` 7 例與 mutation 5 項（加「不驗整數」）證明。
   - 需要人做的事：授權讀正式 DB 副本。
 
 - [ ] **13. 正式切換（deploy，必須連著做）**（被擋於：步驟 12、D6、4e4b；Will 明確授權；D22 後不再被 D9 擋；D23：步驟 11 完成後盡快做）
