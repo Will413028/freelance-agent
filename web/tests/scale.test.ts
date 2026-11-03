@@ -8,8 +8,9 @@ import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, asList, PyDict, TupleSet } from "@/platform/py/value";
 import { createDigest } from "@/services/digest";
-import { list } from "@/services/discovery";
-import { db, query, resetSchema } from "./helpers/db";
+import { list, listPage, replaceSettings } from "@/services/discovery";
+import { readSettings } from "@/modules/discovery/public";
+import { client, db, query, resetSchema } from "./helpers/db";
 import { job } from "./helpers/jobs";
 
 // Cost guard at production scale. On 2026-10-25 createDigestIn ran past 10 minutes on the
@@ -94,5 +95,24 @@ describe("digest at production scale", () => {
     expect(ids(asList(digest.snapshot.req("items")).map(asDict))).toEqual(ids(selectUnseen(candidates, scanned())));
     expect(digest.snapshot.req("suppressed_count")).toBeGreaterThan(0n);
     expect(ms).toBeLessThan(60_000);
+  }, 120_000);
+});
+
+describe("discovery projection at production scale (plan step 10e1)", () => {
+  it("serves a page ranked in SQL as list_in ranks it", async () => {
+    const started = Date.now();
+    const page = await listPage(db, now, { offset: 0, limit: 50 });
+    process.stderr.write(`listPage: 50 of ${items.length} in ${Date.now() - started} ms\n`);
+    expect(page.map((item) => item.str("id"))).toEqual(items.slice(0, 50).map((item) => item.str("id")));
+  });
+
+  it("rewrites every row's settings columns in one write request (plan step 4e2b handoff (2))", async () => {
+    const current = await readSettings(db), before = client.counters.requests;
+    // A unit other than intake refuses to write past one request, so success here means it fit.
+    await replaceSettings(db, current.revision, new PyDict(current.settings).update({ max_weekly_hours: 5n }));
+    expect(client.counters.requests - before).toBe(2);
+    expect(await query("select count(*) as n from discovery_items where settings_revision = ?1", [Number(current.revision) + 1])).toEqual([{ n: OPPORTUNITIES }]);
+    const after = await list(db, now);
+    expect((await listPage(db, now, { offset: 100, limit: 50 })).map((item) => item.str("id"))).toEqual(after.slice(100, 150).map((item) => item.str("id")));
   }, 120_000);
 });

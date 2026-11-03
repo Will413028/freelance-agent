@@ -184,6 +184,11 @@ describe("unit limits", () => {
       for (let i = 0; i < 80; i++) writes.statement(db.run(sql`update opportunities set item = item where id = ${String(i)}`));
     });
     await expect(raw).rejects.toThrow("exceeds one request");
+    // Few raw statements, but large ones (the projection's bulk settings updates): their bytes count too.
+    const large = writeUnit(db, DAILY_WRITE, [], (_, writes) => {
+      for (let i = 0; i < 50; i++) writes.statement(db.run(sql`update opportunities set item = item where id = ${String(i)}`), 90_000);
+    });
+    await expect(large).rejects.toThrow(/write batch of \d+ bytes exceeds one request/);
   });
 
   it("refuses an asynchronous computation, which could wait on the network while holding the lease", async () => {

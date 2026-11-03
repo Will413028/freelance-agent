@@ -109,6 +109,7 @@ type Pending = { table: SQLiteTable; on: OnConflict; rows: Map<string, { group: 
 export class Writes {
   private readonly pending = new Map<string, Pending>();
   private readonly tail: BatchItem<"sqlite">[] = [];
+  private tailBytes = 0;
 
   put(table: SQLiteTable, on: OnConflict, key: string, row: Row, group: string | null) {
     const name = getTableConfig(table).name;
@@ -121,9 +122,15 @@ export class Writes {
     p.rows.set(key, { group, row });
   }
 
-  /** A raw statement for the last batch, under the same guard (test fixtures). */
-  statement(query: BatchItem<"sqlite">) {
+  /**
+   * A raw statement for the last batch, under the same guard: test fixtures, and set-based writes the
+   * row API cannot express within one request (the projection's settings columns, UPDATE … FROM
+   * json_each, plan step 10e1). Never split: a unit whose raw statements overflow a request fails;
+   * `bytes` is the statement's size (its large parameters), counted against MAX_BYTES.
+   */
+  statement(query: BatchItem<"sqlite">, bytes = 0) {
     this.tail.push(query);
+    this.tailBytes += bytes;
   }
 
   get empty() {
@@ -170,17 +177,19 @@ export class Writes {
     }
     const last = tailRows ?? new Map<Pending, Row[]>();
     const lastSize = [...last.values()].flat().reduce((n, row) => n + rowBytes(row), 0);
-    if (current.size > 0 && !fits(last, lastSize, this.tail.length)) {
+    if (current.size > 0 && !fits(last, lastSize + this.tailBytes, this.tail.length)) {
       chunks.push(current);
       current = new Map();
       bytes = 0;
     }
-    take(last, lastSize);
+    take(last, lastSize + this.tailBytes);
+    const lastBytes = bytes;
     chunks.push(current);
     const out = chunks.map((chunk) => tables.filter((p) => chunk.has(p)).flatMap((p) => statements(db, p, chunk.get(p)!)));
     out[out.length - 1].push(...this.tail);
     // Only raw statements can still overflow (they are never split): refuse rather than send a request past the limits.
     for (const b of out) if (b.length + BOOKKEEPING > MAX_STATEMENTS) throw new Error(`a write batch of ${b.length} statements exceeds one request`);
+    if (lastBytes > MAX_BYTES) throw new Error(`a write batch of ${lastBytes} bytes exceeds one request`);
     return out.filter((b) => b.length > 0);
   }
 }

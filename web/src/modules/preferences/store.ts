@@ -13,7 +13,7 @@ import { emptyTracking, updateTracking, type TrackingChange } from "./domain";
 export const trackingStatesRead = (db: Db) =>
   read(db.select().from(opportunityTracking), (rows) => new Map(rows.map((r) => [r.opportunityId, loadsDict(r.state)])));
 
-const trackingRead = (db: Db, keys: readonly string[]) =>
+export const trackingRead = (db: Db, keys: readonly string[]) =>
   read(db.select().from(opportunityTracking).where(inList(opportunityTracking.opportunityId, keys)), (rows) => new Map(rows.map((r) => [r.opportunityId, loadsDict(r.state)])));
 
 /**

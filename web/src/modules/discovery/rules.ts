@@ -6,7 +6,7 @@ import {
   asDict, asList, cmpStr, deepCopy, isDict, isNumber, or, pyCmp, pyEq, PyDict, PyError, pySorted, truthy, TupleSet,
   type PyValue,
 } from "@/platform/py/value";
-import { DEFAULT_HOURS, qualify } from "./domain";
+import { DEFAULT_HOURS, expire, qualifyUnexpired, type Unexpired } from "./domain";
 import { isCandidate } from "./ranking";
 
 // Port of backend/src/freelance/modules/discovery/rules.py.
@@ -38,20 +38,32 @@ export function preferences(value: PyValue): PyDict {
   return deepCopy(value);
 }
 
-export function evaluate(job: PyDict, settings: PyDict, now: PyDateTime): PyDict {
-  const result = qualify(job, settings.req("max_weekly_hours"), now, settings.req("min_fixed_twd"));
-  const categories = asList(settings.req("categories"));
-  if (!categories.some((c) => pyEq(c, result.get("category")!)) && result.get("status") !== "excluded") {
+export const evaluate = (job: PyDict, settings: PyDict, now: PyDateTime): PyDict => evaluationAt(evaluateUnexpired(job, settings), settings, now);
+
+/** The settings-dependent half of evaluate, for a `now` before any deadline (what the projection stores, plan step 10e1). */
+export const evaluateUnexpired = (job: PyDict, settings: PyDict): Unexpired =>
+  qualifyUnexpired(job, settings.req("max_weekly_hours"), settings.req("min_fixed_twd"));
+
+/** evaluate at `now`: the deadline first, then the category filter, which only applies to what the deadline left possible. */
+export function evaluationAt(unexpired: Unexpired, settings: PyDict, now: PyDateTime): PyDict {
+  const result = expire(unexpired, now);
+  if (outsideCategories(result, settings) && result.get("status") !== "excluded") {
     (result.get("reasons") as PyValue[]).push("不在目前選擇的專長分類");
     result.set("status", "excluded");
   }
   return result;
 }
 
-export function project(item: PyDict, settings: PyDict, now: PyDateTime): PyDict {
+/** Whether the evaluated category is one the settings leave out. */
+export const outsideCategories = (result: PyDict, settings: PyDict) => !asList(settings.req("categories")).some((c) => pyEq(c, result.get("category")!));
+
+export const project = (item: PyDict, settings: PyDict, now: PyDateTime): PyDict => withEvaluation(item, evaluate(item.dict("job"), settings, now));
+
+/** A copy of the record with this evaluation; an approved review that is no longer qualified shows as a draft. */
+export function withEvaluation(item: PyDict, evaluation: PyDict): PyDict {
   const result = deepCopy(item);
-  result.set("evaluation", evaluate(result.dict("job"), settings, now));
-  if (result.dict("evaluation").get("status") !== "qualified" && pyEq(result.req("review_status"), "approved")) {
+  result.set("evaluation", evaluation);
+  if (evaluation.get("status") !== "qualified" && pyEq(result.req("review_status"), "approved")) {
     result.update({ review_status: "draft", approved_hash: null });
   }
   return result;

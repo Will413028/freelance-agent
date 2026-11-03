@@ -25,9 +25,10 @@ export type ImportReport = {
 
 /**
  * Rebuilds DERIVED_TABLES from the loaded copy; the caller supplies it because the derivation is
- * product code (ops reads tables, not modules). Returns how many rows it wrote.
+ * product code (ops reads tables, not modules). Leased tables (the discovery projection) are written
+ * through `send`, under the import's lease. Returns how many rows it wrote.
  */
-export type RebuildDerived = (db: Db, lite: DatabaseSync) => Promise<number>;
+export type RebuildDerived = (db: Db, lite: DatabaseSync, send: (statements: D1Statement[]) => Promise<unknown>) => Promise<number>;
 
 const quoted = (name: string) => `"${name}"`;
 
@@ -91,6 +92,21 @@ export function copiedDigests(lite: DatabaseSync, skipDay?: string): { id: strin
   return lite.prepare("select id, snapshot from digest_outbox where local_date is not ? order by id").all(skipDay ?? null) as { id: string; snapshot: string }[];
 }
 
+/** What the discovery projection derives from in a copy (plan step 10e1): record envelopes, content versions, the settings row. */
+export type CopiedDiscovery = {
+  items: string[];
+  versions: { opportunityId: string; fingerprint: string; job: string }[];
+  settings: { revision: number; settings: string } | null;
+};
+
+export function copiedDiscovery(lite: DatabaseSync): CopiedDiscovery {
+  const items = (lite.prepare("select item from opportunities order by id").all() as { item: string }[]).map((r) => r.item);
+  const versions = lite.prepare("select opportunity_id as opportunityId, fingerprint, job from mail_content_versions order by opportunity_id, fingerprint")
+    .all() as CopiedDiscovery["versions"];
+  const [settings] = lite.prepare("select revision, settings from discovery_settings where id = 1").all() as { revision: number; settings: string }[];
+  return { items, versions, settings: settings ?? null };
+}
+
 export function checkTableSet(lite: DatabaseSync) {
   const present = sqliteTables(lite), expected = TABLES.map((t) => t.name).sort();
   if (present.join() !== expected.join()) {
@@ -120,7 +136,7 @@ export async function importCopy(sqlitePath: string, db: Db, rebuild: RebuildDer
     return await withLease(db, waitMs, async (send) => {
       await recreateTables(send);
       const source = await loadCopy(db, lite, send);
-      const derived = await rebuild(db, lite);
+      const derived = await rebuild(db, lite, send);
       const { ok, tables } = await report(source, db);
       return { ok, tables, derived, d1RowsWritten: clientOf(db).counters.rowsWritten - before };
     });

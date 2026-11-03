@@ -6,7 +6,8 @@ import { parseArticle as djArticle, syncDynamiteJobs } from "@/modules/collectio
 import { CATEGORIES, fetchJobbank518, INDEX as JB_INDEX, parseArticle as jbArticle, syncJobbank518 } from "@/modules/collection/sources/jobbank518";
 import { parseArticle as jrArticle, syncJustRemote } from "@/modules/collection/sources/justremote";
 import { parseArticle as ndArticle, parseFeed, syncNoDesk } from "@/modules/collection/sources/nodesk";
-import { readSettings, replaceSettings } from "@/modules/discovery/public";
+import { readSettings } from "@/modules/discovery/public";
+import { replaceSettings } from "@/services/discovery";
 import { list } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";

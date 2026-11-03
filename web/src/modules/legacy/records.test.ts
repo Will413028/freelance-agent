@@ -13,7 +13,7 @@ const settings = preferences(defaults());
 
 /** fn over the records with these ids, in one write unit. */
 const inUnit = <T>(keys: string[], fn: (records: Records, writes: Writes) => T) =>
-  writeUnit(db, DAILY_WRITE, [recordsRead(db, keys)], ([found], writes) => fn(new Records(found, writes), writes) as never);
+  writeUnit(db, DAILY_WRITE, [recordsRead(db, keys)], ([found], writes) => fn(new Records(found, writes, { revision: 0n, settings }), writes) as never);
 
 beforeEach(resetSchema);
 

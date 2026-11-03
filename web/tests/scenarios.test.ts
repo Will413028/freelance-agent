@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { ingestSource, setSourceHealth, sourceStatuses } from "@/modules/collection/public";
-import { readSettings, replaceSettings, settingsDict } from "@/modules/discovery/public";
+import { readSettings, settingsDict } from "@/modules/discovery/public";
+import { replaceSettings } from "@/services/discovery";
 import { groupItems, publicItem } from "@/modules/discovery/rules";
 import { checkNovelty, claimDigest, findDigest, finishDigest, render } from "@/modules/notifications/public";
 import { createDigest } from "@/services/digest";

@@ -3,11 +3,11 @@ import { D1Client } from "@/db/d1/client";
 import { localTransport } from "@/db/d1/local";
 import { migrateD1 } from "@/db/migrate";
 import { withLease } from "@/db/unit";
-import { checkTableSet, copiedDigests, loadCopy } from "@/ops/import";
+import { checkTableSet, copiedDigests, copiedDiscovery, loadCopy } from "@/ops/import";
 import { openSqlite, readSqliteRows, rowText, sqliteColumns } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
 import { fromisoformat } from "@/platform/py/datetime";
-import { createDigest, rebuildNovelty } from "@/services/digest";
+import { createDigest, rebuildNovelty, rebuildProjection } from "@/services/digest";
 
 // Same-start digest replay (plan step 10b; on the local D1 stand-in since step 4e3). The TS digest
 // code runs on exactly the data Python built its digest from — the after-run copy without that
@@ -68,6 +68,8 @@ export async function replayDigest(paths: { start: string; python: string }, day
     }));
     // The ledger the TS digest selects with, derived from the same earlier digests Python scanned.
     await rebuildNovelty(db, copiedDigests(lite, day));
+    // The discovery projection, from the same copy (plan step 10e1; the digest reads it from step 10e2).
+    await withLease(db, 0, (send) => rebuildProjection(db, copiedDiscovery(lite), send));
     await createDigest(db, day, recipient, fromisoformat(JSON.parse(python).generated_at));
     // The stored text, which is what Python's row holds, not a re-encoding of the returned value.
     const [stored] = await stand.batch([{ sql: "select snapshot from digest_outbox where local_date = ? and recipient = ?", params: [day, recipient] }]);

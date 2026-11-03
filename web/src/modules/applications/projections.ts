@@ -1,5 +1,5 @@
 import { asc, eq } from "drizzle-orm";
-import { read, type Db } from "@/db/client";
+import { inList, read, type Db } from "@/db/client";
 import { manualApplicationOpportunities, manualApplications } from "@/db/schema";
 
 // The read side of applications/store.py:projections_in that discovery needs for group tokens (HP7).
@@ -18,11 +18,15 @@ function project(rows: { opportunityId: string; id: string; revision: number; de
   return result;
 }
 
-export const applicationProjectionsRead = (db: Db) => read(
+const projectionsQuery = (db: Db, keys?: readonly string[]) =>
   db.select({ opportunityId: manualApplicationOpportunities.opportunityId, id: manualApplications.id,
     revision: manualApplications.revision, deletedAt: manualApplications.deletedAt })
     .from(manualApplicationOpportunities)
     .innerJoin(manualApplications, eq(manualApplications.id, manualApplicationOpportunities.applicationId))
-    .orderBy(asc(manualApplications.id)), // SQLite BINARY order, as Python (spike 1c rule 9)
-  project,
-);
+    .where(keys === undefined ? undefined : inList(manualApplicationOpportunities.opportunityId, keys))
+    .orderBy(asc(manualApplications.id)); // SQLite BINARY order, as Python (spike 1c rule 9)
+
+export const applicationProjectionsRead = (db: Db) => read(projectionsQuery(db), project);
+
+/** The same for these opportunities only (a discovery page, plan step 10e1). */
+export const applicationProjectionsFor = (db: Db, keys: readonly string[]) => read(projectionsQuery(db, keys), project);

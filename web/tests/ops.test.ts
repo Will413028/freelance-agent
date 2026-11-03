@@ -4,12 +4,14 @@ import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { ingestSource } from "@/modules/collection/public";
-import { checkTableSet, copiedDigests, createStatements, importCopy, type RebuildDerived } from "@/ops/import";
+import { checkTableSet, copiedDigests, copiedDiscovery, createStatements, importCopy, type RebuildDerived } from "@/ops/import";
 import { CopyError } from "@/ops/rows";
 import { TABLES } from "@/ops/tables";
 import { PyDateTime } from "@/platform/py/datetime";
-import { checkLedger, rebuildNovelty } from "@/services/digest";
+import { checkLedger, rebuildNovelty, rebuildProjection } from "@/services/digest";
 import { replayDigest } from "@/verify/replay";
+import { encode } from "@/platform/py/json";
+import { list, listPage } from "@/services/discovery";
 import { db, intercepting, leased, MIGRATIONS, query, recording, resetSchema, sqliteWithSchema } from "./helpers/db";
 import { migrateD1 } from "@/db/migrate";
 import { fixture } from "./helpers/golden";
@@ -19,12 +21,14 @@ import { job } from "./helpers/jobs";
 // copy into D1, the VM snapshot, and the same-start digest replay.
 const dir = mkdtempSync(path.join(os.tmpdir(), "fa-ops-"));
 // What scripts/import-copy.ts passes.
-const rebuild: RebuildDerived = (target, lite) => rebuildNovelty(target, copiedDigests(lite));
+const rebuild: RebuildDerived = async (target, lite, send) =>
+  await rebuildNovelty(target, copiedDigests(lite)) + await rebuildProjection(target, copiedDiscovery(lite), send);
 
 /** A synthetic production-shaped copy: every table has rows, with the awkward values production can hold. */
 function seed(lite: DatabaseSync) {
   // Python's encode() output: float 1.0 keeps its ".0", which JSON.stringify could not write.
-  const item = (id: string) => `{"id": "${id}", "job": {"source": "guru", "external_id": "${id}", "title": "徵 AI agent 😀", "budget_max": 1.0}}`;
+  // The envelope keys the discovery projection derives from (fingerprint, review_status) are always present in production.
+  const item = (id: string) => `{"id": "${id}", "job": {"source": "guru", "external_id": "${id}", "title": "徵 AI agent 😀", "budget_max": 1.0}, "fingerprint": "f-${id}", "review_status": "draft"}`;
   const run = (sql: string, ...values: (string | number | bigint | null)[]) => lite.prepare(sql).run(...values);
   for (const id of ["o1", "o2", "O3"]) run("insert into opportunities values (?,?,?,?)", id, "guru", id, item(id));
   run("insert into proposal_revisions values ('o1',1,'舊提案\\n第二行','fp','2026-01-01 00:00:00')");
@@ -35,7 +39,7 @@ function seed(lite: DatabaseSync) {
   run("insert into opportunity_tracking values ('o1','{\"revision\": 2, \"feedback\": \"skipped\"}')");
   run("insert into tracking_events (opportunity_id, revision, state, created_at) values ('o1',1,'{}','t1'),('o1',2,'{}','t2')");
   run("insert into ai_draft_attempts values ('o1','fp',1,'2026-01-01','r','failed','a',null,'reason','legacy')");
-  run("insert into discovery_settings values (1,3,'{\"max_weekly_hours\": null}')");
+  run("insert into discovery_settings values (1,3,'{\"max_weekly_hours\": null, \"min_fixed_twd\": 3000, \"categories\": [\"AI agent\"]}')");
   run("insert into mail_sync_state values ('tasker','r','{\"cursor\": \"c\"}')");
   run("insert into mail_ingestion values ('tasker','r','m1','rejected','parse',1,'t')");
   run("insert into mail_content_versions values ('o1','fp2','{\"title\": \"x\"}')");
@@ -134,11 +138,17 @@ describe("one-time import into D1", () => {
   });
 
   it("rebuilds the notified ledger from the copied digests", async () => {
+    // derived counts the ledger and the discovery projection (one row per record and per content version).
+    const projected = async () => Number((await query("select (select count(*) from discovery_items) + (select count(*) from discovery_versions) as n"))[0].n);
     const report = await importCopy(base, db, rebuild);
-    expect(report.derived).toBe(0); // the base digest announced nothing
+    expect([report.derived, await projected()]).toEqual([4, 4]); // the base digest announced nothing
     const ledger = await importCopy(pythonCopy("import-ledger.sqlite3"), db, rebuild);
-    expect(ledger.derived).toBeGreaterThan(0);
-    expect(await checkLedger(db, "2000-01-01")).toMatchObject({ rows: ledger.derived, missing: 0, extra: 0, ok: true });
+    const rows = ledger.derived - await projected();
+    expect(rows).toBeGreaterThan(0);
+    expect(await checkLedger(db, "2000-01-01")).toMatchObject({ rows, missing: 0, extra: 0, ok: true });
+    // The imported projection serves the same list as the raw rows.
+    const now = new PyDateTime(2026, 10, 26, 1, 0, 0, 0, 0n);
+    expect(encode(await listPage(db, now, { offset: 0, limit: 1000 }))).toBe(encode(await list(db, now)));
   });
 
   it("finishes when run again after an interruption", async () => {
