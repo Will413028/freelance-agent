@@ -15,6 +15,7 @@ const FIELD_NAMES: Record<string, string> = {
 const FRESHNESS: Record<string, string> = { recent: "近兩日發布", week: "近七日發布", older: "發布超過七日", unknown: "發布時間未確認" };
 const VIEW_LABELS: [View, string][] = [["candidates", "待看"], ["saved", "收藏"], ["skipped", "已略過"], ["all", "全部"]];
 const OFF = "切換到正式系統後開放";
+const LIST_SHOWN = 12;
 
 /** An https link without credentials, or undefined: listing URLs are untrusted data. */
 export function safeUrl(value: Plain | undefined): string | undefined {
@@ -39,6 +40,11 @@ function fieldValue(job: JobFields, field: string) {
   const value = job[field];
   if (value === null || value === undefined || value === "") return "未提供";
   if (typeof value === "boolean") return value ? "是" : "否";
+  // A list (location evidence can name 200 countries) reads as a short list with its size.
+  if (Array.isArray(value)) {
+    const items = value.map((v) => (typeof v === "string" ? v : JSON.stringify(v)));
+    return items.length > LIST_SHOWN ? `${items.slice(0, LIST_SHOWN).join("、")} 等 ${items.length} 項` : items.join("、");
+  }
   return typeof value === "object" ? JSON.stringify(value) : String(value);
 }
 

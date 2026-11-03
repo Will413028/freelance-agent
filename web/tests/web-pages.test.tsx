@@ -188,6 +188,15 @@ describe("markup", () => {
     expect(html).toContain('href="https://www.freelancer.com/projects/example-c000"');
   });
 
+  it("shows a long location list as its first entries and its size", async () => {
+    const detail = await jobDetail(db, now, key("c000"));
+    const countries = Array.from({ length: 30 }, (_, i) => `C${i}`);
+    const html = renderToStaticMarkup(<JobDetail job={{ ...detail, job: { ...detail.job, location_evidence: countries } }} writes />);
+    expect(html).toContain("C0、C1");
+    expect(html).toContain("等 30 項");
+    expect(html).not.toContain("C29");
+  });
+
   it("escapes listing text and links only https listing URLs", async () => {
     await ingestSource(db, "tasker", now, [listing("x", { title: "<script>alert(1)</script>", url: "javascript:alert(1)" })], () => true, "ok");
     const html = renderToStaticMarkup(<JobDetail job={await jobDetail(db, now, key("x"))} writes />);
