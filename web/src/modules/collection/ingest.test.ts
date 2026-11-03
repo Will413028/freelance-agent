@@ -2,9 +2,9 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { list } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { PyDict } from "@/platform/py/value";
-import { db, pool, resetSchema } from "../../../tests/helpers/db";
+import { db, query, resetSchema } from "../../../tests/helpers/db";
 import { job } from "../../../tests/helpers/jobs";
-import { setSourceHealth, sourceBatch, sourcesIn } from "./ingest";
+import { ingestSource, setSourceHealth, sourceStatuses, type Listing } from "./ingest";
 import { olderNotification } from "./observation";
 
 // Ports of backend/tests/collection/test_source_batch.py plus notification ordering.
@@ -12,35 +12,29 @@ const now = new PyDateTime(2026, 9, 28, 1, 0, 0, 0, 0n);
 const pyType = async (p: Promise<unknown>) => p.then(() => null, (e) => (e as { pyType?: string }).pyType ?? String(e));
 
 beforeEach(resetSchema);
-afterAll(async () => { await pool.end(); });
 
 describe("source batch", () => {
   it("replays and exposes existing source jobs", async () => {
     const first = job({ source: "tasker", external_id: "one" });
-    for (let n = 0; n < 2; n++) {
-      await sourceBatch(db, "tasker", now, async (batch) => { await batch.ingest(first, "receipt-one"); await batch.finish("ok"); });
-    }
-    await sourceBatch(db, "tasker", now, async (batch) => {
-      expect([...(await batch.existingIds())]).toEqual(["one"]);
-      expect((await batch.existingJobs()).get("one")!.req("title")).toBe(first.req("title"));
-    });
+    const items: Listing[] = [[first, "receipt-one"]];
+    const seen: boolean[] = [];
+    for (let n = 0; n < 2; n++) await ingestSource(db, "tasker", now, items, (_, exists) => { seen.push(exists); return true; }, "ok");
+    expect(seen).toEqual([false, true]);
     expect(await list(db, now)).toHaveLength(1);
   });
 
   it("rolls back the entire batch and its health on a receipt collision", async () => {
     await setSourceHealth(db, "tasker", "failed");
-    const outcome = sourceBatch(db, "tasker", now, async (batch) => {
-      await batch.ingest(job({ source: "tasker", external_id: "one" }), "same");
-      await batch.finish("ok");
-      await batch.ingest(job({ source: "tasker", external_id: "two" }), "same");
-    });
+    const one = job({ source: "tasker", external_id: "one" }), two = job({ source: "tasker", external_id: "two" });
+    const outcome = ingestSource(db, "tasker", now, [[one, "same"], [two, "same"]], () => true, "ok");
     expect(await pyType(outcome)).toBe("Conflict");
     expect(await list(db, now)).toEqual([]);
-    expect((await sourcesIn(db)).req("tasker")).toBe("failed");
+    expect((await sourceStatuses(db)).req("tasker")).toBe("failed");
   });
 
   it("rejects another source without writing", async () => {
-    const outcome = sourceBatch(db, "tasker", now, (batch) => batch.ingest(job({ source: "freelancer" }), "wrong"));
+    const other = job({ source: "freelancer" });
+    const outcome = ingestSource(db, "tasker", now, [[other, "wrong"]], () => true, null);
     expect(await pyType(outcome)).toBe("ValueError");
     expect(await list(db, now)).toEqual([]);
   });

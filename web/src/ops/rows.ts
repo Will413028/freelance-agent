@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import type { Pool, PoolClient } from "pg";
+import type { D1Result } from "@/db/d1/client";
 import type { TableSpec } from "./tables";
 
-// Typed cells read from either side, serialized the same way so fingerprints and comparisons do
+// Typed cells read from either side (a SQLite copy, D1), serialized the same way so fingerprints do
 // not depend on the driver. Error messages name tables and columns only: copied values are personal data.
 
 export type Cell = null | { i: string } | { s: string };
@@ -24,50 +24,48 @@ export function sqliteTables(lite: DatabaseSync): string[] {
     .map((r) => r.name);
 }
 
-export function sqliteColumns(lite: DatabaseSync, table: string): string[] {
-  return (lite.prepare(`pragma table_info("${table}")`).all() as { name: string }[]).map((c) => c.name);
+/** A table's columns as `pragma table_info` gives them, on a copy or on D1; only integer and text exist in this schema. */
+export function columnsOf(table: string, info: { name: string; type: string }[]): Column[] {
+  return info.map((c) => {
+    const type = c.type.toLowerCase();
+    if (type !== "integer" && type !== "text") throw new CopyError(`${table}.${c.name}: unsupported type ${c.type}`);
+    return { name: c.name, type };
+  });
 }
 
-/** Rows in primary-key order, each value checked against the Postgres column type. */
+export const sqliteColumns = (lite: DatabaseSync, table: string): Column[] =>
+  columnsOf(table, lite.prepare(`pragma table_info("${table}")`).all() as { name: string; type: string }[]);
+
+const orderBy = (spec: TableSpec) => spec.pk.map((k) => `"${k}"`).join(",");
+
+/**
+ * Rows in primary-key order. SQLite keeps any value in any column, so each one is checked against
+ * its column's declared type: a value that does not match is refused rather than copied as is.
+ */
 export function readSqliteRows(lite: DatabaseSync, spec: TableSpec, columns: Column[]): Row[] {
   const names = columns.map((c) => `"${c.name}"`).join(",");
-  const rows = lite.prepare(`select ${names} from "${spec.name}" order by ${spec.pk.map((k) => `"${k}"`).join(",")}`).all() as Record<string, unknown>[];
+  const rows = lite.prepare(`select ${names} from "${spec.name}" order by ${orderBy(spec)}`).all() as Record<string, unknown>[];
   const bad = new Map<string, number>();
   const out = rows.map((r) => columns.map((col) => {
     const v = r[col.name];
     if (v === null) return null;
-    if (col.type === "integer" && typeof v === "bigint" && v >= -2147483648n && v <= 2147483647n) return { i: v.toString() };
-    if (col.type === "text" && typeof v === "string" && !v.includes("\u0000")) return { s: v };
+    if (col.type === "integer" && typeof v === "bigint") return { i: v.toString() };
+    if (col.type === "text" && typeof v === "string") return { s: v };
     bad.set(col.name, (bad.get(col.name) ?? 0) + 1);
     return null;
   }));
   if (bad.size) {
-    throw new CopyError(`${spec.name}: values that cannot be copied without changing them: ` +
-      [...bad].map(([c, n]) => `${c} (${n})`).join(", "));
+    throw new CopyError(`${spec.name}: values that do not match their column type: ` + [...bad].map(([c, n]) => `${c} (${n})`).join(", "));
   }
   return out;
 }
 
-type Queryable = Pool | PoolClient;
+/** The query that reads a table back from D1 in the same order; integers as text, so values above 2^53 stay exact. */
+export const d1RowsQuery = (spec: TableSpec, columns: Column[]) =>
+  `select ${columns.map((c) => (c.type === "integer" ? `cast("${c.name}" as text)` : `"${c.name}"`)).join(",")} from "${spec.name}" order by ${orderBy(spec)}`;
 
-export async function pgColumns(db: Queryable, table: string): Promise<Column[]> {
-  const { rows } = await db.query(
-    "select column_name, data_type from information_schema.columns where table_schema='public' and table_name=$1 order by ordinal_position",
-    [table],
-  );
-  return rows.map((r) => {
-    if (r.data_type !== "integer" && r.data_type !== "text") throw new CopyError(`${table}.${r.column_name}: unsupported type ${r.data_type}`);
-    return { name: r.column_name, type: r.data_type };
-  });
-}
-
-export async function readPgRows(db: Queryable, spec: TableSpec, columns: Column[]): Promise<Row[]> {
-  const { rows } = await db.query({
-    text: `select ${columns.map((c) => `"${c.name}"`).join(",")} from "${spec.name}" order by ${spec.pk.map((k) => `"${k}"`).join(",")}`,
-    rowMode: "array",
-  });
-  return (rows as unknown[][]).map((r) => r.map((v, n) => (v === null ? null : columns[n].type === "integer" ? { i: String(v) } : { s: String(v) })));
-}
+export const d1Rows = (result: D1Result, columns: Column[]): Row[] =>
+  result.rows.map((r) => r.map((v, n) => (v === null ? null : columns[n].type === "integer" ? { i: String(v) } : { s: String(v) })));
 
 export function fingerprint(rows: Row[]): string {
   const h = createHash("sha256");

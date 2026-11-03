@@ -6,7 +6,7 @@ import { PyDateTime } from "@/platform/py/datetime";
 import { pyFullmatch, pyRe } from "@/platform/py/re";
 import { pyIntToFloat, pyLen, pyStr } from "@/platform/py/unicode";
 import { isDict, isList, PyDict, pyEq, PyError, pyGet, pySubscript, truthy, type PyValue } from "@/platform/py/value";
-import { ingest, setSourceHealth } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 
 // Port of collection/freelancer.py: the public official Freelancer active-project search; bounded
 // discovery, never bids.
@@ -141,7 +141,8 @@ export type Searcher = (query: string, limit: number) => Promise<PyDict>;
 
 /**
  * freelancer.sync minus its first line: runSource has already marked the source failed. Throws where
- * Python returns {'status': 'failed'}. Like Python, each listing is ingested on its own (no batch).
+ * Python returns {'status': 'failed'}. The listings and the health are one unit: unlike Python, which
+ * ingests each listing on its own, a failure keeps none of them (D20 common basis 3, accepted).
  */
 export async function syncFreelancer(db: Db, searcher: Searcher = (q, limit) => search(q, { limit }), pause: (ms: number) => Promise<unknown> = sleep): Promise<PyDict> {
   const jobs = new Map<string, PyDict>();
@@ -162,8 +163,7 @@ export async function syncFreelancer(db: Db, searcher: Searcher = (q, limit) => 
     const evaluation = qualifyForIntake(job, PyDateTime.now());
     return evaluation.at("status") !== "excluded" && (evaluation.at("score") as bigint) > 0n;
   });
-  for (const job of selected) await ingest(db, job, job.at("receipt_id"), PyDateTime.now());
   const partial = limited || rejected > 0n;
-  await setSourceHealth(db, "freelancer", partial ? "failed" : "ok");
+  await ingestSource(db, "freelancer", PyDateTime.now(), listings(selected), () => true, partial ? "failed" : "ok");
   return PyDict.of({ status: partial ? "partial" : "ok", seen: BigInt(jobs.size), jobs: BigInt(selected.length), limited, rejected_count: rejected, pages, scope: "3_active_queries_paginated" });
 }

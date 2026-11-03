@@ -9,7 +9,7 @@ import { codePoints, pyLen, pySplit, pyStr, pyStrip } from "@/platform/py/unicod
 import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { isDict, isInt, isList, PyDict, PyError, pyEq, pyGet, pySubscript, truthy, type PyValue } from "@/platform/py/value";
 import { xmlFindAll, xmlFindText, xmlFromBytes, xmlGet } from "@/platform/py/xml";
-import { ingest, setSourceHealth } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { htmlText } from "./text";
 
 // Port of collection/community_jobs.py: public community hiring leads. No accounts, messaging, or
@@ -176,12 +176,12 @@ export type CommunityReader = (source: string) => Promise<PyDict[]>;
 
 /**
  * community_jobs.sync minus its first line: runSource has already marked the source failed. Throws
- * where Python returns {'status': 'failed'}; jobs ingested before a failure stay, as in Python.
+ * where Python returns {'status': 'failed'}. The listings and the health are one unit: unlike Python,
+ * where jobs ingested before a failure stay, a failure keeps none of them (D20 common basis 3, accepted).
  */
 export async function syncCommunity(db: Db, source: string, reader: CommunityReader = (s) => fetchCommunity(s)): Promise<PyDict> {
   const jobs = await reader(source);
   const selected = jobs.filter((j) => qualifyForIntake(j, PyDateTime.now()).at("status") !== "excluded");
-  for (const j of selected) await ingest(db, j, j.at("receipt_id"), PyDateTime.now());
-  await setSourceHealth(db, source, "ok");
+  await ingestSource(db, source, PyDateTime.now(), listings(selected), () => true, "ok");
   return PyDict.of({ status: "ok", seen: BigInt(jobs.length), jobs: BigInt(selected.length), scope: "bounded_public_hiring_leads", complete_scan: false });
 }

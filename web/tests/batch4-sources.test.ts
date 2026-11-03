@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Db } from "@/db/client";
-import { runSource, sourcesIn } from "@/modules/collection/public";
+import { runSource, sourceStatuses } from "@/modules/collection/public";
 import { ENDPOINT as AN_ENDPOINT, MAX_PAGE_ENTRIES, normalize as anNormalize, parseBatch as anParseBatch, PROMOTIONAL_FOOTERS, readerOver, scan, syncArbeitnow } from "@/modules/collection/sources/arbeitnow";
 import { normalize as flNormalize, search, syncFreelancer, type Searcher } from "@/modules/collection/sources/freelancer";
 import { ENDPOINT as TJ_ENDPOINT, fetchTaiwanJobs, LABELS, parse as tjParse, parseBatch as tjParseBatch, syncTaiwanJobs } from "@/modules/collection/sources/taiwanjobs";
@@ -8,7 +8,7 @@ import { list } from "@/services/discovery";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyDict, PyError, type PyValue } from "@/platform/py/value";
-import { db, pool, resetSchema } from "./helpers/db";
+import { db, query, resetSchema, leased } from "./helpers/db";
 
 // The cases of backend/tests/collection/test_taiwanjobs.py, test_arbeitnow.py and test_freelancer.py
 // (plan step 8, last batch). runSource marks the source failed first, as each Python sync does on its
@@ -24,16 +24,15 @@ const run = async (source: string, sync: (d: Db) => Promise<PyDict>) => {
 const items = () => list(db, PyDateTime.now());
 /** store.review(id, 'edit', version, text=...) lives in step 11; write the field it sets. */
 async function editProposal(text: string) {
-  const { rows } = await pool.query("select id, item from opportunities");
+  const rows = await query("select id, item from opportunities");
   const item = loadsDict(rows[0].item);
   item.update({ proposal: text, version: 2n });
-  await pool.query("update opportunities set item = $1 where id = $2", [encode(item), rows[0].id]);
+  await leased("update opportunities set item = ?1 where id = ?2", [encode(item), rows[0].id]);
 }
 const status = (item: PyDict) => asDict(item.at("evaluation")).at("status");
 const ymd = (daysAgo: number) => new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10).replaceAll("-", "");
 
 beforeEach(resetSchema);
-afterAll(() => pool.end());
 
 describe("taiwanjobs (Python cases)", () => {
   const URL = "https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34";
@@ -79,18 +78,18 @@ describe("taiwanjobs (Python cases)", () => {
     const evil = new PyDict(rows[0]).update({ source: "evil" });
     expect((await runSync([...rows, evil])).at("status")).toBe("failed");
     expect(await items()).toEqual([]);
-    expect((await sourcesIn(db)).at("taiwanjobs")).toBe("failed");
+    expect((await sourceStatuses(db)).at("taiwanjobs")).toBe("failed");
   });
   it("a partial batch keeps valid rows, never finishes the batch and a replay adds nothing", async () => {
     const batch = tjParseBatch(xml(row(), row({ OCCU_DESC: "", URL_QUERY: URL.replace("34", "35") })));
     expect(batch.at("rejected_count")).toBe(1n);
     const result = await runSync(batch);
     expect([result.at("status"), result.at("jobs"), result.at("seen")]).toEqual(["partial", 1n, 2n]);
-    expect((await sourcesIn(db)).at("taiwanjobs")).toBe("failed");
+    expect((await sourceStatuses(db)).at("taiwanjobs")).toBe("failed");
     await runSync(batch);
     expect((await items()).length).toBe(1);
     expect((await runSync(tjParseBatch(xml(row())))).at("status")).toBe("ok");
-    expect((await sourcesIn(db)).at("taiwanjobs")).toBe("ok");
+    expect((await sourceStatuses(db)).at("taiwanjobs")).toBe("ok");
   });
   it("an empty body keeps the missing information", () => {
     const j = tjParse(xml(row({ JOB_DETAIL: "" })))[0];
@@ -154,7 +153,7 @@ describe("arbeitnow (Python cases)", () => {
   it("a bad listing is partial and a bad envelope fails", async () => {
     const result = await runSync(() => payload(entry(), entry({ slug: "bad", url: "https://evil.example/jobs/bad" })));
     expect([result.at("status"), result.at("rejected_count"), result.at("jobs")]).toEqual(["partial", 1n, 1n]);
-    expect((await sourcesIn(db)).at("arbeitnow")).toBe("failed");
+    expect((await sourceStatuses(db)).at("arbeitnow")).toBe("failed");
     expect((await runSync(() => enc("{}"))).at("status")).toBe("failed");
   });
   it("follows pages, deduplicates overlap and an inconsistent page set is not complete", async () => {
@@ -174,7 +173,7 @@ describe("arbeitnow (Python cases)", () => {
     p.links.next = NEXT;
     const result = await runSync(() => p, { maxPages: 1 });
     expect([result.at("status"), result.at("complete_scan"), result.at("truncated")]).toEqual(["partial", false, true]);
-    expect((await sourcesIn(db)).at("arbeitnow")).toBe("failed");
+    expect((await sourceStatuses(db)).at("arbeitnow")).toBe("failed");
   });
   it("regional pagination is pinned to the primary endpoint", async () => {
     const calls: string[] = [];
@@ -295,7 +294,7 @@ describe("freelancer (Python cases)", () => {
   it("an incomplete scan or a rejected row is partial with failed health, valid projects kept", async () => {
     const out = await runSync(async () => result([flNormalize(project())], true));
     expect(out.at("status")).toBe("partial");
-    expect((await sourcesIn(db)).at("freelancer")).toBe("failed");
+    expect((await sourceStatuses(db)).at("freelancer")).toBe("failed");
     await resetSchema();
     const out2 = await runSync(async () => result([flNormalize(project())], false, { rejected_count: 1n }));
     expect([out2.at("status"), out2.at("jobs")]).toEqual(["partial", 1n]);
@@ -303,6 +302,6 @@ describe("freelancer (Python cases)", () => {
   });
   it("a complete scan is ok", async () => {
     expect((await runSync(async () => result([flNormalize(project())], false))).at("status")).toBe("ok");
-    expect((await sourcesIn(db)).at("freelancer")).toBe("ok");
+    expect((await sourceStatuses(db)).at("freelancer")).toBe("ok");
   });
 });

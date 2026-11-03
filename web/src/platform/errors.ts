@@ -14,6 +14,12 @@ export class InvalidAction extends PyError {
   }
 }
 
+/**
+ * What a page request answers when its write unit gave up on the writer lease (D20-B): 409 either
+ * way; "busy" when the daily run held it past the wait, "reload" when the data kept changing.
+ */
+export const uiBusy = (reason: "lease_wait" | "lease_lost") => new Conflict(reason === "lease_wait" ? "系統忙碌，請稍後再試" : "資料已更新，請重新載入");
+
 // The slice of Python's exception hierarchy the ports catch by base class.
 const PARENT: Record<string, string> = {
   Conflict: "ValueError", InvalidAction: "ValueError", UnicodeError: "ValueError",

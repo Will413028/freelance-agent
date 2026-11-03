@@ -10,7 +10,7 @@ import { codePoints, pyInt, pyLen, pyLower, pyStrip, pyUpper } from "@/platform/
 import { urlsplit, urlunsplit } from "@/platform/py/url";
 import { xmlFromString } from "@/platform/py/xml";
 import { isDict, isList, PyDict, PyError, pyGet, type PyValue } from "@/platform/py/value";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 
 // Port of collection/taiwanjobs.py: bounded official TaiwanJobs open data; no login or application
 // submission.
@@ -157,7 +157,7 @@ export type BatchReader = () => Promise<PyValue>;
 
 /**
  * taiwanjobs.sync minus its first line: runSource has already marked the source failed. Throws where
- * Python returns {'status': 'failed'}. With rejected rows the batch never calls finish, so health
+ * Python returns {'status': 'failed'}. With rejected rows the unit writes no health, so health
  * stays failed.
  */
 export async function syncTaiwanJobs(db: Db, reader: BatchReader = () => fetchTaiwanJobs()): Promise<PyDict> {
@@ -167,21 +167,12 @@ export async function syncTaiwanJobs(db: Db, reader: BatchReader = () => fetchTa
   if (typeof rejected !== "bigint" || rejected < 0n) throw new PyError("ValueError", "Invalid rejected count");
   if (!isList(jobs) || jobs.length > 1000) throw new PyError("ValueError", "Invalid result");
   const now = PyDateTime.now();
-  const added = await sourceBatch(db, "taiwanjobs", now, async (b) => {
-    const known = await b.existingIds();
-    let n = 0n;
-    for (const job of jobs as PyDict[]) {
-      if (pyGet(job, "source") !== "taiwanjobs") throw new PyError("ValueError", "Wrong source");
-      if (!known.has(job.str("external_id"))) {
-        const updated = fromisoformat(job.at("source_updated_at"));
-        if (updated.utcMicros() < now.utcMicros() - 90n * DAY_US || job.at("kind") !== "contract" || qualifyForIntake(job, now).at("status") === "excluded") continue;
-      }
-      await b.ingest(job, job.at("receipt_id"));
-      n++;
-    }
-    if (!rejected) await b.finish("ok");
-    return n;
-  });
+  for (const job of jobs as PyDict[]) if (pyGet(job, "source") !== "taiwanjobs") throw new PyError("ValueError", "Wrong source");
+  const added = BigInt((await ingestSource(db, "taiwanjobs", now, listings(jobs), (job, exists) => {
+    if (exists) return true;
+    const updated = fromisoformat(job.at("source_updated_at"));
+    return !(updated.utcMicros() < now.utcMicros() - 90n * DAY_US || job.at("kind") !== "contract" || qualifyForIntake(job, now).at("status") === "excluded");
+  }, rejected ? null : "ok")).length);
   return PyDict.of({
     status: rejected ? "partial" : "ok", seen: BigInt(jobs.length) + rejected, rejected_count: rejected, jobs: added,
     scope: "first_1000_official_open_data_recent_updates", complete_scan: false,

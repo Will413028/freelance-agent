@@ -7,7 +7,7 @@ import { identityHash, rawDecode } from "@/platform/py/json";
 import { htmlFeed } from "@/platform/py/html";
 import { pyLen, pyLower, pyStr, pyStrip } from "@/platform/py/unicode";
 import { isDict, isInt, isList, PyDict, PyError, pyGet, pySubscript, truthy, type PyValue } from "@/platform/py/value";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { canonicalOn, employmentTypes, jobPostings, kindOf, pageReader, seams, SOURCE_BUDGET_MS, type FetchSeams } from "./job-pages";
 import { published, text } from "./text";
 
@@ -160,21 +160,12 @@ export async function syncJustRemote(db: Db, reader: JobsReader = () => fetchJus
   const now = PyDateTime.now();
   const nowUs = now.utcMicros();
   const rejected = truthy(result.req("rejected_count"));
-  const count = await sourceBatch(db, "justremote", now, async (batch) => {
-    const old = await batch.existingIds();
-    let n = 0n;
-    for (const job of result.req("jobs") as PyDict[]) {
-      const at = published(job.req("published_at")).utcMicros();
-      const recent = nowUs - 90n * DAY_US <= at && at <= nowUs;
-      if (old.has(job.str("external_id")) || (recent && truthy(job.at("active_evidence")) && truthy(job.at("remote_evidence"))
-        && job.at("kind") === "contract" && TECH.has(job.str("category_evidence")) && qualifyForIntake(job, now).at("status") !== "excluded")) {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(rejected ? "failed" : "ok");
-    return n;
-  });
+  const count = BigInt((await ingestSource(db, "justremote", now, listings(result.req("jobs") as PyDict[]), (job, exists) => {
+    const at = published(job.req("published_at")).utcMicros();
+    const recent = nowUs - 90n * DAY_US <= at && at <= nowUs;
+    return exists || (recent && truthy(job.at("active_evidence")) && truthy(job.at("remote_evidence"))
+      && job.at("kind") === "contract" && TECH.has(job.str("category_evidence")) && qualifyForIntake(job, now).at("status") !== "excluded");
+  }, rejected ? "failed" : "ok")).length);
   const out = new PyDict([...result].filter(([k]) => k !== "jobs" && k !== "listing_metadata"));
   return out.update({ jobs: count, status: rejected ? "partial" : "ok" });
 }

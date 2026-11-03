@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { readTransaction, writeTransaction, type Db } from "@/db/client";
+import { retrying, type Db } from "@/db/client";
 import { dailyRuns } from "@/db/schema";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loads } from "@/platform/py/json";
@@ -22,24 +22,27 @@ export function dailyRecipient(value = process.env.DIGEST_RECIPIENT): string {
   return casefold(pyStrip(value));
 }
 
-/** INSERT … ON CONFLICT DO NOTHING: true only for the first claim of the day. */
+/**
+ * INSERT … ON CONFLICT DO NOTHING: true only for the first claim of the day. When a response is lost
+ * the insert is sent again; if the lost one had committed, the row carries this claim's started_at,
+ * so reading it back tells this claim from another one.
+ */
 export async function claimDailyRun(db: Db, localDate: string, recipient: string, now: PyDateTime): Promise<boolean> {
-  return writeTransaction(db, async (tx) => {
-    const rows = await tx.insert(dailyRuns).values({ localDate, recipient, status: "running", startedAt: now.isoformat() })
-      .onConflictDoNothing().returning({ localDate: dailyRuns.localDate });
-    return rows.length === 1;
-  });
+  const startedAt = now.isoformat();
+  const rows = await retrying(() => db.insert(dailyRuns).values({ localDate, recipient, status: "running", startedAt })
+    .onConflictDoNothing().returning({ localDate: dailyRuns.localDate }));
+  if (rows.length === 1) return true;
+  return (await getDailyRun(db, localDate, recipient))?.startedAt === startedAt;
 }
 
 export async function getDailyRun(db: Db, localDate: string, recipient: string) {
-  const [row] = await readTransaction(db, (tx) => tx.select().from(dailyRuns)
-    .where(and(eq(dailyRuns.localDate, localDate), eq(dailyRuns.recipient, recipient))));
+  const [row] = await retrying(() => db.select().from(dailyRuns).where(and(eq(dailyRuns.localDate, localDate), eq(dailyRuns.recipient, recipient))));
   return row ? { ...row, result: row.result === null ? null : loads(row.result) } : null;
 }
 
-/** Only a running claim can finish; a finished day is never rewritten. */
+/** Only a running claim can finish; a finished day is never rewritten, so sending it twice is harmless. */
 export async function finishDailyRun(db: Db, localDate: string, recipient: string, status: string, result: PyValue, now: PyDateTime) {
   if (status !== "complete" && status !== "failed") throw new PyError("ValueError", "Invalid daily run outcome");
-  await writeTransaction(db, (tx) => tx.update(dailyRuns).set({ status, result: encode(result), finishedAt: now.isoformat() })
+  await retrying(() => db.update(dailyRuns).set({ status, result: encode(result), finishedAt: now.isoformat() })
     .where(and(eq(dailyRuns.localDate, localDate), eq(dailyRuns.recipient, recipient), eq(dailyRuns.status, "running"))));
 }

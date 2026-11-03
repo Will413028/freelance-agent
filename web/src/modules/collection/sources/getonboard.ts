@@ -8,7 +8,7 @@ import { pyFullmatch, pyRe } from "@/platform/py/re";
 import { pyLen, pyStr } from "@/platform/py/unicode";
 import { urlsplitValue, urlunsplit } from "@/platform/py/url";
 import { isDict, isInt, isList, PyDict, PyError, pyEq, pyGet, pySubscript, truthy, type PyValue } from "@/platform/py/value";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { text } from "./text";
 
 // Port of collection/getonboard.py: the official public Get on Board API; paginated remote
@@ -125,21 +125,12 @@ export async function syncGetOnBoard(db: Db, reader: JobsReader = () => fetchJob
   const result = await reader();
   const now = PyDateTime.now();
   const partial = truthy(result.req("rejected_count")) || truthy(result.req("truncated"));
-  const selected = await sourceBatch(db, "getonboard", now, async (batch) => {
-    const old = await batch.existingIds();
-    let n = 0n;
-    for (const job of result.req("jobs") as PyDict[]) {
-      const at = fromisoformat(job.req("published_at")).utcMicros(), nowUs = now.utcMicros();
-      const fresh = nowUs - 90n * DAY_US <= at && at <= nowUs;
-      if (old.has(job.str("external_id")) || (fresh && truthy(job.at("remote_evidence")) && job.at("kind") === "contract"
-        && inTech(job.at("category_evidence")) && qualifyForIntake(job, now).at("status") !== "excluded")) {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(partial ? "failed" : "ok");
-    return n;
-  });
+  const selected = BigInt((await ingestSource(db, "getonboard", now, listings(result.req("jobs") as PyDict[]), (job, exists) => {
+    const at = fromisoformat(job.req("published_at")).utcMicros(), nowUs = now.utcMicros();
+    const fresh = nowUs - 90n * DAY_US <= at && at <= nowUs;
+    return exists || (fresh && truthy(job.at("remote_evidence")) && job.at("kind") === "contract"
+      && inTech(job.at("category_evidence")) && qualifyForIntake(job, now).at("status") !== "excluded");
+  }, partial ? "failed" : "ok")).length);
   const out = new PyDict([...result].filter(([k]) => k !== "jobs"));
   return out.update({ status: partial ? "partial" : "ok", jobs: selected, scope: "public_remote_search_max_10_pages_120_each_90_days" });
 }

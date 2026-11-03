@@ -1,8 +1,9 @@
-import { and, asc, eq, sql } from "drizzle-orm";
-import { writeTransaction, type Db, type Executor } from "@/db/client";
+import { and, asc, eq } from "drizzle-orm";
+import { inList, read, readAll, retrying, type Db } from "@/db/client";
 import { mailContentVersions, mailIngestion, mailSyncState, opportunities, sourceHealth, sourceReceipts, utcNowText, type SourceStatus } from "@/db/schema";
-import { evaluate, readSettings } from "@/modules/discovery/public";
-import { getRecord, insertRecord, newObservation, recordsForSource, refreshRecord, saveRecord } from "@/modules/legacy/public";
+import { INTAKE_WRITE, writeUnit, type Writes } from "@/db/unit";
+import { evaluate, settingsRead } from "@/modules/discovery/public";
+import { newObservation, Records, recordsRead, refreshRecord } from "@/modules/legacy/public";
 import { Conflict } from "@/platform/errors";
 import type { PyDateTime } from "@/platform/py/datetime";
 import { encode, identityHash, loads } from "@/platform/py/json";
@@ -11,7 +12,8 @@ import { olderNotification } from "./observation";
 import { isSource, SOURCES } from "./source-catalog";
 
 // Port of collection/store.py: intake, receipts, source health, mail cursors, mail ingestion records
-// and versioned mail intake.
+// and versioned mail intake. Intake runs as write units (src/db/unit.ts): everything a unit decides
+// on is read with the writer lease, in one request, for the listings it was given up front.
 
 const STATUSES: readonly SourceStatus[] = ["not_connected", "ok", "failed", "waiting"];
 const FINGERPRINT_EXCLUDED = new Set(["received_at", "receipt_id", "evidence_ref", "raw_evidence_ref"]);
@@ -19,17 +21,66 @@ const FINGERPRINT_EXCLUDED = new Set(["received_at", "receipt_id", "evidence_ref
 export const opportunityId = (source: string, externalId: string) => identityHash([source, externalId]);
 export const jobFingerprint = (job: PyDict) => identityHash(new PyDict([...job].filter(([k]) => !FINGERPRINT_EXCLUDED.has(k))));
 
-async function receiptOwner(tx: Executor, source: string, receiptId: string): Promise<string | null> {
-  const [row] = await tx.select({ id: sourceReceipts.opportunityId }).from(sourceReceipts)
-    .where(and(eq(sourceReceipts.source, source), eq(sourceReceipts.receiptId, receiptId)));
-  return row?.id ?? null;
+const pair = (source: string, receiptId: string) => `${source}\0${receiptId}`;
+
+/** Owners of the receipts a unit may use, read with the lease, plus the receipts the unit adds. */
+class Receipts {
+  constructor(private readonly owners: Map<string, string | null>, private readonly writes: Writes) {}
+
+  owner(source: string, receiptId: string): string | null {
+    const known = this.owners.get(pair(source, receiptId));
+    if (known === undefined) throw new Error(`receipt ${source}/${receiptId} was not read by this unit`);
+    return known;
+  }
+
+  /** INSERT … ON CONFLICT DO NOTHING: a receipt keeps its first owner. */
+  add(source: string, receiptId: string, key: string) {
+    if (this.owner(source, receiptId) !== null) return;
+    this.owners.set(pair(source, receiptId), key);
+    this.writes.put(sourceReceipts, { kind: "nothing" }, pair(source, receiptId), { source, receiptId, opportunityId: key }, key);
+  }
+}
+
+const receiptsRead = (db: Db, pairs: readonly [string, string][]) =>
+  read(db.select({ source: sourceReceipts.source, receiptId: sourceReceipts.receiptId, owner: sourceReceipts.opportunityId }).from(sourceReceipts)
+    .where(inList(sourceReceipts.receiptId, [...new Set(pairs.map(([, r]) => r))])), (rows) => {
+    const owners = new Map<string, string | null>(pairs.map(([s, r]) => [pair(s, r), null]));
+    for (const row of rows) owners.set(pair(row.source, row.receiptId), row.owner);
+    return owners;
+  });
+
+/** What intake decides on: the listings' records and receipts, and the settings that evaluate them. */
+type Intake = { records: Records; receipts: Receipts; settings: PyDict };
+
+/** A listing to ingest and the receipt that identifies this occurrence of it (or null). */
+export type Listing = readonly [job: PyValue, receiptId: PyValue];
+
+/** Listings whose receipt is the job's own receipt_id, as every connector passes it. */
+export const listings = (jobs: readonly PyValue[]): Listing[] => jobs.map((job) => [job, job instanceof PyDict ? job.at("receipt_id") : null]);
+
+const listingKey = (job: PyValue): string | null => {
+  if (!(job instanceof PyDict)) return null;
+  const source = job.at("source"), externalId = job.at("external_id");
+  return typeof source === "string" && source && typeof externalId === "string" && externalId ? opportunityId(source, externalId) : null;
+};
+
+/** The reads of an intake unit over these listings; malformed ones are left out and fail when ingested. */
+function intakeReads(db: Db, items: readonly Listing[]) {
+  const keys = new Set<string>(), pairs: [string, string][] = [];
+  for (const [job, receiptId] of items) {
+    const key = listingKey(job);
+    if (key === null) continue;
+    keys.add(key);
+    if (typeof receiptId === "string" && receiptId) pairs.push([asDict(job).str("source"), receiptId]);
+  }
+  return [settingsRead(db), recordsRead(db, [...keys]), receiptsRead(db, pairs)] as const;
 }
 
 /**
  * receipt_id identifies ONE normalized listing occurrence. For multi-listing notifications use
  * message_id + listing identity; keep the raw message reference in job.evidence_ref.
  */
-export async function ingestIn(tx: Executor, jobValue: PyValue, receiptId: PyValue, now: PyDateTime): Promise<PyDict> {
+function ingestListing(unit: Intake, jobValue: PyValue, receiptId: PyValue, now: PyDateTime): PyDict {
   const job = asDict(jobValue);
   const source = job.at("source"), externalId = job.at("external_id");
   if (typeof source !== "string" || !source || typeof externalId !== "string" || !externalId) {
@@ -38,95 +89,87 @@ export async function ingestIn(tx: Executor, jobValue: PyValue, receiptId: PyVal
   const key = opportunityId(source, externalId);
   const fingerprint = jobFingerprint(job);
   if (receiptId !== null && (typeof receiptId !== "string" || !receiptId)) throw new PyError("ValueError", "receipt_id must be a nonempty string");
-  const old = await getRecord(tx, key);
+  const { records, receipts, settings } = unit;
+  const old = records.get(key);
   if (receiptId !== null) {
-    const owner = await receiptOwner(tx, source, receiptId);
+    const owner = receipts.owner(source, receiptId);
     if (owner !== null) {
       if (owner !== key) throw new Conflict("Receipt already belongs to another opportunity");
-      return refreshRecord(tx, old!, now);
+      return refreshRecord(records, settings, old!, now);
     }
   }
   let item: PyDict;
-  if (old && olderNotification(job, old.dict("job"))) item = await refreshRecord(tx, old, now);
+  if (old && olderNotification(job, old.dict("job"))) item = refreshRecord(records, settings, old, now);
   else if (old && old.req("fingerprint") === fingerprint) {
     item = old;
     item.set("job", job);
-    await refreshRecord(tx, item, now);
+    refreshRecord(records, settings, item, now);
   } else {
-    const evaluation = evaluate(job, (await readSettings(tx)).settings, now);
-    item = newObservation(key, job, fingerprint, evaluation, old);
-    if (!old) await insertRecord(tx, item);
-    await saveRecord(tx, item);
+    item = newObservation(key, job, fingerprint, evaluate(job, settings, now), old);
+    if (!old) records.insert(item);
+    records.save(item);
   }
-  if (receiptId !== null) {
-    await tx.insert(sourceReceipts).values({ source, receiptId, opportunityId: key }).onConflictDoNothing();
-    if ((await receiptOwner(tx, source, receiptId)) !== key) throw new Conflict("Receipt already belongs to another opportunity");
-  }
+  // The owner was null above and the lease keeps it so: the receipt is this listing's.
+  if (receiptId !== null) receipts.add(source, receiptId, key);
   return item;
 }
 
-export const ingest = (db: Db, job: PyValue, receiptId: PyValue, now: PyDateTime) =>
-  writeTransaction(db, (tx) => ingestIn(tx, job, receiptId, now));
-
-export async function setSourceHealthIn(tx: Executor, source: PyValue, status: PyValue) {
+function checkHealth(source: PyValue, status: PyValue): asserts status is SourceStatus {
   if (!isSource(source) || !STATUSES.includes(status as SourceStatus)) throw new PyError("ValueError", "unknown source or source status");
-  await tx.insert(sourceHealth).values({ source, status: status as SourceStatus })
-    .onConflictDoUpdate({ target: sourceHealth.source, set: { status: status as SourceStatus, checkedAt: utcNowText } });
 }
 
-export const setSourceHealth = (db: Db, source: PyValue, status: PyValue) =>
-  writeTransaction(db, (tx) => setSourceHealthIn(tx, source, status));
-
-/** Source-scoped data operations sharing the caller's intake transaction. */
-export class SourceBatch {
-  constructor(private readonly tx: Executor, readonly source: string, private readonly now: PyDateTime) {}
-
-  existingIds(): Promise<Set<string>> {
-    return existingIdsIn(this.tx, this.source);
-  }
-
-  async existingJobs(): Promise<Map<string, PyDict>> {
-    const records = await recordsForSource(this.tx, this.source);
-    return new Map(records.map((item) => [item.dict("job").str("external_id"), item.dict("job")]));
-  }
-
-  ingest(job: PyValue, receiptId: PyValue = null) {
-    if (asDict(job).at("source") !== this.source) throw new PyError("ValueError", "Wrong intake source");
-    return ingestIn(this.tx, job, receiptId, this.now);
-  }
-
-  finish(status: PyValue) {
-    return setSourceHealthIn(this.tx, this.source, status);
-  }
+/** One upsert: atomic on D1, and repeating it only moves checked_at, so a lost response is retried. */
+export async function setSourceHealth(db: Db, source: PyValue, status: PyValue) {
+  checkHealth(source, status);
+  await retrying(() => db.insert(sourceHealth).values({ source: source as string, status })
+    .onConflictDoUpdate({ target: sourceHealth.source, set: { status, checkedAt: utcNowText } }));
 }
 
-/** Everything fn does commits together or not at all, health included. */
-export function sourceBatch<T>(db: Db, source: PyValue, now: PyDateTime, fn: (batch: SourceBatch) => Promise<T>): Promise<T> {
+/**
+ * One source's intake as one unit (Python's source_batch): every listing `keep` accepts is ingested
+ * and the health, when given, is written with them, all or nothing while it fits one request (past
+ * that, each batch carries whole records with their receipts and health comes last; rerunning is
+ * idempotent). `keep` sees each listing and whether its record existed when the unit read it, with
+ * the writer lease (D20 common basis 1); it may run again when the lease was lost before the write.
+ * Returns the ingested records, in listing order.
+ */
+export function ingestSource(db: Db, source: PyValue, now: PyDateTime, items: readonly Listing[],
+  keep: (job: PyDict, exists: boolean) => boolean, health: PyValue | null): Promise<PyDict[]> {
   if (!isSource(source)) throw new PyError("ValueError", "unknown source");
-  return writeTransaction(db, (tx) => fn(new SourceBatch(tx, source, now)));
-}
-
-async function existingIdsIn(tx: Executor, source: string): Promise<Set<string>> {
-  const rows = await tx.select({ id: opportunities.externalId }).from(opportunities).where(eq(opportunities.source, source));
-  return new Set(rows.map((r) => r.id));
-}
-
-export async function existingSourceIds(db: Db, source: PyValue): Promise<Set<string>> {
-  if (!isSource(source)) throw new PyError("ValueError", "unknown source");
-  return existingIdsIn(db, source);
+  if (health !== null) checkHealth(source, health);
+  return writeUnit(db, INTAKE_WRITE, intakeReads(db, items), ([{ settings }, found, receipts], writes) => {
+    const existed = new Set([...found].filter(([, item]) => item !== null).map(([key]) => key));
+    const unit: Intake = { records: new Records(found, writes), receipts: new Receipts(receipts, writes), settings };
+    const ingested: PyDict[] = [];
+    for (const [jobValue, receiptId] of items) {
+      const job = asDict(jobValue);
+      if (job.at("source") !== source) throw new PyError("ValueError", "Wrong intake source");
+      const key = listingKey(job);
+      if (keep(job, key !== null && existed.has(key))) ingested.push(ingestListing(unit, job, receiptId, now));
+    }
+    if (health !== null) {
+      writes.put(sourceHealth, { kind: "update", target: sourceHealth.source, set: [sourceHealth.status, sourceHealth.checkedAt] }, source,
+        { source, status: health as SourceStatus, checkedAt: utcNowText }, null);
+    }
+    return ingested;
+  });
 }
 
 // Python reads source_health without ORDER BY (SQLite rowid order); rows outside the catalog are
 // appended in source order here, which only affects display order of retired sources.
-export async function sourcesIn(tx: Executor): Promise<PyDict> {
+export const sourcesRead = (db: Db) => read(db.select().from(sourceHealth).orderBy(asc(sourceHealth.source)), (rows) => {
   const result = new PyDict(SOURCES.map((s) => [s, "not_connected"]));
-  for (const row of await tx.select().from(sourceHealth).orderBy(asc(sourceHealth.source))) result.set(row.source, row.status);
+  for (const row of rows) result.set(row.source, row.status);
   return result;
+});
+
+export async function sourceStatuses(db: Db): Promise<PyDict> {
+  return (await readAll(db, [sourcesRead(db)]))[0];
 }
 
-export async function sourceChecksIn(tx: Executor): Promise<PyDict> {
+export async function sourceChecks(db: Db): Promise<PyDict> {
   const result = new PyDict(SOURCES.map((s) => [s, PyDict.of({ status: "not_connected", checked_at: null })]));
-  for (const row of await tx.select().from(sourceHealth).orderBy(asc(sourceHealth.source))) {
+  for (const row of await retrying(() => db.select().from(sourceHealth).orderBy(asc(sourceHealth.source)))) {
     result.set(row.source, PyDict.of({ status: row.status, checked_at: row.checkedAt }));
   }
   return result;
@@ -134,71 +177,100 @@ export async function sourceChecksIn(tx: Executor): Promise<PyDict> {
 
 export type ContentVersionRow = { opportunityId: string; fingerprint: string; job: string };
 
-export async function contentVersions(tx: Executor): Promise<ContentVersionRow[]> {
-  return tx.select().from(mailContentVersions).orderBy(asc(mailContentVersions.fingerprint));
+export const contentVersionsRead = (db: Db) =>
+  read(db.select().from(mailContentVersions).orderBy(asc(mailContentVersions.fingerprint)), (rows): ContentVersionRow[] => rows);
+
+
+/** Which (opportunity, fingerprint) content versions exist for a unit's opportunities, plus the ones it adds. */
+class ContentVersions {
+  constructor(private readonly known: Set<string>, private readonly writes: Writes) {}
+
+  has(key: string, fingerprint: string) {
+    return this.known.has(pair(key, fingerprint));
+  }
+
+  /** INSERT … ON CONFLICT DO NOTHING; true when the row is new. */
+  add(key: string, fingerprint: string, job: PyDict): boolean {
+    if (this.has(key, fingerprint)) return false;
+    this.known.add(pair(key, fingerprint));
+    this.writes.put(mailContentVersions, { kind: "nothing" }, pair(key, fingerprint), { opportunityId: key, fingerprint, job: encode(job) }, key);
+    return true;
+  }
 }
 
+const versionsRead = (db: Db, keys: readonly string[]) =>
+  read(db.select({ key: mailContentVersions.opportunityId, fingerprint: mailContentVersions.fingerprint }).from(mailContentVersions)
+    .where(inList(mailContentVersions.opportunityId, keys)), (rows) => new Set(rows.map((r) => pair(r.key, r.fingerprint))));
 
 /**
  * Keep distinct forwarded observations without choosing a newer source version
- * (Collection.ingest_resend_batch): one transaction for the whole message.
+ * (Collection.ingest_resend_batch): one unit for the whole message. `keep` decides, from the
+ * listing and whether its record existed when the unit read it (with the lease), which to ingest.
  */
-export function ingestResendBatch(db: Db, jobs: PyValue[], now: PyDateTime): Promise<{ contentVersions: number }> {
-  return writeTransaction(db, async (tx) => {
+export function ingestResendBatch(db: Db, jobs: PyValue[], now: PyDateTime, keep: (job: PyDict, exists: boolean) => boolean = () => true):
+  Promise<{ contentVersions: number; kept: PyDict[] }> {
+  const items = listings(jobs);
+  const keys = items.map(([job]) => listingKey(job)).filter((k) => k !== null);
+  return writeUnit(db, INTAKE_WRITE, [...intakeReads(db, items), versionsRead(db, keys)], ([{ settings }, found, receipts, known], writes) => {
+    const existed = new Set([...found].filter(([, item]) => item !== null).map(([key]) => key));
+    const unit: Intake = { records: new Records(found, writes), receipts: new Receipts(receipts, writes), settings };
+    const versions = new ContentVersions(known, writes);
     let newVersions = 0;
+    const kept: PyDict[] = [];
     for (const jobValue of jobs) {
       const job = asDict(jobValue);
       const source = pySubscript(job, "source"), receiptId = pySubscript(job, "receipt_id");
       const key = identityHash([source, pySubscript(job, "external_id")]);
-      const record = await getRecord(tx, key);
+      if (!keep(job, existed.has(key))) continue;
+      const record = unit.records.get(key);
+      kept.push(job);
       const fingerprint = jobFingerprint(job);
       let incoming = job;
       if (record !== null) {
         if (fingerprint !== record.req("fingerprint")) {
-          const owner = await receiptOwner(tx, source as string, receiptId as string);
+          const owner = unit.receipts.owner(source as string, receiptId as string);
           if (owner !== null && owner !== key) throw new Conflict("Receipt already belongs to another opportunity");
-          const [known] = await tx.select({ one: sql`1` }).from(mailContentVersions)
-            .where(and(eq(mailContentVersions.opportunityId, key), eq(mailContentVersions.fingerprint, fingerprint)));
-          if (owner !== null && !known) throw new Conflict("Receipt reused with different content");
-          await tx.insert(mailContentVersions).values({ opportunityId: key, fingerprint: record.str("fingerprint"), job: encode(record.dict("job")) })
-            .onConflictDoNothing();
-          const inserted = await tx.insert(mailContentVersions).values({ opportunityId: key, fingerprint, job: encode(job) })
-            .onConflictDoNothing().returning({ key: mailContentVersions.opportunityId });
-          newVersions += inserted.length;
-          await tx.insert(sourceReceipts).values({ source: source as string, receiptId: receiptId as string, opportunityId: key }).onConflictDoNothing();
+          if (owner !== null && !versions.has(key, fingerprint)) throw new Conflict("Receipt reused with different content");
+          versions.add(key, record.str("fingerprint"), record.dict("job"));
+          if (versions.add(key, fingerprint, job)) newVersions++;
+          unit.receipts.add(source as string, receiptId as string, key);
           continue;
         }
         incoming = record.dict("job");
       }
-      await ingestIn(tx, incoming, receiptId, now);
+      ingestListing(unit, incoming, receiptId, now);
     }
-    return { contentVersions: newVersions };
+    return { contentVersions: newVersions, kept };
   });
 }
 
 export type MailRecord = { status: string; reason: string | null; retryPending?: boolean };
 
 export async function mailState(db: Db, source: string, recipient: string): Promise<PyDict> {
-  const [row] = await db.select({ state: mailSyncState.state }).from(mailSyncState)
-    .where(and(eq(mailSyncState.source, source), eq(mailSyncState.recipient, recipient)));
+  const [row] = await retrying(() => db.select({ state: mailSyncState.state }).from(mailSyncState)
+    .where(and(eq(mailSyncState.source, source), eq(mailSyncState.recipient, recipient))));
   return row ? asDict(loads(row.state)) : PyDict.of({ cursor: null, after: null, head: null });
 }
 
+/** One upsert of the same value: safe to repeat after a lost response. */
 export async function saveMailState(db: Db, source: string, recipient: string, state: PyDict) {
-  await writeTransaction(db, (tx) => tx.insert(mailSyncState).values({ source, recipient, state: encode(state) })
+  await retrying(() => db.insert(mailSyncState).values({ source, recipient, state: encode(state) })
     .onConflictDoUpdate({ target: [mailSyncState.source, mailSyncState.recipient], set: { state: encode(state) } }));
 }
 
 /** Python iterates these rows in the primary-key index order SQLite reads them in (measured). */
 export async function mailRecords(db: Db, source: string, recipient: string): Promise<Map<string, MailRecord>> {
-  const rows = await db.select().from(mailIngestion)
-    .where(and(eq(mailIngestion.source, source), eq(mailIngestion.recipient, recipient))).orderBy(asc(mailIngestion.messageId));
+  const rows = await retrying(() => db.select().from(mailIngestion)
+    .where(and(eq(mailIngestion.source, source), eq(mailIngestion.recipient, recipient))).orderBy(asc(mailIngestion.messageId)));
   return new Map(rows.map((r) => [r.messageId, { status: r.status, reason: r.reason, retryPending: r.retryPending === 1 }]));
 }
 
-/** A new message is recorded once; only an explicit retry (retry_pending=1) may overwrite it. */
+/**
+ * A new message is recorded once; only an explicit retry (retry_pending=1) may overwrite it, and the
+ * overwrite clears the flag, so repeating the statement after a lost response changes nothing.
+ */
 export async function recordMail(db: Db, source: string, recipient: string, messageId: string, status: string, reason: string | null = null) {
-  await writeTransaction(db, (tx) => tx.insert(mailIngestion).values({ source, recipient, messageId, status, reason })
+  await retrying(() => db.insert(mailIngestion).values({ source, recipient, messageId, status, reason })
     .onConflictDoUpdate({
       target: [mailIngestion.source, mailIngestion.recipient, mailIngestion.messageId],
       set: { status, reason, retryPending: 0, checkedAt: utcNowText },

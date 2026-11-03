@@ -8,7 +8,7 @@ import { pyFullmatch, pyRe } from "@/platform/py/re";
 import { pyLen } from "@/platform/py/unicode";
 import { urlsplit } from "@/platform/py/url";
 import { isDict, PyDict, PyError, pyGet, pySorted, truthy, type PyValue } from "@/platform/py/value";
-import { sourceBatch } from "../ingest";
+import { ingestSource, listings } from "../ingest";
 import { attr, canonicalOn, employmentTypes, kindOf, pageReader, pageText, rejectsDetail, seams, SOURCE_BUDGET_MS, type FetchSeams } from "./job-pages";
 import { published, text, visibleParts } from "./text";
 
@@ -164,19 +164,9 @@ export async function syncJobbank518(db: Db, reader: JobsReader = () => fetchJob
   const result = await reader();
   const now = PyDateTime.now();
   const partial = truthy(result.req("rejected_count")) || truthy(result.req("truncated"));
-  const count = await sourceBatch(db, "jobbank518", now, async (batch) => {
-    const old = await batch.existingIds();
-    let n = 0n;
-    for (const job of result.req("jobs") as PyDict[]) {
-      if (old.has(job.str("external_id")) || (truthy(job.at("software_category")) && job.at("kind") === "contract"
-        && qualifyForIntake(job, now).at("status") !== "excluded")) {
-        await batch.ingest(job, job.at("receipt_id"));
-        n++;
-      }
-    }
-    await batch.finish(partial ? "failed" : "ok");
-    return n;
-  });
+  const count = BigInt((await ingestSource(db, "jobbank518", now, listings(result.req("jobs") as PyDict[]), (job, exists) =>
+    exists || (truthy(job.at("software_category")) && job.at("kind") === "contract" && qualifyForIntake(job, now).at("status") !== "excluded"),
+  partial ? "failed" : "ok")).length);
   const out = new PyDict([...result].filter(([k]) => k !== "jobs"));
   return out.update({ jobs: count, status: partial ? "partial" : "ok" });
 }
