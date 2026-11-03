@@ -58,7 +58,9 @@ describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () =>
   it("starts from an empty database and applies the migrations in one request", async () => {
     const tables = (await rows("select name from sqlite_master where type = 'table' and name not like '\\_cf\\_%' escape '\\' and name <> 'sqlite_sequence'")).map((r) => String(r[0]));
     // Children before parents is not known here; foreign keys off for the wipe of a test database only.
-    await raw.batch([{ sql: "pragma defer_foreign_keys = on", params: [] }, ...tables.map((t) => ({ sql: `drop table if exists "${t}"`, params: [] }))]);
+    // Straight to the transport: the client's DDL guard refuses DROP TABLE on lease-guarded tables
+    // without the lease, which would make every run after the first fail on a non-empty database.
+    await http.batch([{ sql: "pragma defer_foreign_keys = on", params: [] }, ...tables.map((t) => ({ sql: `drop table if exists "${t}"`, params: [] }))]);
     await migrateD1(db);
     const stand = localTransport(":memory:");
     await migrateD1(dbOver(new D1Client(stand)));
