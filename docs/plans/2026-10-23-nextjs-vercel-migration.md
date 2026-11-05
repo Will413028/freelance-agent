@@ -694,6 +694,15 @@
   - 停止條件：指紋不符，或第一次自然排程沒有完成收案 → 照回滾程序處理。
   - 需要人做的事：授權部署；在網頁上確認看得到。
   - 完成後的狀態：VM 停機但保留，直到 D6 窗口結束；4c 的副本排程停用。
+  - 前提變更（Will 2026-11-05：「現在就做，不用觀察期」）：取消「被擋於 4e4b」，4e4b 三天觀察只做了 11-04 一天（4e4 驗收），不再補。
+  - 實作狀態（2026-11-06 00:1x–00:4x 台北，避開 09:00–10:59）：
+    1. 切換前：Vercel 最後兩筆 TS run `completed`（11-05 01:13Z、04:53Z）；Python `daily_runs` 11-05 `failed`（已結束）、`digest_outbox` 11-04、11-05 `pending`。沒有停用 Vercel Cron：整個切換在當天第一次排程前做完。
+    2. 切換前版本（回滾材料）：release `/opt/freelance-agent.d994cd2-jb518`，api／worker `freelance-agent-backend:d994cd2-jb518`，web `freelance-agent-web:b4dd278`；Vercel 前一版 `q4mgo3hk2`（讀 shadow D1）。
+    3. `docker compose … stop`：api、web、worker 都 `exited`（restart policy `unless-stopped`，重開機不會自己起來）。
+    4. 一致備份 `/var/lib/freelance-shadow/cutover/pre-cutover-20261106.sqlite3`（`snapshot.ts`，`snapshot ok`）；正式 D1 `freelance-agent-prod`（`913db1a2…`，ENAM），`import-copy` 25 張表全部 `same`（opportunities 2,982、source_receipts 3,103、mail_ingestion 367…），derived 3,004，`d1_rows_written 23780`，`import ok`，報告 `cutover/import-prod-20261106.json`；`check-storage-triggers` 0 signals。
+    5. Vercel env：`D1_DATABASE_ID` 拆成 Production（正式 D1）與 Preview（shadow D1，preview 不碰正式庫）；加 `WEB_WRITES=on`（Production）；名稱仍在白名單內、沒有寄送憑證。`vercel deploy --prod`（`ce1254d`）→ `jzp0qoy8t`，alias `freelance-agent-sigma.vercel.app`；`vercel curl /` 回 200、有職缺資料。
+    6. VM：`freelance-shadow-after.timer` disable（unit 檔留著）；回滾用映像 `freelance-agent-shadow:ce1254d`（含 `write-back.ts`），`shadow-compose.env` 的 `SHADOW_IMAGE` 改成它（備份 `shadow-compose.env.bak-d25d59d`）。
+    - 未驗：11-06 09:xx 的第一次自然排程（驗收第 2 項）；網頁清單總數對 D1 `opportunities`；Will 在網頁上確認看得到、回饋寫進正式 D1。
 
 - [ ] **14. 收尾**
   - 刪除：
@@ -836,5 +845,5 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 10 摘要與寄送 | 進行中（10a、10e 繼續；10b、10b2、10c 由 10f 刪除；10d 取消，D22） | 10a（`51eb12f`，CI run 40193316438 綠）：typecheck、boundaries、build、344 個測試、5 個 mutation、golden `failure_reasons` 21 個；10b（`3add463`、效能修正 `a5b2e6c`）：golden（digest 情境、render 12 例、run_daily 4 例）逐位元組相同、22 個 mutation、replay 測試（相同、竄改、無 digest、inconclusive）、設計審查 9 項已分流；正式副本建摘要 12 秒 | 10a＋10b 已上 shadow（`a5b2e6c`，`8h6bndpwp`，VM `:a5b2e6c`），10-25 副本 replay same；replay 7 天比對、shadow 7 天候選清單比對從 10-26 起算；2026-10-26 依 D15–D17 新增 10b2（帳本）與 10e（共用投影），順序 10b2 → 10c → 10e → 10d；10b2 程式完成待驗收（`7c61740`，CI run 40219932273 web／backend 兩個 job success；本機驗收見 10b2 實作狀態；已上 shadow（`c247200`，`kzojngp21`，VM `:c247200`）；10-26 第一次自然執行：replay 經帳本 same、帳本檢查 0 缺 0 多；其餘 6 天未跑）；10a 缺陷（cryptojobslist 的 `feed_built_at` 讓 detail 被拒）已修（`deabd9e`，CI run 40264261136 web／backend 兩個 job success），已部署（`5knxy7mjg`），10-27 自然執行待查；10c 程式完成待驗收（`48e4684`，CI run 40268230155 web／backend 兩個 job success；與 10a 修正一起已上 shadow（`86b62be`，`5knxy7mjg`，VM 不換），10-27 自然執行待查；本機：typecheck、boundaries、build、34 檔 398 個測試、9 個 mutation、對抗式審查改 3 記 1，見 10c 實作狀態；1d 實寄已跑，Gmail 接受 1／拒收 0，Will 確認收到）；10d 取消（D22）；10f 程式完成待驗收（分支 `10f`，draft PR #6 疊在 #5 上；CI run `41610601132` web、backend、d1 全過，d1 在真 D1 上套用到 0004；本機 35 檔 401 過；見 10f 實作狀態）；10e 設計已拍板（D18，2026-10-26），拆成 10e1、10e2；10e1 程式完成待驗收（分支 `10e1` 的 `526a1c1`、`f23f2f2`，2026-11-03，本機：typecheck、boundaries、build 0，`pnpm test` 38 檔 447 過、7 skip（審查修正後重跑），10 個 mutation 全紅，設計審查 8 項已分流；真 D1 正式量級已量（改設定 4.5–5.8 秒、一個寫入請求）；CI 過：draft PR #4 run `41584640879`（`0829347`），web、backend、d1 job 全過，d1 對 CI 庫 7 個測試（含新的 `json_each` 與匯入重建）、寫 353 列；見 10e1 實作狀態）；10e2 程式完成待驗收（分支 `10e2`，draft PR #5 疊在 #4 上；CI run `41593863307` web、backend、d1 全過；本機 39 檔 453 過、9 個 mutation 全紅；開工與完成前設計審查、`/code-review` 已分流；真 D1 列讀取量已量（一頁 15,252 列、回饋約 30 列、摘要 19,609 列），量測發現 snapshot 超過 2 MB 會失敗（D22 後不再適用）；真實副本 replay 未跑，見 10e2 實作狀態） | |
 | 11 網頁前端第一版（D22、D23 改寫） | 完成（2026-11-03：PR #7 合進 `dev` `d25d59d`，production `q4mgo3hk2` 讀 shadow D1；寫入開關關閉） | 替身：全套 437 個（430 過、7 skip）、`web-pages` 22、`web-guard` 8；mutation 7 項全紅；`typecheck`、`boundaries`、`build`；CI #7 全綠；preview 未登入 302；production 實際瀏覽 6 種頁面；D13 頁面量測（見步驟 11） | 設定儲存的列數（寫入開關關閉，切換後補量） | 開工設計審查 13、`/code-review` 10、完成前設計審查 7；處置見步驟 11 |
 | 12 反向收斂與演練 | 完成（2026-11-03，分支 `12`） | 替身：`tests/ops.test.ts` 寫回 7 例，mutation 5 項全紅；VM 上用正式副本演練 2 輪（臨時 test D1，已刪）：注入的 7 類變更都寫回、重跑 0 變更、兩輪報告除 `source_health.checked_at` 外相同；切換前的 Python 映像讀寫回的副本並接著寫一筆回饋 | 改過的 `rehearse.sh`（名稱檢查、映像偵測）沒有再跑完整一輪，只在 VM 上單獨驗名稱檢查 | 開工設計審查 9（blocking 3）、`/code-review` 10；處置見步驟 12 |
-| 13 正式切換 | 未開始 | | | |
+| 13 正式切換 | 進行中：2026-11-06 00:4x 切換完成，等 09:xx 第一次自然排程驗收 | 匯入 25 表 same、import ok；Vercel `jzp0qoy8t` 讀正式 D1、`WEB_WRITES=on`；VM Compose 停止 | | |
 | 14 收尾 | 未開始 | | | |
