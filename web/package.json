@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.2.2",
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 3347",
     "build": "next build",
