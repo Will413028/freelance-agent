@@ -11,27 +11,32 @@
     "test": "vitest run",
     "test:d1": "vitest run tests/d1-real-product.test.ts tests/d1-real.test.ts",
     "boundaries": "depcruise src --config .dependency-cruiser.cjs",
-    "db:generate": "drizzle-kit generate",
-    "db:check": "drizzle-kit check && drizzle-kit generate && test -z \"$(git status --porcelain -- drizzle)\""
+    "db:generate": "drizzle-kit generate && drizzle-kit generate --config drizzle.pg.config.ts",
+    "db:check": "drizzle-kit check && drizzle-kit generate && drizzle-kit check --config drizzle.pg.config.ts && drizzle-kit generate --config drizzle.pg.config.ts && test -z \"$(git status --porcelain -- drizzle drizzle-pg)\"",
+    "check": "pnpm typecheck && pnpm boundaries && pnpm db:check && pnpm test && node ../deploy/check-compose.mjs"
   },
   "dependencies": {
     "@vercel/functions": "3.10.3",
     "drizzle-orm": "0.45.4",
     "next": "16.3.5",
+    "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "saxes": "6.0.0",
     "workflow": "5.2.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
     "@swc/core": "1.15.3",
     "@types/node": "26.5.1",
+    "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "dependency-cruiser": "18.7.0",
     "drizzle-kit": "0.31.11",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "yaml": "2.9.1"
   }
 }

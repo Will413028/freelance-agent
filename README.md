@@ -51,7 +51,7 @@ pnpm install --frozen-lockfile
 pnpm test
 ```
 
-`pnpm test` 用本機的 D1 替身（`web/src/db/d1/local.ts`，以 `node:sqlite` 模擬 D1 的限制），不需要資料庫、憑證或網路帳號。
+`pnpm test` 用本機的 D1 替身（`web/src/db/d1/local.ts`，以 `node:sqlite` 模擬 D1 的限制）測舊程式、用行程內的 PGlite 測新的 Postgres 程式，不需要資料庫、憑證或網路帳號。
 
 `pnpm dev` 會在 `http://127.0.0.1:3347` 啟動網頁，但頁面需要 `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN` 指向一個真的 D1 資料庫；目前沒有離線示範模式。不要把本機指向正式資料庫做實驗。
 
@@ -60,13 +60,13 @@ pnpm test
 在 `web/` 執行，與 CI（`.github/workflows/ci.yml`）相同：
 
 ```bash
-pnpm typecheck
-pnpm boundaries
-pnpm test
+pnpm check   # typecheck、boundaries、db:check（D1 與 Postgres 兩套）、test、deploy/check-compose.mjs
 pnpm build
 ```
 
-`pnpm test:d1` 對真的 D1 跑整合測試，**會先清空該資料庫的所有表**。只能指向名稱是 `freelance-agent-*-test` 的資料庫（CI 有自己的一個），絕不能指向正式資料庫；它另外要求 `D1_DESTRUCTIVE_TEST` 與 `D1_DATABASE_ID` 相同才會執行。
+CI 另外對真的 Postgres 18 重跑 Postgres 測試（`TEST_PG_URL`），並建一次映像（不推送）。VM 上的部署見 [`deploy/README.md`](deploy/README.md)。
+
+`pnpm test:d1` 對真的 D1 跑整合測試，**會先清空該資料庫的所有表**。只能指向名稱是 `freelance-agent-*-test` 的資料庫（CI 已不跑它，計畫步驟 11 刪除），絕不能指向正式資料庫；它另外要求 `D1_DESTRUCTIVE_TEST` 與 `D1_DATABASE_ID` 相同才會執行。
 
 測試全部使用合成資料。測試通過不代表可以改正式資料。
 
