@@ -725,6 +725,7 @@
       - `WEB_WRITES` 從程式拿掉（頁面、路由、守門、測試）。
       - `daily_runs` 主鍵改成只有 `local_date`：migration `0005_daily_runs_key`（重建表、拿掉 `recipient`；drizzle 產生的兩行 `PRAGMA foreign_keys` 拿掉，這張表沒有外鍵）；正式 D1 查到 59 列、59 個日期、1 個收件人，重建不會撞鍵。`DIGEST_RECIPIENT` 不再讀。測試：0000 的表放兩列後套 0005，列與結果原樣保留，同日第二列被拒。**還沒套到正式 D1、還沒部署**。
       - 長期檢查逐項核對都已在 CI，見 `docs/implementation-plan.md`。
+      - 完成前程式碼審查（fresh subagent，1 輪）3 項（blocking 0）：改 1（`errorKind` 對非字串的 `name` 用 `String()`）、記 1（信件來源內部接住的例外沒有 `error`：補上會讓 5 個 golden 情境不相等並造成 `sync.ts` ↔ `run-source.ts` 循環引用，文件改寫成實際範圍，列進待辦等 golden 拆分）、駁回 1（nit：只有舊拒收列又沒新信的來源顯示 `waiting`，是新規則的本意）。
       - 沒做：v2 雜湊與 golden 拆分（要先定計畫，見下）。
     - 還沒做（清單在 `docs/implementation-plan.md`）：`WEB_WRITES` 退場、回饋簽名與排序匯出、`DIGEST_RECIPIENT` 與 `daily_runs` 主鍵、v2 雜湊與 golden 拆分、長期檢查接進 CI、VM／Neon／shadow D1 退役（每項刪除前問 Will）。
   - 刪除：

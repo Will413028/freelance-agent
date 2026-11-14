@@ -54,7 +54,7 @@ export const succeeded = (detail: SourceDetail) => detail.status === "ok" || det
 export function errorKind(e: unknown): string {
   if (e instanceof HttpError) return `http_${e.code}`;
   const name = e instanceof PyError ? e.pyType : e instanceof Error ? e.name : "unknown";
-  return name.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 80) || "unknown";
+  return String(name).toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 80) || "unknown";
 }
 
 // Mirrors the Python connectors: a sync is marked failed before it starts, so an interrupted run
