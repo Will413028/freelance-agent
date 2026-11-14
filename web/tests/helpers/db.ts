@@ -104,12 +104,3 @@ export function migrationStatement(pattern: RegExp): string {
   throw new Error(`no migration statement matches ${pattern}`);
 }
 
-// The retired Python writer's SQLite schema, frozen at the cutover (plan step 14): the 25 product
-// tables were loaded from it, and their columns stay what it says until a migration changes them on purpose.
-export const SQLITE_SCHEMA_PATH = path.resolve(import.meta.dirname, "../fixtures/001_sqlite.sql");
-
-export function sqliteWithSchema(file = ":memory:") {
-  const lite = new DatabaseSync(file);
-  lite.exec(readFileSync(SQLITE_SCHEMA_PATH, "utf8"));
-  return lite;
-}

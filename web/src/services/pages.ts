@@ -1,5 +1,6 @@
 import type { Db } from "@/db/client";
 import { REGISTRY, sourceChecks } from "@/modules/collection/public";
+import { storageSignals, type StorageSignal } from "@/ops/storage-triggers";
 import { asGroup, CATEGORIES, isCandidate, PUBLIC_JOB_FIELDS, readSettings, VIEWS, type View } from "@/modules/discovery/public";
 import { latestDailyRun } from "@/modules/notifications/public";
 import type { PyDateTime } from "@/platform/py/datetime";
@@ -138,7 +139,13 @@ export async function settingsPage(db: Db): Promise<SettingsView> {
 }
 
 export type SourceRow = { source: string; name: string; status: string; checkedAt: string | null; daily: Record<string, Plain> | null };
+/** How many days of runs, ending with the latest one, the sources page checks for storage signals. */
+const SIGNAL_DAYS = 7;
+const daysBefore = (localDate: string, days: number) => new Date(Date.parse(`${localDate}T00:00:00Z`) - days * 86_400_000).toISOString().slice(0, 10);
+
 export type SourcesView = {
+  /** Signals that reopen a deferred storage decision (D18, D20, D21, the projection read), over the runs checked. */
+  signals: { runs: number; reopened: StorageSignal[] };
   lastRun: { localDate: string; status: string; startedAt: string; finishedAt: string | null; reason: string | null } | null;
   sources: SourceRow[];
 };
@@ -148,7 +155,10 @@ export async function sourcesPage(db: Db): Promise<SourcesView> {
   const result = run && isDict(run.result) ? run.result : null;
   const details = result && result.has("source_details") && isDict(result.get("source_details")!) ? result.dict("source_details") : null;
   const reason = result?.at("source_reason") ?? result?.at("reason") ?? null;
+  // Nothing else runs this check since the cutover (plan step 14); "totals" only qualifies a run's numbers.
+  const checked = run ? await storageSignals(db, daysBefore(run.localDate, SIGNAL_DAYS - 1)) : { runs: 0, signals: [] };
   return {
+    signals: { runs: checked.runs, reopened: checked.signals.filter((s) => s.decision !== "totals") },
     lastRun: run ? { localDate: run.localDate, status: run.status, startedAt: run.startedAt, finishedAt: run.finishedAt, reason: typeof reason === "string" ? reason : null } : null,
     sources: [...checks].map(([source, v]) => {
       const check = asDict(v), daily = details?.at(source);

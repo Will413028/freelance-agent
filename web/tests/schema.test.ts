@@ -1,60 +1,32 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { D1_TABLES, DERIVED_TABLES } from "@/ops/tables";
-import { query, resetSchema, sqliteWithSchema, leased } from "./helpers/db";
+import { is } from "drizzle-orm";
+import { getTableConfig, SQLiteTable } from "drizzle-orm/sqlite-core";
+import * as schema from "@/db/schema";
+import { query, resetSchema, leased } from "./helpers/db";
 
-type Col = { name: string; type: string; notnull: number; dflt_value: string | null; pk: number };
+type Col = { name: string; type: string; notnull: number; pk: number };
 type Named = { name: string; sql: string };
 
 beforeAll(resetSchema);
 
-// Bookkeeping tables that are not part of the schema: drizzle's migration journal, AUTOINCREMENT's
-// counters, and D1's own (_cf_*).
-const OWN = "name not like 'sqlite_%' and name not like '\\_cf\\_%' escape '\\' and name <> '__drizzle_migrations'";
-
-describe("schema parity with the Python SQLite schema", () => {
-  const lite = sqliteWithSchema();
-  const all = <T>(sql: string) => lite.prepare(sql).all() as T[];
-  const tables = all<{ name: string }>(`select name from sqlite_master where type='table' and ${OWN} order by name`).map((r) => r.name);
-  // A parenthesized default is the same expression; drizzle-kit writes CURRENT_TIMESTAMP as (CURRENT_TIMESTAMP).
-  const column = (c: Col) => ({ name: c.name, type: c.type.toLowerCase(), notnull: c.notnull === 1 || c.pk > 0, dflt: c.dflt_value?.replace(/^\((.*)\)$/, "$1") ?? null, pk: c.pk });
-  const byName = (a: { name: string }, b: { name: string }) => (a.name < b.name ? -1 : 1);
-
-  it("has every SQLite table and, besides them, only the derived and D1-only tables", async () => {
-    const rows = await query<{ name: string }>(`select name from sqlite_master where type='table' and ${OWN} order by name`);
-    expect(tables).toHaveLength(25);
-    expect(rows.map((r) => r.name)).toEqual([...tables, ...DERIVED_TABLES, ...D1_TABLES].sort());
-  });
-
-  it("has the same columns, types, nullability, defaults and primary keys in every table", async () => {
-    for (const table of tables) {
-      const want = all<Col>(`pragma table_info(${table})`).map(column).sort(byName);
-      const have = (await query<Col>(`pragma table_info(${table})`)).map(column).sort(byName);
-      expect({ table, cols: have }).toEqual({ table, cols: want });
+// Structure drift (schema.ts against the migrations) is `pnpm db:check`, run in CI; the tests here
+// cover what drizzle does not model: collation, and below the immutability triggers of 0001_triggers.sql by their behaviour.
+describe("schema", () => {
+  // db:check compares schema.ts with drizzle's snapshot, never with the SQL files. This closes the
+  // gap: the database the migrations build has exactly the tables and columns schema.ts declares,
+  // so a hand-written migration cannot drop or alter a table (the historical ones have no other test).
+  it("builds from the migrations exactly the tables and columns schema.ts declares", async () => {
+    const declared = (Object.values(schema) as unknown[]).filter((t): t is SQLiteTable => is(t, SQLiteTable)).map((t) => getTableConfig(t));
+    const own = "name not like 'sqlite_%' and name not like '\\_cf\\_%' escape '\\' and name <> '__drizzle_migrations'";
+    const built = await query<{ name: string }>(`select name from sqlite_master where type='table' and ${own} order by name`);
+    expect(built.map((t) => t.name)).toEqual(declared.map((t) => t.name).sort());
+    expect(declared.length).toBeGreaterThanOrEqual(30);
+    for (const table of declared) {
+      const have = (await query<Col>(`pragma table_info(${table.name})`)).map((c) => ({ name: c.name, type: c.type.toLowerCase(), notnull: c.notnull === 1 || c.pk > 0 }));
+      const want = table.columns.map((c) => ({ name: c.name, type: c.getSQLType().toLowerCase(), notnull: c.notNull || c.primary || table.primaryKeys.some((k) => k.columns.includes(c)) }));
+      const byName = (x: { name: string }, y: { name: string }) => (x.name < y.name ? -1 : 1);
+      expect({ table: table.name, cols: have.sort(byName) }).toEqual({ table: table.name, cols: want.sort(byName) });
     }
-  });
-
-  it("has the same unique constraints and indexes in every table", async () => {
-    type Index = { name: string; unique: number; origin: string };
-    // Python declares UNIQUE inline (automatic indexes), drizzle-kit as named indexes: compare columns.
-    const shape = async (list: (sql: string) => Promise<unknown[]>, table: string) => {
-      const out: string[] = [];
-      for (const idx of (await list(`pragma index_list(${table})`)) as Index[]) {
-        if (idx.origin === "pk") continue;
-        const cols = ((await list(`pragma index_info('${idx.name}')`)) as { name: string }[]).map((c) => c.name);
-        out.push(`${idx.unique ? "unique" : "index"}(${cols.join(",")})`);
-      }
-      return out.sort();
-    };
-    for (const table of tables) {
-      expect({ table, idx: await shape((sql) => query(sql), table) }).toEqual({ table, idx: await shape(async (sql) => all(sql), table) });
-    }
-  });
-
-  it("has the Python triggers verbatim", async () => {
-    const want = all<Named>("select name, sql from sqlite_master where type='trigger' order by name");
-    const have = await query<Named>(`select name, sql from sqlite_master where type='trigger' and name in (${want.map(() => "?").join(",")}) order by name`, want.map((t) => t.name));
-    expect(want).toHaveLength(6);
-    expect(have).toEqual(want);
   });
 
   it("compares and orders text like SQLite BINARY: no column declares another collation", async () => {

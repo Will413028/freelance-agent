@@ -35,7 +35,7 @@ web/
   src/ops/                 儲存觸發條件檢查
   scripts/                 migrate、rebuild-projection、check-storage-triggers
   drizzle/                 migration SQL
-  tests/                   整合測試；fixtures/ 是凍結的 golden.json 與 001_sqlite.sql
+  tests/                   整合測試；fixtures/ 是凍結的 golden.json
 docs/                      設計、功能、操作、平台狀態、遷移計畫與 ADR
 ```
 

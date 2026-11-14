@@ -31,7 +31,7 @@
 
 正式環境只允許上面這些名稱，不放任何寄送憑證（計畫「全域約束」）。`RESEND_API_KEY` 技術上是完整權限的 key，防護在程式：只送 GET、只打 `https://api.resend.com/emails/receiving` 底下的網址。
 
-切換時 `D1_DATABASE_ID` 分成 Production 與 Preview 兩個值，preview 部署不碰正式資料庫（計畫步驟 13 第 5 項）。
+`D1_DATABASE_ID` 只設在 Production。Preview 沒有這個值（原本指向的 shadow 資料庫已在 2026-11-15 刪除），所以 preview 部署連不到任何資料庫，需要資料的頁面會失敗；要讓 preview 可用，先建一個專用的 D1 資料庫再設定，不要指向正式庫。
 
 `D1_API_TOKEN` 用的 token 在 2026-11-30 到期，到期前要重建並換掉各處的值（計畫 D21）。
 
@@ -56,7 +56,7 @@ CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scri
 
 - 輸出 `migrations applied: N`；已是最新時不做事。目前有 5 個（`0000_schema` 到 `0004_drop_digest_novelty`）。
 - 待套的語句超過一個請求的上限時腳本會拒絕，要把 migration 拆開。
-- 25 張產品表的結構以 `web/tests/fixtures/001_sqlite.sql` 為凍結基準；要改它們的結構是另一個要先設計的決定，不是例行 migration。
+- 結構的唯一權威是 `web/src/db/schema.ts` 加這裡的 migration。兩道檢查，CI 都跑：`pnpm db:check` 比對 `schema.ts` 與 drizzle 的快照（`drizzle-kit generate` 不該產生新檔）；`tests/schema.test.ts` 比對「migration 實際建出來的表與欄位」與 `schema.ts`，所以手寫的 migration 動到任何一張表都會被擋。改 25 張產品表的欄位是要先設計的決定，不是例行 migration。
 
 ## 排程與每日執行
 
@@ -74,7 +74,7 @@ CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scri
 
 **業務結果看資料，不看平台狀態。** workflow 顯示 `completed` 只代表流程走完，不代表每個來源都成功。
 
-- 網頁 `/sources`：最近一次每日執行的日期、狀態、起訖時間、原因，以及每個來源的健康狀態與當次計數。
+- 網頁 `/sources`：最近一次每日執行的日期、狀態、起訖時間、原因，以及每個來源的健康狀態與當次計數；另有一區顯示近 7 天的儲存檢討訊號。
 - D1 的 `daily_runs`：每天一列，`status` 是 `running`／`complete`／`failed`，`result` 是結果 JSON。`source_health` 是每個來源最近一次檢查。
 - workflow 的 run 與各 step 耗時：
 
@@ -124,7 +124,7 @@ pnpm exec workflow inspect runs -b vercel -j
 | 每條查詢 | 100 個綁定參數、SQL 100 KB、30 秒 | 該查詢被拒 |
 | Cloudflare API 請求 | 每個使用者每 5 分鐘 1,200 個 | 全部 API 被擋 5 分鐘 |
 
-量到的用量（計畫步驟 11「D13 頁面量測」，正式環境各量一次）：待看清單第 1 頁讀 20,687 列、全部清單第 1 頁 17,956 列、收藏 11,580 列、詳情 12 列、設定 1 列、來源狀態 30 列。清單頁是讀取額度的主要消耗，讀取列數會隨職缺數成長。
+量到的用量（計畫步驟 11「D13 頁面量測」，正式環境各量一次）：待看清單第 1 頁讀 20,687 列、全部清單第 1 頁 17,956 列、收藏 11,580 列、詳情 12 列、設定 1 列、來源狀態 30 列（2026-11-15 起這頁多一次 `daily_runs` 讀取，最多再讀約 7 列，還沒重量）。清單頁是讀取額度的主要消耗，讀取列數會隨職缺數成長。
 
 撞到額度時程式不等待也不重試（`web/src/db/client.ts` 的 `retrying` 只重試「結果不明」的請求），該來源或該頁面直接失敗。
 
@@ -151,7 +151,7 @@ CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scri
 
 出現訊號時不要自行改架構，回報 Will；對應的選項寫在計畫的 D18、D20、D21。
 
-目前沒有排程自動跑這支檢查，要人工執行；接進 CI 是計畫步驟 14「長期檢查接進 CI」的待辦。
+`/sources` 頁每次載入都會對「到最近一次執行為止的 7 天」跑同一套判斷並顯示結果，所以平常看網頁就夠；這支腳本用來查更早的日期。
 
 ## 清單投影重建
 
@@ -169,7 +169,7 @@ CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scri
 
 | 類別 | 表 | 規則 |
 |---|---|---|
-| 產品表（25 張） | `web/tests/fixtures/001_sqlite.sql` 列的那些 | 權威資料。歷史的提案、投案、客戶、送出、摘要表也在內，沒有畫面但必須保留 |
+| 產品表（25 張） | `web/src/db/schema.ts` 裡衍生表與記帳表以外的那些 | 權威資料。歷史的提案、投案、客戶、送出、摘要表也在內，沒有畫面但必須保留 |
 | 衍生表 | `discovery_items`、`discovery_versions` | 可由產品表重建 |
 | D1 專屬記帳表 | `writer_lease`、`write_attempts`、`guard` | 寫入租約與守衛用，不是產品資料 |
 

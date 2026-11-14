@@ -2,9 +2,9 @@ import { sql } from "drizzle-orm";
 import { check, foreignKey, index, integer, primaryKey, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 // Cloudflare D1 (SQLite) since plan step 4e. Tables and columns are those of
-// the frozen SQLite schema, tests/fixtures/001_sqlite.sql (tests/schema.test.ts compares them), so the
-// daily copy and the reverse script move rows 1:1. Deliberate carry-overs, re-evaluated after the
-// step 13 rollback window:
+// the retired Python system's SQLite schema, loaded 1:1 at the cutover; `pnpm db:check` keeps this
+// file and the migrations in step. Carry-overs from that schema, to be re-evaluated now that the
+// rollback window is over (docs/implementation-plan.md):
 // - JSON stays text: stored bytes feed fingerprints and approval hashes (spike 1c rule 1);
 // - timestamps stay text in the format the Python writer produced, so copied rows keep exact values;
 // - 0/1 flags stay integer for the same reason.

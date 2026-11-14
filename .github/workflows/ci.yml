@@ -27,6 +27,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm boundaries
+      # schema.ts and the migrations in drizzle/ describe the same tables: generating finds nothing to add.
+      - run: pnpm db:check
       - run: pnpm test
       - run: pnpm build
 
