@@ -679,7 +679,7 @@
     5. 改 production env：`D1_DATABASE_ID` 指向正式 D1 資料庫、設 `WEB_WRITES=on`（D23）；不加寄送憑證（D22）。`RESEND_API_KEY`、`RESEND_INBOX` 在 shadow 期已存入（D14），沿用；shadow 期超過 6 週或懷疑外洩時先換一把新 key。然後重新部署，並 Enable Cron Jobs。
     6. 驗下一次自然排程；Hobby 會在 09:00–09:59 之間觸發。
     7. shadow D1 資料庫保留到 D6 窗口結束。
-  - 回滾（D6 窗口內）：
+  - 回滾（D6 窗口內；**2026-11-15 起作廢**：D6 提前結束，步驟 14 已刪 `write-back.ts`、`backend/`、`docs/compose.md`，下面的程序只是紀錄）：
     1. Disable Cron Jobs；拿掉 `WEB_WRITES` 並重新部署，確認網頁寫入回 403 後才往下做（D23：反向腳本之後的網頁寫入會留在 D1、回不到 SQLite）。確認當天 TS 的 run 不是 `running`（`daily_runs`；停用 cron 不會中止已在跑的 workflow，單句寫入不受租約管）。
     2. 在 VM 上複製切換前的備份，對複本跑反向腳本（`write-back.ts`，用 shadow 映像與 VM 上已有的 D1 token，`D1_DATABASE_ID` 指向正式 D1；資料與憑證都不離開 VM），重跑到新增與更新都是 0。
     3. 停著 Compose，把正式 SQLite 檔改名保留（`.pre-rollback-<日期>`），把寫回的複本放到正式路徑，擁有者與權限照原檔。
@@ -707,6 +707,14 @@
     - Will 2026-11-15 在網頁上確認看得到資料。驗收全部通過。
 
 - [ ] **14. 收尾**
+  - 實作狀態（2026-11-15，分支 `step-14`，第一批）：
+    - 已刪：`backend/`、`frontend/`、`contracts/`、`deploy/`、根 `scripts/`、`gen_golden.py`、`web/src/ops/{import,rows,write-back}.ts`、`web/scripts/{import-copy,snapshot,verify-fingerprints,write-back}.ts`、`shadow-job.sh`、`rehearsal/`、`.dockerignore`；CI 拿掉 `backend` job。`001_sqlite.sql` 凍結到 `web/tests/fixtures/`。
+    - 偏離下面的刪除清單：`web/src/ops/` 沒有整個刪，留 `storage-triggers.ts`（D18／D20／D21 的觸發偵測，長期使用）與只剩 `DERIVED_TABLES`、`D1_TABLES` 的 `tables.ts`（`schema.test.ts` 用）；`web/scripts/check-storage-triggers.ts`、`migrate.ts`、`rebuild-projection.ts` 留著。
+    - `SCHEDULED` 已刪（量到 `RUNNERS` 扣停用 25 個、`SCHEDULED` 25 個、差集為空），PTT 的停用改成 `source-catalog.ts` 的 `disabled` 欄位。
+    - 文件改寫完成（`docs/compose.md` → `docs/operations.md`）；`docs/implementation-history.md` 在 2026-10-23 已移到私人封存 repo，舊部署段落直接刪除。殘留驗收：`residue: 10 allowed, 0 not allowed`。
+    - `check-storage-triggers` 補跑（2026-11-15，VM 上用 `:ce1254d` 映像對正式 D1，`--since 2026-11-06`）：`9 runs, 0 signals`。VM 的 after timer 自 11-06 停用後沒有東西每天跑它，接手方式待 Will 決定。
+    - 完成前設計審查（fresh subagent）9 項（blocking 0）：改 5（D6 提前結束寫回本計畫；D6 結束觸發的延後項列進 `docs/implementation-plan.md`；golden 行為案例的處理規則寫進 `AGENTS.md`；持續失敗的來源列成待辦；離線示範的觸發條件與 `.claude/rules` 的過期路徑）、記 2（來源目錄的 Python 死欄位與三張表合併、`ops/tables.ts` 歸位，都列進 `docs/implementation-plan.md`）、交 Will 2（`check-storage-triggers` 由誰每天跑；`001_sqlite.sql` 的結構比對要留還是換成 drizzle 漂移檢查）、駁回 0。
+    - 還沒做（清單在 `docs/implementation-plan.md`）：`WEB_WRITES` 退場、回饋簽名與排序匯出、`DIGEST_RECIPIENT` 與 `daily_runs` 主鍵、v2 雜湊與 golden 拆分、長期檢查接進 CI、VM／Neon／shadow D1 退役（每項刪除前問 Will）。
   - 刪除：
     - `backend/`、`deploy/`、`frontend/`、`contracts/`。
     - `scripts/test_compose.py`、`test_installed.py`、`test_workbench_upgrade.py`、`verify_cutover.py`。
@@ -764,7 +772,7 @@
   - B：只有一支 cron——最簡單，但漏觸發的那天就沒有摘要。
   - C：準時 09:00 並每分鐘補跑——需要 Pro 或 D2-C。
 
-- **D6 切換後的回滾窗口**（狀態：已決 2026-10-23，Will 照建議（A）；擋住步驟：12、13）
+- **D6 切換後的回滾窗口**（狀態：已決 2026-10-23，Will 照建議（A）；擋住步驟：12、13；**2026-11-15 提前結束**：Will 被問「要現在提前結束回滾窗口嗎」時選「提前結束，現在做」，原訂到 11-20。依據：11-06 到 11-13 連 8 天自然排程通過、網頁讀寫已驗。之後出問題只往前修）
   - A：14 天，VM 停機但保留，反向腳本隨時可跑。（建議）
   - B：7 天——比較快收掉 VM，只涵蓋一週的自然排程。
   - C：不保留回滾——第一週出問題只能往前修。
@@ -848,4 +856,4 @@ ADR：`docs/adr/2026-10-23-nextjs-vercel-full-stack-rewrite.md`（選 C 與已�
 | 11 網頁前端第一版（D22、D23 改寫） | 完成（2026-11-03：PR #7 合進 `dev` `d25d59d`，production `q4mgo3hk2` 讀 shadow D1；寫入開關關閉） | 替身：全套 437 個（430 過、7 skip）、`web-pages` 22、`web-guard` 8；mutation 7 項全紅；`typecheck`、`boundaries`、`build`；CI #7 全綠；preview 未登入 302；production 實際瀏覽 6 種頁面；D13 頁面量測（見步驟 11） | 設定儲存的列數（寫入開關關閉，切換後補量） | 開工設計審查 13、`/code-review` 10、完成前設計審查 7；處置見步驟 11 |
 | 12 反向收斂與演練 | 完成（2026-11-03，分支 `12`） | 替身：`tests/ops.test.ts` 寫回 7 例，mutation 5 項全紅；VM 上用正式副本演練 2 輪（臨時 test D1，已刪）：注入的 7 類變更都寫回、重跑 0 變更、兩輪報告除 `source_health.checked_at` 外相同；切換前的 Python 映像讀寫回的副本並接著寫一筆回饋 | 改過的 `rehearse.sh`（名稱檢查、映像偵測）沒有再跑完整一輪，只在 VM 上單獨驗名稱檢查 | 開工設計審查 9（blocking 3）、`/code-review` 10；處置見步驟 12 |
 | 13 正式切換 | 完成（2026-11-06 切換，2026-11-15 驗收全過：自然排程 11-06 到 11-13、網頁回饋寫入、Will 網頁確認） | 匯入 25 表 same、import ok；Vercel `jzp0qoy8t` 讀正式 D1、`WEB_WRITES=on`；VM Compose 停止 | | |
-| 14 收尾 | 未開始 | | | |
+| 14 收尾 | 進行中：第一批（刪除舊系統、文件改寫、`SCHEDULED` 退場）在分支 `step-14` | `pnpm typecheck`、`boundaries`、`build` 過，420 測試過 6 skip；殘留檢查 0 不允許；設計審查 9 項已分流 | | |

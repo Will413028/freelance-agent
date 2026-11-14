@@ -24,7 +24,7 @@
 |---|---|
 | `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN` | 連 D1（`web/src/db/client.ts` 的 `getDb`）；三個缺一就丟錯 |
 | `CRON_SECRET` | `/api/cron` 檢查 `Authorization: Bearer …`；不符回 401 |
-| `DIGEST_RECIPIENT` | 只當 `daily_runs` 主鍵 `(local_date, recipient)` 的一部分，不寄信；沒設時每日執行在第一步就失敗 |
+| `DIGEST_RECIPIENT` | 只當 `daily_runs` 主鍵 `(local_date, recipient)` 的一部分，不寄信（待移除，見[現況與待辦](implementation-plan.md)）；沒設時每日執行在第一步就失敗 |
 | `PORTFOLIO_CATEGORY_PROJECTS` | 各專長分類對應的作品 ID（JSON 物件）；沒設時用程式裡的合成範例 ID，格式錯誤會丟錯 |
 | `RESEND_API_KEY`、`RESEND_INBOX` | 讀 Resend Receiving 的信件來源；缺任一個時信件來源記為 `failed`／`source_unavailable` |
 | `WEB_WRITES` | 設成 `on` 才開放網頁寫入（收藏、略過、儲存設定）；正式環境已設 |

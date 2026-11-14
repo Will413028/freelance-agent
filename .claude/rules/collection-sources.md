@@ -1,7 +1,6 @@
 ---
 description: Job feed collection and ingest
 paths:
-  - "backend/src/freelance/modules/collection/**"
   - "web/src/modules/collection/**"
 ---
 
