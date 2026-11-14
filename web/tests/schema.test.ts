@@ -2,7 +2,10 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { is } from "drizzle-orm";
 import { getTableConfig, SQLiteTable } from "drizzle-orm/sqlite-core";
 import * as schema from "@/db/schema";
-import { query, resetSchema, leased } from "./helpers/db";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import { MIGRATIONS, migrationStatement, query, resetSchema, leased } from "./helpers/db";
 
 type Col = { name: string; type: string; notnull: number; pk: number };
 type Named = { name: string; sql: string };
@@ -32,6 +35,24 @@ describe("schema", () => {
   it("compares and orders text like SQLite BINARY: no column declares another collation", async () => {
     const declared = await query<Named>("select name, sql from sqlite_master where sql like '%collate%'");
     expect(declared).toEqual([]);
+  });
+});
+
+// Migration 0005 rebuilds daily_runs with the day alone as its key: the rows it already holds stay.
+describe("migration 0005: daily_runs keyed by the day", () => {
+  it("keeps every existing run and its result, and then refuses a second row for a day", () => {
+    const lite = new DatabaseSync(":memory:");
+    lite.exec(migrationStatement(/CREATE TABLE `daily_runs`/));
+    const insert = lite.prepare("insert into daily_runs values (?,?,?,?,?,?)");
+    insert.run("2026-11-05", "owner@example.invalid", "failed", "s1", "f1", '{"status": "source_failed"}');
+    insert.run("2026-11-06", "owner@example.invalid", "running", "s2", null, null);
+    for (const sql of readFileSync(path.join(MIGRATIONS, "0005_daily_runs_key.sql"), "utf8").split("--> statement-breakpoint")) lite.exec(sql);
+    expect(lite.prepare("select * from daily_runs order by local_date").all().map((r) => ({ ...r }))).toEqual([
+      { local_date: "2026-11-05", status: "failed", started_at: "s1", finished_at: "f1", result: '{"status": "source_failed"}' },
+      { local_date: "2026-11-06", status: "running", started_at: "s2", finished_at: null, result: null },
+    ]);
+    expect(() => lite.exec("insert into daily_runs (local_date, status, started_at) values ('2026-11-06', 'running', 's3')")).toThrow(/UNIQUE|PRIMARY/i);
+    expect(() => lite.exec("insert into daily_runs (local_date, status, started_at) values ('2026-11-07', 'done', 's')")).toThrow(/CHECK/i);
   });
 });
 

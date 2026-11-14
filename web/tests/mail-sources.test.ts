@@ -4,7 +4,7 @@ import { ReceivingClient } from "@/modules/collection/mail/receiving";
 import { syncMail, syncMailSource } from "@/modules/collection/mail/sync";
 import { RUNNERS } from "@/modules/collection/registry";
 import { fromisoformat } from "@/platform/py/datetime";
-import { encode } from "@/platform/py/json";
+import { encode, loadsDict } from "@/platform/py/json";
 import { asDict, PyError, type PyDict } from "@/platform/py/value";
 import { transport } from "./helpers/resend";
 import { db, query, resetSchema, queryArrays } from "./helpers/db";
@@ -72,7 +72,9 @@ beforeEach(resetSchema);
 
 describe("Resend sync scenarios (Python ground truth)", () => {
   const all = { ...golden.mail_sync, ...golden.mail_sync_9b };
-  it.each(Object.keys(all))("%s", async (name) => {
+  // Deliberate divergence from Python since plan step 14 (golden.json is frozen): the case is checked below with its own expectation.
+  const DIVERGED = new Set(["tasker_conflict_record_not_overwritten"]);
+  it.each(Object.keys(all).filter((name) => !DIVERGED.has(name)))("%s", async (name) => {
     const s = all[name];
     const got = await replay(s);
     expect(got.runs).toEqual(s.runs.map((r) => ({ expect: r.expect, calls: r.calls })));
@@ -81,6 +83,27 @@ describe("Resend sync scenarios (Python ground truth)", () => {
 });
 
 describe("Resend sync (TS-only checks)", () => {
+  // Plan step 14: a message rejected by an earlier run stays counted, but only this run's own
+  // failures fail it. Under the Python rule this run was `failed` for the old record alone.
+  it("does not fail a clean run for a message an earlier run rejected, and keeps the record", async () => {
+    const s = golden.mail_sync.tasker_conflict_record_not_overwritten;
+    const got = await replay(s);
+    const last = loadsDict((got.runs.at(-1)!.expect as { ok: string }).ok);
+    expect([last.at("status"), last.at("reason"), last.at("error_count")]).toEqual(["ok", null, 0n]);
+    expect(Number(last.at("quarantined"))).toBeGreaterThan(0);
+    expect(got.runs.map((r) => r.calls)).toEqual(s.runs.map((r) => r.calls));
+    const { source_health: health, ...rest } = got.tables, { source_health: _python, ...want } = s.tables;
+    expect(rest).toEqual(want);
+    expect(health).toEqual([["tasker", "ok"]]);
+  });
+  it("still fails while a requeued message is waiting: the read budget ran out before its retry", async () => {
+    const ok = golden.mail_sync.tasker_import_and_replay.runs[0];
+    await recordMail(db, "tasker", TARGET, "old", "rejected", "template");
+    await query("update mail_ingestion set retry_pending = 1");
+    const client = new ReceivingClient("re_synthetic", { request: transport(ok.pages), pause: async () => {} });
+    const result = await syncMail(db, client, TARGET, "tasker", { clock: () => NOW, maxMessages: 1 });
+    expect([result.at("status"), result.at("complete_scan"), result.at("error_count"), result.at("retry_pending")]).toEqual(["failed", true, 0n, 1n]);
+  });
   const scenario = golden.mail_sync.tasker_fetch_failure_then_template;
   it("reports stage counts without message content", async () => {
     const client = new ReceivingClient("re_synthetic", { request: transport(scenario.runs[1].pages), pause: async () => {} });

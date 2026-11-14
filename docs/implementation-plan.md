@@ -15,17 +15,20 @@
 
 遷移計畫步驟 14（收尾）還開著的項目，以該步驟的清單為準：
 
-- [ ] 長期檢查接進 CI：schema 漂移已接（`pnpm db:check`）；trigger 測試、指紋相容測試、step 型別檢查已在 `pnpm test`／`pnpm typecheck` 內的部分待逐項核對。
-- [ ] 步驟 11 設計審查記下的五項（回饋簽名、排序函式的測試專用匯出、舊樣式 class、`WEB_WRITES` 開關退場、去向表）。
+- [x] 長期檢查都在 CI 的 `web` job 裡（2026-11-15 逐項核對）：schema 漂移是 `pnpm db:check` 加 `tests/schema.test.ts`；不可改表的 trigger 是 `tests/schema.test.ts` 的行為測試；v1 雜湊相容是 `src/platform/py/canonical-json.test.ts` 等對 `golden.json` 的測試；workflow step 只帶 ID、計數、狀態，由 `run-source.ts` 的 `detailOf` 在執行期擋（`tests/daily.test.ts` 的 `invalid_source_result` 案例）加 `pnpm typecheck`。
+- [ ] 步驟 11 設計審查記下的項目還剩：回饋簽名、排序函式的測試專用匯出、舊樣式 class、去向表。`WEB_WRITES` 開關已從程式拿掉（2026-11-15）；下一次部署後把 Vercel production 的 `WEB_WRITES` 變數刪掉。
 - [ ] v1 雜湊換版本：把只為相容而照抄的解析換成標準實作，改用 v2 雜湊並一次重新基準化；`golden.json` 拆成永久保留的 v1 相容資料與可刪除的行為對照。
 - [ ] 延後項目附觸發條件，搬回主清單。
-- [ ] 查三個從 11-06 起每天失敗的來源（LinkedIn、Talent.com、Arbeitnow；台灣就業通時好時壞）：逐一查因，修好或在來源目錄給 `disabled` 原因。先於 golden 拆分做時，照 `AGENTS.md` 的 golden 規則處理該來源的行為案例。
+- [ ] 三個從 11-06 起每天失敗的來源（2026-11-15 查）：
+  - LinkedIn、Talent.com：原因是「只要有任何一封信被隔離過，來源就永遠算失敗」，已改成只看當次執行。Talent.com 的 2 封是 10-23 的舊信，部署後應該恢復。LinkedIn 從 10-27 起每天約 4 封在解析階段被拒（同一天也有解析成功的），是通知格式有一種沒支援；要看到信的內容才能修，正式的 Resend key 只在 Vercel，本機讀不到。待辦：取得一封被拒的信的結構（不含個資）後補 parser。
+  - 信件來源（LinkedIn、Talent.com、Cake、104、出任務、Glassdoor）內部接住的例外還沒有記錯誤種類：加了會讓 5 個凍結的 golden 情境不相等，等 golden 拆分後一起做。
+  - Arbeitnow：本機跑同一支掃描是成功的（20 頁、3,914 筆），Vercel 上那一步 6 秒就失敗，原因沒有被記下來。已加 `error` 欄位，部署後下一次執行看 `/sources` 的錯誤種類再決定（`http_403`／`http_429` 是出口被擋或限流，`valueerror` 是分頁中資料變動）。
 - [x] 儲存檢討訊號每天有人看：`/sources` 頁顯示到最近一次執行為止 7 天的訊號（2026-11-15；Will 選這個做法，不用 GitHub Actions 排程）。
 - [x] 舊 SQLite schema 的結構比對換成 drizzle 的漂移檢查 `pnpm db:check`，接進 CI；凍結檔與比對測試刪除（2026-11-15，Will 決定）。
 
 回滾窗口結束（2026-11-15）後不再需要、還留在程式裡的相容做法，逐項處理或寫明保留理由：
 
-- [ ] `DIGEST_RECIPIENT`：`daily_runs` 主鍵改成只有 `local_date`（或固定值），拿掉這個環境變數，`notifications` 模組併進排程（遷移計畫「延後」段）。
+- [ ] `daily_runs` 主鍵改成只有 `local_date`、拿掉 `recipient` 欄與 `DIGEST_RECIPIENT`：程式與 migration `0005_daily_runs_key` 已在 `dev`（2026-11-15）。還沒做：對正式 D1 套 0005 並緊接著部署（要 Will 授權；順序見操作手冊 Migration 一節），之後刪掉 Vercel production 的 `DIGEST_RECIPIENT`。`notifications` 模組併進排程還沒做。
 - [ ] `web/src/db/schema.ts` 檔頭列的沿用：時間戳存 Python 格式的 text 等，重新評估。JSON 存 text 仍是 v1 雜湊的輸入，跟 v2 雜湊一起看。
 - [ ] `web/src/services/daily.ts` 為 Python 回滾保留的結果形狀；`AccessBlocked`／`PyError` 歸位到 collection 與 `DomainError` 階層；`formatG`。
 - [ ] 來源目錄 `source-catalog.ts` 的 Python 欄位（`group`、`runner`、`keyed`、`fn`，程式沒有讀）刪除，`REGISTRY`、`RUNNERS`、`FAILURE_REASON` 併成一張表。

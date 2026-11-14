@@ -8,7 +8,6 @@ import { client, db, losingResponse, resetSchema } from "./helpers/db";
 // read transaction is one batch, and a lost response is answered by the statement's own semantics.
 // The digest's paths were removed with the digest (plan step 10f, D22).
 const at = (h: number) => new PyDateTime(2026, 10, 24, h, 0, 0, 0, 0n);
-const EMAIL = "owner@example.invalid";
 
 beforeEach(resetSchema);
 
@@ -23,9 +22,9 @@ describe("reads on D1", () => {
 describe("single statements after a lost response", () => {
   it("recognizes its own daily claim when the response was lost after commit", async () => {
     const lossy = losingResponse((sql) => sql[0].startsWith("insert into \"daily_runs\""));
-    expect(await claimDailyRun(lossy.db, "2026-10-24", EMAIL, at(1))).toBe(true);
+    expect(await claimDailyRun(lossy.db, "2026-10-24", at(1))).toBe(true);
     expect(lossy.fired()).toBe(true);
-    expect(await claimDailyRun(db, "2026-10-24", EMAIL, at(2))).toBe(false);
-    expect((await getDailyRun(db, "2026-10-24", EMAIL))!.startedAt).toBe(at(1).isoformat());
+    expect(await claimDailyRun(db, "2026-10-24", at(2))).toBe(false);
+    expect((await getDailyRun(db, "2026-10-24"))!.startedAt).toBe(at(1).isoformat());
   });
 });

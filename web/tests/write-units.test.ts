@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { dbOver, usageOf } from "@/db/client";
 import { D1Client, D1Error, type D1Statement } from "@/db/d1/client";
 import { GUARD_SQL } from "@/db/d1/guard";
@@ -32,8 +32,7 @@ const gate = () => {
   return { open, opened };
 };
 
-beforeEach(async () => { await resetSchema(); process.env.DIGEST_RECIPIENT = "owner@example.invalid"; });
-afterAll(() => { delete process.env.DIGEST_RECIPIENT; });
+beforeEach(resetSchema);
 
 describe("intake units", () => {
   it("reads with the lease in one request and writes with it in one more", async () => {
@@ -240,7 +239,7 @@ describe("daily run usage", () => {
     const begin = await beginDailyRun(step, now);
     const earlier = { d1_requests: 5, d1_rows_written: 7, lease_wait_ms: 3, lease_timeouts: 1, lease_lost: 0, d1_errors: { rate_limited: 1 }, lost_steps: 1, read_retries: 2 };
     await finishDaily(step, begin.localDate, begin.startedAt!, {}, earlier);
-    const result = asDict((await getDailyRun(db, begin.localDate, "owner@example.invalid"))!.result);
+    const result = asDict((await getDailyRun(db, begin.localDate))!.result);
     expect(result.req("d1_requests")).toBeGreaterThan(5n);
     expect(result.req("d1_rows_written")).toBeGreaterThanOrEqual(7n);
     expect(result.req("lease_wait_ms")).toBeGreaterThanOrEqual(3n);

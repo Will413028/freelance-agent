@@ -9,7 +9,7 @@ import { guardedForm, messagePage, NO_STORE, safePath } from "./guard";
 // urlencoded form that passed guardedForm, calls the service's write unit, and answers 303 back to
 // the page with a fixed notice code, or a short page with the status the error class maps to.
 
-export type WriteDeps = { db: Db; now: () => PyDateTime; writes: boolean };
+export type WriteDeps = { db: Db; now: () => PyDateTime };
 
 /** The notice codes a write sends back; the page maps each to its text (never free text from the URL). */
 export const NOTICES = { saved: "已加入收藏", unsaved: "已取消收藏", skipped: "已略過", restored: "已恢復待看", settings: "篩選設定已儲存，清單會依新設定排序" } as const;
@@ -45,7 +45,7 @@ export async function handleSettings(request: Request, deps: WriteDeps): Promise
 }
 
 async function write(request: Request, deps: WriteDeps, run: (form: URLSearchParams, back: string) => Promise<Response>): Promise<Response> {
-  const form = await guardedForm(request, deps.writes);
+  const form = await guardedForm(request);
   if (form instanceof Response) return form;
   const back = safePath(form.get("back"));
   try {

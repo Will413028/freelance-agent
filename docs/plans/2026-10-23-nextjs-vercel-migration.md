@@ -720,6 +720,13 @@
       - 完成前程式碼審查（fresh subagent，1 輪）5 項（blocking 0）：改 2（`db:check` 只比快照不比 SQL 檔 → `tests/schema.test.ts` 加一例，比對 migration 建出來的表與欄位和 `schema.ts`，連同表集合；red-proof：`0000_schema.sql` 拿掉 `client_contacts.note`，該測試紅；操作手冊的頁面讀取數字與 `/sources` 描述）、駁回 3（都是 nit：trigger 原文不再逐字比對，行為測試仍在；`daily_runs.result` 不是物件時頁面會失敗，現行寫入端只寫物件；React key 在同日多收件人時重複，正式只有一個收件人，且主鍵改成只有日期的待辦會消掉它）。
       - 退役：Vercel Preview 的 `D1_DATABASE_ID` 拿掉；shadow D1 `freelance-agent-shadow` 刪除（`cf d1 list` 剩 prod、ci-test、spike-1f）；Neon 專案 `fancy-water-44947465` 刪除（`neonctl projects list` 沒有它）；VM 上 3 個容器、38 個映像、2 個網路、`freelance-shadow-after` 的 unit 檔、`/opt/freelance-agent*`（23 個路徑）、`/opt/freelance-shadow`、`/var/lib/freelance`、`/var/lib/freelance-shadow`、`/etc/freelance-agent`、帳號 `freelance-agent` 都刪除（刪後 `ls` 與 `getent` 都查無）。VM 上的 Resend key 副本隨設定檔刪除；key 本身是正式環境在用的同一把，沒有撤銷。homelab 的 `sonarqube-scan@freelance-agent` timer 不屬於這個專案的部署，沒有動。
       - 沒做：`D1_API_TOKEN` 重建（2026-11-30 到期）。`cf` 的登入沒有管理 API token 的權限（`/user/tokens` 與 `/accounts/…/tokens` 都回 403），要 Will 在 Cloudflare 後台建。
+    - 第三批（2026-11-15，分支 `step-14c`；Will 貼出剩下的五項說「繼續做」）：
+      - 每天失敗的三個來源：LinkedIn、Talent.com 是規則造成的（歷來任何一封被隔離的信都讓來源算失敗；正式 D1 查到 Talent 2 封是 10-23 的、LinkedIn 10-27 起每天約 4 封 `template`），改成只看當次執行（當次有信讀不到或解析不了、掃描不完整、有重排的信沒重讀）。66 個 golden 情境只有 `tasker_conflict_record_not_overwritten` 與 Python 不同，移出比對、另寫明確期望。Arbeitnow 本機同一支 `scan()` 成功（20 頁 3,914 筆），Vercel 上那一步 01:15:21–01:15:27 就失敗，原因沒被記錄；`runSource` 加 `error` 欄位（`http_<status>` 或錯誤類別，不含訊息），`/sources` 顯示。red-proof 5 個 mutant 全 killed。LinkedIn 被拒的那種通知格式還沒修：要信的內容，正式 Resend key 只在 Vercel。
+      - `WEB_WRITES` 從程式拿掉（頁面、路由、守門、測試）。
+      - `daily_runs` 主鍵改成只有 `local_date`：migration `0005_daily_runs_key`（重建表、拿掉 `recipient`；drizzle 產生的兩行 `PRAGMA foreign_keys` 拿掉，這張表沒有外鍵）；正式 D1 查到 59 列、59 個日期、1 個收件人，重建不會撞鍵。`DIGEST_RECIPIENT` 不再讀。測試：0000 的表放兩列後套 0005，列與結果原樣保留，同日第二列被拒。**還沒套到正式 D1、還沒部署**。
+      - 長期檢查逐項核對都已在 CI，見 `docs/implementation-plan.md`。
+      - 完成前程式碼審查（fresh subagent，1 輪）3 項（blocking 0）：改 1（`errorKind` 對非字串的 `name` 用 `String()`）、記 1（信件來源內部接住的例外沒有 `error`：補上會讓 5 個 golden 情境不相等並造成 `sync.ts` ↔ `run-source.ts` 循環引用，文件改寫成實際範圍，列進待辦等 golden 拆分）、駁回 1（nit：只有舊拒收列又沒新信的來源顯示 `waiting`，是新規則的本意）。
+      - 沒做：v2 雜湊與 golden 拆分（要先定計畫，見下）。
     - 還沒做（清單在 `docs/implementation-plan.md`）：`WEB_WRITES` 退場、回饋簽名與排序匯出、`DIGEST_RECIPIENT` 與 `daily_runs` 主鍵、v2 雜湊與 golden 拆分、長期檢查接進 CI、VM／Neon／shadow D1 退役（每項刪除前問 Will）。
   - 刪除：
     - `backend/`、`deploy/`、`frontend/`、`contracts/`。

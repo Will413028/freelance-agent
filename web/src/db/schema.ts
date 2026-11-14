@@ -85,15 +85,13 @@ export const digestOutbox = sqliteTable(
 export const dailyRuns = sqliteTable(
   "daily_runs",
   {
-    localDate: text("local_date").notNull(),
-    recipient: text("recipient").notNull(),
+    localDate: text("local_date").primaryKey(),
     status: text("status").notNull(),
     startedAt: text("started_at").notNull(),
     finishedAt: text("finished_at"),
     result: text("result"),
   },
   (t) => [
-    primaryKey({ columns: [t.localDate, t.recipient] }),
     check("daily_runs_status", sql`${t.status} in ('running', 'complete', 'failed')`),
   ],
 );

@@ -1,5 +1,6 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { enabledSources, FAILURE_REASON, RUNNERS, runSource, sourceStatuses } from "@/modules/collection/public";
+import { HttpError } from "@/platform/http";
 import { getDailyRun } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
@@ -12,8 +13,7 @@ import { fixture } from "./helpers/golden";
 // Plan step 5: the daily entry claims daily_runs first; a second trigger the same day returns.
 const at = (h: number, m = 0) => new PyDateTime(2026, 10, 24, h, m, 0, 0, 0n);
 
-beforeEach(async () => { await resetSchema(); process.env.DIGEST_RECIPIENT = "Owner@Example.invalid"; });
-afterAll(() => { delete process.env.DIGEST_RECIPIENT; });
+beforeEach(resetSchema);
 
 describe("daily run entry", () => {
   it("runs once when the 09:00 and 12:00 triggers both fire", async () => {
@@ -26,27 +26,24 @@ describe("daily run entry", () => {
     expect(await trigger(at(1, 5))).toBe("claimed");
     expect(await trigger(at(4, 5))).toBe("already_run");
     expect(runs).toBe(1);
-    const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
+    const row = await getDailyRun(db, "2026-10-24");
     expect(row!.status).toBe("complete");
   });
 
   it("is not due before 09:00 Asia/Taipei and writes nothing", async () => {
     expect(await beginDailyRun(db, at(0, 59))).toEqual({ outcome: "not_due", localDate: "2026-10-24" });
-    expect(await getDailyRun(db, "2026-10-24", "owner@example.invalid")).toBeNull();
-  });
-
-  it("fails closed without a recipient", async () => {
-    delete process.env.DIGEST_RECIPIENT;
-    await expect(beginDailyRun(db, at(1))).rejects.toThrow("Explicit recipient required");
+    expect(await getDailyRun(db, "2026-10-24")).toBeNull();
   });
 
   it("records failed health for a source that throws and marks the day failed", async () => {
     const begin = await beginDailyRun(db, at(1));
     const detail = await syncDailySource(db, "guru", { guru: async () => { throw new Error("down"); } });
-    expect(detail).toEqual({ status: "failed", reason: "source_unavailable" });
+    // The error's class is kept (never its message); an HTTP refusal keeps its status.
+    expect(detail).toEqual({ status: "failed", reason: "source_unavailable", error: "error" });
+    expect(await syncDailySource(db, "guru", { guru: async () => { throw new HttpError(429); } })).toEqual({ status: "failed", reason: "source_unavailable", error: "http_429" });
     expect((await sourceStatuses(db)).req("guru")).toBe("failed");
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, { guru: detail })).status).toBe("failed");
-    const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
+    const row = await getDailyRun(db, "2026-10-24");
     expect(asDict(row!.result).dict("source_details").dict("guru").req("status")).toBe("failed");
   });
 
@@ -56,7 +53,7 @@ describe("daily run entry", () => {
     const ok = await syncDailySource(db, "tasker", { tasker: async () => PyDict.of({ status: "ok" }) });
     expect([partial.status, ok.status]).toEqual(["partial", "ok"]);
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, { guru: partial, tasker: ok })).status).toBe("failed");
-    const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
+    const row = await getDailyRun(db, "2026-10-24");
     expect(asDict(row!.result).dict("source_details").dict("guru").req("status")).toBe("partial");
   });
 
@@ -94,17 +91,17 @@ describe("source details", () => {
     const ok = await syncDailySource(db, "jobicy", { jobicy: async () => result });
     const down = await syncDailySource(db, "remotive", { remotive: async () => { throw new Error("down"); } });
     await finishDaily(db, begin.localDate, begin.startedAt!, { jobicy: ok, remotive: down });
-    const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
+    const row = await getDailyRun(db, "2026-10-24");
     expect(encode(asDict(row!.result).req("source_details"))).toBe('{"status": "failed", "reason": "one_or_more_sources_failed", ' +
       '"jobicy": {"status": "ok", "reason": null, "seen": 3, "jobs": 1, "truncated": false, "error_stages": {"fetch": 2}, "scope": "latest_200_public_listings"}, ' +
-      '"remotive": {"status": "failed", "reason": "public_feed_unavailable_or_unsupported"}}');
+      '"remotive": {"status": "failed", "reason": "public_feed_unavailable_or_unsupported", "error": "error"}}');
   });
 
   it("writes a null reason when every source succeeded", async () => {
     const begin = await beginDailyRun(db, at(1));
     const waiting = await syncDailySource(db, "cake", { cake: async () => PyDict.of({ status: "waiting" }) });
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, { cake: waiting })).status).toBe("complete");
-    const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
+    const row = await getDailyRun(db, "2026-10-24");
     expect(encode(asDict(row!.result).req("source_details"))).toBe('{"status": "ok", "reason": null, "cake": {"status": "waiting"}}');
   });
 
@@ -145,7 +142,7 @@ describe("daily run without a digest", () => {
     const begin = await beginDailyRun(db, at(1));
     const ok = await syncDailySource(db, "tasker", { tasker: async () => PyDict.of({ status: "ok", seen: 2n, jobs: 1n }) });
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, { tasker: ok })).status).toBe("complete");
-    const row = (await getDailyRun(db, "2026-10-24", "owner@example.invalid"))!;
+    const row = (await getDailyRun(db, "2026-10-24"))!;
     const result = asDict(row.result);
     expect([...result.keys()]).toEqual(["status", "local_date", "source_status", "source_reason", "source_details",
       "cross_source_title_pairs", "cross_source_unknown_published", ...USAGE]);
@@ -159,7 +156,7 @@ describe("daily run without a digest", () => {
     const begin = await beginDailyRun(db, at(1));
     const down = await syncDailySource(db, "remotive", { remotive: async () => { throw new Error("down"); } });
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, { remotive: down })).status).toBe("failed");
-    const result = asDict((await getDailyRun(db, "2026-10-24", "owner@example.invalid"))!.result);
+    const result = asDict((await getDailyRun(db, "2026-10-24"))!.result);
     expect([result.req("status"), result.req("source_status"), result.req("source_reason")]).toEqual(["source_failed", "failed", "one_or_more_sources_failed"]);
   });
 
@@ -167,7 +164,7 @@ describe("daily run without a digest", () => {
     const begin = await beginDailyRun(db, at(1));
     await leased("drop table discovery_versions"); // the measurement's ranking reads it
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, {})).status).toBe("complete");
-    const result = asDict((await getDailyRun(db, "2026-10-24", "owner@example.invalid"))!.result);
+    const result = asDict((await getDailyRun(db, "2026-10-24"))!.result);
     expect(result.req("cross_source_title_pairs")).toBeNull();
   });
 

@@ -1,6 +1,7 @@
 import type { Db } from "@/db/client";
 import { storageFailure } from "@/db/unit";
-import { PyDict, type PyValue } from "@/platform/py/value";
+import { HttpError } from "@/platform/http";
+import { PyDict, PyError, type PyValue } from "@/platform/py/value";
 import { setSourceHealth } from "./ingest";
 import type { SourceRunner } from "./registry";
 
@@ -45,6 +46,17 @@ export function detailDict(detail: SourceDetail): PyDict {
 
 export const succeeded = (detail: SourceDetail) => detail.status === "ok" || detail.status === "waiting";
 
+/**
+ * What kind of error stopped a connector, as an identifier: the HTTP status the source answered
+ * with, or the error's class. Never its message, which may quote the source's content. Runtime logs
+ * last about an hour, so this is the only trace of why a source failed on a given day.
+ */
+export function errorKind(e: unknown): string {
+  if (e instanceof HttpError) return `http_${e.code}`;
+  const name = e instanceof PyError ? e.pyType : e instanceof Error ? e.name : "unknown";
+  return String(name).toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 80) || "unknown";
+}
+
 // Mirrors the Python connectors: a sync is marked failed before it starts, so an interrupted run
 // never leaves a stale ok behind. A connector that finishes sets its own final health. Where a TS
 // connector throws, its Python sync returns {'status': 'failed', 'reason': <fixed per module>}; a
@@ -55,7 +67,8 @@ export async function runSource(db: Db, source: string, runner: SourceRunner, fa
   try {
     result = await runner(db);
   } catch (e) {
-    return { status: "failed", reason: storageFailure(e) ?? failure };
+    const storage = storageFailure(e);
+    return storage ? { status: "failed", reason: storage } : { status: "failed", reason: failure, error: errorKind(e) };
   }
   return detailOf(result) ?? { status: "failed", reason: "invalid_source_result" };
 }

@@ -47,7 +47,7 @@ Arbeitnow：官方`.com` API第11頁回傳的next主機是`.nl`。connector只�
 |---|---|---|
 | 已配置每日讀取 20 | 出任務、Freelancer、Jobicy、Remotive、Himalayas、Hacker News、V2EX、Remote OK、Real Work From Anywhere、台灣就業通、We Work Remotely、Working Nomads、Arbeitnow、NoDesk、Get on Board、JustRemote、CryptoJobsList、Dynamite Jobs、518熊班、小雞上工 | 9/29自然run已核對，518仍為已確認空結果；Freelancer／Remote OK／台灣就業通／Arbeitnow／We Work Remotely為partial，Tasker單來源恢復成功，其餘正常。仍不代表全站全量 |
 | 停用 2 | PTT SOHO、PTT CodeJob | Vercel 出口對 PTT 取得 403 challenge（遷移計畫 D12）；不繞過存取驗證，維持停用。歷史職缺保留 |
-| 郵件每日真實收信已驗 4 | LinkedIn、Cake、104、Talent.com | 四站health=ok。Talent於9/29自然排程首次由Resend匯入1封／2案；LinkedIn管理連結模板已修復，停用提醒記為非職缺通知，隔離歸零。缺正文及未知資格／工時保留unknown |
+| 郵件每日真實收信已驗 4 | LinkedIn、Cake、104、Talent.com | 四站health=ok。Talent於9/29自然排程首次由Resend匯入1封／2案；LinkedIn管理連結模板已修復，停用提醒記為非職缺通知（2026-10-27 起又有一種通知每天約 4 封被拒，待補 parser）。缺正文及未知資格／工時保留unknown |
 | 訂閱成功待內容 1 | Yourator | 首封含職缺的週報及parser，不以訂閱確認信驗收 |
 | 已登入實讀待通知 1 | Arc | 既有Email提醒啟用，但未有職缺信；Account Email已驗證 |
 | 訂閱已確認、待職缺通知 1 | Remoters | 本輪讀到9/27確認信，沿已授權訂閱點擊確認，官方頁顯示 Subscription Confirmed；待第一封實際職缺信才能驗parser／轉寄／daily整合 |

@@ -26,7 +26,7 @@ beforeEach(async () => {
   await track(db, key("skipped"), 0n, { feedback: "skipped" }, now);
 });
 
-const deps = (writes = true): WriteDeps => ({ db, now: () => now, writes });
+const deps = (): WriteDeps => ({ db, now: () => now });
 const form = (path: string, fields: [string, string][], headers: Record<string, string> = {}) =>
   new Request(`https://fa.example${path}`, {
     method: "POST",
@@ -75,13 +75,6 @@ describe("list and detail", () => {
 });
 
 describe("feedback route", () => {
-  it("refuses with 403 and writes nothing while writes are off", async () => {
-    const detail = await jobDetail(db, now, key("c000"));
-    const response = await handleFeedback(feedbackForm(key("c000"), detail.token, "interested"), key("c000"), deps(false));
-    expect(response.status).toBe(403);
-    expect(await trackingOf(key("c000"))).toBeNull();
-  });
-
   it("saves with the token the page showed, then refuses that stale token with 409", async () => {
     const detail = await jobDetail(db, now, key("c000"));
     const saved = await handleFeedback(feedbackForm(key("c000"), detail.token, "interested"), key("c000"), deps());
@@ -141,11 +134,6 @@ describe("feedback route", () => {
 });
 
 describe("settings route", () => {
-  it("refuses with 403 and keeps the settings while writes are off", async () => {
-    expect((await handleSettings(form("/settings/save", settingsFields("0")), deps(false))).status).toBe(403);
-    expect((await readSettings(db)).revision).toBe(0n);
-  });
-
   it("saves at the revision the page showed, then refuses that stale revision with 409", async () => {
     const before = await settingsPage(db);
     const saved = await handleSettings(form("/settings/save", settingsFields(String(before.revision))), deps());
@@ -173,25 +161,24 @@ describe("settings route", () => {
 });
 
 describe("markup", () => {
-  it("disables every write button while writes are off, and enables them when on", async () => {
+  it("renders every write button enabled", async () => {
     const detail = await jobDetail(db, now, key("c000")), settings = await settingsPage(db);
-    for (const html of [renderToStaticMarkup(<JobDetail job={detail} writes={false} />), renderToStaticMarkup(<SettingsForm data={settings} writes={false} />)]) {
-      expect(html.match(/<button/g)!.length).toBe(html.match(/<button[^>]* disabled=""/g)!.length);
-      expect(html).toContain("切換到正式系統後開放");
+    for (const html of [renderToStaticMarkup(<JobDetail job={detail} />), renderToStaticMarkup(<SettingsForm data={settings} />)]) {
+      expect(html).toContain("<button");
+      expect(html).not.toContain('disabled=""');
     }
-    expect(renderToStaticMarkup(<JobDetail job={detail} writes />)).not.toContain('disabled=""');
   });
 
   it("links the record's own URL and every content version's source", async () => {
     const detail = await jobDetail(db, now, key("c000"));
-    const html = renderToStaticMarkup(<JobDetail job={{ ...detail, job: { ...detail.job, url: "https://other.example/v2" } }} writes />);
+    const html = renderToStaticMarkup(<JobDetail job={{ ...detail, job: { ...detail.job, url: "https://other.example/v2" } }} />);
     expect(html).toContain('href="https://www.freelancer.com/projects/example-c000"');
   });
 
   it("shows a long location list as its first entries and its size", async () => {
     const detail = await jobDetail(db, now, key("c000"));
     const countries = Array.from({ length: 30 }, (_, i) => `C${i}`);
-    const html = renderToStaticMarkup(<JobDetail job={{ ...detail, job: { ...detail.job, location_evidence: countries } }} writes />);
+    const html = renderToStaticMarkup(<JobDetail job={{ ...detail, job: { ...detail.job, location_evidence: countries } }} />);
     expect(html).toContain("C0、C1");
     expect(html).toContain("等 30 項");
     expect(html).not.toContain("C29");
@@ -199,7 +186,7 @@ describe("markup", () => {
 
   it("escapes listing text and links only https listing URLs", async () => {
     await ingestSource(db, "tasker", now, [listing("x", { title: "<script>alert(1)</script>", url: "javascript:alert(1)" })], () => true, "ok");
-    const html = renderToStaticMarkup(<JobDetail job={await jobDetail(db, now, key("x"))} writes />);
+    const html = renderToStaticMarkup(<JobDetail job={await jobDetail(db, now, key("x"))} />);
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
     expect(html).not.toContain("javascript:");
@@ -209,9 +196,9 @@ describe("markup", () => {
   });
 
   it("shows the latest daily run and each source's daily details", async () => {
-    await leased("insert into daily_runs values ('2026-11-03', 'r', 'running', '2026-11-03T01:00:00+00:00', null, null)");
-    await leased("insert into daily_runs values ('2026-11-02', 'r', 'failed', '2026-11-02T01:00:00+00:00', '2026-11-02T01:05:00+00:00', ?1)",
-      [JSON.stringify({ status: "source_failed", source_reason: "one_or_more_sources_failed", source_details: { status: "failed", reason: "x", tasker: { status: "ok", seen: 12, jobs: 3 }, freelancer: { status: "partial", seen: 4 } } })]);
+    await leased("insert into daily_runs values ('2026-11-03', 'running', '2026-11-03T01:00:00+00:00', null, null)");
+    await leased("insert into daily_runs values ('2026-11-02', 'failed', '2026-11-02T01:00:00+00:00', '2026-11-02T01:05:00+00:00', ?1)",
+      [JSON.stringify({ status: "source_failed", source_reason: "one_or_more_sources_failed", source_details: { status: "failed", reason: "x", tasker: { status: "ok", seen: 12, jobs: 3 }, freelancer: { status: "partial", seen: 4 }, arbeitnow: { status: "failed", reason: "arbeitnow_source_unavailable_or_unsupported", error: "http_429" } } })]);
     const running = await sourcesPage(db);
     expect(running.lastRun).toMatchObject({ localDate: "2026-11-03", status: "running" });
     expect(renderToStaticMarkup(<SourcesTable data={running} />)).toContain("執行中，需核對是否中斷");
@@ -220,11 +207,12 @@ describe("markup", () => {
     expect(html).toContain("讀取 12 筆 · 初篩 3 筆");
     expect(html).toContain("one_or_more_sources_failed");
     expect(html).toContain("部分資料取得 · 讀取 4 筆");
+    expect(html).toContain("錯誤種類 http_429 · 原因 arbeitnow_source_unavailable_or_unsupported");
   });
 
   // Plan step 14: nothing runs check-storage-triggers daily any more, so the page shows the last week's signals.
   it("shows the storage signals of the runs in the week up to the latest one, and says when there are none", async () => {
-    const run = (date: string, usage: object) => leased("insert into daily_runs values (?1, 'r', 'complete', ?2, ?2, ?3)",
+    const run = (date: string, usage: object) => leased("insert into daily_runs values (?1, 'complete', ?2, ?2, ?3)",
       [date, `${date}T01:00:00+00:00`, JSON.stringify({ status: "collected", d1_requests: 80, lease_wait_ms: 0, lease_timeouts: 0, lease_lost: 0, d1_errors: {}, lost_steps: 0, ...usage })]);
     await run("2026-11-10", {});
     await run("2026-11-09", { lost_steps: 1 });
