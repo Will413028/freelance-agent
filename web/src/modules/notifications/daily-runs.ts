@@ -3,11 +3,10 @@ import { retrying, type Db } from "@/db/client";
 import { dailyRuns } from "@/db/schema";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode, loads } from "@/platform/py/json";
-import { casefold, pyStrip } from "@/platform/py/unicode";
 import { PyError, type PyValue } from "@/platform/py/value";
 
 // Port of the daily_runs part of notifications/store.py and the gate in notifications/daily.py:
-// one claim per Taipei day and recipient; an interrupted run stays `running` and is never retried.
+// one claim per Taipei day (the key was (day, recipient) until migration 0005: one person, no mail); an interrupted run stays `running` and is never retried.
 
 /** Taiwan has kept UTC+8 without DST since 1979, so a fixed offset equals ZoneInfo('Asia/Taipei'). */
 export function taipeiLocal(now: PyDateTime): { date: string; hour: number } {
@@ -16,27 +15,21 @@ export function taipeiLocal(now: PyDateTime): { date: string; hour: number } {
   return { date: `${p(local.year, 4)}-${p(local.month)}-${p(local.day)}`, hour: local.hour };
 }
 
-/** run_daily's recipient rules: explicit, single line, stripped and casefolded. Read inside steps only. */
-export function dailyRecipient(value = process.env.DIGEST_RECIPIENT): string {
-  if (typeof value !== "string" || !value.trim() || /[\r\n]/.test(value)) throw new PyError("ValueError", "Explicit recipient required");
-  return casefold(pyStrip(value));
-}
-
 /**
  * INSERT … ON CONFLICT DO NOTHING: true only for the first claim of the day. When a response is lost
  * the insert is sent again; if the lost one had committed, the row carries this claim's started_at,
  * so reading it back tells this claim from another one.
  */
-export async function claimDailyRun(db: Db, localDate: string, recipient: string, now: PyDateTime): Promise<boolean> {
+export async function claimDailyRun(db: Db, localDate: string, now: PyDateTime): Promise<boolean> {
   const startedAt = now.isoformat();
-  const rows = await retrying(() => db.insert(dailyRuns).values({ localDate, recipient, status: "running", startedAt })
+  const rows = await retrying(() => db.insert(dailyRuns).values({ localDate, status: "running", startedAt })
     .onConflictDoNothing().returning({ localDate: dailyRuns.localDate }));
   if (rows.length === 1) return true;
-  return (await getDailyRun(db, localDate, recipient))?.startedAt === startedAt;
+  return (await getDailyRun(db, localDate))?.startedAt === startedAt;
 }
 
-export async function getDailyRun(db: Db, localDate: string, recipient: string) {
-  const [row] = await retrying(() => db.select().from(dailyRuns).where(and(eq(dailyRuns.localDate, localDate), eq(dailyRuns.recipient, recipient))));
+export async function getDailyRun(db: Db, localDate: string) {
+  const [row] = await retrying(() => db.select().from(dailyRuns).where(eq(dailyRuns.localDate, localDate)));
   return row ? { ...row, result: row.result === null ? null : loads(row.result) } : null;
 }
 
@@ -47,8 +40,8 @@ export async function latestDailyRun(db: Db) {
 }
 
 /** Only a running claim can finish; a finished day is never rewritten, so sending it twice is harmless. */
-export async function finishDailyRun(db: Db, localDate: string, recipient: string, status: string, result: PyValue, now: PyDateTime) {
+export async function finishDailyRun(db: Db, localDate: string, status: string, result: PyValue, now: PyDateTime) {
   if (status !== "complete" && status !== "failed") throw new PyError("ValueError", "Invalid daily run outcome");
   await retrying(() => db.update(dailyRuns).set({ status, result: encode(result), finishedAt: now.isoformat() })
-    .where(and(eq(dailyRuns.localDate, localDate), eq(dailyRuns.recipient, recipient), eq(dailyRuns.status, "running"))));
+    .where(and(eq(dailyRuns.localDate, localDate), eq(dailyRuns.status, "running"))));
 }

@@ -24,7 +24,6 @@
 |---|---|
 | `CLOUDFLARE_ACCOUNT_ID`、`D1_DATABASE_ID`、`D1_API_TOKEN` | 連 D1（`web/src/db/client.ts` 的 `getDb`）；三個缺一就丟錯 |
 | `CRON_SECRET` | `/api/cron` 檢查 `Authorization: Bearer …`；不符回 401 |
-| `DIGEST_RECIPIENT` | 只當 `daily_runs` 主鍵 `(local_date, recipient)` 的一部分，不寄信（待移除，見[現況與待辦](implementation-plan.md)）；沒設時每日執行在第一步就失敗 |
 | `PORTFOLIO_CATEGORY_PROJECTS` | 各專長分類對應的作品 ID（JSON 物件）；沒設時用程式裡的合成範例 ID，格式錯誤會丟錯 |
 | `RESEND_API_KEY`、`RESEND_INBOX` | 讀 Resend Receiving 的信件來源；缺任一個時信件來源記為 `failed`／`source_unavailable` |
 
@@ -53,7 +52,8 @@
 CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scripts/migrate.ts
 ```
 
-- 輸出 `migrations applied: N`；已是最新時不做事。目前有 5 個（`0000_schema` 到 `0004_drop_digest_novelty`）。
+- 輸出 `migrations applied: N`；已是最新時不做事。目前有 6 個（`0000_schema` 到 `0005_daily_runs_key`）。
+- `0005_daily_runs_key` 會重建 `daily_runs`（主鍵從日期加收件人改成只有日期，拿掉 `recipient` 欄）。套用後舊版程式讀寫這張表會失敗，所以要緊接著部署，並避開台灣時間 09:00–13:00 的排程時段；套了就不能 promote 回更早的版本。
 - 待套的語句超過一個請求的上限時腳本會拒絕，要把 migration 拆開。
 - 結構的唯一權威是 `web/src/db/schema.ts` 加這裡的 migration。兩道檢查，CI 都跑：`pnpm db:check` 比對 `schema.ts` 與 drizzle 的快照（`drizzle-kit generate` 不該產生新檔）；`tests/schema.test.ts` 比對「migration 實際建出來的表與欄位」與 `schema.ts`，所以手寫的 migration 動到任何一張表都會被擋。改 25 張產品表的欄位是要先設計的決定，不是例行 migration。
 
@@ -92,7 +92,7 @@ pnpm exec workflow inspect runs -b vercel -j
 | `status = failed`，`result.status = source_failed` | 一個以上來源失敗，其他來源照常收進來 | 看 `result.source_details` 各來源的 `reason`（見下）。當天不會重跑；收案是增量的，隔天的執行會再讀。切換後 11-06 到 11-13 每天都是這個狀態，固定有 3–4 個來源失敗（計畫步驟 13 驗收） |
 | `status = failed`，`reason = daily_processing_failed` | 來源跑完了，但組結果或記錄用量時出錯 | 來源資料已寫入；看當時的 log 找原因 |
 | 過了執行時段仍是 `running` | 執行中斷（step 逾時或當掉） | 那一天不會自動重跑，兩支 cron 都會回 `already_run`。用 `workflow inspect` 看停在哪個 step、`source_health` 看哪些來源完成。程式沒有「重跑某一天」的工具；要不要人工改那一列由 Will 決定 |
-| 當天沒有列 | cron 沒觸發、`CRON_SECRET` 不符（401）、或 claim 之前就失敗（D1 三個變數或 `DIGEST_RECIPIENT` 沒設） | 12:00 那支會補跑。兩支都過了還沒有列時，同一天內帶正確的 bearer 再打一次 `/api/cron` 會照常 claim 並執行；這是對正式資料的寫入，先取得授權 |
+| 當天沒有列 | cron 沒觸發、`CRON_SECRET` 不符（401）、或 claim 之前就失敗（D1 三個變數沒設） | 12:00 那支會補跑。兩支都過了還沒有列時，同一天內帶正確的 bearer 再打一次 `/api/cron` 會照常 claim 並執行；這是對正式資料的寫入，先取得授權 |
 
 來源的 `reason`（`web/src/modules/collection/run-source.ts`、`registry.ts`）：
 

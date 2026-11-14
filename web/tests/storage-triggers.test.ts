@@ -40,7 +40,7 @@ describe("storage revocation triggers", () => {
 
   it("reads the runs from a date on in one request", async () => {
     for (const [date, result] of [["2026-10-25", usage({ lease_timeouts: 1n })], ["2026-10-26", usage()], ["2026-10-27", usage({ d1_requests: 700n })]]) {
-      await query("insert into daily_runs (local_date, recipient, status, started_at, result) values (?1, 'o', 'complete', 's', ?2)", [date, result]);
+      await query("insert into daily_runs (local_date, status, started_at, result) values (?1, 'complete', 's', ?2)", [date, result]);
     }
     const { runs, signals } = await storageSignals(db, "2026-10-26");
     expect(runs).toBe(2);

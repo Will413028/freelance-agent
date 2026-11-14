@@ -27,7 +27,7 @@
 
 回滾窗口結束（2026-11-15）後不再需要、還留在程式裡的相容做法，逐項處理或寫明保留理由：
 
-- [ ] `DIGEST_RECIPIENT`：`daily_runs` 主鍵改成只有 `local_date`（或固定值），拿掉這個環境變數，`notifications` 模組併進排程（遷移計畫「延後」段）。
+- [ ] `daily_runs` 主鍵改成只有 `local_date`、拿掉 `recipient` 欄與 `DIGEST_RECIPIENT`：程式與 migration `0005_daily_runs_key` 已在 `dev`（2026-11-15）。還沒做：對正式 D1 套 0005 並緊接著部署（要 Will 授權；順序見操作手冊 Migration 一節），之後刪掉 Vercel production 的 `DIGEST_RECIPIENT`。`notifications` 模組併進排程還沒做。
 - [ ] `web/src/db/schema.ts` 檔頭列的沿用：時間戳存 Python 格式的 text 等，重新評估。JSON 存 text 仍是 v1 雜湊的輸入，跟 v2 雜湊一起看。
 - [ ] `web/src/services/daily.ts` 為 Python 回滾保留的結果形狀；`AccessBlocked`／`PyError` 歸位到 collection 與 `DomainError` 階層；`formatG`。
 - [ ] 來源目錄 `source-catalog.ts` 的 Python 欄位（`group`、`runner`、`keyed`、`fn`，程式沒有讀）刪除，`REGISTRY`、`RUNNERS`、`FAILURE_REASON` 併成一張表。

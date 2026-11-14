@@ -196,8 +196,8 @@ describe("markup", () => {
   });
 
   it("shows the latest daily run and each source's daily details", async () => {
-    await leased("insert into daily_runs values ('2026-11-03', 'r', 'running', '2026-11-03T01:00:00+00:00', null, null)");
-    await leased("insert into daily_runs values ('2026-11-02', 'r', 'failed', '2026-11-02T01:00:00+00:00', '2026-11-02T01:05:00+00:00', ?1)",
+    await leased("insert into daily_runs values ('2026-11-03', 'running', '2026-11-03T01:00:00+00:00', null, null)");
+    await leased("insert into daily_runs values ('2026-11-02', 'failed', '2026-11-02T01:00:00+00:00', '2026-11-02T01:05:00+00:00', ?1)",
       [JSON.stringify({ status: "source_failed", source_reason: "one_or_more_sources_failed", source_details: { status: "failed", reason: "x", tasker: { status: "ok", seen: 12, jobs: 3 }, freelancer: { status: "partial", seen: 4 }, arbeitnow: { status: "failed", reason: "arbeitnow_source_unavailable_or_unsupported", error: "http_429" } } })]);
     const running = await sourcesPage(db);
     expect(running.lastRun).toMatchObject({ localDate: "2026-11-03", status: "running" });
@@ -212,7 +212,7 @@ describe("markup", () => {
 
   // Plan step 14: nothing runs check-storage-triggers daily any more, so the page shows the last week's signals.
   it("shows the storage signals of the runs in the week up to the latest one, and says when there are none", async () => {
-    const run = (date: string, usage: object) => leased("insert into daily_runs values (?1, 'r', 'complete', ?2, ?2, ?3)",
+    const run = (date: string, usage: object) => leased("insert into daily_runs values (?1, 'complete', ?2, ?2, ?3)",
       [date, `${date}T01:00:00+00:00`, JSON.stringify({ status: "collected", d1_requests: 80, lease_wait_ms: 0, lease_timeouts: 0, lease_lost: 0, d1_errors: {}, lost_steps: 0, ...usage })]);
     await run("2026-11-10", {});
     await run("2026-11-09", { lost_steps: 1 });
