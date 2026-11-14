@@ -89,7 +89,7 @@
   - 驗收：`AGENTS.md` 與 `docs/operations.md` 的 diff 只含上述條目；`spikes.md` 四節各有指令與結論，第 2 節每個平台一列、沒有空格，第 3 節每個受影響來源有兩個數字；暫時的容器、volume、Serve 設定已刪（`docker ps -a`、`docker volume ls`、`tailscale serve status` 查無）。
   - 停止條件：Tailscale Serve 做不到「tailnet 內可達、公網不可達」；或瀏覽器層在這台 VM 跑不起來（只剩前兩層，回報 Will）。
   - 需要人做的事：Tailscale SSH 的互動驗證；授權在 VM 起暫時容器與 Serve（部署點）；第 2 項結果出來後 Will 點選要接的平台（D3）並選工具（D4）。
-- [ ] **2. Walking skeleton：VM 上一條最薄的路徑**（被擋於：步驟 1 第 1 項）
+- [x] **2. Walking skeleton：VM 上一條最薄的路徑**（被擋於：步驟 1 第 1 項）
   - 範圍：新舊程式在 `web/` 並存到步驟 11：舊的照舊能編譯、能在 D1 本機替身上測；正式站不受影響（它是凍結的部署）。
     - `web/src/db/pg/client.ts`、`web/src/db/pg/schema.ts`（新增；先只有 `listings` 的最小欄位與 `runs`）；`web/drizzle.pg.config.ts`、`web/drizzle-pg/`（新增）；`web/scripts/migrate-pg.ts`（新增，新的 migration 執行器）。
     - `web/package.json`（修改）：`db:check` 同時檢查兩個方言；新增 `check`（typecheck、boundaries、db:check、test、`deploy/check-compose.mjs`）。新測試用 PGlite，和舊測試在同一次 `pnpm test` 裡跑。
@@ -127,7 +127,7 @@
   - 停止條件：某來源的真實回應和 fixture 的形狀不同到解析不出任何一筆，那個來源單獨回報，不擋同批其他來源。
   - 需要人做的事：授權在 VM 上執行（部署點，每批一次）。
 - [ ] **6. 每日執行：指令、排程、重試、來源狀態頁**（被擋於：步驟 4）
-  - 範圍：`web/scripts/daily.ts`（新增）：claim 當天、逐來源執行、結果寫 `run_sources`、收尾；只重試暫時性錯誤（連線失敗、逾時、HTTP 429 與 5xx），最多 2 次，間隔 30 秒與 120 秒；重跑同一天會跳過已完成的來源。`deploy/compose.yaml`（修改）：加一個只在被呼叫時執行的 `daily` 服務（同一個映像）。`deploy/systemd/freelance-daily.{service,timer}`（新增）：`docker compose run --rm daily`，`Persistent=true`。**影子期間 timer 設在台灣 14:00**，避開正式站 09:00 與 12:00 的兩支 cron，同一個來源一天不被兩個系統同時讀；步驟 10 切換時改成 09:00。`web/src/app/sources/`（修改）：讀 `runs` 與 `run_sources`。`web/tests/daily.test.ts`、`web/tests/write-units.test.ts`（修改：改成對新的每日執行；原有的案例各有對應或寫明為何不再適用）。
+  - 範圍：`web/scripts/daily.ts`（新增）：claim 當天、逐來源執行、結果寫 `run_sources`、收尾；只重試暫時性錯誤（連線失敗、逾時、HTTP 429 與 5xx），最多 2 次，間隔 30 秒與 120 秒；重跑同一天會跳過已完成的來源。`deploy/compose.yaml`（修改）：步驟 2 已有只在被呼叫時執行的 `daily` 服務（profile `jobs`，同一個映像，目前用來跑 migration 與一次性指令），這一步把它的預設指令改成 `scripts/daily.ts`。`deploy/systemd/freelance-daily.{service,timer}`（新增）：`docker compose run --rm daily`，`Persistent=true`。**影子期間 timer 設在台灣 14:00**，避開正式站 09:00 與 12:00 的兩支 cron，同一個來源一天不被兩個系統同時讀；步驟 10 切換時改成 09:00。`web/src/app/sources/`（修改）：讀 `runs` 與 `run_sources`。`web/tests/daily.test.ts`、`web/tests/write-units.test.ts`（修改：改成對新的每日執行；原有的案例各有對應或寫明為何不再適用）。
   - 消費端：`rg -n "beginDailyRun|finishDaily|syncDailySource|dailyWorkflow" web/src web/tests`。
   - 不能動：一天最多一次；一個來源失敗不影響其他來源。
   - 驗收：`pnpm check` 綠；測試：同一天第二次執行不重跑已完成來源、殺掉執行後重跑會做完剩下的、暫時性錯誤重試後成功、非暫時性錯誤不重試；VM 上連 3 天自然觸發都有一列 `runs`，每次總時間 ≤ 15 分鐘，`docker stats` 常駐容器合計 ≤ 2 GB（此時只含已改寫的來源；步驟 10 隔天再量一次全部來源）；mutation：把「跳過已完成來源」拿掉要有測試失敗。
@@ -198,7 +198,7 @@
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
 | 1 規則與 spike | 完成 | repo 改名 `side-income`（Will 2026-11-15 選定）；規則條目 diff；spike 1–4 各有指令與結論，第 2 節每個平台一列；VM 暫時資源查無 | spike 3 原始網址那一側（移到步驟 4、5 的驗收） | `832d183`、本 PR |
-| 2 Walking skeleton | 未開始 | | | |
+| 2 Walking skeleton | 完成 | CI 全綠（`web`：`pnpm check` 含 PGlite 測試、真 Postgres 18 重跑、build；`image`：arm64 runner 建映像並以 runtime 使用者離線跑 pnpm）；mutation 4 個都被擋（compose 埠改 `0.0.0.0`、拿掉 seed 的衝突保護、拿掉 `runs.status` 的 CHECK、healthz 失敗回 200）；VM：`docker compose ps` 兩個 healthy、tailnet 內 `/skeleton` 200 含假職缺、`/healthz` 200、公網 3347／10443／443 逾時、`ss -ltnp` 只有 127.0.0.1:3347 與 tailscale0 介面、映像 `env` 與 `docker history` 無憑證；seed 跑兩次仍 1 列。測試 415→420 過（+5，無刪除） | 無 | `aa42857`（PR #15）、本 PR |
 | 3 新形狀 | 未開始 | | | |
 | 4 第一個來源 | 未開始 | | | |
 | 5 其餘公開來源 | 未開始 | | | |
