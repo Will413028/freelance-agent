@@ -1,16 +1,13 @@
 // The checks every page write passes before it reads its form (plan step 11, D23). Vercel
 // Authentication decides who reaches the app; these decide what a request may do once it does:
-// writes are off until the cutover, a write must come from a page of this same host (a form another
-// site posts carries its own Origin), only a urlencoded form is read, and only up to BODY_LIMIT.
+// a write must come from a page of this same host (a form another site posts carries its own
+// Origin), only a urlencoded form is read, and only up to BODY_LIMIT.
 
 /** Headers on every page-write response, refusals included. */
 export const NO_STORE = { "cache-control": "no-store", "x-content-type-options": "nosniff" } as const;
 
 /** The largest form a write reads, in bytes: a settings form is under 1 KiB. */
 export const BODY_LIMIT = 16 * 1024;
-
-/** Whether page writes are on: WEB_WRITES=on, set at the cutover (plan step 13), never before. */
-export const writesOn = (env: Record<string, string | undefined> = process.env) => env.WEB_WRITES === "on";
 
 /** A short HTML page with `status`: what the person reads after a refused or failed write. */
 export function messagePage(status: number, message: string, back = "/"): Response {
@@ -20,8 +17,7 @@ export function messagePage(status: number, message: string, back = "/"): Respon
 }
 
 /** The form of a write request that passed every check, or the refusal to answer with. */
-export async function guardedForm(request: Request, writes: boolean): Promise<URLSearchParams | Response> {
-  if (!writes) return messagePage(403, "切換到正式系統前，網頁只能瀏覽，回饋與設定暫不開放");
+export async function guardedForm(request: Request): Promise<URLSearchParams | Response> {
   // A proxy chain may list several hosts; the first is the one the browser asked for (as Next's server-action check reads it).
   const host = (request.headers.get("x-forwarded-host") ?? request.headers.get("host"))?.split(",")[0].trim();
   if (!host || originHost(request.headers.get("origin")) !== host) return messagePage(403, "不允許的來源");

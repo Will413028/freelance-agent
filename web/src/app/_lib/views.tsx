@@ -3,8 +3,7 @@ import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView } f
 import { NOTICES, type Notice } from "./writes";
 
 // The pages' markup (plan step 11), synchronous and props-only so tests can render it with
-// renderToStaticMarkup. Every write is a plain form; while writes are off its buttons are disabled
-// and say so, and the route refuses it anyway (D23).
+// renderToStaticMarkup. Every write is a plain form posted to a route that runs the guard.
 
 const KINDS: Record<string, string> = { fixed: "固定專案", hourly: "時薪", contract: "兼職／合約", full_time: "全職" };
 const FIELD_NAMES: Record<string, string> = {
@@ -14,7 +13,6 @@ const FIELD_NAMES: Record<string, string> = {
 };
 const FRESHNESS: Record<string, string> = { recent: "近兩日發布", week: "近七日發布", older: "發布超過七日", unknown: "發布時間未確認" };
 const VIEW_LABELS: [View, string][] = [["candidates", "待看"], ["saved", "收藏"], ["skipped", "已略過"], ["all", "全部"]];
-const OFF = "切換到正式系統後開放";
 const LIST_SHOWN = 12;
 
 /** An https link without credentials, or undefined: listing URLs are untrusted data. */
@@ -69,10 +67,6 @@ export function NoticeLine({ notice }: { notice: string | undefined }) {
   return message ? <p role="status" className="notice">{message}</p> : null;
 }
 
-export function ReadOnlyHint({ writes }: { writes: boolean }) {
-  return writes ? null : <p className="hint">目前是影子期，網頁只能瀏覽；收藏、略過與篩選設定{OFF}。</p>;
-}
-
 const pageHref = (view: View, page: number) => `/?view=${view}${page > 1 ? `&page=${page}` : ""}`;
 
 export function JobList({ data }: { data: ListView }) {
@@ -101,16 +95,16 @@ export function JobList({ data }: { data: ListView }) {
   </>;
 }
 
-function FeedbackButton({ job, value, label, primary, writes, back }: { job: JobView; value: string; label: string; primary: boolean; writes: boolean; back: string }) {
+function FeedbackButton({ job, value, label, primary, back }: { job: JobView; value: string; label: string; primary: boolean; back: string }) {
   return <form method="post" action={`/jobs/${encodeURIComponent(job.id)}/feedback`}>
     <input type="hidden" name="token" value={job.token} />
     <input type="hidden" name="value" value={value} />
     <input type="hidden" name="back" value={back} />
-    <button className={primary ? "primary-button" : "outline-button"} disabled={!writes} title={writes ? undefined : OFF}>{label}</button>
+    <button className={primary ? "primary-button" : "outline-button"}>{label}</button>
   </form>;
 }
 
-export function JobDetail({ job, writes }: { job: JobView; writes: boolean }) {
+export function JobDetail({ job }: { job: JobView }) {
   const back = `/jobs/${encodeURIComponent(job.id)}`;
   const url = safeUrl(job.memberUrl);
   return <section className="detail" aria-label="職缺詳情">
@@ -118,8 +112,8 @@ export function JobDetail({ job, writes }: { job: JobView; writes: boolean }) {
     <p>{text(job.job, "company") ?? "公司未提供"} · {kindLabel(job.job)}</p>
     {job.displayBasis && <p className="hint">主卡依 {job.displayBasis.sourceName} 的{job.displayBasis.label}顯示（版本識別 {job.displayBasis.fingerprint.slice(0, 12)}）；這不代表它較新或已核實。</p>}
     <div className="actions discovery-actions">
-      <FeedbackButton job={job} value={job.feedback === "interested" ? "unsave" : "interested"} label={job.feedback === "interested" ? "取消收藏" : "收藏職缺"} primary writes={writes} back={back} />
-      <FeedbackButton job={job} value={job.skipped ? "restore" : "skipped"} label={job.skipped ? "恢復待看" : "略過"} primary={false} writes={writes} back={back} />
+      <FeedbackButton job={job} value={job.feedback === "interested" ? "unsave" : "interested"} label={job.feedback === "interested" ? "取消收藏" : "收藏職缺"} primary back={back} />
+      <FeedbackButton job={job} value={job.skipped ? "restore" : "skipped"} label={job.skipped ? "恢復待看" : "略過"} primary={false} back={back} />
     </div>
     <dl className="job-facts">
       <div><dt>報酬</dt><dd>{compensation(job.job)}</dd></div>
@@ -153,7 +147,7 @@ export function JobDetail({ job, writes }: { job: JobView; writes: boolean }) {
   </section>;
 }
 
-export function SettingsForm({ data, writes }: { data: SettingsView; writes: boolean }) {
+export function SettingsForm({ data }: { data: SettingsView }) {
   return <form className="preferences" aria-label="篩選設定" method="post" action="/settings/save">
     <h2>我的篩選條件</h2>
     <input type="hidden" name="revision" value={data.revision} />
@@ -165,7 +159,7 @@ export function SettingsForm({ data, writes }: { data: SettingsView; writes: boo
     <fieldset><legend>專長分類</legend>{data.allCategories.map((c) =>
       <label key={c}><input type="checkbox" name="categories" value={c} defaultChecked={data.categories.includes(c)} />{c}</label>)}</fieldset>
     <p className="hint">未提供工時或報酬的機會仍會保留並標示待確認；時薪與外幣不套固定案 TWD 門檻。</p>
-    <button className="primary-button" disabled={!writes} title={writes ? undefined : OFF}>儲存篩選設定</button>
+    <button className="primary-button">儲存篩選設定</button>
   </form>;
 }
 

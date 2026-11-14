@@ -1,6 +1,5 @@
 import { settingsPage } from "@/services/pages";
-import { NoticeLine, ReadOnlyHint, SettingsForm, Shell } from "../_lib/views";
-import { writesOn } from "../_lib/guard";
+import { NoticeLine, SettingsForm, Shell } from "../_lib/views";
 import { withPageDb } from "../_lib/usage";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +9,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const search = await searchParams;
   return <Shell active="settings">
     <NoticeLine notice={typeof search.notice === "string" ? search.notice : undefined} />
-    <ReadOnlyHint writes={writesOn()} />
-    <SettingsForm data={await withPageDb("/settings", settingsPage)} writes={writesOn()} />
+    <SettingsForm data={await withPageDb("/settings", settingsPage)} />
   </Shell>;
 }

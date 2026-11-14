@@ -27,7 +27,6 @@
 | `DIGEST_RECIPIENT` | 只當 `daily_runs` 主鍵 `(local_date, recipient)` 的一部分，不寄信（待移除，見[現況與待辦](implementation-plan.md)）；沒設時每日執行在第一步就失敗 |
 | `PORTFOLIO_CATEGORY_PROJECTS` | 各專長分類對應的作品 ID（JSON 物件）；沒設時用程式裡的合成範例 ID，格式錯誤會丟錯 |
 | `RESEND_API_KEY`、`RESEND_INBOX` | 讀 Resend Receiving 的信件來源；缺任一個時信件來源記為 `failed`／`source_unavailable` |
-| `WEB_WRITES` | 設成 `on` 才開放網頁寫入（收藏、略過、儲存設定）；正式環境已設 |
 
 正式環境只允許上面這些名稱，不放任何寄送憑證（計畫「全域約束」）。`RESEND_API_KEY` 技術上是完整權限的 key，防護在程式：只送 GET、只打 `https://api.resend.com/emails/receiving` 底下的網址。
 
@@ -100,7 +99,10 @@ pnpm exec workflow inspect runs -b vercel -j
 - `<來源>_unavailable_or_unsupported`、`public_feed_unavailable_or_unsupported` 等：connector 抓取或解析失敗。來源改版、暫時連不上都會是這個。
 - `storage_<種類>`：不是來源的問題，是 D1 或寫入租約失敗。`storage_rate_limited`、`storage_daily_limit` 是撞到額度（見下一節）；`storage_lease_wait`、`storage_lease_lost` 是等不到或被搶走租約。
 - `source_unavailable`：step 整個當掉沒有回傳，或信件來源缺 Resend 的環境變數。
+- 失敗的來源另有 `error` 欄位，記錯誤的種類：`http_<狀態碼>` 是來源回的 HTTP 狀態，其他是錯誤類別（例如 `valueerror` 是內容不符預期、`oserror` 是連線失敗）。不記錯誤訊息，因為訊息可能帶來源內容。`/sources` 頁會顯示。
 - `invalid_source_result`：connector 回傳的結果含不允許的值，被擋在 workflow 之外。
+
+信件來源的 `quarantined` 是歷來被隔離的信的累計數，不代表這次失敗；這次的問題看 `error_count` 與 `error_stages`。
 
 來源的 `partial` 與 `waiting` 不是故障：`partial` 是有限讀取或有個別項目被拒收，`waiting` 是信件來源還沒收到有效的職缺通知。
 

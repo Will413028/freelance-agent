@@ -11,22 +11,18 @@ const post = (body: string, headers: Record<string, string> = {}) =>
     headers: { host: "fa.example", origin: "https://fa.example", "content-type": "application/x-www-form-urlencoded", ...headers },
   });
 
-const status = async (request: Request, writes = true) => {
-  const result = await guardedForm(request, writes);
+const status = async (request: Request) => {
+  const result = await guardedForm(request);
   return result instanceof Response ? result.status : 200;
 };
 
 describe("web write guard", () => {
   it("accepts a same-origin form and returns its fields", async () => {
-    const result = await guardedForm(post("value=interested&versions=%7B%7D"), true);
+    const result = await guardedForm(post("value=interested&versions=%7B%7D"));
     expect(result).not.toBeInstanceOf(Response);
     const form = result as URLSearchParams;
     expect(form.get("value")).toBe("interested");
     expect(form.get("versions")).toBe("{}");
-  });
-
-  it("answers 403 while writes are off, whatever the request", async () => {
-    expect(await status(post("value=interested"), false)).toBe(403);
   });
 
   it("answers 403 to another origin, a missing origin and a null origin", async () => {
@@ -66,7 +62,7 @@ describe("web write guard", () => {
   });
 
   it("marks every refusal no-store and nosniff", async () => {
-    const result = await guardedForm(post("a=1"), false) as Response;
+    const result = await guardedForm(post("a=1", { origin: "https://evil.example" })) as Response;
     expect(result.headers.get("cache-control")).toBe("no-store");
     expect(result.headers.get("x-content-type-options")).toBe("nosniff");
   });

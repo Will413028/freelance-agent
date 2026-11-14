@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import { NotFound } from "@/platform/errors";
 import { PyDateTime } from "@/platform/py/datetime";
 import { jobDetail } from "@/services/pages";
-import { JobDetail, NoticeLine, ReadOnlyHint, Shell } from "../../_lib/views";
-import { writesOn } from "../../_lib/guard";
+import { JobDetail, NoticeLine, Shell } from "../../_lib/views";
 import { withPageDb } from "../../_lib/usage";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +19,6 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   }
   return <Shell active="jobs">
     <NoticeLine notice={typeof search.notice === "string" ? search.notice : undefined} />
-    <ReadOnlyHint writes={writesOn()} />
-    <JobDetail job={job} writes={writesOn()} />
+    <JobDetail job={job} />
   </Shell>;
 }
