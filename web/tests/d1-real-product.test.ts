@@ -35,7 +35,7 @@ async function databaseName(): Promise<string> {
   return body.result.name;
 }
 
-describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () => {
+describe.skipIf(!enabled)("real D1: product schema, writer lease", () => {
   const http = httpTransport({ accountId: env.accountId!, databaseId: env.databaseId!, token: env.token! });
   // One transport, several clients: a hook can interleave another writer before a batch goes out.
   let before: (sql: string[]) => Promise<void> = async () => {};
