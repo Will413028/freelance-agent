@@ -78,10 +78,10 @@ describe("daily run entry", () => {
 
   it("fans out only to implemented, enabled sources in catalog priority order", () => {
     const noop = async () => PyDict.of({ status: "ok" });
-    expect(enabledSources({ guru: noop, ptt_soho: noop, tasker: noop, jobicy: noop, nope: noop }, null)).toEqual(["tasker", "jobicy", "guru"]);
-    // Ported sources stay off the schedule until their own deploy (steps 7 and 8 added 2026-10-25, step 9's mail sources the same day).
+    expect(enabledSources({ guru: noop, ptt_soho: noop, tasker: noop, jobicy: noop, nope: noop })).toEqual(["tasker", "jobicy", "guru"]);
+    // Every connector runs: nothing is held back for a later deploy.
     expect(enabledSources()).toEqual(["tasker", "linkedin", "cake", "jobbank104", "talent", "freelancer", "jobicy", "remotive", "himalayas", "hackernews", "v2ex", "remoteok", "realworkfromanywhere", "weworkremotely", "workingnomads", "taiwanjobs", "arbeitnow", "nodesk", "getonboard", "justremote", "cryptojobslist", "dynamitejobs", "jobbank518", "chickpt", "glassdoor"]);
-    expect(enabledSources({ guru: noop, jobicy: noop }, new Set(["guru", "remotive"]))).toEqual(["guru"]);
+    expect(enabledSources()).toHaveLength(Object.keys(RUNNERS).length);
   });
 });
 

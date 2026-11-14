@@ -1,11 +1,8 @@
-// The product schema, the writer lease and the one-time import on a real D1 database (plan steps
+// The product schema and the writer lease on a real D1 database (plan steps
 // 4e2a–4e3 pending checks, 4e4 CI). Destructive: it drops every table of the database first, so it
 // runs only when D1_DESTRUCTIVE_TEST names the same database id as D1_DATABASE_ID. Asserts its own
 // row-write budget (the account's free quota is 100,000 rows a day, shared with the shadow).
-import { mkdtempSync, rmSync } from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { dbOver, inList, readAll, read, usageOf } from "@/db/client";
 import { D1Client, httpTransport, type D1Transport } from "@/db/d1/client";
 import { GUARD_SQL } from "@/db/d1/guard";
@@ -14,12 +11,10 @@ import { migrateD1 } from "@/db/migrate";
 import { opportunities } from "@/db/schema";
 import { DAILY_WRITE, writeUnit } from "@/db/unit";
 import { ingestSource } from "@/modules/collection/public";
-import { copiedDiscovery, importCopy } from "@/ops/import";
 import { PyDateTime } from "@/platform/py/datetime";
-import { rebuildProjection, replaceSettings, track } from "@/services/discovery";
+import { replaceSettings, track } from "@/services/discovery";
 import { readSettings } from "@/modules/discovery/public";
 import { PyDict } from "@/platform/py/value";
-import { sqliteWithSchema } from "./helpers/db";
 import { job } from "./helpers/jobs";
 
 const env = { accountId: process.env.CLOUDFLARE_ACCOUNT_ID, databaseId: process.env.D1_DATABASE_ID, token: process.env.D1_API_TOKEN };
@@ -40,7 +35,7 @@ async function databaseName(): Promise<string> {
   return body.result.name;
 }
 
-describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () => {
+describe.skipIf(!enabled)("real D1: product schema, writer lease", () => {
   const http = httpTransport({ accountId: env.accountId!, databaseId: env.databaseId!, token: env.token! });
   // One transport, several clients: a hook can interleave another writer before a batch goes out.
   let before: (sql: string[]) => Promise<void> = async () => {};
@@ -49,8 +44,6 @@ describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () =>
   const raw = new D1Client(http);
   const rows = async (sql: string, params: (string | number)[] = []) => (await raw.batch([{ sql, params }]))[0].rows;
   const now = new PyDateTime(2026, 10, 27, 1, 0, 0, 0, 0n);
-  const dir = mkdtempSync(path.join(os.tmpdir(), "fa-d1-real-"));
-  afterAll(() => rmSync(dir, { recursive: true, force: true }));
   beforeAll(async () => {
     const name = await databaseName();
     if (!DISPOSABLE.test(name)) throw new Error(`refusing to wipe database "${name}": not named as disposable (${DISPOSABLE})`);
@@ -120,22 +113,6 @@ describe.skipIf(!enabled)("real D1: product schema, writer lease, import", () =>
     const current = await readSettings(db);
     await replaceSettings(db, current.revision, new PyDict(current.settings).update({ max_weekly_hours: 5n }));
     expect(await rows("select count(*), min(settings_revision) from discovery_items")).toEqual([[2, Number(current.revision) + 1]]);
-  });
-
-  it("imports a copy and reports it equal", async () => {
-    const file = path.join(dir, "copy.sqlite3");
-    const lite = sqliteWithSchema(file);
-    const item = (id: string) => `{"id": "${id}", "job": {"source": "guru", "external_id": "${id}", "budget_max": 1.0}, "fingerprint": "f-${id}", "review_status": "draft"}`;
-    for (const id of ["o1", "o2"]) lite.prepare("insert into opportunities values (?,?,?,?)").run(id, "guru", id, item(id));
-    lite.prepare("insert into source_receipts values ('guru','r1','o1','2026-10-01 01:02:03')").run();
-    lite.prepare("insert into tracking_events (opportunity_id, revision, state, created_at) values ('o1',1,'{}','t1')").run();
-    lite.prepare("insert into digest_outbox values ('d1','2026-10-22','owner@example.invalid','{\"items\": []}','sent','c',null,null,'receipt')").run();
-    lite.close();
-    const report = await importCopy(file, db, (target, copy, send) => rebuildProjection(target, copiedDiscovery(copy), send));
-    expect(report.ok).toBe(true);
-    expect(report.tables.opportunities.target.rows).toBe(2);
-    expect(await rows("select item from opportunities where id = 'o1'")).toEqual([[item("o1")]]);
-    expect(await rows("select opportunity_id from discovery_items order by 1")).toEqual([["o1"], ["o2"]]);
   });
 
   it("stays within its row-write budget", () => {

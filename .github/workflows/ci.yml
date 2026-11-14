@@ -9,18 +9,6 @@ permissions:
   contents: read
 
 jobs:
-  backend:
-    # The Python system stays the spec until the plan's step 14 deletes it.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.12"
-      - run: uv sync --project backend --locked
-      - run: FREELANCE_TEST_DSN='' backend/.venv/bin/python -B -m unittest discover -s backend/tests -q
-      - run: backend/.venv/bin/python scripts/check_boundaries.py
-
   web:
     runs-on: ubuntu-latest
     defaults:
@@ -79,7 +67,7 @@ jobs:
     # The only required check on main: it passes when every other job in this workflow succeeded or was skipped.
     name: gate (ci)
     if: always()
-    needs: [backend, web, d1]
+    needs: [web, d1]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}

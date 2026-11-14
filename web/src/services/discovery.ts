@@ -17,7 +17,7 @@ import {
 } from "@/modules/discovery/public";
 
 // Port of discovery/service.py: discovery queries and atomic group feedback shared by all entry
-// points. It composes legacy records, preferences, collection and applications, so it lives above
+// points. It combines legacy records, preferences, collection and applications, so it lives above
 // the modules (the Python facade wires them by injection in bootstrap/store.py).
 
 const OBSERVATION_ONLY = new Set(["received_at", "receipt_id", "evidence_ref", "raw_evidence_ref"]);

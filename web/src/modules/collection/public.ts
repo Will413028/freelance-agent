@@ -4,6 +4,6 @@ export {
   sourceChecks, sourceStatuses, sourcesRead, type ContentVersionRow, type Listing, type MailRecord,
 } from "./ingest";
 export { isSource, REGISTRY, SOURCES } from "./source-catalog";
-export { DISABLED, enabledSources, FAILURE_REASON, RUNNERS, SCHEDULED, type SourceRunner } from "./registry";
+export { enabledSources, FAILURE_REASON, RUNNERS, type SourceRunner } from "./registry";
 export { detailDict, runSource, succeeded, type DetailValue, type SourceDetail, type SourceOutcome } from "./run-source";
 export { syncFreeJobs } from "./sources/free-jobs";

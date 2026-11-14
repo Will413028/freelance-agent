@@ -20,7 +20,7 @@ import { REGISTRY, SOURCES } from "./source-catalog";
 /** Every connector returns its Python result dict; runSource refuses anything else at run time too. */
 export type SourceRunner = (db: Db) => Promise<PyDict>;
 
-/** Every TS connector ported so far (plan steps 6–9), scheduled or not. */
+/** Every connector. */
 export const RUNNERS: Record<string, SourceRunner> = {
   jobicy: (db) => syncFreeJobs(db, "jobicy"),
   remotive: (db) => syncFreeJobs(db, "remotive"),
@@ -76,25 +76,10 @@ export const FAILURE_REASON: Readonly<Record<string, string>> = {
 };
 
 /**
- * Release toggle: the sources the shadow schedule runs, exactly the ones whose deploy Will has authorized. Each step or
- * batch ships in its own deploy with its own shadow comparison, so a deploy of main for any other
- * reason must not start a ported source early. Add a source here in the commit that deploys it.
- * Remove this set and enabledSources' scheduled parameter once it equals RUNNERS minus DISABLED (plan step 14).
+ * Sources the daily run fans out to: every catalog entry with a connector and no lasting `disabled`
+ * reason, in the catalog's priority order. A switch that can be flipped without a deploy does not
+ * exist yet; it is built when a source first has to be turned off faster than a deploy (plan step 14).
  */
-export const SCHEDULED: ReadonlySet<string> = new Set([
-  "jobicy", "remotive", "cryptojobslist", "himalayas", "getonboard", "hackernews", "v2ex", "remoteok", "realworkfromanywhere",
-  "weworkremotely", "workingnomads", "nodesk", "justremote", "dynamitejobs", "jobbank518", "chickpt", "taiwanjobs", "arbeitnow",
-  "freelancer", "tasker", "linkedin", "cake", "jobbank104", "talent", "glassdoor",
-]);
-
-// D12: Vercel's regions get a challenge from PTT; these stay in the catalog for their history only.
-export const DISABLED = new Set(["ptt_soho", "ptt_codejob"]);
-
-/**
- * Sources the daily run fans out to (implemented, scheduled, not disabled), in the catalog's priority order. Enablement lives in code until
- * cutover: the shadow database is reloaded from production every morning, so a switch stored there
- * would be overwritten, and Python's discovery_settings contract rejects extra keys.
- */
-export function enabledSources(runners: Record<string, SourceRunner> = RUNNERS, scheduled: ReadonlySet<string> | null = SCHEDULED): string[] {
-  return SOURCES.filter((s) => runners[s] && (scheduled === null || scheduled.has(s)) && !DISABLED.has(s)).sort((a, b) => REGISTRY[a].order - REGISTRY[b].order);
+export function enabledSources(runners: Record<string, SourceRunner> = RUNNERS): string[] {
+  return SOURCES.filter((s) => runners[s] && !REGISTRY[s].disabled).sort((a, b) => REGISTRY[a].order - REGISTRY[b].order);
 }

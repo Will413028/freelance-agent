@@ -1,10 +1,14 @@
 // Port of collection/source_catalog.py: explicit source definitions. Runners arrive with each
 // connector (plan steps 6–9); until then the catalog only validates source ids and orders them.
 
-export type SourceSpec = { name: string; group: string | null; runner: string | null; order: number; keyed: boolean; fn: string };
+/** `disabled` is the lasting reason the daily run never fans out to a source; it is a fact about the source, not a switch. */
+export type SourceSpec = { name: string; group: string | null; runner: string | null; order: number; keyed: boolean; fn: string; disabled?: string };
 
 const s = (name: string, group: string | null, runner: string | null, order = 100, keyed = false, fn = "sync"): SourceSpec =>
   ({ name, group, runner, order, keyed, fn });
+
+// D12: Vercel's regions get an access challenge from PTT; the entries stay for the history of their rows.
+const PTT_BLOCKED = "access challenge from Vercel's regions (plan D12)";
 
 export const REGISTRY: Record<string, SourceSpec> = {
   freelancer: s("Freelancer", "freelancer", "freelancer", 5, false),
@@ -18,8 +22,8 @@ export const REGISTRY: Record<string, SourceSpec> = {
   himalayas: s("Himalayas", "free_boards", "himalayas", 8, false),
   hackernews: s("Hacker News", "free_boards", "community_jobs", 9, true),
   v2ex: s("V2EX", "free_boards", "community_jobs", 10, true),
-  ptt_soho: s("PTT SOHO", "free_boards", "ptt_soho", 11, false),
-  ptt_codejob: s("PTT CodeJob", "free_boards", "ptt_codejob", 12, false),
+  ptt_soho: { ...s("PTT SOHO", "free_boards", "ptt_soho", 11, false), disabled: PTT_BLOCKED },
+  ptt_codejob: { ...s("PTT CodeJob", "free_boards", "ptt_codejob", 12, false), disabled: PTT_BLOCKED },
   remoteok: s("Remote OK", "free_boards", "public_feeds", 13, true),
   realworkfromanywhere: s("Real Work From Anywhere", "free_boards", "public_feeds", 14, true),
   weworkremotely: s("We Work Remotely", "free_boards", "public_feeds", 15, true),
