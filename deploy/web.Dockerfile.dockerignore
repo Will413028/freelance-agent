@@ -1,0 +1,8 @@
+node_modules
+.next
+.vercel
+.swc
+.env
+.env.*
+*.tsbuildinfo
+runtime

@@ -1,0 +1,52 @@
+# The self-hosted system (plan step 2). Run from the repository root on the VM:
+#   docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml up -d
+# The env file (0600) sets APP_IMAGE and POSTGRES_PASSWORD. Every published port binds 127.0.0.1;
+# deploy/check-compose.mjs fails otherwise. Tailscale Serve is the only way in.
+name: side-income
+
+x-app: &app
+  image: ${APP_IMAGE:?set APP_IMAGE in the env file}
+  environment:
+    DATABASE_URL: postgres://side_income:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@db:5432/side_income
+  depends_on:
+    db:
+      condition: service_healthy
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+
+services:
+  db:
+    image: postgres:18.7-bookworm
+    environment:
+      POSTGRES_USER: side_income
+      POSTGRES_DB: side_income
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U side_income -d side_income"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  web:
+    <<: *app
+    ports:
+      - "127.0.0.1:3347:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # One-off commands and (from step 6) the daily run: docker compose run --rm daily pnpm exec tsx scripts/<name>.ts
+  daily:
+    <<: *app
+    profiles: [jobs]
+    command: ["pnpm", "exec", "tsx", "--version"]
+
+volumes:
+  pgdata:
