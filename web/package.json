@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:d1": "vitest run tests/d1-real-product.test.ts tests/d1-real.test.ts",
     "boundaries": "depcruise src --config .dependency-cruiser.cjs",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check && drizzle-kit generate && test -z \"$(git status --porcelain -- drizzle)\""
   },
   "dependencies": {
     "@vercel/functions": "3.10.3",

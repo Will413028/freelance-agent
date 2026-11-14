@@ -714,6 +714,11 @@
     - 文件改寫完成（`docs/compose.md` → `docs/operations.md`）；`docs/implementation-history.md` 在 2026-10-23 已移到私人封存 repo，舊部署段落直接刪除。殘留驗收：`residue: 10 allowed, 0 not allowed`。
     - `check-storage-triggers` 補跑（2026-11-15，VM 上用 `:ce1254d` 映像對正式 D1，`--since 2026-11-06`）：`9 runs, 0 signals`。VM 的 after timer 自 11-06 停用後沒有東西每天跑它，接手方式待 Will 決定。
     - 完成前設計審查（fresh subagent）9 項（blocking 0）：改 5（D6 提前結束寫回本計畫；D6 結束觸發的延後項列進 `docs/implementation-plan.md`；golden 行為案例的處理規則寫進 `AGENTS.md`；持續失敗的來源列成待辦；離線示範的觸發條件與 `.claude/rules` 的過期路徑）、記 2（來源目錄的 Python 死欄位與三張表合併、`ops/tables.ts` 歸位，都列進 `docs/implementation-plan.md`）、交 Will 2（`check-storage-triggers` 由誰每天跑；`001_sqlite.sql` 的結構比對要留還是換成 drizzle 漂移檢查）、駁回 0。
+    - 第二批（2026-11-15，分支 `step-14b`；Will：兩題「按照建議」、退役「同意」）：
+      - `/sources` 頁顯示到最近一次執行為止 7 天的儲存檢討訊號（`sourcesPage` 呼叫 `storageSignals`）；測試先紅（`expected undefined to deeply equal { runs: 2, reopened: [] }`）後綠。
+      - 舊 SQLite schema 的結構比對換成 `pnpm db:check`（`drizzle-kit check`、`generate` 後 `drizzle/` 不得有變動），接進 CI 的 web job；`001_sqlite.sql`、`sqliteWithSchema`、`ops/tables.ts` 刪除。能失敗的證明：在 scratch 副本的 `schema.ts` 給 `writer_lease` 加一欄，`drizzle-kit generate` 產生 `0005_*.sql`（`scripts/red-proof.py` 的 canary 判定不出來，改用手動副本）。
+      - 退役：Vercel Preview 的 `D1_DATABASE_ID` 拿掉；shadow D1 `freelance-agent-shadow` 刪除（`cf d1 list` 剩 prod、ci-test、spike-1f）；Neon 專案 `fancy-water-44947465` 刪除（`neonctl projects list` 沒有它）；VM 上 3 個容器、38 個映像、2 個網路、`freelance-shadow-after` 的 unit 檔、`/opt/freelance-agent*`（23 個路徑）、`/opt/freelance-shadow`、`/var/lib/freelance`、`/var/lib/freelance-shadow`、`/etc/freelance-agent`、帳號 `freelance-agent` 都刪除（刪後 `ls` 與 `getent` 都查無）。VM 上的 Resend key 副本隨設定檔刪除；key 本身是正式環境在用的同一把，沒有撤銷。homelab 的 `sonarqube-scan@freelance-agent` timer 不屬於這個專案的部署，沒有動。
+      - 沒做：`D1_API_TOKEN` 重建（2026-11-30 到期）。`cf` 的登入沒有管理 API token 的權限（`/user/tokens` 與 `/accounts/…/tokens` 都回 403），要 Will 在 Cloudflare 後台建。
     - 還沒做（清單在 `docs/implementation-plan.md`）：`WEB_WRITES` 退場、回饋簽名與排序匯出、`DIGEST_RECIPIENT` 與 `daily_runs` 主鍵、v2 雜湊與 golden 拆分、長期檢查接進 CI、VM／Neon／shadow D1 退役（每項刪除前問 Will）。
   - 刪除：
     - `backend/`、`deploy/`、`frontend/`、`contracts/`。
