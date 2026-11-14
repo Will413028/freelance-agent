@@ -34,7 +34,7 @@
 - 信件來源繼續用 Resend Receiving（D2；已確認）。
 - 既有列的 `external_id` 有一部分靠模擬 Python 的網址解析算出來（19 個來源檔引用 `@/platform/py/url`）；原生寫法對存著的乾淨網址算出同樣的值（1,061 列可重算，全部一致；2026-11-15 實測，`spikes.md` 第 3 節）；原始網址那一側未確認，步驟 4、5 用 `golden.json` 的原始輸入驗收。
 - 網頁寫入的守門比對 `Origin` 與 `X-Forwarded-Host`／`Host`（`web/src/app/_lib/guard.ts`）；經 Tailscale Serve 後 `Host`、`X-Forwarded-Host` 都是含埠的 Serve 網址、`Origin` 原樣送到，守門不用改（2026-11-15 實測，`spikes.md` 第 1 節）。
-- 瀏覽器層在這台 arm64 VM 上：Crawlee 加 Playwright Chromium 跑得起來（實測）；記憶體峰值與 Scrapling 未確認，步驟 1 第 2 項補量。
+- 瀏覽器層在這台 arm64 VM 上：Crawlee 加 Playwright Chromium 與 Scrapling（patchright Chromium）都跑得起來，峰值分別約 484 MiB 與 406–734 MiB（2026-11-15 實測，`spikes.md` 第 2 節）。
 
 **驗收基線：** `0f38208` 上 `web/`：`pnpm typecheck` exit 0、`pnpm boundaries` 無違規、`pnpm db:check` 無漂移、`pnpm test` 415 過 6 skip、`pnpm build` exit 0（2026-11-15 本機）。CI 的 `d1` job 用共用額度的真實 D1，一次只跑一個；步驟 2 拿掉它。
 
@@ -76,7 +76,7 @@
 
 ## 步驟
 
-- [ ] **1. 規則先行，加四個 spike**（被擋於：無）
+- [x] **1. 規則先行，加四個 spike**（被擋於：無）
   - 範圍：
     - `AGENTS.md`（修改）：只改被 D0 推翻的條目，並標明過渡期：技術棧與部署改成「目標是 VM 加 Postgres，切換前正式仍是 Vercel 加 D1（凍結）」；「steps are never retried」「不可 drop 歷史表」「改產品表欄位是設計決定」「stored hashes 維持 v1」改成指向本計畫；新增「只讀不用登入的公開頁面；遇到存取驗證照來源設定的層級處理」。`docs/operations.md`（修改）：「不要繞過平台的存取驗證」那一條同步改；加一段過渡期規則。
     - 四個 spike，產出事實，不寫產品程式；結論與指令寫進 `spikes.md`（新增），原始輸出放 repo 外：
@@ -140,7 +140,7 @@
   - 驗收：`pnpm check` 綠；現有 66 個信件情境的輸入搬成各來源 fixture，預期輸出是新形狀；重排後下一次執行重讀、消掉後不再計入；VM 上跑一次，各信件來源的 `messages` 與正式庫同日的值並列記錄，並做步驟 4 的 id 比對；`web/tests/mail-sources.test.ts`（修改）的 66 個情境各有對應；mutation：收件信箱檢查拿掉要有測試失敗、兩個新路由拿掉 `guardedForm` 要有測試失敗。
   - 停止條件：拿不到被拒的 LinkedIn 通知的結構，LinkedIn 那一項單獨留在進行中，不擋其他五個。
   - 需要人做的事：把 `RESEND_API_KEY`、`RESEND_INBOX` 放進 VM 的 env 檔（Will 提供值的來源，agent 不印值）；授權部署（部署點）；LinkedIn 被拒通知的結構（VM 上有 key 之後用診斷腳本只輸出結構，不輸出內容）。
-- [ ] **8. 分層讀取的上層與新平台**（被擋於：步驟 1 第 2 項、決定 D3、D4、步驟 6）
+- [ ] **8. 分層讀取的上層與新平台**（被擋於：步驟 6；瀏覽器層的平台另等 D3 剩下的點選）
   - 範圍：`web/src/platform/fetch/`（修改）：依 D4 選的工具實作第 2、3 層；瀏覽器層放在另一個只在需要時啟動的映像或服務（`deploy/compose.yaml` 修改）；來源設定加「最高層級」；`web/src/modules/sources/ptt/`（新增）接回兩個看板，id 格式照步驟 1 第 3 項反推的結果；D3 點選的平台逐個加 connector。
   - 消費端：`rg -n "maxTier|fetchTier" web/src`（新介面）。
   - 不能動：不登入；每個來源的間隔與每日上限；升層不提高頻率。
@@ -180,16 +180,16 @@
   - 結論：不做備份，也不做還原演練。VM 的磁碟損毀或資料庫被誤刪時，職缺會由之後的每日執行重新收到，回饋、設定、信件紀錄與執行歷史不會回來。否決：送到另一台自己的機器、送到物件儲存、只留本機副本。
 - **D2 信件來源怎麼收**（狀態：已決 2026-11-15，Will：「信件繼續用 Resend」；擋住步驟：無）
   - 結論：繼續用 Resend Receiving。否決：IMAP 直接讀信箱、VM 自己收信。
-- **D3 步驟 8 要接哪些平台**（狀態：未決；擋住步驟：8；需要的事實：步驟 1 第 2 項）
-  - 步驟 1 交出每個平台的層級後，Will 點選。PTT 兩個看板預設列入。
-- **D4 上層讀取用哪個工具**（狀態：未決；擋住步驟：8；需要的事實：步驟 1 第 2 項）
+- **D3 步驟 8 要接哪些平台**（狀態：已決 2026-11-15，Will 照建議；擋住步驟：無；事實：`spikes.md` 第 2 節）
+  - 結論：接一般請求就讀得到的 PTT SOHO、PTT CodeJob、Arc、Web3.career、Wellfound、Remote.com Jobs、YC Jobs，以及模仿瀏覽器連線特徵（第 2 層）讀得到的 Remote.co。不接：Reddit r/forhire（官方政策要求 API 核准）、Upwork（服務條款禁止爬取，推論）。只有瀏覽器讀得到的 Idealist、Braintrust、Glassdoor、打工探吉、Turing：未決，Will 另行點選；其餘平台照 `spikes.md` 是範圍外或都沒過，放「延後」的觸發條件。
+- **D4 上層讀取用哪個工具**（狀態：已決 2026-11-15，Will 照建議選 A；擋住步驟：無；事實：`spikes.md` 第 2 節：Crawlee 過的平台比 Scrapling 多一個（Glassdoor），峰值 484 MiB 低於 Scrapling 的 406–734 MiB）
   - A：Crawlee 加 Playwright——單一語言。兩者過關率相近時選它。（預設建議）
   - B：Scrapling 包成 VM 上獨立的小服務（給網址、回內容）——多一個 Python 容器；只在它明顯過得多時選。
   - C：只做到第 2 層——不裝瀏覽器，最省資源；需要瀏覽器的平台放棄。
 - **D5 切換後的回滾窗口**（狀態：已決 2026-11-15，Will：「切換後不留」；擋住步驟：無）
   - 結論：不留回滾窗口。步驟 10 隔天的自然執行驗收通過，當天就退役 Vercel 專案與 D1；之後出問題只能往前修。否決：7 天、14 天。
 
-拍板順序：D0、D1、D2、D5 已決；D3、D4 等步驟 1 第 2 項的結果。
+拍板順序：D0、D1、D2、D5 已決；D3、D4 已決（2026-11-15）；D3 只剩瀏覽器層的五個平台待 Will 點選。
 
 ## 進度
 
@@ -197,7 +197,7 @@
 
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
-| 1 規則與 spike | 進行中 | repo 改名 `side-income`（Will 2026-11-15 選定）；規則條目；spike 1、3、4 完成；spike 2 量了 23 個入口與 Crawlee | spike 2：瀏覽器記憶體峰值、Scrapling、範圍外平台的確認請求、Remoters／Turing／Contra 入口（第一輪沒做完） | |
+| 1 規則與 spike | 完成 | repo 改名 `side-income`（Will 2026-11-15 選定）；規則條目 diff；spike 1–4 各有指令與結論，第 2 節每個平台一列；VM 暫時資源查無 | spike 3 原始網址那一側（移到步驟 4、5 的驗收） | `832d183`、本 PR |
 | 2 Walking skeleton | 未開始 | | | |
 | 3 新形狀 | 未開始 | | | |
 | 4 第一個來源 | 未開始 | | | |

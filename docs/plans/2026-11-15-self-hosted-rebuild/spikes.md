@@ -61,14 +61,44 @@ docker stats --no-stream
 | 打工探吉 | 主要是 App，網頁入口沒確認（推論） | 未送 | 未送 | 未送 | 不適用 | — | |
 | NomadBridge、TDNA | 找不到職缺網站 | 未送 | 未送 | 未送 | 不適用 | — | TDNA 是社群（平台主表） |
 
+第二輪（同日）補量。Scrapling 一欄與第二輪重試的結果（實測，除非標推論）：
+
+| 平台 | 入口 | 第二輪結果 | 最低可用層級（兩輪合計） | 存取驗證 |
+|---|---|---|---|---|
+| Idealist | `/en/jobs` | Crawlee 17 筆、Scrapling 17 筆 | T3 | 無 |
+| Braintrust | `/jobs/` | Crawlee 20、Scrapling 20 | T3 | 無 |
+| Glassdoor | remote 搜尋 | Crawlee 30；Scrapling 403「Just a moment」 | T3（只有 Crawlee） | Cloudflare（Scrapling 被擋） |
+| Upwork | `/nx/search/jobs/?q=…` | Crawlee 10、Scrapling 10 | T3 | 無 |
+| Yourator | `/jobs` | Scrapling 403 | 都沒過 | Cloudflare |
+| Guru | `/d/jobs/` | Scrapling 200 但只有分類連結 | 都沒過 | — |
+| SimplyHired | 搜尋 | Scrapling 403 | 都沒過 | Cloudflare |
+| Indeed TW | `/jobs?q=兼職` | Scrapling 403 | 都沒過 | Cloudflare |
+| Welcome to the Jungle | `/en/jobs` | Scrapling 200 但 0 筆 | 都沒過 | — |
+| FlexJobs | 搜尋 | Scrapling 403 | 都沒過 | 廠商不明 |
+| 打工探吉 | `tanji.104.com.tw` | T1、T2 只拿到空殼；Crawlee 20 筆 | T3 | 無 |
+| Turing | `work.turing.com/jobs` | T1、T2 空殼；Crawlee 至少 8 個職稱（不是一般連結，要處理 DOM） | T3 | 頁面載入 Incapsula，沒擋 |
+| Remoters | RSS、WP Job Manager AJAX 幾種路徑 | 都沒有 feed（回一般頁面或 404） | 都沒過（第一輪 T3 只有 2 筆） | 無 |
+| Contra | `/opportunities` | T1、T2 空殼；Crawlee 顯示登入頁 | 範圍外：要登入 | 無 |
+| A.Team | `/missions` | T1 404 | 範圍外：沒有公開清單 | 無 |
+| Gun.io | `/find-work/`、`/jobs/` | T1、T2 0 筆；Crawlee 403 | 都沒過 | 403「Request blocked」 |
+| Proxify | `/jobs` | T1 403 | 都沒過（只試 T1） | Cloudflare |
+| Toptal | `/freelance-jobs` | T1 403 | 都沒過（只試 T1） | 廠商不明 |
+| Outlier | `/opportunities` | T1 404；網站導向 app 登入 | 範圍外：要登入 | 無 |
+| DataAnnotation | `/` | 只有招募頁，沒有案件 | 範圍外：案件要登入（推論） | 無 |
+| TELUS Digital AI Community | `/careers/ai-community` | T1 403 | 都沒過（只試 T1） | 廠商不明 |
+| Fiverr | `/briefs` | T1 403，PerimeterX CAPTCHA | 都沒過（只試 T1） | PerimeterX |
+| PRO360 | `/requests`（猜的路徑） | T1 404 | 範圍外：沒找到公開需求清單 | 無 |
+| 打工趣 | 找不到網頁版 | 只有 App | 範圍外：只有 App | — |
+
+Proxify、Toptal、TELUS、Fiverr 是確認請求（每個只送 T1），沒有往上試；這幾個屬於人才平台或賣方服務，就算過了也很可能只有招募頁（推論）。
+
 T3 工具在 arm64（實測）：
 
-- Crawlee 官方映像（`apify/actor-node-playwright-chrome`）沒有 arm64 版。改用 `mcr.microsoft.com/playwright:v1.56.1-noble` 加 Chromium 可以跑，映像 3.58 GB。13 個請求 90 秒跑完；node 程序跑完不會自己結束，正式使用要明確呼叫結束。**記憶體峰值沒量到**（採樣程式中途被停掉），只量到跑完後閒置 187 MiB。
-- Scrapling 在兩種映像上都裝不起瀏覽器（`python:3.13-slim`：`playwright install chromium` exit 127；Playwright 的 Python 映像：Scrapling 帶進的 Playwright 版本找不到 arm64 的 Chromium），**一個請求都沒送出**。比較像安裝流程的問題，還不能下結論說它不支援 arm64（推論）。
+- **Crawlee**：官方映像（`apify/actor-node-playwright-chrome`）沒有 arm64 版；`mcr.microsoft.com/playwright:v1.56.1-noble` 加 Chromium 可以跑，映像 3.58 GB。一個容器跑 4 個平台，峰值 **484 MiB**，46 秒。node 程序跑完不會自己結束，要明確呼叫 `teardown()` 與結束程序。
+- **Scrapling 0.5.1**：StealthyFetcher 現在用 patchright Chromium，不用 Camoufox，所以 Camoufox 沒有 arm64 版不影響。能跑的安裝步驟：`pip install "scrapling[fetchers]"`、`apt-get install -y libatomic1`（第一輪 exit 127 的原因）、`python -m playwright install --with-deps chromium`、`scrapling install`、`python -m patchright install chromium`。映像 3.58 GB。每個平台一個容器，峰值 406–692 MiB；被 Cloudflare 挑戰的頁面要 74–80 秒，峰值 706–734 MiB。
+- 兩者比較（各試一次，樣本小）：Crawlee 過了 Glassdoor，Scrapling 沒過；其餘相同。Crawlee 記憶體較低。
 
-暫時容器、volume、映像與 `/tmp` 目錄都已刪，查無 `fa-spike2-`（實測）。
-
-**這一節還沒達到步驟 1 的驗收**：瀏覽器的記憶體峰值、Scrapling 那一欄、範圍外各平台的確認請求、Remoters／Turing／Contra 的入口都還要補一輪。
+暫時容器、映像與 `/tmp` 目錄兩輪都已刪，查無 `fa-spike2`（實測）。
 
 ## 3. id 穩定性
 
