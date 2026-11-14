@@ -15,7 +15,7 @@
 
 遷移計畫步驟 14（收尾）還開著的項目，以該步驟的清單為準：
 
-- [ ] 長期檢查接進 CI：schema 漂移已接（`pnpm db:check`）；trigger 測試、指紋相容測試、step 型別檢查已在 `pnpm test`／`pnpm typecheck` 內的部分待逐項核對。
+- [x] 長期檢查都在 CI 的 `web` job 裡（2026-11-15 逐項核對）：schema 漂移是 `pnpm db:check` 加 `tests/schema.test.ts`；不可改表的 trigger 是 `tests/schema.test.ts` 的行為測試；v1 雜湊相容是 `src/platform/py/canonical-json.test.ts` 等對 `golden.json` 的測試；workflow step 只帶 ID、計數、狀態，由 `run-source.ts` 的 `detailOf` 在執行期擋（`tests/daily.test.ts` 的 `invalid_source_result` 案例）加 `pnpm typecheck`。
 - [ ] 步驟 11 設計審查記下的項目還剩：回饋簽名、排序函式的測試專用匯出、舊樣式 class、去向表。`WEB_WRITES` 開關已從程式拿掉（2026-11-15）；下一次部署後把 Vercel production 的 `WEB_WRITES` 變數刪掉。
 - [ ] v1 雜湊換版本：把只為相容而照抄的解析換成標準實作，改用 v2 雜湊並一次重新基準化；`golden.json` 拆成永久保留的 v1 相容資料與可刪除的行為對照。
 - [ ] 延後項目附觸發條件，搬回主清單。
