@@ -56,7 +56,7 @@ CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scri
 
 - 輸出 `migrations applied: N`；已是最新時不做事。目前有 5 個（`0000_schema` 到 `0004_drop_digest_novelty`）。
 - 待套的語句超過一個請求的上限時腳本會拒絕，要把 migration 拆開。
-- 結構的唯一權威是 `web/src/db/schema.ts` 加這裡的 migration。`pnpm db:check` 檢查兩者一致（`drizzle-kit generate` 不該產生新檔），CI 會跑。改 25 張產品表的欄位是要先設計的決定，不是例行 migration。
+- 結構的唯一權威是 `web/src/db/schema.ts` 加這裡的 migration。兩道檢查，CI 都跑：`pnpm db:check` 比對 `schema.ts` 與 drizzle 的快照（`drizzle-kit generate` 不該產生新檔）；`tests/schema.test.ts` 比對「migration 實際建出來的表與欄位」與 `schema.ts`，所以手寫的 migration 動到任何一張表都會被擋。改 25 張產品表的欄位是要先設計的決定，不是例行 migration。
 
 ## 排程與每日執行
 
@@ -74,7 +74,7 @@ CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scri
 
 **業務結果看資料，不看平台狀態。** workflow 顯示 `completed` 只代表流程走完，不代表每個來源都成功。
 
-- 網頁 `/sources`：最近一次每日執行的日期、狀態、起訖時間、原因，以及每個來源的健康狀態與當次計數。
+- 網頁 `/sources`：最近一次每日執行的日期、狀態、起訖時間、原因，以及每個來源的健康狀態與當次計數；另有一區顯示近 7 天的儲存檢討訊號。
 - D1 的 `daily_runs`：每天一列，`status` 是 `running`／`complete`／`failed`，`result` 是結果 JSON。`source_health` 是每個來源最近一次檢查。
 - workflow 的 run 與各 step 耗時：
 
@@ -124,7 +124,7 @@ pnpm exec workflow inspect runs -b vercel -j
 | 每條查詢 | 100 個綁定參數、SQL 100 KB、30 秒 | 該查詢被拒 |
 | Cloudflare API 請求 | 每個使用者每 5 分鐘 1,200 個 | 全部 API 被擋 5 分鐘 |
 
-量到的用量（計畫步驟 11「D13 頁面量測」，正式環境各量一次）：待看清單第 1 頁讀 20,687 列、全部清單第 1 頁 17,956 列、收藏 11,580 列、詳情 12 列、設定 1 列、來源狀態 30 列。清單頁是讀取額度的主要消耗，讀取列數會隨職缺數成長。
+量到的用量（計畫步驟 11「D13 頁面量測」，正式環境各量一次）：待看清單第 1 頁讀 20,687 列、全部清單第 1 頁 17,956 列、收藏 11,580 列、詳情 12 列、設定 1 列、來源狀態 30 列（2026-11-15 起這頁多一次 `daily_runs` 讀取，最多再讀約 7 列，還沒重量）。清單頁是讀取額度的主要消耗，讀取列數會隨職缺數成長。
 
 撞到額度時程式不等待也不重試（`web/src/db/client.ts` 的 `retrying` 只重試「結果不明」的請求），該來源或該頁面直接失敗。
 

@@ -70,7 +70,7 @@ web/src/
 
 資料庫裡有三類表：
 
-- **25 張產品表**：從舊系統原樣搬來的權威資料。結構的唯一權威是 `web/src/db/schema.ts` 加 `web/drizzle/` 的 migration，`pnpm db:check` 在 CI 檢查兩者一致。
+- **25 張產品表**：從舊系統原樣搬來的權威資料。結構的唯一權威是 `web/src/db/schema.ts` 加 `web/drizzle/` 的 migration，CI 用 `pnpm db:check` 與 `tests/schema.test.ts` 檢查兩者一致。
 - **衍生表** `discovery_items`、`discovery_versions`：清單投影，可由產品表重建。
 - **D1 專屬記帳表** `writer_lease`、`write_attempts`、`guard`：寫入租約用，不是產品資料。
 
