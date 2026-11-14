@@ -1,9 +1,0 @@
-.git
-**/.venv
-**/node_modules
-**/.next
-**/__pycache__
-**/*.tsbuildinfo
-runtime
-AGENTS.local.md
-.env*
