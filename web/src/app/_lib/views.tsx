@@ -185,7 +185,9 @@ function dailyLine(daily: Record<string, Plain>) {
   const parts = [n("seen") !== null ? `讀取 ${n("seen")} 筆` : n("messages") !== null ? `職缺通知 ${n("messages")} 封` : "讀取數量未知"];
   if (n("jobs") !== null) parts.push(`初篩 ${n("jobs")} 筆`);
   if (n("rejected_count") !== null) parts.push(`拒收 ${n("rejected_count")} 筆`);
-  if (n("quarantined") !== null) parts.push(`隔離 ${n("quarantined")} 封`);
+  if (n("quarantined") !== null) parts.push(`隔離 ${n("quarantined")} 封（歷來累計）`);
+  if (typeof daily.error === "string") parts.push(`錯誤種類 ${daily.error}`);
+  if (typeof daily.reason === "string" && daily.status === "failed") parts.push(`原因 ${daily.reason}`);
   if (daily.truncated === true || daily.limited === true) parts.push("本次讀取未完整");
   if (daily.complete_scan === false) parts.push("有限範圍，不代表全站");
   return parts.join(" · ");

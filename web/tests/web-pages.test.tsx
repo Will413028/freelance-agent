@@ -211,7 +211,7 @@ describe("markup", () => {
   it("shows the latest daily run and each source's daily details", async () => {
     await leased("insert into daily_runs values ('2026-11-03', 'r', 'running', '2026-11-03T01:00:00+00:00', null, null)");
     await leased("insert into daily_runs values ('2026-11-02', 'r', 'failed', '2026-11-02T01:00:00+00:00', '2026-11-02T01:05:00+00:00', ?1)",
-      [JSON.stringify({ status: "source_failed", source_reason: "one_or_more_sources_failed", source_details: { status: "failed", reason: "x", tasker: { status: "ok", seen: 12, jobs: 3 }, freelancer: { status: "partial", seen: 4 } } })]);
+      [JSON.stringify({ status: "source_failed", source_reason: "one_or_more_sources_failed", source_details: { status: "failed", reason: "x", tasker: { status: "ok", seen: 12, jobs: 3 }, freelancer: { status: "partial", seen: 4 }, arbeitnow: { status: "failed", reason: "arbeitnow_source_unavailable_or_unsupported", error: "http_429" } } })]);
     const running = await sourcesPage(db);
     expect(running.lastRun).toMatchObject({ localDate: "2026-11-03", status: "running" });
     expect(renderToStaticMarkup(<SourcesTable data={running} />)).toContain("執行中，需核對是否中斷");
@@ -220,6 +220,7 @@ describe("markup", () => {
     expect(html).toContain("讀取 12 筆 · 初篩 3 筆");
     expect(html).toContain("one_or_more_sources_failed");
     expect(html).toContain("部分資料取得 · 讀取 4 筆");
+    expect(html).toContain("錯誤種類 http_429 · 原因 arbeitnow_source_unavailable_or_unsupported");
   });
 
   // Plan step 14: nothing runs check-storage-triggers daily any more, so the page shows the last week's signals.

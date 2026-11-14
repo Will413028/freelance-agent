@@ -1,5 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { enabledSources, FAILURE_REASON, RUNNERS, runSource, sourceStatuses } from "@/modules/collection/public";
+import { HttpError } from "@/platform/http";
 import { getDailyRun } from "@/modules/notifications/public";
 import { PyDateTime } from "@/platform/py/datetime";
 import { encode } from "@/platform/py/json";
@@ -43,7 +44,9 @@ describe("daily run entry", () => {
   it("records failed health for a source that throws and marks the day failed", async () => {
     const begin = await beginDailyRun(db, at(1));
     const detail = await syncDailySource(db, "guru", { guru: async () => { throw new Error("down"); } });
-    expect(detail).toEqual({ status: "failed", reason: "source_unavailable" });
+    // The error's class is kept (never its message); an HTTP refusal keeps its status.
+    expect(detail).toEqual({ status: "failed", reason: "source_unavailable", error: "error" });
+    expect(await syncDailySource(db, "guru", { guru: async () => { throw new HttpError(429); } })).toEqual({ status: "failed", reason: "source_unavailable", error: "http_429" });
     expect((await sourceStatuses(db)).req("guru")).toBe("failed");
     expect((await finishDaily(db, begin.localDate, begin.startedAt!, { guru: detail })).status).toBe("failed");
     const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
@@ -97,7 +100,7 @@ describe("source details", () => {
     const row = await getDailyRun(db, "2026-10-24", "owner@example.invalid");
     expect(encode(asDict(row!.result).req("source_details"))).toBe('{"status": "failed", "reason": "one_or_more_sources_failed", ' +
       '"jobicy": {"status": "ok", "reason": null, "seen": 3, "jobs": 1, "truncated": false, "error_stages": {"fetch": 2}, "scope": "latest_200_public_listings"}, ' +
-      '"remotive": {"status": "failed", "reason": "public_feed_unavailable_or_unsupported"}}');
+      '"remotive": {"status": "failed", "reason": "public_feed_unavailable_or_unsupported", "error": "error"}}');
   });
 
   it("writes a null reason when every source succeeded", async () => {

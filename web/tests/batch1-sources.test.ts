@@ -83,7 +83,7 @@ describe("getonboard.sync", () => {
     const a = gobNormalize(gob(), new Map([["42", "part_time"]]));
     const b = new PyDict(a).update({ external_id: "" }); // ingest raises on the second job
     const r = PyDict.of({ jobs: [a, b], seen: 2n, rejected_count: 0n, pages: 1n, truncated: false });
-    expect(await runSource(db, "getonboard", (d) => syncGetOnBoard(d, async () => r))).toEqual({ status: "failed", reason: "source_unavailable" });
+    expect(await runSource(db, "getonboard", (d) => syncGetOnBoard(d, async () => r))).toEqual({ status: "failed", reason: "source_unavailable", error: "valueerror" });
     expect((await existingSourceIds("getonboard")).size).toBe(0);
     expect((await sourceStatuses(db)).at("getonboard")).toBe("failed");
   });

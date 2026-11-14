@@ -121,7 +121,12 @@ export async function syncMail(db: Db, client: ReceivingClient, recipientValue: 
     const all = [...records.values()];
     const quarantined = all.filter((r) => r.status !== "processed").length;
     const anyProcessed = all.some((r) => r.status === "processed" && r.reason !== "non_job_notification");
-    const status = !complete || quarantined ? "failed" : source !== "tasker" && !anyProcessed ? "waiting" : "ok";
+    // A run fails for what happened in it: an incomplete scan, a message it could not read or parse,
+    // or a requeued message still waiting. Messages rejected by earlier runs stay counted in
+    // `quarantined` but no longer fail every later run (the Python rule did: with no tool to requeue
+    // or dismiss them, one rejected mail kept a source failed for good; plan step 14).
+    const failedNow = !complete || errors.size > 0 || all.some((r) => r.retryPending);
+    const status = failedNow ? "failed" : source !== "tasker" && !anyProcessed ? "waiting" : "ok";
     await setSourceHealth(db, source, status);
     return new PyDict([
       ["status", status],
