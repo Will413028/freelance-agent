@@ -191,6 +191,13 @@ function dailyLine(daily: Record<string, Plain>) {
   return parts.join(" · ");
 }
 
+/** What each storage signal means; the decision it reopens is in docs/operations.md. */
+const SIGNAL_LABELS: Record<SourcesView["signals"]["reopened"][number]["signal"], string> = {
+  lease_wait_over_limit: "單次執行等寫入租約超過 2 秒（毫秒）", lease_timeout: "等不到寫入租約的次數", lease_lost: "寫入租約被搶走的次數",
+  rate_limited: "D1 回 429 的次數", requests_over_limit: "單次執行的 D1 請求數超過 600", lost_steps: "沒回報用量的步驟數",
+  read_retries: "清單讀取重來的次數", cross_source_title_pairs: "跨來源同職稱達 3 組", cross_source_unmeasured: "跨來源同職稱這次沒量到",
+};
+
 export function SourcesTable({ data }: { data: SourcesView }) {
   const run = data.lastRun;
   return <>
@@ -202,6 +209,12 @@ export function SourcesTable({ data }: { data: SourcesView }) {
         <p>開始 {taipei(run.startedAt)}{run.finishedAt ? ` · 結束 ${taipei(run.finishedAt)}` : ""}</p>
         {run.reason && <p>原因：{run.reason}</p>}
       </> : <p>尚無每日執行紀錄</p>}
+    </section>
+    <section className="schedule" aria-label="儲存設計的檢討訊號">
+      <span className="eyebrow">儲存設計的檢討訊號</span>
+      {data.signals.reopened.length === 0
+        ? <p>近 7 天 {data.signals.runs} 次執行沒有訊號</p>
+        : <ul>{data.signals.reopened.map((s) => <li key={`${s.localDate}-${s.signal}`}>{s.localDate} · {SIGNAL_LABELS[s.signal]}：{s.value}（決定 {s.decision}）</li>)}</ul>}
     </section>
     <p className="hint">讀取成功代表最近一次已配置範圍的結果；尚未接通或讀取不完整的來源不等於沒有職缺。</p>
     <table>

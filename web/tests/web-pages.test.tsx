@@ -221,6 +221,28 @@ describe("markup", () => {
     expect(html).toContain("one_or_more_sources_failed");
     expect(html).toContain("部分資料取得 · 讀取 4 筆");
   });
+
+  // Plan step 14: nothing runs check-storage-triggers daily any more, so the page shows the last week's signals.
+  it("shows the storage signals of the runs in the week up to the latest one, and says when there are none", async () => {
+    const run = (date: string, usage: object) => leased("insert into daily_runs values (?1, 'r', 'complete', ?2, ?2, ?3)",
+      [date, `${date}T01:00:00+00:00`, JSON.stringify({ status: "collected", d1_requests: 80, lease_wait_ms: 0, lease_timeouts: 0, lease_lost: 0, d1_errors: {}, lost_steps: 0, ...usage })]);
+    await run("2026-11-10", {});
+    await run("2026-11-09", { lost_steps: 1 });
+    const quiet = await sourcesPage(db);
+    expect(quiet.signals).toEqual({ runs: 2, reopened: [] });
+    expect(renderToStaticMarkup(<SourcesTable data={quiet} />)).toContain("近 7 天 2 次執行沒有訊號");
+    await run("2026-11-03", { lease_timeouts: 5 });
+    await run("2026-11-04", { d1_requests: 601 });
+    await run("2026-11-08", { cross_source_title_pairs: 3 });
+    const loud = await sourcesPage(db);
+    expect(loud.signals.runs).toBe(4);
+    expect(loud.signals.reopened.map((s) => [s.localDate, s.decision, s.signal, s.value])).toEqual([
+      ["2026-11-04", "D21", "requests_over_limit", 601], ["2026-11-08", "D18", "cross_source_title_pairs", 3]]);
+    const html = renderToStaticMarkup(<SourcesTable data={loud} />);
+    expect(html).toContain("2026-11-04 · 單次執行的 D1 請求數超過 600：601");
+    expect(html).toContain("2026-11-08 · 跨來源同職稱達 3 組：3");
+    expect(html).not.toContain("沒有訊號");
+  });
 });
 
 describe("page usage log", () => {
