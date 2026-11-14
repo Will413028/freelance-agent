@@ -29,12 +29,12 @@
 - 回滾到 Python 的窗口已結束、Python 系統已刪（已確認：repo 沒有 `backend/`）。
 - VM `oci-a1`：arm64、4 核、23 GB（可用 18 GB）、磁碟剩 121 GB、Ubuntu 24.04、Docker 29.5.2、Tailscale 1.104.5、已有 22 個別的專案的容器（2026-11-15 `ssh` 量到；已確認）。VM 上沒有本專案的任何東西（同日刪除後 `ls`、`getent` 查無；已確認）。
 - 正式資料量：職缺 3,433、信件紀錄 451、回饋 4 筆、設定 0 列（2026-11-15 正式庫唯讀計數；已確認）。正式 D1 的結構停在 migration 0004（`daily_runs` 還有 `recipient` 欄）；`dev` 上的 0005 不套到正式庫。
-- **D1 的 token 2026-11-30 到期**（舊計畫 D21；已確認）：到期當天正式站的收案與網頁就會失敗，和切換日期無關。處置：11-30 前切換完成就不用管；否則 Will 在 Cloudflare 後台重建 token，存到本機私人位置，再更新 Vercel production 的 `D1_API_TOKEN` 並把部署 `jzp0qoy8t` 重新部署一次（同一個 commit，不算部署新版）。步驟 1 第 4 項與步驟 10 的匯出也用這把 token。
+- **D1 的 token 2026-11-30 到期**（舊計畫 D21；已確認）：到期當天正式站的收案與網頁就會失敗，和切換日期無關。處置：11-30 前切換完成就不用管；否則 Will 在 Cloudflare 後台重建 token，存到本機私人位置，再更新 Vercel production 的 `D1_API_TOKEN` 並把部署 `jzp0qoy8t` 重新部署一次（同一個 commit，不算部署新版）。步驟 1 第 4 項與步驟 10 的匯出走 `cf` CLI 本身的登入，不用這把 token（步驟 1 實測，`spikes.md` 第 4 節）。
 - 工具鏈預設（可推翻）：Postgres 18、drizzle 的 `pg` 方言、Node 24、pnpm 11.2.2、PGlite 做本機測試、HTML 用 cheerio、輸入驗證用 zod、排程用 systemd timer、映像在 VM 上從 git checkout 建（不經外部 registry，符合「infra 都自建」）；映像是完整的 `web/`（含 `node_modules` 與 `tsx`，不用 Next 的 standalone 輸出），`web` 服務跑 `next start`，`daily` 與一次性指令跑 `pnpm exec tsx scripts/<名稱>.ts`；`web` 與 `daily` 用同一個映像 tag，tag 寫在 VM 的 compose env 檔的 `APP_IMAGE`；影子期間 VM 每天對真實來源多讀一輪（錯開時段、照各來源的間隔與上限）。
 - 信件來源繼續用 Resend Receiving（D2；已確認）。
-- 既有列的 `external_id` 有一部分靠模擬 Python 的網址解析算出來（19 個來源檔引用 `@/platform/py/url`）；原生寫法是否算出同樣的值：未確認，步驟 1 第 3 項量。
-- 網頁寫入的守門比對 `Origin` 與 `X-Forwarded-Host`／`Host`（`web/src/app/_lib/guard.ts`）；經 Tailscale Serve 後這些 header 的值：未確認，步驟 1 第 1 項量。
-- 瀏覽器層在這台 arm64 VM 上能不能跑、記憶體多少：未確認，步驟 1 第 2 項量。
+- 既有列的 `external_id` 有一部分靠模擬 Python 的網址解析算出來（19 個來源檔引用 `@/platform/py/url`）；原生寫法對存著的乾淨網址算出同樣的值（1,061 列可重算，全部一致；2026-11-15 實測，`spikes.md` 第 3 節）；原始網址那一側未確認，步驟 4、5 用 `golden.json` 的原始輸入驗收。
+- 網頁寫入的守門比對 `Origin` 與 `X-Forwarded-Host`／`Host`（`web/src/app/_lib/guard.ts`）；經 Tailscale Serve 後 `Host`、`X-Forwarded-Host` 都是含埠的 Serve 網址、`Origin` 原樣送到，守門不用改（2026-11-15 實測，`spikes.md` 第 1 節）。
+- 瀏覽器層在這台 arm64 VM 上：Crawlee 加 Playwright Chromium 跑得起來（實測）；記憶體峰值與 Scrapling 未確認，步驟 1 第 2 項補量。
 
 **驗收基線：** `0f38208` 上 `web/`：`pnpm typecheck` exit 0、`pnpm boundaries` 無違規、`pnpm db:check` 無漂移、`pnpm test` 415 過 6 skip、`pnpm build` exit 0（2026-11-15 本機）。CI 的 `d1` job 用共用額度的真實 D1，一次只跑一個；步驟 2 拿掉它。
 
@@ -96,7 +96,7 @@
     - `web/src/app/skeleton/page.tsx`（新增，步驟 3 刪）：讀 Postgres 的 `listings`；一支 `web/scripts/seed-skeleton.ts`（新增，步驟 3 刪）寫一筆假職缺。
     - `deploy/compose.yaml`、`deploy/web.Dockerfile`（新增；`db`、`web`，埠綁 127.0.0.1，具名 volume；映像含 `scripts/` 的指令入口）；`deploy/check-compose.mjs`（新增：任何服務的埠不是綁 127.0.0.1 就失敗）；`deploy/README.md`（新增：VM 上的建置與啟動指令）。`web/src/app/healthz/route.ts`（新增：只查 Postgres 連得到，compose 的 healthcheck 打它；舊頁面在 VM 上沒有 D1 憑證會回錯，到步驟 3、6 才換掉，這段期間是預期的）。
     - `.github/workflows/ci.yml`（修改）：`web` job 加 Postgres service，改跑 `pnpm check`（含 `deploy/check-compose.mjs`），對真 Postgres 再跑一次新測試並建一次映像（不推送）；拿掉 `d1` job，`gate.needs` 改成 `[web]`。理由：過渡期不再部署到 Vercel，真實 D1 測試不再保護任何會上線的東西，還佔共用額度。`pnpm test:d1` 與 `tests/d1-real*.test.ts` 留到步驟 11 一起刪。`AGENTS.md`（修改）同步。
-    - VM：`/opt/freelance-agent` 的 git checkout、0600 的 env 檔、`docker build -t <APP_IMAGE> .`、`docker compose run --rm daily pnpm exec tsx scripts/migrate-pg.ts`、`… scripts/seed-skeleton.ts`、`docker compose up -d`、Tailscale Serve 指向 `web`（持久設定）。
+    - VM：`/opt/side-income` 的 git checkout、0600 的 env 檔、`docker build -t <APP_IMAGE> .`、`docker compose run --rm daily pnpm exec tsx scripts/migrate-pg.ts`、`… scripts/seed-skeleton.ts`、`docker compose up -d`、Tailscale Serve 指向 `web`（持久設定）。
   - 消費端：`rg -n "needs:|test:d1|d1-real" .github web/package.json AGENTS.md docs/operations.md`。
   - 不能動：正式 Vercel 與 D1；舊程式的行為與既有測試。
   - 驗收：CI 全綠；VM 上 `docker compose ps` 兩個容器 healthy；tailnet 內 `curl` `/skeleton` 回 200 且含那筆假職缺；從公網位址連線失敗；`ss -ltnp` 沒有對外的埠；`docker history` 與 `docker run --rm <映像> env` 不含任何憑證名稱以外的值；mutation：把 `web` 的埠綁定改成 `0.0.0.0`，`deploy/check-compose.mjs` 要失敗。
@@ -197,7 +197,7 @@
 
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
-| 1 規則與 spike | 未開始 | | | |
+| 1 規則與 spike | 進行中 | repo 改名 `side-income`（Will 2026-11-15 選定）；規則條目；spike 1、3、4 完成；spike 2 量了 23 個入口與 Crawlee | spike 2：瀏覽器記憶體峰值、Scrapling、範圍外平台的確認請求、Remoters／Turing／Contra 入口（第一輪沒做完） | |
 | 2 Walking skeleton | 未開始 | | | |
 | 3 新形狀 | 未開始 | | | |
 | 4 第一個來源 | 未開始 | | | |

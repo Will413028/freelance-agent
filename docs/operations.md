@@ -2,6 +2,14 @@
 
 正式系統是 `web/` 這個 Next.js 專案：跑在 Vercel（區域 `iad1`），資料在 Cloudflare D1 資料庫 `freelance-agent-prod`。本頁只寫能從程式或遷移計畫對到的程序；引用計畫的地方標了段落。「計畫」指 [`docs/plans/2026-10-23-nextjs-vercel-migration.md`](plans/2026-10-23-nextjs-vercel-migration.md)。
 
+## 過渡期規則（到自建計畫步驟 10 切換為止）
+
+[`docs/plans/2026-11-15-self-hosted-rebuild.md`](plans/2026-11-15-self-hosted-rebuild.md) 把系統搬回自建 VM 加 Postgres。切換前：
+
+- 本頁的 Vercel 部署（`jzp0qoy8t`，commit `ce1254d`）加 D1 是唯一的正式系統，凍結：不部署新版程式，正式站的來源壞了不修。唯一允許的操作是 D1 token 換新後把同一個部署重新部署一次。
+- 正式 D1 對這項工作只讀；`dev` 上的 migration 0005 不套到正式庫。
+- VM 上的新系統只寫自己的資料庫；在 VM 起容器、裝排程或設定 Tailscale Serve 都要先取得 Will 授權。
+
 沒有回滾到舊系統的路徑：舊的 Python 系統已從 repo 刪除，回滾窗口已結束。出問題只能往前修。
 
 ## 資源
@@ -182,4 +190,4 @@ CLOUDFLARE_ACCOUNT_ID=… D1_DATABASE_ID=… D1_API_TOKEN=… pnpm exec tsx scri
 - 不要把寄信功能或任何寄送憑證加回正式環境，除非 Will 要求。
 - 不要把 `pnpm test:d1` 指向正式資料庫：它會清空所有表。
 - 不要為了讓某一天重跑而刪 `daily_runs` 的列，除非 Will 決定。
-- 不要繞過平台的存取驗證。PTT 兩個來源因為 Vercel 出口被 403 challenge 而停用（計畫 D12），維持停用。
+- 只讀不用登入的公開頁面；遇到存取驗證照來源設定允許的層級處理（一般請求、模仿瀏覽器的請求、瀏覽器；[`docs/plans/2026-11-15-self-hosted-rebuild.md`](plans/2026-11-15-self-hosted-rebuild.md) 步驟 8），不登入、不解 CAPTCHA、不換 IP。PTT 兩個來源在正式站（Vercel 出口被 403 challenge）維持停用，新系統在步驟 8 接回。
