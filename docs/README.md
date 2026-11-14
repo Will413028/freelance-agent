@@ -1,22 +1,23 @@
 # 文件入口
 
-日常先看功能說明；維護時按下表選一份主文件。`docs/`共9份，不另設歷史目錄。
+日常先看功能說明；維護時按下表選一份主文件。
 
 | 想知道什麼 | 主文件 |
 |---|---|
-| 現在有哪些功能、怎麼操作 | [功能說明](features.md) |
-| 產品範圍、模組責任與資料契約 | [設計](design.md) |
-| 正式版本、驗收、未完成工作與release備份 | [進度與部署狀態](implementation-plan.md) |
-| Compose／SQLite、排程、備份、修復與回復 | [操作手冊](compose.md) |
+| 現在有哪些功能、怎麼用 | [功能說明](features.md) |
+| 產品範圍、模組責任、資料與規則 | [設計](design.md) |
+| 現在的狀態與還沒做的事 | [現況與待辦](implementation-plan.md) |
+| 部署、環境變數、migration、每日執行的查看與失敗處理、D1 額度 | [操作手冊](operations.md) |
 | 哪些平台已接入、限制與下一關卡 | [唯一平台接通主表](platform-connectivity.md) |
 | 各平台費用、資格與官方取得方式 | [平台研究](platform-research.md) |
-| 舊計畫、決策脈絡及歷次實查／驗收 | 歷史紀錄（私人封存 repo 的 `docs/implementation-history.md`） |
+| 為什麼搬到 Next.js＋Vercel＋D1、每個決定的選項與證據 | [遷移計畫](plans/2026-10-23-nextjs-vercel-migration.md)與 [`adr/`](adr/) |
 
-本頁是第9份索引。[根README](../README.md)只保留專案介紹、開發及驗證入口。
+[根 README](../README.md) 只保留專案介紹、架構、開發與驗證入口。
 
 ## 維護方式
 
-- 功能與操作寫入對應主文件，避免每輪工作另開同類文件。
-- 未完成工作只列implementation-plan；平台逐站關卡只列platform-connectivity主表。
-- 完成的TDD／部署過程與被替換方案記在私人封存 repo 或 second-brain，不放公開 repo；也不讓舊待辦或舊主機指令冒充現況。
-- 歷史全文保留；原始檔可由Git `99b78b3:docs/<原檔名>`取回。
+- 功能與操作寫進對應的主文件，不為每輪工作另開同類文件。
+- 未完成工作只列在「現況與待辦」；平台逐站關卡只列在平台接通主表。
+- 文件描述現況。被取代的系統與做法不留在這些文件裡，要查就看 git 歷史、遷移計畫與 ADR；`plans/` 與 `adr/` 是當時的紀錄，不改寫。
+- 這個 repo 是公開的：個人 email、真名、IP、費率、個別帳號進度不寫進文件。
+- 文件與程式不一致時以程式為準，並修正文件。
