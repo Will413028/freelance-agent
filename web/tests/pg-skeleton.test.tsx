@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { latestListings, seedSkeleton, SKELETON_LISTING } from "@/db/pg/listings";
+import { latestListings, seedSkeleton, SKELETON_LISTING } from "@/services/skeleton";
 import { SkeletonList } from "@/app/_lib/skeleton";
 import { health } from "@/app/_lib/health";
 import { freshPg } from "./helpers/pg";
@@ -28,9 +28,13 @@ describe("walking skeleton", () => {
     expect(renderToStaticMarkup(<SkeletonList listings={listings} />)).toContain(SKELETON_LISTING.title);
   });
 
+  it("runs refuses a status outside running, succeeded, failed", async () => {
+    await expect(db.execute(sql`insert into runs (local_date, status) values ('2026-11-17', 'done')`)).rejects.toThrow();
+  });
+
   it("runs allows one row per day", async () => {
-    await db.execute(sql`insert into runs (day, status) values ('2026-11-16', 'running')`);
-    await expect(db.execute(sql`insert into runs (day, status) values ('2026-11-16', 'running')`)).rejects.toThrow();
+    await db.execute(sql`insert into runs (local_date, status) values ('2026-11-16', 'running')`);
+    await expect(db.execute(sql`insert into runs (local_date, status) values ('2026-11-16', 'running')`)).rejects.toThrow();
   });
 
   it("healthz is 200 when Postgres answers and 503 when it does not", async () => {

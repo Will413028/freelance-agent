@@ -1,5 +1,5 @@
 import { getPgDb } from "@/db/pg/client";
-import { latestListings } from "@/db/pg/listings";
+import { latestListings } from "@/services/skeleton";
 import { SkeletonList } from "../_lib/skeleton";
 
 export const dynamic = "force-dynamic";

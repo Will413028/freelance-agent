@@ -1,4 +1,4 @@
-import type { SkeletonListing } from "@/db/pg/listings";
+import type { SkeletonListing } from "@/services/skeleton";
 
 /** Walking-skeleton list (plan step 2; removed in step 3). */
 export function SkeletonList({ listings }: { listings: SkeletonListing[] }) {

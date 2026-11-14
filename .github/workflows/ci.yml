@@ -43,11 +43,14 @@ jobs:
       - run: pnpm build
 
   image:
-    # The application image builds (not pushed; the VM builds its own from a checkout).
-    runs-on: ubuntu-latest
+    # The application image builds and starts on arm64, the VM's architecture (not pushed; the VM
+    # builds its own from a checkout).
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v5
       - run: docker build -f deploy/web.Dockerfile -t side-income-web:ci web
+      # pnpm runs as the runtime user without fetching anything (corepack cache readable, no network).
+      - run: docker run --rm --network none side-income-web:ci pnpm exec tsx --version
 
   gate:
     # The only required check on main: it passes when every other job in this workflow succeeded or was skipped.

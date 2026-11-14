@@ -1,5 +1,5 @@
 {
-  "id": "1730709d-226c-4d78-b0af-244ef0760e79",
+  "id": "b3121b6d-cad3-432d-a316-02337d6542a7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -97,8 +97,8 @@
             "cycle": false
           }
         },
-        "day": {
-          "name": "day",
+        "local_date": {
+          "name": "local_date",
           "type": "date",
           "primaryKey": false,
           "notNull": true
@@ -127,16 +127,21 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "runs_day_unique": {
-          "name": "runs_day_unique",
+        "runs_local_date_unique": {
+          "name": "runs_local_date_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "day"
+            "local_date"
           ]
         }
       },
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "runs_status": {
+          "name": "runs_status",
+          "value": "\"runs\".\"status\" in ('running', 'succeeded', 'failed')"
+        }
+      },
       "isRLSEnabled": false
     }
   },

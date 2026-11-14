@@ -1,6 +1,6 @@
 import { desc } from "drizzle-orm";
-import type { PgDb } from "./client";
-import { listings } from "./schema";
+import type { PgDb } from "@/db/pg/client";
+import { listings } from "@/db/pg/schema";
 
 export type SkeletonListing = { id: string; source: string; title: string; url: string };
 
