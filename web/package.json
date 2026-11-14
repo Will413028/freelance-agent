@@ -11,8 +11,7 @@
     "test": "vitest run",
     "test:d1": "vitest run tests/d1-real-product.test.ts tests/d1-real.test.ts",
     "boundaries": "depcruise src --config .dependency-cruiser.cjs",
-    "db:generate": "drizzle-kit generate",
-    "import-copy": "tsx scripts/import-copy.ts"
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@vercel/functions": "3.10.3",

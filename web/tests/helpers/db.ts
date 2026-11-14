@@ -104,8 +104,9 @@ export function migrationStatement(pattern: RegExp): string {
   throw new Error(`no migration statement matches ${pattern}`);
 }
 
-// The Python writer's schema stays the source of truth until it is deleted in plan step 14.
-export const SQLITE_SCHEMA_PATH = path.resolve(import.meta.dirname, "../../../backend/src/freelance/platform/schema/001_sqlite.sql");
+// The retired Python writer's SQLite schema, frozen at the cutover (plan step 14): the 25 product
+// tables were loaded from it, and their columns stay what it says until a migration changes them on purpose.
+export const SQLITE_SCHEMA_PATH = path.resolve(import.meta.dirname, "../fixtures/001_sqlite.sql");
 
 export function sqliteWithSchema(file = ":memory:") {
   const lite = new DatabaseSync(file);

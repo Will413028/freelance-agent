@@ -1,1 +1,0 @@
-export { WorkNavigation } from './navigation';

@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { check, foreignKey, index, integer, primaryKey, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 // Cloudflare D1 (SQLite) since plan step 4e. Tables and columns are those of
-// backend/src/freelance/platform/schema/001_sqlite.sql (tests/schema.test.ts compares them), so the
+// the frozen SQLite schema, tests/fixtures/001_sqlite.sql (tests/schema.test.ts compares them), so the
 // daily copy and the reverse script move rows 1:1. Deliberate carry-overs, re-evaluated after the
 // step 13 rollback window:
 // - JSON stays text: stored bytes feed fingerprints and approval hashes (spike 1c rule 1);
