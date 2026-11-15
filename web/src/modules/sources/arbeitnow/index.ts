@@ -25,7 +25,9 @@ export const PROMOTIONAL_FOOTERS = [
   '<p>Find more <a href="https://www.arbeitnow.com/english-speaking-jobs">English Speaking Jobs in Germany</a> on Arbeitnow</a>',
   '<p>Find <a href="https://www.arbeitnow.com">Jobs in Germany</a> on Arbeitnow</a>',
 ];
-const HOSTS = new Set(["www.arbeitnow.com", "www.arbeitnow.co.uk", "www.arbeitnow.fr", "www.arbeitnow.ch"]);
+// The board's job hosts. www.arbeitnow.nl is new (2026-11-15 VM run: 50 of 300 listings; the old
+// connector set them aside every day and the source ran partial).
+const HOSTS = new Set(["www.arbeitnow.com", "www.arbeitnow.co.uk", "www.arbeitnow.fr", "www.arbeitnow.ch", "www.arbeitnow.nl"]);
 const NEXT_HOSTS = new Set(["www.arbeitnow.com", "www.arbeitnow.nl"]);
 
 /** Python's str.strip() whitespace (it differs from JavaScript's \s: U+001C–U+001F yes, BOM no). */
