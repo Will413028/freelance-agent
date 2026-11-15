@@ -8,7 +8,7 @@ import { childText, children, parseXmlText } from "../shared/xml-feed";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Official public feeds read as configuration (plan step 5b; old collection/public_feeds.py,
-// web/src/modules/collection/sources/public-feeds.ts until step 11): Remote OK and Working Nomads
+// web/src/modules/collection/sources/public-feeds.ts, deleted in step 11; see d067222): Remote OK and Working Nomads
 // answer a JSON list, Real Work From Anywhere and We Work Remotely an RSS feed. One request per run;
 // the latest 200 entries are read, and a feed with more is truncated (old partial). A feed that is
 // empty, oversize, not the expected shape, or declares a DTD fails the source. An entry without its
@@ -28,6 +28,8 @@ export type FeedName = "remoteok" | "realworkfromanywhere" | "weworkremotely" | 
 
 /** What differs between the four feeds; everything else is one reader. */
 type Feed = {
+  /** The board's name as pages show it (the old attribution). */
+  label: string;
   endpoint: string;
   format: "json" | "rss";
   /** The board's job URLs: https on this host, a path starting with `prefix` and longer than it. */
@@ -44,15 +46,15 @@ type Feed = {
 };
 
 export const FEEDS: Record<FeedName, Feed> = {
-  remoteok: { endpoint: "https://remoteok.com/api", format: "json", host: "remoteok.com", prefix: "/remote-jobs/", idField: "id", titleField: "position", dateField: "date" },
-  realworkfromanywhere: { endpoint: "https://www.realworkfromanywhere.com/rss.xml", format: "rss", host: "www.realworkfromanywhere.com", prefix: "/jobs/", titleField: "title", dateField: "date" },
-  weworkremotely: { endpoint: "https://weworkremotely.com/remote-jobs.rss", format: "rss", host: "weworkremotely.com", prefix: "/remote-jobs/", titleField: "title", dateField: "date" },
-  workingnomads: { endpoint: "https://www.workingnomads.com/api/exposed_jobs/", format: "json", host: "www.workingnomads.com", prefix: "/job/go/", path: /^\/job\/go\/[0-9]+\/$/, titleField: "title", dateField: "pub_date", csvTags: true },
+  remoteok: { label: "Remote OK", endpoint: "https://remoteok.com/api", format: "json", host: "remoteok.com", prefix: "/remote-jobs/", idField: "id", titleField: "position", dateField: "date" },
+  realworkfromanywhere: { label: "Real Work From Anywhere", endpoint: "https://www.realworkfromanywhere.com/rss.xml", format: "rss", host: "www.realworkfromanywhere.com", prefix: "/jobs/", titleField: "title", dateField: "date" },
+  weworkremotely: { label: "We Work Remotely", endpoint: "https://weworkremotely.com/remote-jobs.rss", format: "rss", host: "weworkremotely.com", prefix: "/remote-jobs/", titleField: "title", dateField: "date" },
+  workingnomads: { label: "Working Nomads", endpoint: "https://www.workingnomads.com/api/exposed_jobs/", format: "json", host: "www.workingnomads.com", prefix: "/job/go/", path: /^\/job\/go\/[0-9]+\/$/, titleField: "title", dateField: "pub_date", csvTags: true },
 };
 
 /** Old public-feeds.ts:159-172: one GET per run per feed, without redirects. */
 const settings = (name: FeedName): Omit<SourceSettings, "order"> => ({
-  name, connector: (fetcher, now) => publicFeedConnector(name, fetcher, now), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
+  name, label: FEEDS[name].label, connector: (fetcher, now) => publicFeedConnector(name, fetcher, now), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 });
 export const REMOTEOK_SETTINGS = settings("remoteok");
 export const REALWORKFROMANYWHERE_SETTINGS = settings("realworkfromanywhere");

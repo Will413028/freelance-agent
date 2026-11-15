@@ -8,11 +8,21 @@ import type { Fetcher } from "@/platform/fetch";
 import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
 import { canonicalJobUrl, FEEDS, kept, normalize, parseFeed, parseItems, publicFeedConnector, REMOTEOK_SETTINGS, type FeedName } from ".";
-import type { BatchCase, NormalizeCase } from "./fixtures/generate";
 
-// Plan step 5b: the golden entries and feeds (fixtures/cases.json, written by fixtures/generate.ts from
-// the old output, with its list of deliberate differences) against the native connector, then the
-// connector's own rules.
+// Plan step 5b: the golden entries and feeds against the native connector, then the connector's own
+// rules. fixtures/cases.json was written once by fixtures/generate.ts (deleted after golden.json went in
+// step 11; see it at 355b21d) from golden.json's public_feeds_normalize and public_feeds_batch at d067222:
+// the old output mapped into the contract, every deliberate difference listed there with its reason
+// and carried in each case's `why`.
+
+type NormalizeCase = {
+  index: number; source: string; input: string; why?: string;
+  expect: { listing: unknown } | { setAside: true } | { unknown: readonly string[]; external_id: string; url: string } | { accepted: string; external_id: string; url: string };
+};
+type BatchCase = {
+  index: number; source: string; input: string; why?: string;
+  expect: { error: true } | { seen: number; listings: unknown[]; truncated: boolean; rejected: number } | { seen: number; ids: string[]; unknown: string[]; truncated: boolean; rejected: number };
+};
 
 const cases: { normalize: NormalizeCase[]; batch: BatchCase[] } = JSON.parse(readFileSync(path.join(import.meta.dirname, "fixtures/cases.json"), "utf8"));
 

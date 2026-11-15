@@ -26,6 +26,7 @@ describe("source catalog", () => {
     // The old catalog's names (ce1254d web/src/modules/collection/source-catalog.ts).
     expect(Object.fromEntries(SOURCES.map((s) => [s.name, s.label]))).toEqual({
       remotive: "Remotive", jobicy: "Jobicy", freelancer: "Freelancer", himalayas: "Himalayas", hackernews: "Hacker News", v2ex: "V2EX",
+      remoteok: "Remote OK", realworkfromanywhere: "Real Work From Anywhere", weworkremotely: "We Work Remotely", workingnomads: "Working Nomads",
       taiwanjobs: "台灣就業通", arbeitnow: "Arbeitnow", getonboard: "Get on Board", cryptojobslist: "CryptoJobsList",
     });
     expect(sourceLabel("hackernews")).toBe("Hacker News");

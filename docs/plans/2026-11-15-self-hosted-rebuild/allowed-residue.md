@@ -34,6 +34,7 @@ web/src/modules/sources/cryptojobslist/cryptojobslist.test.ts
 web/src/modules/sources/free-jobs/free-jobs.test.ts
 web/src/modules/sources/freelancer/freelancer.test.ts
 web/src/modules/sources/getonboard/getonboard.test.ts
+web/src/modules/sources/public-feeds/public-feeds.test.ts
 web/src/modules/sources/himalayas/himalayas.test.ts
 web/src/modules/sources/shared/html.test.ts
 web/src/modules/sources/taiwanjobs/taiwanjobs.test.ts
