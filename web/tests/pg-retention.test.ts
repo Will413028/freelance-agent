@@ -4,7 +4,7 @@ import type { PgDb } from "@/db/pg/client";
 import { intakeListings, listingBy, pruneListings } from "@/modules/listings/public";
 import { freshPg } from "./helpers/pg";
 
-// Plan step 5a2-3: retention against a concurrent feedback write. CI runs tests/pg-* on a real server.
+// Plan step 5a2-3: retention against a concurrent feedback write. It runs only on a real server (CI reruns the whole suite with TEST_PG_URL).
 
 let db: PgDb, close: () => Promise<void>;
 beforeAll(async () => ({ db, close } = await freshPg()));
