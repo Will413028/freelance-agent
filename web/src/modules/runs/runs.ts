@@ -71,8 +71,11 @@ export async function latestRuns(db: PgDb): Promise<{ run: RunRow | null; source
 }
 
 
-/** When the latest succeeded run finished, or null when none has (plan step 6b). */
-export async function lastSucceededAt(db: PgDb): Promise<Date | null> {
-  const [row] = await db.select({ at: max(runs.finishedAt) }).from(runs).where(eq(runs.status, "succeeded"));
+/**
+ * When a source last finished `ok`, or null when none has (plan step 6b). Not the run's status: one failing
+ * source marks the whole run `failed` while the schedule is fine, and the notice asks "has the schedule stopped".
+ */
+export async function lastSourceOkAt(db: PgDb): Promise<Date | null> {
+  const [row] = await db.select({ at: max(runSources.finishedAt) }).from(runSources).where(eq(runSources.status, "ok"));
   return row?.at ?? null;
 }

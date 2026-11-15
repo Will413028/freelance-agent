@@ -2,7 +2,7 @@ import type { PgDb } from "@/db/pg/client";
 import { CATEGORIES } from "@/db/pg/schema";
 import { evaluate, PAGE_SIZE, rankedPage, readSettings, recommend, VIEWS, type Content, type FeedbackState, type Settings, type View } from "@/modules/evaluation/public";
 import { listingOfRow, readShown, type ListingRow, type Shown, type VersionRow } from "@/modules/listings/public";
-import { lastSucceededAt, latestRuns } from "@/modules/runs/public";
+import { lastSourceOkAt, latestRuns } from "@/modules/runs/public";
 import { SOURCES, sourceLabel } from "@/modules/sources/public";
 import { feedbackToken, saveSettings, setFeedback } from "@/modules/review/public";
 import { NotFound } from "@/platform/errors";
@@ -86,17 +86,17 @@ export function jobView({ row, versions, feedback }: Shown, s: Settings, now: Da
   };
 }
 
-export type ListView = { view: View; page: number; jobs: JobView[]; hasNext: boolean; stale: StaleRun };
+export type ListView = { view: View; page: number; jobs: JobView[]; hasNext: boolean };
 
-/** Hours after the last succeeded daily run before the pages say the schedule may have stopped (plan step 6b). */
+/** Hours after a source was last read successfully by the daily run before the pages say the schedule may have stopped (plan step 6b). */
 export const STALE_RUN_HOURS = 26;
 
-/** Null while the last succeeded run is recent enough; otherwise when it finished (null: never). */
+/** Null while the last successful source read is recent enough; otherwise when it finished (null: never). */
 export type StaleRun = { lastSuccessAt: string | null } | null;
 
 /** A dead-man switch shown on the pages only (plan D22: no mail): has the daily run gone quiet? */
 export async function runStale(db: PgDb, now: Date): Promise<StaleRun> {
-  const at = await lastSucceededAt(db);
+  const at = await lastSourceOkAt(db);
   if (at && now.getTime() - at.getTime() <= STALE_RUN_HOURS * 3_600_000) return null;
   return { lastSuccessAt: at?.toISOString() ?? null };
 }
@@ -115,7 +115,7 @@ export async function listJobs(db: PgDb, now: Date, view: View, page: number): P
   const shown = await readShown(db, items.map((i) => i.id));
   // A listing deleted between the two reads is left out of this page.
   const jobs = items.flatMap((i) => { const s = shown.get(i.id); return s ? [jobView(s, settings, now, i.candidate)] : []; });
-  return { view, page, jobs, hasNext: page * PAGE_SIZE < total, stale: await runStale(db, now) };
+  return { view, page, jobs, hasNext: page * PAGE_SIZE < total };
 }
 
 /** A listing id as a URL carries it: a positive integer in the id column's range, otherwise not found. */
@@ -167,12 +167,12 @@ export type SourcesView = {
 
 /** Source health and the latest daily run of the new system (plan step 6): reads runs and run_sources. */
 export async function sourcesPage(db: PgDb, now: Date): Promise<SourcesView> {
-  const { run, sources } = await latestRuns(db);
+  const [{ run, sources }, stale] = await Promise.all([latestRuns(db), runStale(db, now)]);
   const bySource = new Map(sources.map((r) => [r.source, r]));
   const num = (v: unknown) => (typeof v === "number" ? v : null);
   const listMs = run ? num(run.counts.listMs) : null;
   return {
-    stale: await runStale(db, now),
+    stale,
     lastRun: run ? {
       localDate: run.localDate, status: run.status, reason: run.reason, startedAt: run.startedAt.toISOString(),
       finishedAt: run.finishedAt?.toISOString() ?? null, pruned: num(run.counts.pruned), listMs, listSlow: listMs !== null && listMs > LIST_BUDGET_MS,

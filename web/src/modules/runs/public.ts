@@ -1,2 +1,2 @@
-export { finishRun, lastSucceededAt, latestRuns, openRun, recordSource, sourcesReadSince, taipeiDate } from "./runs";
+export { finishRun, lastSourceOkAt, latestRuns, openRun, recordSource, sourcesReadSince, taipeiDate } from "./runs";
 export type { LatestSource, Opened, RunCounts, RunRow, RunStatus, SourceRecord, SourceStatus } from "./runs";
