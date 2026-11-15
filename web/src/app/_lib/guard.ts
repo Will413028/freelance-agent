@@ -1,5 +1,5 @@
-// The checks every page write passes before it reads its form (plan step 11, D23). Vercel
-// Authentication decides who reaches the app; these decide what a request may do once it does:
+// The checks every page write passes before it reads its form (old plan step 11, D23). Tailscale
+// decides who reaches the app (self-hosted plan D0); these decide what a request may do once it does:
 // a write must come from a page of this same host (a form another site posts carries its own
 // Origin), only a urlencoded form is read, and only up to BODY_LIMIT.
 

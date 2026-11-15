@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Fetcher } from "@/platform/fetch";
 import { SourceError } from "../types";
 
-// Bounded reads of Resend Receiving (old web/src/modules/collection/mail/receiving.ts until step 11).
+// Bounded reads of Resend Receiving (old web/src/modules/collection/mail/receiving.ts at ce1254d).
 // The key is full_access (Resend has no read-only scope, plan D14), so every request is a GET (the
 // Fetcher sends nothing else) under https://api.resend.com/emails/receiving, checked before it leaves
 // the process. Resend's list and retrieve responses carry no read or processed state (API reference,

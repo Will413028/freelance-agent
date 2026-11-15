@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fixture } from "../../../../tests/helpers/golden";
+import parsedate from "./parsedate.fixtures.json";
 import { rfc2822Instant, utcInstant } from "./time";
 
 describe("utcInstant", () => {
@@ -27,8 +27,8 @@ describe("rfc2822Instant", () => {
   });
 });
 
-describe("rfc2822Instant over golden's email.utils.parsedate_to_datetime cases", () => {
-  const cases = fixture<{ parsedate: { input: unknown; expect: { ok: string } | { error: string } }[] }>("golden.json").parsedate;
+describe("rfc2822Instant over email.utils.parsedate_to_datetime's cases (parsedate.fixtures.json)", () => {
+  const cases = parsedate.parsedate as { input: unknown; expect: { ok: string } | { error: string } }[];
   it(`${cases.length} inputs: an aware result is the same instant, a naive result or an error is null`, () => {
     const bad = cases.filter((c) => typeof c.input === "string").flatMap((c) => {
       const ok = "ok" in c.expect ? c.expect.ok : null;

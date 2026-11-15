@@ -1,52 +1,23 @@
-import { PyError } from "./py/value";
+// The errors a page write or page read maps to a status (app/_lib/writes.ts, app/jobs/[id]/page.tsx).
+// Each names itself with a string literal, which the page log (app/_lib/page-log.ts) records as the
+// outcome; a class name could be renamed when the server bundle is minified.
 
-// platform/errors.py: both are ValueError subclasses in Python; pyType carries the exact name so
-// ported callers and tests can tell them apart.
-export class Conflict extends PyError {
-  constructor(message: string) {
-    super("Conflict", message);
-  }
+/** Stale token or revision, or data changed under the write: a 409. */
+export class Conflict extends Error {
+  override name = "Conflict";
 }
 
-export class InvalidAction extends PyError {
-  constructor(message: string) {
-    super("InvalidAction", message);
-  }
+/** A form field outside what the page offers: a 400. */
+export class InvalidAction extends Error {
+  override name = "InvalidAction";
 }
 
-/** Settings a person entered that preferences() refuses: a ValueError to Python-shaped callers (golden), a 400 to a page (plan step 11). */
-export class InvalidSettings extends PyError {
-  constructor(message: string) {
-    super("ValueError", message);
-  }
+/** Settings a person entered that validSettings() refuses: a 400. */
+export class InvalidSettings extends Error {
+  override name = "InvalidSettings";
 }
 
-/** A record that does not exist: a KeyError to Python-shaped callers (golden), a 404 to a page (plan step 11). */
-export class NotFound extends PyError {
-  constructor(key: string) {
-    super("KeyError", key);
-  }
+/** A listing that does not exist: a 404. */
+export class NotFound extends Error {
+  override name = "NotFound";
 }
-
-/**
- * What a page request answers when its write unit gave up on the writer lease (D20-B): 409 either
- * way; "busy" when the daily run held it past the wait, "reload" when the data kept changing.
- */
-export const uiBusy = (reason: "lease_wait" | "lease_lost") => new Conflict(reason === "lease_wait" ? "系統忙碌，請稍後再試" : "資料已更新，請重新載入");
-
-// The slice of Python's exception hierarchy the ports catch by base class.
-const PARENT: Record<string, string> = {
-  Conflict: "ValueError", InvalidAction: "ValueError", UnicodeError: "ValueError",
-  UnicodeEncodeError: "UnicodeError", UnicodeDecodeError: "UnicodeError", OverflowError: "ArithmeticError", ParseError: "SyntaxError",
-  JSONDecodeError: "ValueError", KeyError: "LookupError", TimeoutError: "OSError", URLError: "OSError", HTTPError: "URLError",
-  AccessBlocked: "ValueError",
-};
-
-/** isinstance(e, (types...)) for a PyError. */
-export function pyIsInstance(e: unknown, ...types: string[]): boolean {
-  if (!(e instanceof PyError)) return false;
-  for (let t: string | undefined = e.pyType; t; t = PARENT[t]) if (types.includes(t)) return true;
-  return false;
-}
-
-export const isValueError = (e: unknown) => pyIsInstance(e, "ValueError");

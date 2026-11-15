@@ -1,4 +1,4 @@
-export { SOURCES, sourceSettings } from "./catalog";
+export { SOURCES, sourceLabel, sourceSettings } from "./catalog";
 export { SourceError, type Collected, type Connector, type MailSourceSettings, type PageSourceSettings, type SourceErrorKind, type SourceSettings } from "./types";
 export { readMessage, type MailMessage } from "./mail/message";
 export { MailRejection, type MailReason } from "./mail/reasons";

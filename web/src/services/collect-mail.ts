@@ -7,7 +7,7 @@ import {
 import { createFetcher, FetchError, type Fetcher } from "@/platform/fetch";
 import { screen, type SourceRun } from "./source-run";
 
-// One mail source, once (plan step 7; old web/src/modules/collection/mail/sync.ts until step 11): page the
+// One mail source, once (plan step 7; old web/src/modules/collection/mail/sync.ts at ce1254d): page the
 // Resend inbox newest first down to where the last complete scan stopped, read each new message from the
 // source's sender whose subject passes the gate, and write its listings in their own transaction (mode
 // "mail": a contradicting content becomes a version). Each message is recorded once in mail_messages,

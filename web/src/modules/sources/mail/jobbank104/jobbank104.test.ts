@@ -7,7 +7,8 @@ import { MailRejection } from "../reasons";
 import { isDigestSubject, parse104, SENDER } from ".";
 
 // Plan step 7a: the 104 matching digest. fixtures/cases.json holds the 40 digests the old Python parser
-// read (expected listings from its results; differences listed in fixtures/generate.ts).
+// read, written by fixtures/generate.ts (deleted in step 11 with the old ground-truth file; see it at 9113a44): expected listings from
+// the old results, mapped field by field; the 3 deliberate differences are named in their case names.
 
 type Case = { name: string; message: Omit<MailMessage, "id" | "receivedAt">; expect: { listings: unknown[] } | { reason: string } };
 const cases: Case[] = JSON.parse(readFileSync(path.join(import.meta.dirname, "fixtures/cases.json"), "utf8"));
@@ -28,7 +29,7 @@ const card = (job = "https://www.104.com.tw/job/abc123?tracking=private", compan
 const digest = (body: string, subject = SUBJECT) => ({ sender: SENDER, subject, isHtml: true, body: `${body}<h2>適合你大展身手的工作</h2>` });
 
 describe("jobbank104 digest", () => {
-  it(`${cases.length} golden digests give the expected listings or rejection`, () => {
+  it(`${cases.length} old digests give the expected listings or rejection`, () => {
     const wrong = cases.filter((c) => JSON.stringify(outcome(c.message)) !== JSON.stringify(c.expect)).map((c) => c.name);
     expect(wrong).toEqual([]);
   });

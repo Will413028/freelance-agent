@@ -1,6 +1,6 @@
 [
  {
-  "name": "golden 0",
+  "name": "old 0",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -35,7 +35,7 @@
   }
  },
  {
-  "name": "golden 1",
+  "name": "old 1",
   "message": {
    "sender": "imposter@104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -47,7 +47,7 @@
   }
  },
  {
-  "name": "golden 2",
+  "name": "old 2",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -59,7 +59,7 @@
   }
  },
  {
-  "name": "golden 3",
+  "name": "old 3",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "驗證通知",
@@ -71,7 +71,7 @@
   }
  },
  {
-  "name": "golden 4 (ENVELOPE: received_at without a time is checked by readMessage (bad_received_at, message.test.ts), not by the parser)",
+  "name": "old 4 (ENVELOPE: received_at without a time is checked by readMessage (bad_received_at, receiving.test.ts), not by the parser)",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -106,7 +106,7 @@
   }
  },
  {
-  "name": "golden 5",
+  "name": "old 5",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺2筆",
@@ -118,7 +118,7 @@
   }
  },
  {
-  "name": "golden 6",
+  "name": "old 6",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -130,7 +130,7 @@
   }
  },
  {
-  "name": "golden 7",
+  "name": "old 7",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -142,7 +142,7 @@
   }
  },
  {
-  "name": "golden 8",
+  "name": "old 8",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -154,7 +154,7 @@
   }
  },
  {
-  "name": "golden 9",
+  "name": "old 9",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -166,7 +166,7 @@
   }
  },
  {
-  "name": "golden 10",
+  "name": "old 10",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺2筆",
@@ -178,7 +178,7 @@
   }
  },
  {
-  "name": "golden 11",
+  "name": "old 11",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -213,7 +213,7 @@
   }
  },
  {
-  "name": "golden 12",
+  "name": "old 12",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "x09/26的配對日報，符合職缺2筆",
@@ -270,7 +270,7 @@
   }
  },
  {
-  "name": "golden 13",
+  "name": "old 13",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "x09/26的配對日報，符合職缺2筆",
@@ -282,7 +282,7 @@
   }
  },
  {
-  "name": "golden 14",
+  "name": "old 14",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -294,7 +294,7 @@
   }
  },
  {
-  "name": "golden 15",
+  "name": "old 15",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -306,7 +306,7 @@
   }
  },
  {
-  "name": "golden 16",
+  "name": "old 16",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -318,7 +318,7 @@
   }
  },
  {
-  "name": "golden 17",
+  "name": "old 17",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -330,7 +330,7 @@
   }
  },
  {
-  "name": "golden 18",
+  "name": "old 18",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -365,7 +365,7 @@
   }
  },
  {
-  "name": "golden 19",
+  "name": "old 19",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -400,7 +400,7 @@
   }
  },
  {
-  "name": "golden 20",
+  "name": "old 20",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -435,7 +435,7 @@
   }
  },
  {
-  "name": "golden 21",
+  "name": "old 21",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -470,7 +470,7 @@
   }
  },
  {
-  "name": "golden 22",
+  "name": "old 22",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -505,7 +505,7 @@
   }
  },
  {
-  "name": "golden 23",
+  "name": "old 23",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -517,7 +517,7 @@
   }
  },
  {
-  "name": "golden 24",
+  "name": "old 24",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -529,7 +529,7 @@
   }
  },
  {
-  "name": "golden 25",
+  "name": "old 25",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -564,7 +564,7 @@
   }
  },
  {
-  "name": "golden 26",
+  "name": "old 26",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -599,7 +599,7 @@
   }
  },
  {
-  "name": "golden 27",
+  "name": "old 27",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -611,7 +611,7 @@
   }
  },
  {
-  "name": "golden 28",
+  "name": "old 28",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -646,7 +646,7 @@
   }
  },
  {
-  "name": "golden 29",
+  "name": "old 29",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -658,7 +658,7 @@
   }
  },
  {
-  "name": "golden 30",
+  "name": "old 30",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -670,7 +670,7 @@
   }
  },
  {
-  "name": "golden 31",
+  "name": "old 31",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -705,7 +705,7 @@
   }
  },
  {
-  "name": "golden 32 (ACCEPTED: an unclosed link at the very end is closed by the HTML parser; the card count still guards a cut-off digest)",
+  "name": "old 32 (ACCEPTED: an unclosed link at the very end is closed by the HTML parser; the card count still guards a cut-off digest)",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -740,7 +740,7 @@
   }
  },
  {
-  "name": "golden 33",
+  "name": "old 33",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -775,7 +775,7 @@
   }
  },
  {
-  "name": "golden 34 (REFUSED: a fullwidth digit in the subject count: JavaScript \\d is ASCII; 104 writes ASCII digits)",
+  "name": "old 34 (REFUSED: a fullwidth digit in the subject count: JavaScript \\d is ASCII; 104 writes ASCII digits)",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺０1筆",
@@ -787,7 +787,7 @@
   }
  },
  {
-  "name": "golden 35",
+  "name": "old 35",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺01筆",
@@ -822,7 +822,7 @@
   }
  },
  {
-  "name": "golden 36",
+  "name": "old 36",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺0筆",
@@ -834,7 +834,7 @@
   }
  },
  {
-  "name": "golden 37",
+  "name": "old 37",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -869,7 +869,7 @@
   }
  },
  {
-  "name": "golden 38",
+  "name": "old 38",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",
@@ -904,7 +904,7 @@
   }
  },
  {
-  "name": "golden 39",
+  "name": "old 39",
   "message": {
    "sender": "jobbank@ms1.104.com.tw",
    "subject": "測試09/26的配對日報，符合職缺1筆",

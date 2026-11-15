@@ -1,1 +1,0 @@
-DROP TABLE `digest_novelty`;

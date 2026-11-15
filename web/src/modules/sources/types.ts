@@ -44,6 +44,8 @@ export type MailMessage = { id: string; sender: string; subject: string; body: s
 
 type BaseSettings = FetchPolicy & {
   name: string;
+  /** What a page shows for the source. */
+  label: string;
   /** Order in the daily run. */
   order: number;
   /**

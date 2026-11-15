@@ -6,7 +6,7 @@ import type { MailSourceSettings } from "../../types";
 
 // 104 job bank: the daily matching digest (「…MM/DD的配對日報，符合職缺N筆」) sent to the inbox, read
 // card by card as observed (old collection/jobbank104_mail.py, web/src/modules/collection/mail/jobbank104.ts
-// until step 11). No request goes to 104 and nothing is guessed from recommendations: a card is a job link,
+// at ce1254d). No request goes to 104 and nothing is guessed from recommendations: a card is a job link,
 // a company link, text, and the apply link; cards after 「適合你大展身手的工作」 (104's own suggestions)
 // are not read. The whole digest is refused when its structure is off (one code per check, reasons.ts),
 // so a template change shows as rejected mail instead of silently fewer listings. HTML is parsed with
@@ -114,7 +114,7 @@ export function parse104(message: MailMessage): ListingInput[] {
 }
 
 export const JOBBANK104_SETTINGS: Omit<MailSourceSettings, "order"> = {
-  kind: "mail", name: "jobbank104", sender: SENDER, subjectGate: isDigestSubject, parse: parse104, preferText: false,
+  kind: "mail", name: "jobbank104", label: "104 人力銀行", sender: SENDER, subjectGate: isDigestSubject, parse: parse104, preferText: false,
   // One page of the inbox list per request; bodies only for new digests (about one a day).
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 45, completeRead: false, disabled: null,
 };

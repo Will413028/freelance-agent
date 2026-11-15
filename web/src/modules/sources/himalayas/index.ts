@@ -6,7 +6,7 @@ import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Himalayas: the public search API, 4 fixed queries x 2 employment types, first page each (old
-// collection/himalayas.py, web/src/modules/collection/sources/himalayas.ts until step 11). A listing
+// collection/himalayas.py, web/src/modules/collection/sources/himalayas.ts at ce1254d). A listing
 // without its identity (guid, title, description, the board's own job URL) or without a text
 // employment type (the source's own rule reads it) is set aside and counted in `rejected`; more than
 // half set aside fails the source (services/collect, Will 2026-11-15; the old reader refused the batch
@@ -181,7 +181,7 @@ export async function himalayasConnector(fetcher: Fetcher): Promise<Collected> {
 }
 
 export const HIMALAYAS_SETTINGS: Omit<PageSourceSettings, "order"> = {
-  name: "himalayas", connector: himalayasConnector, maxTier: "plain",
+  label: "Himalayas", name: "himalayas", connector: himalayasConnector, maxTier: "plain",
   // Old: 600 ms between searches (collection/sources/himalayas.ts:116), raised to the 1 s floor.
   minIntervalMs: 1000,
   // Old: 4 queries x 2 employment types, one page each (collection/sources/himalayas.ts:15, 102-105).

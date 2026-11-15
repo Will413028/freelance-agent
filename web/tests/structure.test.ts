@@ -31,7 +31,7 @@ describe("client components", () => {
     const files = (readdirSync(root, { recursive: true }) as string[]).filter((f) => /\.tsx?$/.test(f)).map((f) => path.join(root, f));
     const client = files.filter((f) => /^\s*["']use client["']/.test(readFileSync(f, "utf8")));
     expect(client.length).toBeGreaterThan(0);
-    const offending = client.filter((f) => /from\s+["']@\/(services|db|modules|platform|ops|workflows)\b|process\.env/.test(readFileSync(f, "utf8")));
+    const offending = client.filter((f) => /from\s+["']@\/(services|db|modules|platform)\b|process\.env/.test(readFileSync(f, "utf8")));
     expect(offending).toEqual([]);
   });
 });

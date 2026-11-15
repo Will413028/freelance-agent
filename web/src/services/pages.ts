@@ -1,10 +1,9 @@
 import type { PgDb } from "@/db/pg/client";
 import { CATEGORIES } from "@/db/pg/schema";
-import { REGISTRY } from "@/modules/collection/public";
 import { evaluate, PAGE_SIZE, rankedPage, readSettings, recommend, VIEWS, type Content, type FeedbackState, type Settings, type View } from "@/modules/evaluation/public";
 import { listingOfRow, readShown, type ListingRow, type Shown, type VersionRow } from "@/modules/listings/public";
 import { latestRuns } from "@/modules/runs/public";
-import { SOURCES } from "@/modules/sources/public";
+import { SOURCES, sourceLabel } from "@/modules/sources/public";
 import { feedbackToken, saveSettings, setFeedback } from "@/modules/review/public";
 import { NotFound } from "@/platform/errors";
 
@@ -57,8 +56,6 @@ export type JobView = {
   rankedOn: string | null;
 };
 
-const sourceName = (source: string) => REGISTRY[source]?.name ?? source;
-
 const jobFields = (r: ListingRow | VersionRow): JobFields => ({
   title: r.title, company: r.company, description: r.description, kind: r.kind, currency: r.currency, budget_min: r.budgetMin,
   budget_max: r.budgetMax, weekly_hours: r.weeklyHours, location: r.location, taiwan_eligible: r.taiwanEligible,
@@ -81,7 +78,7 @@ export function jobView({ row, versions, feedback }: Shown, s: Settings, now: Da
     };
   }
   return {
-    id: row.id, token: feedbackToken(feedback.revision), source: row.source, sourceName: sourceName(row.source), job: jobFields(row),
+    id: row.id, token: feedbackToken(feedback.revision), source: row.source, sourceName: sourceLabel(row.source), job: jobFields(row),
     status: evaluation.status, category: evaluation.category, reasons: evaluation.reasons, questions: evaluation.questions,
     score: rec.score, freshness: rec.freshness, completeness: rec.completeness, rankReasons: rec.reasons,
     candidate, feedback: feedback.state, skipped: feedback.state === "skipped", conflict,
@@ -168,7 +165,7 @@ export async function sourcesPage(db: PgDb): Promise<SourcesView> {
     sources: [...SOURCES].sort((a, b) => a.order - b.order).map((s) => {
       const r = bySource.get(s.name);
       return {
-        source: s.name, name: sourceName(s.name), disabled: s.disabled,
+        source: s.name, name: sourceLabel(s.name), disabled: s.disabled,
         latest: r ? { localDate: r.localDate, status: r.status, reason: r.reason, counts: r.counts as Record<string, Plain>, finishedAt: r.finishedAt?.toISOString() ?? null } : null,
       };
     }),

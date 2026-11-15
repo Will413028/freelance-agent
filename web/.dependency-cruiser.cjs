@@ -2,27 +2,10 @@
 module.exports = {
   forbidden: [
     { name: "no-circular", severity: "error", from: {}, to: { circular: true } },
-    { name: "db-is-shared", severity: "error", from: { path: "^src/db" }, to: { path: "^src/(modules|workflows|app|platform)" } },
-    { name: "platform-is-shared", severity: "error", from: { path: "^src/platform" }, to: { path: "^src/(modules|workflows|app|db)" } },
-    { name: "modules-not-app", severity: "error", from: { path: "^src/modules" }, to: { path: "^src/(app|workflows|services)" } },
-    { name: "services-not-app", severity: "error", from: { path: "^src/services" }, to: { path: "^src/(app|workflows)" } },
-    {
-      name: "discovery-is-a-leaf",
-      comment: "Rules and settings are shared by collection, legacy and preferences; composing them belongs in src/services.",
-      severity: "error",
-      from: { path: "^src/modules/discovery/" },
-      to: { path: "^src/modules/(?!discovery/)" },
-    },
-    { name: "ops-stand-alone", comment: "Operations tooling reads tables, not product modules.", severity: "error", from: { path: "^src/ops" }, to: { path: "^src/(modules|workflows|app|services)" } },
-    { name: "product-not-ops", severity: "error", from: { path: "^src/(modules|workflows|app|db|platform)" }, to: { path: "^src/ops" } },
-    {
-      name: "sources-are-native",
-      comment: "Plan step 4: a rebuilt source reads no Python emulation; fixture generators may, to read golden.json.",
-      severity: "error",
-      from: { path: "^src/modules/sources/", pathNot: "/fixtures/" },
-      to: { path: "^src/platform/py/" },
-    },
-    { name: "workflows-not-app", severity: "error", from: { path: "^src/workflows" }, to: { path: "^src/app" } },
+    { name: "db-is-shared", severity: "error", from: { path: "^src/db" }, to: { path: "^src/(modules|services|app|platform)" } },
+    { name: "platform-is-shared", severity: "error", from: { path: "^src/platform" }, to: { path: "^src/(modules|services|app|db)" } },
+    { name: "modules-not-app", severity: "error", from: { path: "^src/modules" }, to: { path: "^src/(app|services)" } },
+    { name: "services-not-app", severity: "error", from: { path: "^src/services" }, to: { path: "^src/app" } },
     {
       name: "modules-use-public-contracts",
       comment: "Another module is reached only through its public.ts.",
