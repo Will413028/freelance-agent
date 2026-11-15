@@ -90,7 +90,7 @@ describe("envelope checks", () => {
     expect([
       reason(raw({ id: OTHER })), reason(raw({ from: "x@y.z" })), reason(raw({ to: ["other@example.resend.app"] })),
       reason(raw({ created_at: "2026-09-26" })), reason(raw({ created_at: "2026-09-26T03:00:00" })), reason(raw({ subject: null })),
-      reason(raw({ html: null, text: null })), reason(raw({ html: "x".repeat(2 * 1024 * 1024 + 1) })),
-    ]).toEqual(["id_mismatch", "sender_mismatch", "recipient_mismatch", "bad_received_at", "bad_received_at", "missing_subject_or_body", "missing_subject_or_body", "body_too_large"]);
+      reason(raw({ html: null, text: null })), reason(raw({ to: [{}, INBOX] })),
+    ]).toEqual(["id_mismatch", "sender_mismatch", "recipient_mismatch", "bad_received_at", "bad_received_at", "missing_subject_or_body", "missing_subject_or_body", "recipient_mismatch"]);
   });
 });

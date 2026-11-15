@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { mailCursors, mailMessages } from "@/db/pg/schema";
 import type { MailReason } from "./reasons";
@@ -24,9 +24,11 @@ export async function saveCursor(db: PgDb, source: string, recipient: string, c:
     .onConflictDoUpdate({ target: [mailCursors.source, mailCursors.recipient], set: c });
 }
 
-/** Every message id this source has recorded for the inbox: none of them is read again. */
-export async function recordedMessages(db: PgDb, source: string, recipient: string): Promise<Set<string>> {
-  const rows = await db.select({ id: mailMessages.messageId }).from(mailMessages).where(and(eq(mailMessages.source, source), eq(mailMessages.recipient, recipient)));
+/** Which of `ids` this source has recorded for the inbox: none of them is read again. */
+export async function recordedMessages(db: PgDb, source: string, recipient: string, ids: readonly string[]): Promise<Set<string>> {
+  if (!ids.length) return new Set();
+  const rows = await db.select({ id: mailMessages.messageId }).from(mailMessages)
+    .where(and(eq(mailMessages.source, source), eq(mailMessages.recipient, recipient), inArray(mailMessages.messageId, [...ids])));
   return new Set(rows.map((r) => r.id));
 }
 

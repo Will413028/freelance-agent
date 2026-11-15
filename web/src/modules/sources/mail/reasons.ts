@@ -13,8 +13,10 @@ export const ENVELOPE_REASONS = [
   "bad_received_at",
   /** Subject or body missing or not text. */
   "missing_subject_or_body",
-  /** Body over the source's size cap. */
+  /** The message (Resend's whole response, or the body a parser reads) is over the size cap. */
   "body_too_large",
+  /** Resend answered for this message with something other than a JSON message object. */
+  "unreadable_message",
   /** A listing the parser produced was refused by the listing contract. */
   "contract_refused",
 ] as const;

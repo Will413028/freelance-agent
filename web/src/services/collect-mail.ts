@@ -4,7 +4,7 @@ import {
   inboxAddress, loadCursor, MailRejection, readMessage, ReceivingClient, recordedMessages, recordMessage, saveCursor, SourceError,
   type MailCursor, type MailSourceSettings,
 } from "@/modules/sources/public";
-import { createFetcher, type Fetcher } from "@/platform/fetch";
+import { createFetcher, FetchError, type Fetcher } from "@/platform/fetch";
 import { screen, type SourceRun } from "./source-run";
 
 // One mail source, once (plan step 7; old web/src/modules/collection/mail/sync.ts until step 11): page the
@@ -23,7 +23,7 @@ export const MAIL_LIMITS = { maxPages: 20, maxMessages: 20 } as const;
 
 export type MailEnv = { key: string; inbox: string };
 
-/** The mail source has no Resend key or inbox configured. */
+/** The mail source has no Resend key or inbox configured, or the inbox is not a Resend receiving address. */
 export class MailConfigError extends Error {
   constructor() {
     super("RESEND_API_KEY and RESEND_INBOX must be set");
@@ -42,10 +42,16 @@ export type CollectMailOptions = { fetcher?: Fetcher; env?: MailEnv; limits?: { 
 export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, opts: CollectMailOptions = {}): Promise<SourceRun> {
   const env = opts.env ?? envFromProcess();
   const limits = opts.limits ?? MAIL_LIMITS;
-  const inbox = inboxAddress(env.inbox);
+  // A full scan (every page plus every body) must fit the source's request cap, so the scan stops as truncated, never on request_limit.
+  if (limits.maxPages + limits.maxMessages > s.maxRequestsPerRun) throw new Error(`${s.name}: mail limits exceed maxRequestsPerRun`);
+  let inbox: string;
+  try {
+    inbox = inboxAddress(env.inbox);
+  } catch {
+    throw new MailConfigError();
+  }
   const f = opts.fetcher ?? createFetcher(s);
   const client = new ReceivingClient(f, env.key, s.sender);
-  const recorded = await recordedMessages(db, s.name, inbox);
   let c: MailCursor = await loadCursor(db, s.name, inbox);
   const intake: IntakeCounts = { inserted: 0, updated: 0, unchanged: 0, versioned: 0 };
   /** Listings written this run by id: two digests can name the same job; the later content counts once. */
@@ -53,9 +59,19 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
   let seen = 0, pages = 0, reads = 0, rejected = 0, complete = false, interrupted = false;
 
   const handle = async (id: string) => {
-    const raw = await client.message(id);
     let listings: ListingInput[];
     try {
+      let raw: Record<string, unknown>;
+      try {
+        raw = await client.message(id);
+      } catch (e) {
+        // A transient failure is retried by the daily run; one message Resend cannot serve readably is
+        // rejected and recorded, so it never blocks the newer mail behind it.
+        if (e instanceof FetchError && e.transient) throw e;
+        if (e instanceof FetchError && e.kind === "too_large") throw new MailRejection("body_too_large");
+        if (e instanceof SourceError) throw new MailRejection("unreadable_message");
+        throw e;
+      }
       listings = s.parse(readMessage(raw, id, s.sender, inbox, s.preferText));
     } catch (e) {
       if (!(e instanceof MailRejection)) throw e;
@@ -75,6 +91,7 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
       const page = await client.list(c.after);
       pages++;
       if (page.hasMore && !page.entries.length) throw new SourceError("Resend list: empty page before the end");
+      const recorded = await recordedMessages(db, s.name, inbox, page.entries.map((e) => e.id));
       for (const e of page.entries) {
         if (e.id === c.cursor) { complete = true; break; }
         if (visited.has(e.id)) throw new SourceError("Resend list: the same message on two pages");
@@ -86,7 +103,6 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
         if (wanted) {
           reads++;
           await handle(e.id);
-          recorded.add(e.id);
         }
         c.after = e.id;
       }

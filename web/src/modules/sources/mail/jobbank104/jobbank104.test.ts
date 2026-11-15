@@ -45,6 +45,7 @@ describe("jobbank104 digest", () => {
     const twoJobs = `<a href="https://www.104.com.tw/job/a1">兼職 A</a>${card()}`;
     expect(outcome(digest(twoJobs, "測試09/26的配對日報，符合職缺2筆"))).toEqual({ reason: "104_incomplete_card" });
     expect(outcome(digest(`${card()}<a href="https://[bad">x</a>`))).toEqual({ reason: "104_invalid_link" });
+    for (const relative of ["/job/abc123", "//www.104.com.tw/job/abc123"]) expect(outcome(digest(card(relative)))).toEqual({ reason: "104_unsupported_job_link" });
   });
 
   it("keeps unknowns unknown: no budget, hours, eligibility or publish time is guessed", () => {

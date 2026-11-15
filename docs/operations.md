@@ -27,6 +27,12 @@
 
 輸出最後一行是 `deployed …`、`rolled back to …` 或 `ROLLBACK UNHEALTHY`（前一版也起不來，要人看 `compose ps` 與 log）。回滾不會撤銷已套用的 migration，所以下一條規則才是讓回滾安全的前提。
 
+### 信件來源
+
+`compose.yaml` 只把 env 檔的 `RESEND_API_KEY`、`RESEND_INBOX` 傳給 `daily` 服務（`web` 拿不到）。缺任一個時，信件來源在 `run_sources` 記為 `failed`、`error` 是 `MailConfigError`，其他來源照跑。key 是完整權限（Resend 沒有唯讀），防護在程式：只送 GET、只打 `https://api.resend.com/emails/receiving` 底下的網址（`web/src/modules/sources/mail/receiving.ts`）；Resend 的讀取不改變信件狀態，和凍結的正式站讀同一個信箱互不影響。
+
+每封信只處理一次，記在 `mail_messages`：`processed`（`reason` 為 `content_changed` 表示同一筆職缺的內容和先前不同，另存成版本）或 `rejected`（`reason` 是哪一項檢查沒過，代碼列在 `web/src/modules/sources/mail/reasons.ts`）。被拒的信不會自動重讀；「重排」「消掉」的入口在計畫步驟 7b。這次執行讀的信超過一半被拒時整個來源記為失敗（通常是信的版型改了）。Resend 回 429 或 5xx 時照每日執行的規則重試，已記錄的信不會重讀。
+
 ### Migration 規則
 
 SQL 在 `web/drizzle-pg/`，由 `migrate-pg`（`web/scripts/migrate-pg.ts`）套用；套過的記在 `drizzle.__drizzle_migrations`，重跑是 no-op。

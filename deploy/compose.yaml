@@ -6,7 +6,7 @@ name: side-income
 
 x-app: &app
   image: ${APP_IMAGE:?set APP_IMAGE in the env file}
-  environment:
+  environment: &app-env
     DATABASE_URL: postgres://side_income:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@db:5432/side_income
   depends_on:
     db:
@@ -49,7 +49,7 @@ services:
   daily:
     <<: *app
     environment:
-      DATABASE_URL: postgres://side_income:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@db:5432/side_income
+      <<: *app-env
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_INBOX: ${RESEND_INBOX:-}
     profiles: [jobs]

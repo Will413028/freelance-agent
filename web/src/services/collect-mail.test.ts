@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { mailCursors, mailMessages, runSources } from "@/db/pg/schema";
 import { listingBy, versionCount } from "@/modules/listings/public";
-import { SourceError, sourceSettings, type MailSourceSettings } from "@/modules/sources/public";
+import { sourceSettings, type MailSourceSettings } from "@/modules/sources/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
 import { collectSource } from "./collect";
 import { collectMail, MailConfigError } from "./collect-mail";
@@ -80,6 +80,12 @@ describe("collectMail", () => {
     expect([again.seen, again.examined, box.bodies()]).toEqual([2, 0, 2]);
   });
 
+  it("rejects and records a message Resend cannot serve readably, so the newer mail behind it is still read", async () => {
+    const box = inbox([{ n: 3 }, { n: 2 }, { n: 1 }], { fail: { [id(2)]: new FetchError("too_large", "body over 2 MB") } });
+    await expect(collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV })).resolves.toMatchObject({ rejected: 1, examined: 3, truncated: false });
+    expect(await messages()).toEqual([["01", "processed", null], ["02", "rejected", "body_too_large"], ["03", "processed", null]]);
+  });
+
   it("records a rejected digest with its reason and keeps the good one; most rejected fails the source", async () => {
     const box = inbox([{ n: 2, body: "<p>template changed</p>" }, { n: 1 }]);
     await expect(collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV })).resolves.toMatchObject({ rejected: 1, examined: 2, stored: 1 });
@@ -134,7 +140,7 @@ describe("collectMail", () => {
     } finally {
       process.env = saved;
     }
-    await expect(collectMail(db, s, NOW, { fetcher: inbox([]).fetcher, env: { ...ENV, inbox: "me@gmail.com" } })).rejects.toBeInstanceOf(SourceError);
+    await expect(collectMail(db, s, NOW, { fetcher: inbox([]).fetcher, env: { ...ENV, inbox: "me@gmail.com" } })).rejects.toBeInstanceOf(MailConfigError);
   });
 });
 

@@ -51,8 +51,10 @@ function readCards(html: string) {
     // A malformed href (not even a relative URL) refuses the digest; a relative one is no 104 link.
     if (!URL.canParse(href, "https://relative.invalid/")) reject("104_invalid_link");
     if (stopped) return;
-    const url = URL.canParse(href) ? new URL(href) : null;
-    const job = url ? /^\/job\/([a-z0-9]+)$/.exec(url.pathname) : null;
+    const absolute = URL.canParse(href);
+    const url = absolute ? new URL(href) : null;
+    // A job path is recognized on a relative href too, which then refuses the digest: 104 links are absolute.
+    const job = /^\/job\/([a-z0-9]+)$/.exec(new URL(href, "https://relative.invalid/").pathname);
     if (job) {
       if (!on104(url) || !text) reject("104_unsupported_job_link");
       if (current !== null) reject("104_incomplete_card");
