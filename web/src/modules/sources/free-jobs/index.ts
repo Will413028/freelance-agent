@@ -7,7 +7,7 @@ import { utcInstant } from "../shared/time";
 import { SourceError, type Collected } from "../types";
 
 // jobicy and remotive: public JSON APIs with the latest listings (old collection/free_jobs.py,
-// web/src/modules/collection/sources/free-jobs.ts until step 11). A listing without its identity
+// web/src/modules/collection/sources/free-jobs.ts at ce1254d). A listing without its identity
 // (id, title, description, the board's own URL) or with employment types that are not a list of text
 // (the source's own rule reads them: unreadable types would keep nothing) is set aside and counted in
 // `rejected`; more than half set aside fails the source (services/collect, Will 2026-11-15; the old

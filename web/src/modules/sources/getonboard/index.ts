@@ -5,7 +5,7 @@ import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Get on Board: the official public API (old collection/getonboard.py,
-// web/src/modules/collection/sources/getonboard.ts until step 11): the modality taxonomy, then the
+// web/src/modules/collection/sources/getonboard.ts at ce1254d): the modality taxonomy, then the
 // remote job search, up to 10 pages of 120. A listing without its identity (id, title, description,
 // the board's own job URL) or without what the source's own rule reads (a known modality, a
 // publication time) is set aside and counted in `rejected`, as the old connector skipped it and marked

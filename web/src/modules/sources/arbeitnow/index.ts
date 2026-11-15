@@ -5,7 +5,7 @@ import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Arbeitnow: the official free job-board API, read page by page (old collection/arbeitnow.py,
-// web/src/modules/collection/sources/arbeitnow.ts until step 11). A listing without its identity
+// web/src/modules/collection/sources/arbeitnow.ts at ce1254d). A listing without its identity
 // (slug, title, description, the board's own job URL) or without the fields the source's own rule
 // reads (job types, publication time) is set aside and counted in `rejected`, as the old connector
 // did (Will 2026-11-15; more than half set aside fails the source). A page whose envelope or

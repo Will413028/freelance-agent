@@ -51,6 +51,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: docker build -f deploy/web.Dockerfile -t side-income-web:ci web
+      # Image size in the log, to compare across changes (plan step 11 records before and after).
+      - run: docker image inspect side-income-web:ci --format 'image size {{.Size}} bytes'
       # pnpm runs as the runtime user without fetching anything (corepack cache readable, no network).
       - run: docker run --rm --network none side-income-web:ci pnpm exec tsx --version
 

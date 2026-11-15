@@ -5,8 +5,8 @@ import { SourceError, type Collected, type SourceSettings } from "../types";
 import { parseXml } from "./xml";
 
 // TaiwanJobs: the official open-data XML of the latest 1000 updated listings; no login, no
-// application (old collection/taiwanjobs.py, web/src/modules/collection/sources/taiwanjobs.ts until
-// step 11). Every envelope refusal of the old connector stays a refusal of the batch, and so do a
+// application (old collection/taiwanjobs.py, web/src/modules/collection/sources/taiwanjobs.ts at
+// ce1254d). Every envelope refusal of the old connector stays a refusal of the batch, and so do a
 // malformed record or field and a listing named twice. A row the old connector refused
 // (rejected_count, which turned the run partial) is set aside and counted in `rejected`, as the old
 // did (Will 2026-11-15; more than half set aside fails the source): title, body length, the listing's

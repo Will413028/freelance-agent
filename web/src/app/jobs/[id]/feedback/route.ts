@@ -1,5 +1,5 @@
 import { getPgDb } from "@/db/pg/client";
-import { withPageLog } from "../../../_lib/usage";
+import { withPageLog } from "../../../_lib/page-log";
 import { handleFeedback } from "../../../_lib/writes";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {

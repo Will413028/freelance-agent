@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SOURCES, sourceSettings } from "./public";
+import { SOURCE_LABELS, SOURCES, sourceLabel, sourceSettings } from "./public";
 
 // Plan step 4, global done-definition: every source has a request interval and a per-run cap.
 describe("source catalog", () => {
@@ -20,5 +20,11 @@ describe("source catalog", () => {
 
   it("marks complete reads only for sources whose one read pages through the whole board (plan D9)", () => {
     expect(SOURCES.filter((s) => s.completeRead).map((s) => s.name)).toEqual(["arbeitnow"]);
+  });
+
+  it("gives every source a page label, and falls back to the name", () => {
+    expect(SOURCES.filter((s) => !Object.hasOwn(SOURCE_LABELS, s.name)).map((s) => s.name)).toEqual([]);
+    expect(sourceLabel("jobbank104")).toBe("104 人力銀行");
+    expect(sourceLabel("constructor")).toBe("constructor");
   });
 });

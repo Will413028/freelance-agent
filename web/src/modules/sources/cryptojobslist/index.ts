@@ -10,7 +10,7 @@ import { SourceError, type Collected, type SourceSettings } from "../types";
 import { childText, children, parseXml, type XmlElement } from "../shared/xml-feed";
 
 // CryptoJobsList: the official advertised RSS feed, without API keys or account access (old
-// collection/cryptojobslist.py, web/src/modules/collection/sources/cryptojobslist.ts until step 11).
+// collection/cryptojobslist.py, web/src/modules/collection/sources/cryptojobslist.ts at ce1254d).
 // One request per run. A feed that is empty, oversize, declares a DTD, is not well-formed or is not
 // RSS with 1–2000 items is refused. An item without its identity (its job URL on the board, a
 // media:canonical that disagrees with it, a title, a description, or one over the size caps) is set

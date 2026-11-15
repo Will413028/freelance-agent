@@ -7,7 +7,7 @@ import { childText, children, parseXml } from "../shared/xml-feed";
 
 // Public community hiring leads: Hacker News "Who is hiring?" and "Freelancer?" threads, and V2EX's
 // outsourcing node (old collection/community_jobs.py, web/src/modules/collection/sources/community-jobs.ts
-// until step 11). No accounts, messaging or employer-link fetching. A response that is not the expected
+// at ce1254d). No accounts, messaging or employer-link fetching. A response that is not the expected
 // shape refuses the whole source run, so a format change is a failed source and never an empty success.
 // A lead without its identity (id, text, its own link, a zoned publication time on V2EX) is set aside
 // and counted in `rejected`; more than half set aside fails the source (services/collect, Will

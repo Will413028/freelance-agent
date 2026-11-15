@@ -4,7 +4,7 @@ import { writeFeedback, writeSettings } from "@/services/pages";
 import { Conflict, InvalidAction, InvalidSettings, NotFound } from "@/platform/errors";
 import { guardedForm, messagePage, NO_STORE, safePath } from "./guard";
 
-// The two page writes (plan step 11; Postgres since step 3c): a listing's feedback and the discovery settings. Each takes a
+// The two page writes (Postgres since plan step 3c): a listing's feedback and the discovery settings. Each takes a
 // urlencoded form that passed guardedForm, calls the service's write unit, and answers 303 back to
 // the page with a fixed notice code, or a short page with the status the error class maps to.
 
@@ -52,13 +52,12 @@ async function write(request: Request, deps: WriteDeps, run: (form: URLSearchPar
     return await run(form, back);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    // Conflict is also a ValueError, so it is told apart first.
     if (e instanceof Conflict) {
       console.warn(`page write conflict: ${message}`);
       return messagePage(409, message, back);
     }
     if (e instanceof NotFound) return messagePage(404, "找不到這筆職缺", "/");
-    // Only the person's input is a 400; any other ValueError (a corrupt row) is a 500 below.
+    // Only the person's input is a 400; any other error (a corrupt row) is a 500 below.
     if (e instanceof InvalidAction || e instanceof InvalidSettings) return messagePage(400, message, back);
     console.error(`page write failed: ${e instanceof Error ? e.stack ?? message : message}`);
     // A connection that dropped after COMMIT was sent may still have written.
