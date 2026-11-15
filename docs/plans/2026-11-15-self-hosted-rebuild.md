@@ -44,7 +44,7 @@
 |---|---|
 | 職缺 id 由 `(source, external_id)` 決定，既有值不變 | 新：`listings.id`、各來源的 `externalId` 函式、`listing_feedback.listing_id`、`listing_versions.listing_id`；舊：`web/src/modules/collection/ingest.ts` 的 `opportunityId` |
 | 同一筆職缺只有一列；內容變了是更新或新增版本 | 新：`listings` 的 `(source, external_id)` 唯一鍵、收案的 upsert |
-| 一封信只處理一次；被拒的信保留紀錄 | 新：`mail_messages` 的 `(source, message_id)` 唯一鍵 |
+| 一封信只處理一次；被拒的信保留紀錄 | 新：`mail_messages` 的 `(source, recipient, message_id)` 唯一鍵（與舊 `mail_ingestion` 主鍵相同） |
 | 一天最多一次每日執行；重跑同一天是接著做 | 新：`runs.local_date` 唯一鍵、`run_sources` 的 `(run_id, source)` |
 | 一個來源失敗不影響其他來源 | 新：每日執行指令的逐來源迴圈；舊：`web/src/workflows/daily.ts` |
 | 回饋與設定的寫入拒絕過期版本 | 新：`listing_feedback.revision`、`settings.revision` |
@@ -103,6 +103,7 @@
   - 停止條件：arm64 上映像建不起來或跑不起來。
   - 需要人做的事：授權部署到 VM（部署點）；VM 上放 env 檔；Tailscale Serve 的設定要 root。
 - [ ] **3. 新形狀：資料模型、收案核心、評估、頁面**（被擋於：步驟 1 第 1、3 項、步驟 2）
+  - 子步驟（2026-11-15 拆分，一個 session 做不完）：3a 資料模型與收案核心、3b 評估與排序、3c 頁面與寫入路由、3d VM 驗收（部署點）；各自的範圍與驗收、表的設計、決定題 Q1／Q2 在 `step-3-design.md`（新增，本步驟的附件）。下面的範圍與驗收是四個子步驟的合計。
   - 範圍：開工時先跑 design-review，材料是 schema 草稿與 `inventory.md`，要它特別檢查兩個設計選擇：整張 `source_receipts` 不留（改用唯一鍵 upsert 加內容比對）、評估結果存成 `listings` 的欄位而不是另一張投影表。
     - `web/src/db/pg/schema.ts`（修改）與新 migration：`listings`、`listing_versions`、`listing_feedback`、`listing_feedback_events`、`settings`、`mail_messages`、`mail_cursors`、`runs`、`run_sources`。
     - `web/src/modules/listings/`（新增）：收案核心（一個交易內 upsert 職缺、寫版本）、id 函式。
@@ -189,6 +190,11 @@
 - **D5 切換後的回滾窗口**（狀態：已決 2026-11-15，Will：「切換後不留」；擋住步驟：無）
   - 結論：不留回滾窗口。步驟 10 隔天的自然執行驗收通過，當天就退役 Vercel 專案與 D1；之後出問題只能往前修。否決：7 天、14 天。
 
+- **D6 一般來源內容回到看過的版本**（狀態：已決 2026-11-15，Will 照建議；擋住步驟：無）
+  - 結論：以最後一次為準，蓋回。否決：另存看過的 fingerprint 集合、看過就不蓋（舊收據的隱含行為；來源內容來回晃動沒有證據）。細節 `step-3-design.md`。
+- **D7 只有日期的截止日用台北日界線**（狀態：已決 2026-11-15，Will 照建議；擋住步驟：無）
+  - 結論：截止日 D 在台灣時間 D+1 00:00 起算過期（舊：UTC D+1 00:00）。evaluate fixture 中受影響的預期重算並逐筆記下。否決：照現行 UTC。
+
 拍板順序：D0、D1、D2、D5 已決；D3、D4 已決（2026-11-15）；D3 只剩瀏覽器層的五個平台待 Will 點選。
 
 ## 進度
@@ -199,7 +205,7 @@
 |---|---|---|---|---|
 | 1 規則與 spike | 完成 | repo 改名 `side-income`（Will 2026-11-15 選定）；規則條目 diff；spike 1–4 各有指令與結論，第 2 節每個平台一列；VM 暫時資源查無 | spike 3 原始網址那一側（移到步驟 4、5 的驗收） | `832d183`、本 PR |
 | 2 Walking skeleton | 完成 | CI 全綠（`web`：`pnpm check` 含 PGlite 測試、真 Postgres 18 重跑、build；`image`：arm64 runner 建映像並以 runtime 使用者離線跑 pnpm）；mutation 4 個都被擋（compose 埠改 `0.0.0.0`、拿掉 seed 的衝突保護、拿掉 `runs.status` 的 CHECK、healthz 失敗回 200）；VM：`docker compose ps` 兩個 healthy、tailnet 內 `/skeleton` 200 含假職缺、`/healthz` 200、公網 3347／10443／443 逾時、`ss -ltnp` 只有 127.0.0.1:3347 與 tailscale0 介面、映像 `env` 與 `docker history` 無憑證；seed 跑兩次仍 1 列。測試 415→420 過（+5，無刪除） | 無 | `aa42857`（PR #15）、本 PR |
-| 3 新形狀 | 未開始 | | | |
+| 3 新形狀 | 進行中 | 設計稿 design-review 兩輪：發現 10（blocking 0），改 7、記 1、交 Will 2（D6、D7）、駁回 0 | 3a–3d 未開工（Q1、Q2 已決為 D6、D7） | |
 | 4 第一個來源 | 未開始 | | | |
 | 5 其餘公開來源 | 未開始 | | | |
 | 6 每日執行 | 未開始 | | | |
