@@ -14,7 +14,7 @@
 - 不寄信，除非 Will 另外要求（舊計畫 D22）。
 - repo 是公開的：個人 email、真名、IP、tailnet 主機名、費率、帳號進度、封存的歷史資料、正式資料的匯出檔、平台回應的原始內容都不進 repo。spike 的原始輸出放 repo 外（位置見本機個人脈絡檔），repo 裡只放指令與去識別化的結論。log 與執行紀錄不含信件內文、職缺全文、憑證。
 - ~~職缺 id 不變（既有列原樣搬）~~ 被 D10 取代（Will 2026-11-15：舊資料全部不搬、不匯出）：新系統的職缺身分是 `(source, external_id)`，`external_id` 只要求同一來源的同一筆職缺每次讀取都相同（新系統內部穩定），不必等於舊值；主鍵由 5a2 重設計。
-- **過渡期（到步驟 10 驗收通過為止）**：Vercel 上 2026-11-06 的部署（`jzp0qoy8t`，commit `ce1254d`）加 D1 是唯一的正式系統，不部署新版程式。正式站的來源壞了不修（它們在新系統修）。唯一允許的操作是換 D1 token 後把同一個部署重新部署一次（見前提）。`dev` 分支從步驟 2 起不再能部署到 Vercel。VM 上的新系統只寫自己的資料庫。
+- **過渡期（到步驟 10 驗收通過為止）**：Vercel 上 2026-11-06 的部署（`jzp0qoy8t`，commit `ce1254d`）加 D1 是唯一的正式系統，不部署新版程式。正式站的來源壞了不修（它們在新系統修）。唯一允許的操作是換 D1 token 後把同一個部署重新部署一次（見前提）。`dev` 分支從步驟 2 起不再能部署到 Vercel。VM 上的新系統只寫自己的資料庫。`dev` 上的舊程式依 D23 在切換前刪除，不影響凍結的部署（它是 CLI 上傳的成品）。
 - 資料庫容器、瀏覽器、整套 Compose 的測試只在 CI 或 VM 上跑，不在開發機上跑；本機測試用行程內的 Postgres（PGlite）。
 - 每次在 VM 上部署、安裝排程或起容器，以及刪正式資料、退役外部資源，都要先取得 Will 授權；各步驟的「需要人做的事」標出部署點。
 - 各步驟列出的檔案都標（新增）（修改）（刪除）。
@@ -148,7 +148,7 @@
   - 範圍：照清單逐個改寫到 `web/src/modules/sources/<來源>/`（新增），分三批各一個 PR：API 類（himalayas、getonboard、cryptojobslist、hackernews、v2ex、freelancer、arbeitnow、taiwanjobs）、feed 類（remoteok、realworkfromanywhere、weworkremotely、workingnomads）、頁面類（nodesk、justremote、dynamitejobs、jobbank518、chickpt）。步驟 1 第 3 項量到不一致的來源，在這裡加它的相容 id 函式與測試。Arbeitnow 先在 VM 上跑一次看錯誤種類再改。
   - 消費端：每個來源 `rg -n "<舊模組名>" web/src web/tests`。
   - 不能動：各來源既有的拒收規則（壞網址、缺欄位、超長正文）與讀取範圍；不為了轉綠放寬。
-  - 驗收：每批 `pnpm check` 綠；每個來源符合全域的完成定義；每批在 VM 上對真實來源各跑一次，`seen`、`jobs` 與正式庫同日的值並列記錄，差超過 20% 的逐一說明；每個來源做步驟 4 的 id 比對；mutation：每批挑一個來源，把一條拒收規則拿掉要有測試失敗；每個有相容 id 函式的來源，把相容函式換成標準 `URL` 寫法要有測試失敗。
+  - 驗收：每批 `pnpm check` 綠；每個來源符合全域的完成定義；每批在 VM 上對真實來源連跑兩次，第二次同一 `(source, external_id)` 不新增列（D24；切換前正式庫還在時，`seen`、`jobs` 與同日正式值並列當參考，不當門檻）；mutation：每批挑一個來源，把一條拒收規則拿掉要有測試失敗；每個有相容 id 函式的來源，把相容函式換成標準 `URL` 寫法要有測試失敗。
   - 停止條件：某來源的真實回應和 fixture 的形狀不同到解析不出任何一筆，那個來源單獨回報，不擋同批其他來源。
   - 需要人做的事：授權在 VM 上執行（部署點，每批一次）。
 - [ ] **6. 每日執行：指令、排程、重試、來源狀態頁**（被擋於：步驟 4）
@@ -158,13 +158,15 @@
   - 驗收：`pnpm check` 綠；測試：同一天第二次執行不重跑已完成來源、殺掉執行後重跑會做完剩下的、暫時性錯誤重試後成功、非暫時性錯誤不重試；VM 上連 3 天自然觸發都有一列 `runs`，每次總時間 ≤ 15 分鐘，`docker stats` 常駐容器合計 ≤ 2 GB（此時只含已改寫的來源；步驟 10 隔天再量一次全部來源）；mutation：把「跳過已完成來源」拿掉要有測試失敗。
   - 需要人做的事：授權在 VM 安裝 timer（部署點，root）。
   - 完成後的狀態：VM 每天 14:00 自己收案到新庫（影子，不是正式），此時只含已改寫的公開來源。
+  - **6b 執行過期提示**（2026-11-15 追加，被擋於：無；切換前做完）：清單頁與 `/sources` 在最後一次成功的每日執行超過 26 小時時顯示一行提示。業界基準是 dead-man switch（排程沒按時回報就告警）；D22 不寄信，所以只在頁面提示，不接外部服務。驗收：測試涵蓋 25 小時不顯示、27 小時顯示、從未執行顯示；mutation：門檻比較反向要有測試失敗。
   - 實作（分支 `step-6`）：`web/scripts/daily.ts`（session advisory lock，第二個行程回 `busy`，行程被殺時鎖隨連線釋放）、`web/src/services/run-daily.ts`、`web/src/modules/runs/`（新增模組）；`runs.counts`（migration `0002_run_counts`）記 `pruned` 與 `listMs`。systemd 檔名改用 repo 新名 `deploy/systemd/side-income-daily.{service,timer}`；timer 14:00 加 16:00（當天失敗或被殺時接續，成功的那天直接結束）；`EARLIEST_HOUR = 14`：`Persistent` 開機補跑落在 14:00 前就回 `not_due`，不撞正式站 09:00、12:00（步驟 10 改成 9，timer 改 09:00／11:00）。前幾天還是 `running` 的執行在新的一天開始時標成 `failed`／`interrupted`。`run_sources.error` 只存代碼（`http_<status>` 或錯誤類別名），不存訊息：訊息可能引用頁面內容或失敗查詢的職缺參數。保留期限：只刪 30 天內有 `ok` 列的來源（5a2-3 記下的 (a)），同一個 `RETENTION_DAYS` 用在兩邊。清單頁延遲：每次執行後量一次 `listJobs`，`/sources` 超過 250 ms 標示（5a2-3 的 (c)）。
   - 舊測試的對應：`web/tests/daily.test.ts`、`web/tests/write-units.test.ts` 測的是舊的 D1／Vercel Workflow 程式（`web/src/services/daily.ts`、`web/src/workflows/`），照全域約束「舊測試只在取代它的新測試進來的同一個 PR 裡刪」，留到步驟 11 跟舊程式一起刪，本步不改。新系統的對應（`web/src/services/run-daily.test.ts`、`web/src/modules/runs/runs.test.ts`）：兩支 cron 都觸發只跑一次 → 「succeeded 的那天不再跑」；09:00 前不跑 → 「14:00 前回 `not_due`、不寫入」；來源拋錯記失敗、當天失敗 → 「失敗來源不擋其他來源、當天 `failed`」；逐一執行、失敗後繼續 → 同一案；只跑已實作且啟用的來源、照目錄順序 → 「照 `order`、跳過 `disabled`」；partial 算當天失敗 → **不再適用**：截斷與拒收記在 `counts`（`truncated`、`rejected`），來源仍是 `ok`，否則 arbeitnow 每天截斷會讓每天都失敗；`source_details` 的形狀、Python 的 reason 與 D18 量測、D1 用量 → 不再適用（舊結果格式與 D1 專屬量測，新系統用 `run_sources` 欄位）；claim 的日期 → 「依台灣日期」。`write-units.test.ts` 的 lease、批次寫入、過期 token 是 D1 寫入單位的機制（`web/src/db/unit.ts`），新系統在 Postgres 用交易，回饋與設定的過期檢查由 `web/tests/web-pages.test.tsx`、`web/tests/web-guard.test.ts` 守（步驟 3），每日執行不涉及。
-- [ ] **7. 六個信件來源與被拒信的處置**（被擋於：步驟 4、步驟 6）
+- [ ] **7. 六個信件來源與被拒信的處置**（被擋於：步驟 4、步驟 6 的程式）
+  - 拆分（D24，2026-11-15）：**7a** 信件共用部分（`mail_messages`、原因代碼、Resend 讀取）加 jobbank104，在切換前做完，是步驟 10 的門檻；**7b** 其餘五個（tasker、cake、talent、glassdoor、linkedin）與「重排」「消掉」兩個路由，切換後做。驗收照下面，各自只算自己的來源。
   - 範圍：`web/src/modules/sources/mail/`（新增）：tasker、cake、jobbank104、talent、glassdoor、linkedin 改原生；`mail_messages` 記原因代碼（每個 parser 的每個檢查一個代碼）；信件來源的例外也記錯誤種類。`web/src/app/sources/` 加兩個寫入路由「重排」與「消掉」（新增），都經 `guardedForm`。LinkedIn 那種被拒的通知補 parser。
   - 消費端：`rg -n "syncMail|readNotification|mailRecords|recordMail" web/src web/tests`。
   - 不能動：只送 GET、只打 Resend Receiving 的網址；一封信只處理一次；單封失敗不撤銷其他信。
-  - 驗收：`pnpm check` 綠；現有 66 個信件情境的輸入搬成各來源 fixture，預期輸出是新形狀；重排後下一次執行重讀、消掉後不再計入；VM 上跑一次，各信件來源的 `messages` 與正式庫同日的值並列記錄，並做步驟 4 的 id 比對；`web/tests/mail-sources.test.ts`（修改）的 66 個情境各有對應；mutation：收件信箱檢查拿掉要有測試失敗、兩個新路由拿掉 `guardedForm` 要有測試失敗。
+  - 驗收：`pnpm check` 綠；現有 66 個信件情境的輸入搬成各來源 fixture，預期輸出是新形狀；重排後下一次執行重讀、消掉後不再計入；VM 上連跑兩次，第二次不新增列（D24；切換前各信件來源的 `messages` 與正式庫同日的值並列當參考），並做步驟 4 的 id 比對；`web/tests/mail-sources.test.ts`（修改）的 66 個情境各有對應；mutation：收件信箱檢查拿掉要有測試失敗、兩個新路由拿掉 `guardedForm` 要有測試失敗。
   - 停止條件：拿不到被拒的 LinkedIn 通知的結構，LinkedIn 那一項單獨留在進行中，不擋其他五個。
   - 需要人做的事：把 `RESEND_API_KEY`、`RESEND_INBOX` 放進 VM 的 env 檔（Will 提供值的來源，agent 不印值）；授權部署（部署點）；LinkedIn 被拒通知的結構（VM 上有 key 之後用診斷腳本只輸出結構，不輸出內容）。
 - [ ] **8. 分層讀取的上層與新平台**（被擋於：步驟 6；瀏覽器層的平台另等 D3 剩下的點選）
@@ -180,7 +182,7 @@
   - 消費端：文件連結 `rg -n "operations.md" .`。
   - 驗收：在 VM 上對一個故意讓健康檢查失敗的 commit 跑 `deploy.sh`，服務回到前一個 tag（貼出前後的映像 tag 與健康檢查結果）；對一個故意失敗的 migration，新版不啟動、舊版繼續服務（同樣實際做一次）。
   - 需要人做的事：授權部署（部署點，兩次演練）。
-- [ ] **10. 正式切換與舊資源退役（deploy，必須連著做）**（被擋於：步驟 3、5、6、7、9；Will 明確授權）
+- [ ] **10. 正式切換與舊資源退役（deploy，必須連著做）**（被擋於：步驟 3、5a、5a2、5b、6（含三天驗收）、7a、9；Will 明確授權；D24 目標 2026-11-30 前；5c、7b、8 切換後做）
   - 範圍（步驟 5a2 依 D10 改寫）：不搬資料、不匯出、不封存。新庫從空庫開始，由 VM 的每日執行收案；D1 的職缺、回饋、信件紀錄、執行歷史與歷史表全部隨 D1 刪除。
   - 切換當天的順序（避開台灣 09:00–13:00）：
     1. Will 在 Vercel 後台停用 Cron Jobs。確認沒有執行中的 run：正式庫最新一列 `daily_runs` 不是 `running`，或它的 `started_at` 早於 1 小時前（中斷的 run 會永遠停在 `running`）。
@@ -191,12 +193,13 @@
   - 驗收：第 3 小步的手動執行與隔天的自然執行各有一列 `runs`、至少 18 個來源成功、總時間 ≤ 15 分鐘、常駐容器 ≤ 2 GB；兩次執行之間同一來源的 `(source, external_id)` 重複讀到時沒有新增列（id 穩定的關卡，各來源在步驟 4、5、7 的 fixture 已各過一次）；清單頁四種檢視都有資料；Will 在 tailnet 內確認看得到資料並按一次回饋。
   - 停止條件：手動執行或隔天沒有完成收案，或同一職缺第二次讀到時多出一列 → 照回滾處理，不做第 4 小步。
   - 需要人做的事：授權切換；在 Vercel 後台停用 Cron；驗收通過後確認退役（不可逆）；切換若晚於 2026-11-30，先照前提換 D1 token。
-- [ ] **11. 刪掉舊機制**（被擋於：步驟 10；步驟 8 不擋它）
+- [ ] **11. 刪掉舊機制**（被擋於：無（D23 提前到切換前）；步驟 8 不擋它）
+  - D23 追加：`app/_lib/usage.ts` 的 `withPageLog` 是新頁面唯一還接舊碼的地方，改寫成只用新系統的紀錄；查正式 D1 用 `cf d1 query`，不靠 repo 裡的 D1 程式。AGENTS.md 中「切換前不能動歷史表」「舊 v1 hash 與 golden 凍結到步驟 11」等條目同一個 PR 改寫。
   - 範圍：`inventory.md` 標「刪除」與「取代」的每一列對應的檔案（刪除），包含 `web/src/platform/py/`、`web/tests/fixtures/golden.json`、`web/tests/helpers/golden.ts`、`web/src/db/{client,schema,usage,migrate,unit}.ts`、`web/src/db/d1/`、`web/drizzle/`、`web/drizzle.config.ts`、`web/src/workflows/`、`web/src/ops/`、`web/src/app/api/cron/`、`web/src/app/_lib/usage.ts`、`web/scripts/{migrate,rebuild-projection,check-storage-triggers}.ts`、`web/src/modules/{legacy,applications,notifications,discovery,collection,preferences}/`、`web/src/services/`（舊的）、`web/tests/d1-*.test.ts`、`test:d1` script、`web/vercel.json`、`next.config.ts` 的 `withWorkflow`（修改）、`workflow` 與 `@vercel/*` 相依套件（修改 `package.json`）；`docs/operations.md` 的 Vercel 章節（刪除）；`AGENTS.md`（修改：拿掉過渡期文字）。附件新增 `allowed-residue.md` 與 `check_inventory.py` 的複本（複本讀同目錄的殘留清單）、`check-deleted.sh`（新增：從 `inventory.md` 取出標刪除的路徑與表名，任何一個還存在就失敗）。
   - 消費端：`rg -n -l "@/platform/py/|golden|@/db/d1|@/db/client|workflow|vercel|sqliteTable|D1_|oci-a1" . -g '!node_modules'`。
   - 需要人做的事：無。
   - 驗收：`inventory.md` 的路徑先統一成 repo 相對路徑，標「改寫」而舊檔要刪的列補上舊檔路徑；`check-deleted.sh` exit 0（先確認它在刪除前會失敗）；`web/.dependency-cruiser.cjs`（修改）沒有指向已刪目錄的規則；上面的搜尋結果交給 `check_inventory.py --residue`，只剩 `allowed-residue.md` 列的命中；`pnpm check` 綠；映像大小記錄前後。
-- [ ] **12. 收尾**（被擋於：步驟 8、11）：完成定義逐來源核對（每個來源一列的核對表放附件）；獨立設計審查（design-review，材料是 `0f38208` 到收尾的 diff）；長期檢查在 CI（兩個方言只剩一個的 schema 漂移檢查、id 規則的 fixture、`deploy/check-compose.mjs`）；延後項附觸發條件搬回主清單；需要人做的事列給 Will；D0–D5 寫成 `docs/adr/` 的新 ADR 並把 2026-10-23 的 ADR 標成被取代；`docs/implementation-plan.md` 改寫。驗收：核對表每個來源每項都有證據連結；`check-deleted.sh` 與殘留檢查 exit 0；CI 綠；審查發現都有處置。
+- [ ] **12. 收尾**（被擋於：步驟 5c、7b、8、10、11）：完成定義逐來源核對（每個來源一列的核對表放附件）；獨立設計審查（design-review，材料是 `0f38208` 到收尾的 diff）；長期檢查在 CI（兩個方言只剩一個的 schema 漂移檢查、id 規則的 fixture、`deploy/check-compose.mjs`）；延後項附觸發條件搬回主清單；需要人做的事列給 Will；D0–D5 寫成 `docs/adr/` 的新 ADR 並把 2026-10-23 的 ADR 標成被取代；`docs/implementation-plan.md` 改寫。驗收：核對表每個來源每項都有證據連結；`check-deleted.sh` 與殘留檢查 exit 0；CI 綠；審查發現都有處置。
 
 ## 決定
 
@@ -229,6 +232,16 @@
 
 - **D10 舊資料全部不搬、不匯出**（狀態：已決 2026-11-15，Will：「舊資料可以不用保留」，範圍選「全部不搬，也不匯出」；擋住步驟：5a2、10、11；推翻全域約束「職缺 id 不變」、D0 的「歷史表封存一次」、步驟 10 的搬移與封存）
   - 結論：正式 D1 的職缺、回饋、信件紀錄、執行歷史與提案／投案等歷史表都不進新系統，也不匯出封存；新系統從空庫開始收。隨之取消：舊 `id` 算法（sha256）的相容、各來源相容 `external_id` 函式、`golden.json` 凍結 hash 的規則、`legacyToInput`、D9 的「搬來舊列為未知」的三態。5a2 一併重設計主鍵（業界基準：代理主鍵加自然鍵唯一約束），並改 `AGENTS.md` 中依賴舊資料的條目。仍然要做：步驟 10 退役 D1 與 Vercel 時刪除是不可逆的，執行當下再取得 Will 確認。repo 外 spike 的原始輸出與匯出檔不再需要，步驟 10 一併刪。
+
+- **D23 舊程式在切換前就刪**（狀態：已決 2026-11-15，Will 照建議；編號接舊計畫的 D22 之後以免撞號；擋住步驟：無；改寫步驟 11 的「被擋於」與全域約束「過渡期」）
+  - 結論：步驟 11 提前，不等切換。新程式不 import 舊模組（實測：`git grep` 在 origin/dev `ac1d233` 的 `modules/{listings,sources,evaluation,review}`、`db/pg`、`services/collect.ts`、`scripts/{daily,run-source}.ts` 查無；唯一連結是頁面共用的 `app/_lib/usage.ts` `withPageLog`，步驟 11 改寫）。凍結的正式部署 `jzp0qoy8t` 是 CLI 上傳的成品，來源 commit `ce1254d`（實測：Vercel API `meta.gitCommitSha`），刪 `dev` 上的原始碼不影響它；改寫時要參考舊程式用 `git show ce1254d:<path>`。廢掉「舊測試只能跟取代它的新測試同 PR 刪」。
+  - 業界基準：改寫完成的模組不留舊碼陪跑；舊行為以版本控制的 tag 或 commit 查。否決：照原計畫切換後才刪（約 7,500 行加 33 MB `golden.json` 要繼續編譯與測試到步驟 11，理由是自訂的排程）。
+  - 可逆：舊碼在 git 歷史，可隨時 `git show`。
+- **D24 11-30 前切換，門檻縮小**（狀態：已決 2026-11-15，Will 照建議；擋住步驟：10；改寫步驟 5、7、10、12 的「被擋於」）
+  - 結論：步驟 10 的門檻改成步驟 6 驗收、5b、7a（jobbank104），目標在 D1 token 2026-11-30 到期前切換，不重建 token。5c、7b（其餘五個信件來源）、8 改到切換後；這段期間它們中斷。5b、5c、7 的驗收不再要求和正式庫同日數字比對（切換後正式庫不在），改成 fixture 加 VM 上連跑兩次 `(source, external_id)` 穩定；切換前正式庫還在時可並列當參考。
+  - 事實（實測，2026-11-15 唯讀查正式 D1 `daily_runs`，11-09 至 11-15）：新系統還沒有的來源 7 天收進的件數：jobbank104 62、weworkremotely 12（7 天都失敗）、realworkfromanywhere 7、jobbank518 7、linkedin 6（7 天都失敗）、nodesk 5、tasker 3、talent 3、remoteok 2，其餘 0；Will 在正式站的回饋全部 4 筆（3 筆 9-28 略過、1 筆 11-14 改回中立）。`jobs` 是每天讀到並留下的件數，同一筆連續幾天會重複算（推論）。
+  - 業界基準：單人工具、不搬資料（D10）、不留回滾（D5）時，新系統夠用就切，壞了往前修；平行運行只用在有使用者或資料要搬的系統。影子期在 D5 之下不提供安全，只提供比對數字。否決：照原計畫全部做完才切（11-30 前要 Will 重建 token）；不含 104 就切（缺最大的台灣來源）。
+  - 會推翻它的事實：步驟 6 的三天驗收或 7a 在 11-28 前做不完；那時回到「重建 token、照原門檻」。
 
 拍板順序：D0、D1、D2、D5 已決；D3、D4 已決（2026-11-15）；D3 只剩瀏覽器層的五個平台待 Will 點選。
 
