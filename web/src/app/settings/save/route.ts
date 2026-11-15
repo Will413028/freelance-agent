@@ -1,7 +1,7 @@
-import { PyDateTime } from "@/platform/py/datetime";
+import { getPgDb } from "@/db/pg/client";
+import { withPageLog } from "../../_lib/usage";
 import { handleSettings } from "../../_lib/writes";
-import { withPageDb } from "../../_lib/usage";
 
 export async function POST(request: Request) {
-  return withPageDb("POST /settings/save", (db) => handleSettings(request, { db, now: () => PyDateTime.now() }));
+  return withPageLog("POST /settings/save", () => handleSettings(request, { db: getPgDb, now: () => new Date() }));
 }

@@ -1,14 +1,20 @@
 import type { Db } from "@/db/client";
+import type { PgDb } from "@/db/pg/client";
+import { CATEGORIES } from "@/db/pg/schema";
 import { REGISTRY, sourceChecks } from "@/modules/collection/public";
 import { storageSignals, type StorageSignal } from "@/ops/storage-triggers";
-import { asGroup, CATEGORIES, isCandidate, PUBLIC_JOB_FIELDS, readSettings, VIEWS, type View } from "@/modules/discovery/public";
+import { evaluate, PAGE_SIZE, rankedPage, readSettings, recommend, VIEWS, type Content, type FeedbackState, type Settings, type View } from "@/modules/evaluation/public";
+import { listingOfRow, readShown, type ListingRow, type Shown, type VersionRow } from "@/modules/listings/public";
 import { latestDailyRun } from "@/modules/notifications/public";
-import type { PyDateTime } from "@/platform/py/datetime";
-import { asDict, asList, isDict, PyDict, type PyValue } from "@/platform/py/value";
-import { group, listPage } from "./discovery";
+import { feedbackToken, saveSettings, setFeedback } from "@/modules/review/public";
+import { NotFound } from "@/platform/errors";
+import { asDict, isDict, PyDict, type PyValue } from "@/platform/py/value";
 
-// What the pages render (plan step 11): typed views with only the fields a page shows. Pages output
+// What the pages render (plan step 3c): typed views with only the fields a page shows. Pages output
 // rendered HTML only, so these views are the whitelist; nothing else of a record leaves the server.
+// The list, detail and settings pages read Postgres; /sources still reads D1 until plan step 6.
+
+export { PAGE_SIZE };
 
 /** A value as the page reads it: JSON-like, integers as numbers (every integer shown is small). */
 export type Plain = null | boolean | number | string | Plain[] | { [key: string]: Plain };
@@ -20,8 +26,16 @@ export function plain(value: PyValue): Plain {
   return value;
 }
 
-/** A job's public fields (PUBLIC_JOB_FIELDS) as the page reads them. */
-export type JobFields = Record<string, Plain>;
+/** A content's shown fields, keyed as the page names them. */
+export type JobFields = {
+  title: string; company: string | null; description: string | null; kind: string | null; currency: string | null;
+  budget_min: number | null; budget_max: number | null; weekly_hours: number | null; location: string | null;
+  taiwan_eligible: boolean | null; timezone_compatible: boolean | null; deadline: string | null; listing_closed: boolean | null; url: string | null;
+};
+
+/** The fields a version comparison checks, in the order the page lists them. */
+export const COMPARED_FIELDS = ["title", "company", "description", "kind", "currency", "budget_min", "budget_max", "weekly_hours", "location",
+  "taiwan_eligible", "timezone_compatible", "deadline", "listing_closed", "url"] as const satisfies readonly (keyof JobFields)[];
 
 export type Feedback = "neutral" | "interested" | "skipped";
 
@@ -29,12 +43,10 @@ export type ContentVersion = { fingerprint: string; original: boolean; status: s
 
 export type JobView = {
   id: string;
-  /** What the page sends back with its feedback: the listing's token when the page was rendered. */
+  /** What the page sends back with its feedback: the listing's feedback revision when the page was rendered. */
   token: string;
   source: string;
   sourceName: string;
-  /** The record's own listing URL (the member's), whichever content version the card displays. */
-  memberUrl: Plain;
   job: JobFields;
   status: string;
   category: string;
@@ -48,56 +60,43 @@ export type JobView = {
   candidate: boolean | null;
   feedback: Feedback;
   skipped: boolean;
-  conflicts: { changedFields: string[]; versions: ContentVersion[] }[];
-  displayBasis: { sourceName: string; label: string; fingerprint: string } | null;
+  /** A mail listing's differing contents, the listing row's own first; null when there is one content. */
+  conflict: { changedFields: string[]; versions: ContentVersion[] } | null;
+  /** The version the score comes from when it is not the shown row's content (its fingerprint), else null. */
+  rankedOn: string | null;
 };
 
 const sourceName = (source: string) => REGISTRY[source]?.name ?? source;
-const strings = (value: PyValue | undefined) => asList(value ?? []).filter((v): v is string => typeof v === "string");
-const jobFields = (job: PyDict): JobFields =>
-  Object.fromEntries([...job].filter(([k]) => PUBLIC_JOB_FIELDS.has(k)).map(([k, v]) => [k, plain(v)]));
 
-/** A listing's group (asGroup) as the page shows it. */
-export function jobView(g: PyDict, candidate: boolean | null): JobView {
-  const job = g.dict("job"), evaluation = g.dict("evaluation"), rec = g.dict("recommendation");
-  const member = asDict(asList(g.req("members"))[0]);
-  const tracking = g.has("tracking") ? g.dict("tracking") : new PyDict();
-  const feedback = tracking.at("feedback");
-  const basis = g.has("display_basis") && isDict(g.get("display_basis")!) ? g.dict("display_basis") : null;
+const jobFields = (r: ListingRow | VersionRow): JobFields => ({
+  title: r.title, company: r.company, description: r.description, kind: r.kind, currency: r.currency, budget_min: r.budgetMin,
+  budget_max: r.budgetMax, weekly_hours: r.weeklyHours, location: r.location, taiwan_eligible: r.taiwanEligible,
+  timezone_compatible: r.timezoneCompatible, deadline: r.deadlineText, listing_closed: r.listingClosed, url: r.url,
+});
+
+const contentOf = (r: ListingRow | VersionRow): Content => ({ fingerprint: r.fingerprint, listing: listingOfRow(r) });
+
+/** One listing as the page shows it: the row's content and evaluation, the recommendation over all its contents. */
+export function jobView({ row, versions, feedback }: Shown, s: Settings, now: Date, candidate: boolean | null): JobView {
+  const content = contentOf(row), evaluation = evaluate(content.listing, s, now);
+  const rec = recommend(content, versions.map(contentOf), feedback.state, s, now);
+  let conflict: JobView["conflict"] = null;
+  if (versions.length) {
+    const shown = versions.map((v) => ({ v, job: jobFields(v) }));
+    conflict = {
+      changedFields: COMPARED_FIELDS.filter((f) => new Set(shown.map(({ job }) => JSON.stringify(job[f]))).size > 1),
+      // Oldest first (readShown), so the row's own content, the first one seen, leads.
+      versions: shown.map(({ v, job }) => ({ fingerprint: v.fingerprint, original: v.fingerprint === row.fingerprint, status: evaluate(listingOfRow(v), s, now).status, job })),
+    };
+  }
   return {
-    id: g.str("id"),
-    token: member.str("token"),
-    source: job.str("source"),
-    sourceName: sourceName(job.str("source")),
-    memberUrl: plain(member.at("url") ?? null),
-    job: jobFields(job),
-    status: evaluation.str("status"),
-    category: String(evaluation.at("category") ?? ""),
-    reasons: strings(evaluation.at("reasons")),
-    questions: strings(evaluation.at("questions")),
-    score: Number(rec.req("score")),
-    freshness: rec.str("freshness"),
-    completeness: Number(rec.req("completeness")),
-    rankReasons: strings(rec.at("reasons")),
-    candidate,
-    feedback: feedback === "interested" || feedback === "skipped" ? feedback : "neutral",
-    skipped: feedback === "skipped" || g.at("review_status") === "skipped",
-    conflicts: asList(g.at("content_conflicts") ?? []).map((c) => {
-      const conflict = asDict(c);
-      return {
-        changedFields: strings(conflict.at("changed_fields")),
-        versions: asList(conflict.req("versions")).map((v) => {
-          const version = asDict(v);
-          return { fingerprint: version.str("fingerprint"), original: version.at("original") === true, status: version.dict("evaluation").str("status"), job: jobFields(version.dict("job")) };
-        }),
-      };
-    }),
-    displayBasis: basis ? { sourceName: sourceName(basis.str("source")), label: basis.str("label"), fingerprint: basis.str("fingerprint") } : null,
+    id: row.id, token: feedbackToken(feedback.revision), source: row.source, sourceName: sourceName(row.source), job: jobFields(row),
+    status: evaluation.status, category: evaluation.category, reasons: evaluation.reasons, questions: evaluation.questions,
+    score: rec.score, freshness: rec.freshness, completeness: rec.completeness, rankReasons: rec.reasons,
+    candidate, feedback: feedback.state, skipped: feedback.state === "skipped", conflict,
+    rankedOn: rec.basis === row.fingerprint ? null : rec.basis,
   };
 }
-
-/** Listings per page (plan step 11); the page reads one more to know whether a next page exists. */
-export const PAGE_SIZE = 50;
 
 export type ListView = { view: View; page: number; jobs: JobView[]; hasNext: boolean };
 
@@ -108,34 +107,38 @@ export function listQuery(params: { view?: string | string[]; page?: string | st
   return { view, page };
 }
 
-export async function listJobs(db: Db, now: PyDateTime, view: View, page: number): Promise<ListView> {
-  const items = await listPage(db, now, { offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE + 1 }, view);
-  const jobs = items.slice(0, PAGE_SIZE).map((item) => jobView(asGroup(item), isCandidate(item)));
-  return { view, page, jobs, hasNext: items.length > PAGE_SIZE };
+/** One page (from 1) of a view in rank order. */
+export async function listJobs(db: PgDb, now: Date, view: View, page: number): Promise<ListView> {
+  const { settings } = await readSettings(db);
+  const { total, items } = await rankedPage(db, settings, now, view, page - 1);
+  const shown = await readShown(db, items.map((i) => i.id));
+  // A listing deleted between the two reads is left out of this page.
+  const jobs = items.flatMap((i) => { const s = shown.get(i.id); return s ? [jobView(s, settings, now, i.candidate)] : []; });
+  return { view, page, jobs, hasNext: page * PAGE_SIZE < total };
 }
 
-export async function jobDetail(db: Db, now: PyDateTime, id: string): Promise<JobView> {
-  return jobView(await group(db, id, now), null);
+export async function jobDetail(db: PgDb, now: Date, id: string): Promise<JobView> {
+  const [{ settings }, shown] = await Promise.all([readSettings(db), readShown(db, [id])]);
+  const s = shown.get(id);
+  if (!s) throw new NotFound(id);
+  return jobView(s, settings, now, null);
 }
+
+/** The page writes (plan step 3c): routes call these, never the module. */
+export const writeFeedback = (db: PgDb, id: string, token: string, state: FeedbackState, now: Date) => setFeedback(db, id, token, state, now);
+export const writeSettings = (db: PgDb, revision: number, s: Settings) => saveSettings(db, revision, s);
 
 export type SettingsView = {
   revision: number;
   maxWeeklyHours: number | null;
   minFixedTwd: number;
-  categories: string[];
+  categories: readonly string[];
   allCategories: readonly string[];
 };
 
-export async function settingsPage(db: Db): Promise<SettingsView> {
-  const s = await readSettings(db);
-  const hours = s.settings.at("max_weekly_hours");
-  return {
-    revision: Number(s.revision),
-    maxWeeklyHours: hours === null || hours === undefined ? null : Number(hours),
-    minFixedTwd: Number(s.settings.req("min_fixed_twd")),
-    categories: strings(s.settings.at("categories")),
-    allCategories: CATEGORIES,
-  };
+export async function settingsPage(db: PgDb): Promise<SettingsView> {
+  const { revision, settings } = await readSettings(db);
+  return { revision, maxWeeklyHours: settings.maxWeeklyHours, minFixedTwd: settings.minFixedTwd, categories: settings.categories, allCategories: CATEGORIES };
 }
 
 export type SourceRow = { source: string; name: string; status: string; checkedAt: string | null; daily: Record<string, Plain> | null };
