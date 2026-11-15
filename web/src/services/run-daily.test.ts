@@ -81,7 +81,7 @@ describe("runDaily", () => {
     expect(await runDaily(db, t.d)).toMatchObject({ outcome: "failed" });
     expect([t.calls.length, t.sleeps]).toEqual([3, [...RETRY_DELAYS_MS]]);
     const [row] = await rowsOf();
-    expect([row!.status, row!.reason, row!.error, (row!.counts as Record<string, unknown>).attempts]).toEqual(["failed", "http_status", "FetchError: 503", 3]);
+    expect([row!.status, row!.reason, row!.error, (row!.counts as Record<string, unknown>).attempts]).toEqual(["failed", "http_status", "http_503", 3]);
   });
 
   it("does not retry a non-transient error", async () => {
@@ -92,6 +92,38 @@ describe("runDaily", () => {
       expect([t.calls.length, t.sleeps]).toEqual([1, []]);
     }
     expect((await rowsOf())[0]!.reason).toBe("internal");
+    expect((await rowsOf())[0]!.error).toBe("Error");
+  });
+
+  it("stores an error code, never the error's message", async () => {
+    await runDaily(db, deps([src("a", 10)], { a: [new SyntaxError("Unexpected token '<', \"<!DOCTYPE html>secret listing text\" is not valid JSON")] }).d);
+    const [row] = await rowsOf();
+    expect([row!.reason, row!.error]).toEqual(["internal", "SyntaxError"]);
+  });
+
+  it("does not start before 14:00 Asia/Taipei (a timer catch-up during production's triggers) and writes nothing", async () => {
+    const t = deps([src("a", 10)], {}, new Date("2026-11-16T05:59:00Z"));
+    expect(await runDaily(db, t.d)).toMatchObject({ outcome: "not_due", localDate: "2026-11-16" });
+    expect([t.calls, await db.select().from(runs)]).toEqual([[], []]);
+  });
+
+  it("closes an earlier day left running as interrupted when a new day starts", async () => {
+    await runDaily(db, deps([src("a", 10)], {}, new Date("2026-11-15T06:00:00Z")).d);
+    await db.update(runs).set({ status: "running", finishedAt: null });
+    await runDaily(db, deps([src("a", 10)], {}).d);
+    const all = (await db.select().from(runs)).sort((x, y) => x.localDate.localeCompare(y.localDate));
+    expect(all.map((r) => [r.localDate, r.status, r.reason])).toEqual([["2026-11-15", "failed", "interrupted"], ["2026-11-16", "succeeded", null]]);
+  });
+
+  it("finishes the day failed when a record write throws, so the next start resumes it", async () => {
+    const t = deps([src("a", 10)], {});
+    let broke = false;
+    const real = t.d.collect!;
+    t.d.collect = async (d, s, now) => { const r = await real(d, s, now); if (!broke) { broke = true; await db.execute(sql`alter table run_sources rename to run_sources_x`); } return r; };
+    await expect(runDaily(db, t.d)).rejects.toThrow();
+    await db.execute(sql`alter table run_sources_x rename to run_sources`);
+    const [run] = await db.select().from(runs);
+    expect([run!.status, run!.reason?.startsWith("internal: ")]).toEqual(["failed", true]);
   });
 
   it("prunes only the sources read successfully within the retention days, and records pruned and the list timing", async () => {

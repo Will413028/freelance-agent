@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { runs, runSources } from "@/db/pg/schema";
 
@@ -20,6 +20,8 @@ export type Opened = { outcome: "done"; runId: number } | { outcome: "started" |
 
 /** Claims the day, or reopens it when its run did not succeed; a succeeded day is not run again. */
 export async function openRun(db: PgDb, localDate: string, now: Date): Promise<Opened> {
+  // An earlier day still `running` was killed and its day has passed: nothing will resume it.
+  await db.update(runs).set({ status: "failed", reason: "interrupted", finishedAt: now }).where(and(eq(runs.status, "running"), lt(runs.localDate, localDate)));
   const [inserted] = await db.insert(runs).values({ localDate, status: "running", startedAt: now })
     .onConflictDoNothing({ target: runs.localDate }).returning({ id: runs.id });
   if (inserted) return { outcome: "started", runId: inserted.id, done: new Set() };
@@ -52,14 +54,14 @@ export async function sourcesReadSince(db: PgDb, since: Date, sources: readonly 
 }
 
 export type RunRow = { localDate: string; status: RunStatus; reason: string | null; counts: RunCounts; startedAt: Date; finishedAt: Date | null };
-export type LatestSource = Omit<SourceRecord, "finishedAt"> & { localDate: string; finishedAt: Date | null };
+export type LatestSource = Omit<SourceRecord, "finishedAt" | "error"> & { localDate: string; finishedAt: Date | null };
 
 /** The latest run, and each source's latest row across runs (a source skipped as done keeps an earlier row). */
 export async function latestRuns(db: PgDb): Promise<{ run: RunRow | null; sources: LatestSource[] }> {
   const [run] = await db.select({ localDate: runs.localDate, status: runs.status, reason: runs.reason, counts: runs.counts, startedAt: runs.startedAt, finishedAt: runs.finishedAt })
     .from(runs).orderBy(desc(runs.localDate)).limit(1);
   const rows = await db.selectDistinctOn([runSources.source], {
-    source: runSources.source, status: runSources.status, reason: runSources.reason, error: runSources.error, counts: runSources.counts,
+    source: runSources.source, status: runSources.status, reason: runSources.reason, counts: runSources.counts,
     startedAt: runSources.startedAt, finishedAt: runSources.finishedAt, localDate: runs.localDate,
   }).from(runSources).innerJoin(runs, eq(runs.id, runSources.runId)).orderBy(runSources.source, desc(runs.localDate));
   return {

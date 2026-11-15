@@ -146,7 +146,7 @@ export const LIST_BUDGET_MS = 250;
 /** One catalog source on /sources: its latest run_sources row, or null when no run has read it yet. */
 export type SourceRow = {
   source: string; name: string; disabled: string | null;
-  latest: { localDate: string; status: string; reason: string | null; error: string | null; counts: Record<string, Plain>; finishedAt: string | null } | null;
+  latest: { localDate: string; status: string; reason: string | null; counts: Record<string, Plain>; finishedAt: string | null } | null;
 };
 
 export type SourcesView = {
@@ -169,7 +169,7 @@ export async function sourcesPage(db: PgDb): Promise<SourcesView> {
       const r = bySource.get(s.name);
       return {
         source: s.name, name: sourceName(s.name), disabled: s.disabled,
-        latest: r ? { localDate: r.localDate, status: r.status, reason: r.reason, error: r.error, counts: r.counts as Record<string, Plain>, finishedAt: r.finishedAt?.toISOString() ?? null } : null,
+        latest: r ? { localDate: r.localDate, status: r.status, reason: r.reason, counts: r.counts as Record<string, Plain>, finishedAt: r.finishedAt?.toISOString() ?? null } : null,
       };
     }),
   };

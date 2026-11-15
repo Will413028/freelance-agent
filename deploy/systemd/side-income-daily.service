@@ -11,5 +11,6 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=/opt/side-income
 ExecStart=/usr/bin/docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml run --rm daily
-# A backstop over the retries; a run stopped here is resumed by the next start the same day.
+# A backstop over the retries; a run stopped here is resumed by the timer's 16:00 start. Whether the
+# container stops with the compose client is checked on the VM when the timer is installed (plan step 6).
 TimeoutStartSec=60min
