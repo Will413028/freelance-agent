@@ -182,12 +182,10 @@ export async function taiwanjobsConnector(fetcher: Fetcher, now: Date): Promise<
     headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/xml" },
   });
   const batch = parseBatch(r.body, now);
-  // Old taiwanjobs.ts:172 `if (exists) return true`: stored listings are refreshed whatever the rule says.
-  const keep = batch.listings.filter((l) => kept(l, now));
-  return { seen: batch.seen, listings: keep, others: batch.listings.filter((l) => !keep.includes(l)), rejected: batch.rejected, examined: batch.examined };
+  return { seen: batch.seen, listings: batch.listings, sourceKept: (l) => kept(l, now), rejected: batch.rejected, examined: batch.examined };
 }
 
 /** One request per run (old taiwanjobs.ts:150, a single GET of ENDPOINT). */
 export const TAIWANJOBS_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "taiwanjobs", connector: taiwanjobsConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null,
+  name: "taiwanjobs", connector: taiwanjobsConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

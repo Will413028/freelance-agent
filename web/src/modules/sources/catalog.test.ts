@@ -17,4 +17,8 @@ describe("source catalog", () => {
     expect(sourceSettings("jobicy").name).toBe("jobicy");
     expect(() => sourceSettings("nope")).toThrow(/unknown source/);
   });
+
+  it("marks complete reads only for sources whose one read pages through the whole board (plan D9)", () => {
+    expect(SOURCES.filter((s) => s.completeRead).map((s) => s.name)).toEqual(["arbeitnow"]);
+  });
 });

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, exists, inArray, not, or, sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { CATEGORIES, listingFeedback, listings, listingVersions, settings } from "@/db/pg/schema";
 import { byRank, rank, type Rankable, type RankFacts, type Ranked, type Settings } from "./rank";
@@ -23,11 +23,23 @@ const factColumns = <T extends typeof listings | typeof listingVersions>(t: T) =
   confirmedBase: t.confirmedBase, fixedTwdMax: t.fixedTwdMax, publishedAt: t.publishedAt, deadlineAt: t.deadlineAt,
 });
 
-/** Every listing with its versions and feedback, as ranking reads them. */
+/**
+ * Which stored listings the page considers (plan D9: intake stores every listing read, the query picks):
+ * the ones the source's own rule keeps and no hard reason excludes (the partial index listings_shown),
+ * a mail listing with a version no hard reason excludes, and any saved or skipped listing, so it
+ * stays in its view after its content changes (neutral is a stored state too and keeps nothing in).
+ */
+export const shownWhere = (db: PgDb) => or(
+  and(listings.sourceKept, not(listings.hardExcluded)),
+  exists(db.select({ one: sql`1` }).from(listingVersions).where(and(eq(listingVersions.listingId, listings.id), not(listingVersions.hardExcluded)))),
+  inArray(listingFeedback.state, ["interested", "skipped"]),
+);
+
+/** The listings the page considers, with their versions and feedback, as ranking reads them. */
 export async function readRankables(db: PgDb): Promise<Rankable[]> {
   const [rows, versions] = await Promise.all([
     db.select({ id: listings.id, firstSeenAt: listings.firstSeenAt, feedback: listingFeedback.state, ...factColumns(listings) })
-      .from(listings).leftJoin(listingFeedback, eq(listingFeedback.listingId, listings.id)),
+      .from(listings).leftJoin(listingFeedback, eq(listingFeedback.listingId, listings.id)).where(shownWhere(db)),
     db.select({ listingId: listingVersions.listingId, ...factColumns(listingVersions) }).from(listingVersions),
   ]);
   const byListing = new Map<number, RankFacts[]>();

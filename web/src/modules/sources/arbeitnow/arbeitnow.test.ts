@@ -99,14 +99,14 @@ const pageOf = (data: unknown[], n = 1, next: string | null = null, perPage = 2)
 const NOW = new Date("2026-09-28T01:00:00Z"); // 1790000000 is 2026-09-21T14:13:20Z
 
 describe("arbeitnow connector", () => {
-  it("keeps remote contract listings of the last 90 days and counts every listing seen", async () => {
+  it("marks remote contract listings of the last 90 days kept and counts every listing seen", async () => {
     const data = [job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b", job_types: ["Full Time"] }),
       job({ slug: "c", url: "https://www.arbeitnow.com/jobs/companies/acme/c", remote: false }),
       job({ slug: "d", url: "https://www.arbeitnow.com/jobs/companies/acme/d", created_at: 1790000000 - 91 * 86400 }),
       job({ slug: "e", url: "https://www.arbeitnow.com/jobs/companies/acme/e", created_at: 1790000000 + 7 * 86400 }),
       job({ slug: "f", url: "https://www.arbeitnow.com/jobs/companies/acme/f", job_types: ["Freelance"] })];
     const got = await arbeitnowConnector(site({ [ENDPOINT]: [200, JSON.stringify(pageOf(data, 1, null, 6))] }), NOW);
-    expect([got.seen, got.listings.map((l) => l.external_id)]).toEqual([6, ["ai-agent-123", "f"]]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([6, ["ai-agent-123", "f"]]);
   });
 
   it("reads the pages in order, pinned to the endpoint, and keeps a job listed twice with the same content once", async () => {
@@ -167,7 +167,7 @@ describe("arbeitnow connector", () => {
     const p = parsePage(enc(body), 1);
     expect([p.count, p.rejected, p.listings.map((l) => l.external_id)]).toEqual([2, 1, ["ai-agent-123"]]);
     const got = await arbeitnowConnector(site({ [ENDPOINT]: [200, body] }), NOW);
-    expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([2, 1, ["ai-agent-123"]]);
+    expect([got.seen, got.rejected, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([2, 1, ["ai-agent-123"]]);
   });
 
   it("refuses a listing whose fields the source's rule reads change format instead of keeping nothing", () => {
@@ -212,15 +212,16 @@ describe("arbeitnow into intake (collectSource)", () => {
   const pages = (...data: unknown[]) => site({ [ENDPOINT]: [200, JSON.stringify(pageOf(data, 1, null, data.length))] });
   const full = () => job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b", job_types: ["Full Time"] });
 
-  it("writes only listings the source's rule and screening keep", async () => {
+  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
     const run = await collectSource(db, settings, NOW, pages(job(), full()));
-    expect([run.seen, run.externalIds]).toEqual([2, ["ai-agent-123"]]);
-    expect(await listingBy(db, "arbeitnow", "b")).toBeNull();
+    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["ai-agent-123", "b"]]);
+    expect([(await listingBy(db, "arbeitnow", "ai-agent-123"))?.sourceKept, (await listingBy(db, "arbeitnow", "b"))?.sourceKept]).toEqual([true, false]);
   });
 
-  it("screening drops a listing that matches no work category (old score > 0)", async () => {
+  it("screening marks a listing that matches no work category hard-excluded (old score > 0)", async () => {
     const other = job({ slug: "g", url: "https://www.arbeitnow.com/jobs/companies/acme/g", title: "Part time warehouse helper", description: "<p>Pack boxes.</p>", tags: [] });
-    expect((await collectSource(db, settings, NOW, pages(job(), other))).externalIds).toEqual(["ai-agent-123"]);
+    expect((await collectSource(db, settings, NOW, pages(job(), other))).jobs).toBe(1);
+    expect((await listingBy(db, "arbeitnow", "g"))?.hardExcluded).toBe(true);
   });
 
   it("writes the others when one listing lacks its identity, and nothing when most do", async () => {

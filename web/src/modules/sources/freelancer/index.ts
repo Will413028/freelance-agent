@@ -11,8 +11,8 @@ import { SourceError, type Collected, type SourceSettings } from "../types";
 // rules read: id, status/deleted/nonpublic, title, description, the project's own URL (Will
 // 2026-11-15; more than half set aside fails the source). A refusal about any other field is
 // unknown now (plan D8): update time, project type, currency and budget become null. The source's
-// own rule keeps titles that name the work this tool looks for and drops out-of-scope titles; the
-// shared intake screen (services/collect.ts) drops the rest.
+// own rule (sourceKept) keeps titles that name the work this tool looks for and drops out-of-scope
+// titles; every project read is stored with that mark (plan D9).
 
 export const QUERIES = ["AI agent", "API integration", "MVP web development"] as const;
 const API = "https://www.freelancer.com/api/projects/0.1/projects/active/";
@@ -157,7 +157,7 @@ export async function freelancerConnector(fetcher: Fetcher): Promise<Collected> 
     }
   }
   // seen: the distinct projects read (old freelancer.ts seen); examined: every project entry checked, per page per query, like rejected.
-  return { seen: jobs.size, listings: [...jobs.values()].filter(kept), truncated, rejected, examined };
+  return { seen: jobs.size, listings: [...jobs.values()], sourceKept: kept, truncated, rejected, examined };
 }
 
 /**
@@ -168,5 +168,5 @@ export async function freelancerConnector(fetcher: Fetcher): Promise<Collected> 
  * needs about 20 s plus the answers.
  */
 export const FREELANCER_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "freelancer", connector: freelancerConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: QUERIES.length * MAX_PAGES, disabled: null,
+  name: "freelancer", connector: freelancerConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: QUERIES.length * MAX_PAGES, completeRead: false, disabled: null,
 };

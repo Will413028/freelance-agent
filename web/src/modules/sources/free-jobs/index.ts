@@ -13,7 +13,7 @@ import { SourceError, type Collected } from "../types";
 // `rejected`; more than half set aside fails the source (services/collect, Will 2026-11-15; the old
 // reader refused the batch for one listing). A feed that is not JSON or has no list refuses the batch.
 // Any other field the connector cannot read is unknown
-// (plan D8). The source's own rule keeps only contract, part-time and freelance listings.
+// (plan D8). The source's own rule (sourceKept) keeps contract, part-time and freelance listings.
 
 export const FREE_JOB_SOURCES = ["remotive", "jobicy"] as const;
 export type FreeJobSource = (typeof FREE_JOB_SOURCES)[number];
@@ -96,7 +96,7 @@ export function parseFeed(source: FreeJobSource, body: Uint8Array): Collected {
   // A board listing a job twice: the last entry wins, as the old per-item intake left it.
   const byId = new Map(all.map((l) => [l.external_id, l]));
   // seen: every job the feed listed (old: all.length, each one normalized or the batch refused).
-  return { seen: feed.data.jobs.length, listings: [...byId.values()].filter((l) => l.kind === "contract"), rejected, examined };
+  return { seen: feed.data.jobs.length, listings: [...byId.values()], sourceKept: (l) => l.kind === "contract", rejected, examined };
 }
 
 export function freeJobsConnector(source: FreeJobSource) {

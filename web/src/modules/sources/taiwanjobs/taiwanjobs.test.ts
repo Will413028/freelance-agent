@@ -64,11 +64,11 @@ describe("taiwanjobs connector", () => {
     expect([l.external_id, l.url, l.canonical_url]).toEqual(["12:34", "https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34", l.url]);
   });
 
-  it("keeps contract rows updated in the last 90 days and counts every row seen", async () => {
+  it("marks contract rows updated in the last 90 days kept, returns the rest, and counts every row seen", async () => {
     const got = await taiwanjobsConnector(serving([row(), row({ WK_TYPE: "全職" }, 35), row({ WK_TYPE: "" }, 36), row({ TRANDATE: "20260601" }, 37), row({ WK_TYPE: "接案" }, 38)]), NOW);
-    expect([got.seen, got.listings.map((l) => l.external_id)]).toEqual([5, ["12:34", "12:38"]]);
-    // Old `exists ||`: what the rule drops goes to others, for intake to refresh stored rows only.
-    expect(got.others?.map((l) => l.external_id)).toEqual(["12:35", "12:36", "12:37"]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([5, ["12:34", "12:38"]]);
+    // Plan D9: what the rule drops is still returned, marked, for intake to store.
+    expect(got.listings.filter((l) => !got.sourceKept(l)).map((l) => l.external_id)).toEqual(["12:35", "12:36", "12:37"]);
   });
 
   it("refuses the batch for a bad envelope or a listing named twice", () => {
@@ -108,10 +108,10 @@ describe("taiwanjobs intake", () => {
   beforeEach(async () => db.execute(sql`truncate listings cascade`));
   const settings = { ...TAIWANJOBS_SETTINGS, order: 0 };
 
-  it("writes only listings the source's rules and screening keep", async () => {
+  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
     const run = await collectSource(db, settings, NOW, serving([row(), row({ WK_TYPE: "全職" }, 35)]));
-    expect([run.seen, run.externalIds]).toEqual([2, ["12:34"]]);
-    expect(await listingBy(db, "taiwanjobs", "12:35")).toBeNull();
+    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["12:34", "12:35"]]);
+    expect([(await listingBy(db, "taiwanjobs", "12:34"))?.sourceKept, (await listingBy(db, "taiwanjobs", "12:35"))?.sourceKept]).toEqual([true, false]);
   });
 
   it("writes the others when one row lacks its identity, and nothing when most do", async () => {

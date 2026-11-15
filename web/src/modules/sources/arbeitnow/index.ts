@@ -204,12 +204,10 @@ export function keep(l: ListingInput, now: Date): boolean {
 
 export async function arbeitnowConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
   const { seen, listings, truncated, rejected, examined } = await scan(fetcher);
-  // Old arbeitnow.ts:200 `exists ||`: stored listings are refreshed whatever the rule says.
-  const kept = listings.filter((l) => keep(l, now));
-  return { seen, listings: kept, others: listings.filter((l) => !kept.includes(l)), truncated, rejected, examined };
+  return { seen, listings, sourceKept: (l) => keep(l, now), truncated, rejected, examined };
 }
 
 /** Catalog entry without its order (the orchestrator wires it): up to 20 pages, 3 s apart (old arbeitnow.ts:146,155). */
 export const ARBEITNOW_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "arbeitnow", connector: arbeitnowConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: MAX_PAGES, disabled: null,
+  name: "arbeitnow", connector: arbeitnowConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: MAX_PAGES, completeRead: true, disabled: null,
 };

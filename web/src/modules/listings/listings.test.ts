@@ -33,11 +33,44 @@ describe("fingerprint", () => {
 });
 
 describe("intake", () => {
-  it("refreshOnly updates a stored listing and never inserts one that is not stored", async () => {
-    await intakeListings(db, "jobicy", [job("1")], "page");
-    expect(await intakeListings(db, "jobicy", [], "page", new Date(), [job("1", { title: "Changed" }), job("2")])).toEqual({ inserted: 0, updated: 1, unchanged: 0, versioned: 0 });
-    expect((await listingBy(db, "jobicy", "1"))?.title).toBe("Changed");
-    expect(await listingBy(db, "jobicy", "2")).toBeNull();
+  it("stores a listing the source's rule drops, marked, and re-reads the mark at each sighting (plan D9)", async () => {
+    const t0 = new Date("2026-11-01T00:00:00Z"), t1 = new Date("2026-11-02T00:00:00Z");
+    expect(await intakeListings(db, "jobicy", [job("1"), job("2")], "page", t0, { sourceKept: (id) => id === "1" })).toMatchObject({ inserted: 2 });
+    expect([(await listingBy(db, "jobicy", "1"))?.sourceKept, (await listingBy(db, "jobicy", "2"))?.sourceKept]).toEqual([true, false]);
+    // Same content, the rule now says otherwise (a date-dependent rule): the mark follows, updated_at does not.
+    expect(await intakeListings(db, "jobicy", [job("1"), job("2")], "page", t1, { sourceKept: (id) => id === "2" })).toMatchObject({ unchanged: 2 });
+    const [a, b] = [await listingBy(db, "jobicy", "1"), await listingBy(db, "jobicy", "2")];
+    expect([a?.sourceKept, b?.sourceKept, a?.updatedAt, b?.updatedAt]).toEqual([false, true, t0, t0]);
+  });
+
+  it("writes last_seen_at at every sighting and updated_at only when the content changes", async () => {
+    const t0 = new Date("2026-11-01T00:00:00Z"), t1 = new Date("2026-11-02T00:00:00Z"), t2 = new Date("2026-11-03T00:00:00Z");
+    await intakeListings(db, "jobicy", [job("1")], "page", t0);
+    await intakeListings(db, "jobicy", [job("1")], "page", t1);
+    let r = await listingBy(db, "jobicy", "1");
+    expect([r?.firstSeenAt, r?.updatedAt, r?.lastSeenAt]).toEqual([t0, t0, t1]);
+    await intakeListings(db, "jobicy", [job("1", { title: "Changed" })], "page", t2);
+    r = await listingBy(db, "jobicy", "1");
+    expect([r?.firstSeenAt, r?.updatedAt, r?.lastSeenAt]).toEqual([t0, t2, t2]);
+  });
+
+  it("marks gone what a complete read no longer shows, only for complete reads, and clears it when seen again", async () => {
+    const t0 = new Date("2026-11-01T00:00:00Z"), t1 = new Date("2026-11-02T00:00:00Z"), t2 = new Date("2026-11-03T00:00:00Z"), t3 = new Date("2026-11-04T00:00:00Z");
+    await intakeListings(db, "jobicy", [job("1"), job("2")], "page", t0, { complete: true });
+    await intakeListings(db, "arbeitnow", [job("9")], "page", t0, { complete: true });
+    // Not complete (latest-N window, truncated, ...): what is missing is not taken as gone.
+    await intakeListings(db, "jobicy", [job("1")], "page", t1);
+    expect((await listingBy(db, "jobicy", "2"))?.goneAt).toBeNull();
+    await intakeListings(db, "jobicy", [job("1")], "page", t2, { complete: true });
+    // Another source's rows and rows already gone keep their gone_at.
+    expect([(await listingBy(db, "jobicy", "1"))?.goneAt, (await listingBy(db, "jobicy", "2"))?.goneAt, (await listingBy(db, "arbeitnow", "9"))?.goneAt]).toEqual([null, t2, null]);
+    await intakeListings(db, "jobicy", [job("1")], "page", t3, { complete: true });
+    expect((await listingBy(db, "jobicy", "2"))?.goneAt).toEqual(t2);
+    await intakeListings(db, "jobicy", [job("2")], "page", t3);
+    expect((await listingBy(db, "jobicy", "2"))?.goneAt).toBeNull();
+    // An empty read is never complete.
+    await intakeListings(db, "jobicy", [], "page", t3, { complete: true });
+    expect((await listingBy(db, "jobicy", "2"))?.goneAt).toBeNull();
   });
 
   it("inserts, then leaves the same content unchanged and keeps first_seen_at", async () => {
@@ -127,8 +160,8 @@ describe("schema constraints", () => {
     await intakeListings(db, "remotive", [job("1")], "page");
     const [a, b] = [await listingBy(db, "jobicy", "1"), await listingBy(db, "remotive", "1")];
     expect(Number.isInteger(a!.id) && Number.isInteger(b!.id) && a!.id !== b!.id).toBe(true);
-    await expect(db.execute(sql`insert into listings (source, external_id, fingerprint, raw, title, kind, category, category_score, hard_excluded, confirmed_base)
-      select source, external_id, fingerprint, raw, title, kind, category, category_score, hard_excluded, confirmed_base from listings where id = ${a!.id}`)).rejects.toMatchObject({ cause: { code: "23505" } }); // unique_violation
+    await expect(db.execute(sql`insert into listings (source, external_id, fingerprint, raw, title, kind, category, category_score, hard_excluded, confirmed_base, source_kept)
+      select source, external_id, fingerprint, raw, title, kind, category, category_score, hard_excluded, confirmed_base, source_kept from listings where id = ${a!.id}`)).rejects.toMatchObject({ cause: { code: "23505" } }); // unique_violation
   });
 
   it("feedback events are one per listing revision and states are closed", async () => {

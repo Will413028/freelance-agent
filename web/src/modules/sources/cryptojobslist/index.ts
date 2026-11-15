@@ -24,7 +24,7 @@ const MEDIA = "{http://search.yahoo.com/mrss/}";
 
 /** Old cryptojobslist.ts:117 sends one GET per run. */
 export const CRYPTOJOBSLIST_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "cryptojobslist", connector: cryptojobslistConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null,
+  name: "cryptojobslist", connector: cryptojobslistConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 
 /**
@@ -112,7 +112,7 @@ export function normalizeItem(item: XmlElement): ListingInput {
 }
 
 /** Every item of the feed in the contract (an id listed twice keeps its last entry) and the item count. */
-export function parseItems(body: Uint8Array): Collected {
+export function parseItems(body: Uint8Array): Omit<Collected, "sourceKept"> {
   if (!body.length || body.length > LIMIT) throw new SourceError("cryptojobslist: empty or oversize feed");
   if (/<![ \t\n\r\f\v]*(?:DOCTYPE|ENTITY)\b/i.test(Buffer.from(body).toString("latin1"))) throw new SourceError("cryptojobslist: XML declarations forbidden");
   let root: XmlElement;
@@ -131,12 +131,10 @@ export function parseItems(body: Uint8Array): Collected {
   return { seen: items.length, listings: [...byId.values()], rejected, examined };
 }
 
-/** The feed's items and the ones the source's rule keeps: remote, part-time or freelance. */
+/** The feed's items, marked by the source's rule: remote, part-time or freelance. */
 export function parseFeed(body: Uint8Array): Collected {
   const all = parseItems(body);
-  // Old cryptojobslist.ts:131 `exists ||`: stored listings are refreshed whatever the rule says.
-  const kept = all.listings.filter((l) => l.extra.remote_evidence === true && l.kind === "contract");
-  return { seen: all.seen, listings: kept, others: all.listings.filter((l) => !kept.includes(l)), rejected: all.rejected, examined: all.examined };
+  return { seen: all.seen, listings: all.listings, sourceKept: (l) => l.extra.remote_evidence === true && l.kind === "contract", rejected: all.rejected, examined: all.examined };
 }
 
 export async function cryptojobslistConnector(fetcher: Fetcher): Promise<Collected> {

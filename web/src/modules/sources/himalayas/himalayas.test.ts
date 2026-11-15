@@ -87,17 +87,17 @@ const searches = (given: Record<string, string> = {}) => {
 const first = searchUrl("AI agent", "Contractor");
 
 describe("himalayas searches", () => {
-  it("sends the 8 searches its settings allow, and keeps only Contractor and Part Time listings", async () => {
+  it("sends the 8 searches its settings allow, and marks only Contractor and Part Time listings kept", async () => {
     const jobs = [job(), job({ guid: "b", employmentType: "Full Time" }), job({ guid: "c", employmentType: "Part Time" }), job({ guid: "d", employmentType: "Intern" })];
     const f = serving(searches({ [first]: JSON.stringify({ jobs }) }));
     const got = await himalayasConnector(f);
-    expect([f.urls.length, HIMALAYAS_SETTINGS.maxRequestsPerRun, got.seen, got.listings.map((l) => l.external_id)]).toEqual([8, 8, 4, [job().guid, "c"]]);
+    expect([f.urls.length, HIMALAYAS_SETTINGS.maxRequestsPerRun, got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([8, 8, 4, [job().guid, "c"]]);
   });
 
   it("keeps a listing found by two searches once, as its last entry", async () => {
     const f = serving(searches({ [first]: JSON.stringify({ jobs: [job({ title: "First" })] }), [searchUrl("backend", "Part Time")]: JSON.stringify({ jobs: [job({ title: "Second" })] }) }));
     const got = await himalayasConnector(f);
-    expect([got.seen, got.listings.map((l) => l.title)]).toEqual([1, ["Second"]]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.title)]).toEqual([1, ["Second"]]);
   });
 
   it("refuses a search that is not JSON, has no jobs list, or lists over 20", async () => {
@@ -110,7 +110,7 @@ describe("himalayas searches", () => {
     for (const bad of [job({ guid: "x", description: null }), job({ guid: 5 }), job({ guid: "y", employmentType: null }), "x"]) {
       const got = await himalayasConnector(serving(searches({ [first]: JSON.stringify({ jobs: [job(), bad, job({ guid: "c" })] }) })));
       // seen: distinct listings read; examined: page entries checked, like rejected.
-      expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([2, 1, 3, [job().guid, "c"]]);
+      expect([got.seen, got.rejected, got.examined, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([2, 1, 3, [job().guid, "c"]]);
     }
   });
 
@@ -119,13 +119,13 @@ describe("himalayas searches", () => {
     const pages = searches();
     for (const url of Object.keys(pages)) pages[url] = [200, JSON.stringify({ jobs })];
     const got = await himalayasConnector(serving(pages));
-    expect([got.seen, got.rejected, got.examined, got.listings.length]).toEqual([5, 8, 48, 5]);
+    expect([got.seen, got.rejected, got.examined, got.listings.filter(got.sourceKept).length]).toEqual([5, 8, 48, 5]);
   });
 
   it("keeps a listing's first position but its last entry, which may be set aside", async () => {
     const f = serving(searches({ [first]: JSON.stringify({ jobs: [job(), job({ guid: "c" })] }), [searchUrl("backend", "Part Time")]: JSON.stringify({ jobs: [job({ description: "" })] }) }));
     const got = await himalayasConnector(f);
-    expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([1, 1, 3, ["c"]]);
+    expect([got.seen, got.rejected, got.examined, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([1, 1, 3, ["c"]]);
   });
 
   it("fails when a search fails", async () => {
@@ -153,7 +153,7 @@ describe("himalayas into intake", () => {
   const NOW = new Date("2026-09-20T00:00:00Z");
   const collect = async (pages: Record<string, [number, string]>) => {
     const got = await himalayasConnector(serving(pages));
-    return intakeListings(db, "himalayas", got.listings, "page", NOW);
+    return intakeListings(db, "himalayas", got.listings.filter(got.sourceKept), "page", NOW);
   };
 
   it("writes only what the source keeps, writes nothing when the batch fails, and a rerun changes nothing", async () => {
