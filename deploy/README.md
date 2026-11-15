@@ -40,4 +40,4 @@ Choose an HTTPS port no other service on the VM's Serve config uses (check `tail
 - `compose ps`: `db` and `web` healthy (`web`'s healthcheck calls `/healthz`, which only checks Postgres).
 - From another tailnet machine: `curl -fsS https://<vm>.<tailnet>.ts.net:<port>/healthz`.
 - `ss -ltnp`: 3347 listens on 127.0.0.1 only.
-- The old pages (`/`, `/jobs`, `/sources`, `/settings`) still read D1 and fail on the VM, which has no D1 credentials; steps 3 and 6 replace them.
+- `/`, `/jobs/<id>` and `/settings` read Postgres (step 3c); `/sources` still reads D1 and fails on the VM, which has no D1 credentials, until step 6 replaces it.
