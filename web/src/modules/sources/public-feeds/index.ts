@@ -88,17 +88,21 @@ export function canonicalJobUrl(name: FeedName, value: unknown): string | null {
   const f = FEEDS[name];
   // The URL parser also reads "\\" as "/" and drops tabs and line breaks inside; the old split refused those, so they are not a job URL here either.
   if (typeof value !== "string" || /[\\\t\r\n]/.test(value.trim()) || !URL.canParse(value)) return null;
+  // The path as written must be a job path too (old urlsplit read it raw): "https:/host", "https:host" or
+  // "/a/../remote-jobs/x" parse to a job URL but are not one as written, and the url fields keep the written path.
+  const written = rawPath(value);
+  if (written === null || !written.startsWith(f.prefix)) return null;
   const u = new URL(value);
   if (u.protocol !== "https:" || u.host !== f.host || u.username || u.password) return null;
   if (!u.pathname.startsWith(f.prefix) || u.pathname.length <= f.prefix.length || (f.path && !f.path.test(u.pathname))) return null;
   return `https://${f.host}${u.pathname}`;
 }
 
-/** The job URL as the board wrote its path (old urlunsplit: host normalized, path kept, query and fragment dropped), for the url fields. */
-function shownUrl(name: FeedName, value: string): string {
-  const path = /^https:\/\/[^/?#]*(\/[^?#]*)/i.exec(value.trim())?.[1];
-  return `https://${FEEDS[name].host}${path ?? ""}`;
-}
+/** The path of an https URL as written (no query or fragment), or null without "https://" and a path. */
+const rawPath = (value: string) => /^https:\/\/[^/?#]*(\/[^?#]*)/i.exec(value.trim())?.[1] ?? null;
+
+/** The job URL as the board wrote its path (old urlunsplit: host normalized, path kept, query and fragment dropped); only for a URL canonicalJobUrl accepted. */
+const shownUrl = (name: FeedName, value: string) => `https://${FEEDS[name].host}${rawPath(value)}`;
 
 /** The entry's tags as text, or null when they are not a list of text (unknown, plan D8). */
 function tagsOf(feed: Feed, raw: unknown): string[] | null {

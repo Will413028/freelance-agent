@@ -106,7 +106,8 @@ describe("public feed rules", () => {
     for (const u of ["https://REMOTEOK.com/remote-jobs/a?ref=x#y", "https://remoteok.com:443/remote-jobs/a", " https://remoteok.com/remote-jobs/a "]) {
       expect(canonicalJobUrl("remoteok", u)).toBe("https://remoteok.com/remote-jobs/a");
     }
-    for (const u of ["https://remoteok.com\\remote-jobs\\a", "https://remoteok.com/remote-\tjobs/a", "http://remoteok.com/remote-jobs/a", "https://evil.example/remote-jobs/a", "https://remoteok.com/remote-jobs/", "https://u:p@remoteok.com/remote-jobs/a", "https://remoteok.com:8443/remote-jobs/a"]) {
+    for (const u of ["https:/remoteok.com/remote-jobs/a", "https:remoteok.com/remote-jobs/a", "https://remoteok.com/a/../remote-jobs/a", "https://remoteok.com/remote-jobs/./../a",
+      "https://remoteok.com\\remote-jobs\\a", "https://remoteok.com/remote-\tjobs/a", "http://remoteok.com/remote-jobs/a", "https://evil.example/remote-jobs/a", "https://remoteok.com/remote-jobs/", "https://u:p@remoteok.com/remote-jobs/a", "https://remoteok.com:8443/remote-jobs/a"]) {
       expect(canonicalJobUrl("remoteok", u)).toBeNull();
     }
     expect([canonicalJobUrl("workingnomads", "https://www.workingnomads.com/job/go/12/"), canonicalJobUrl("workingnomads", "https://www.workingnomads.com/job/go/x/")])
