@@ -72,6 +72,14 @@ describe("collectMail", () => {
     expect(await Promise.all(["a2", "b2", "j1"].map(async (x) => (await listingBy(db, "jobbank104", x))?.source))).toEqual(Array(3).fill("jobbank104"));
   });
 
+  it("never reads a recorded message again, even when the scan position is lost", async () => {
+    const box = inbox([{ n: 2, body: "<p>bad</p>" }, { n: 1 }]);
+    await collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV });
+    await db.execute(sql`truncate mail_cursors`);
+    const again = await collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV });
+    expect([again.seen, again.examined, box.bodies()]).toEqual([2, 0, 2]);
+  });
+
   it("records a rejected digest with its reason and keeps the good one; most rejected fails the source", async () => {
     const box = inbox([{ n: 2, body: "<p>template changed</p>" }, { n: 1 }]);
     await expect(collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV })).resolves.toMatchObject({ rejected: 1, examined: 2, stored: 1 });
