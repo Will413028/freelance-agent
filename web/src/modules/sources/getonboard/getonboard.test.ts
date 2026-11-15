@@ -8,7 +8,7 @@ import { FetchError, type Fetcher } from "@/platform/fetch";
 import { GETONBOARD_SETTINGS, getonboardConnector, normalize, readAll, ROOT, type Modalities } from ".";
 import { freshPg } from "../../../../tests/helpers/pg";
 
-// Plan step 5: golden's items and fetch scenarios (fixtures/cases.json, written by generate.ts from
+// Plan step 5: golden's items and fetch scenarios (fixtures/cases.json, written by fixtures/generate.ts (deleted in step 5a2 with legacyToInput, D10; see it and its list of deliberate differences at 9a68d6b) from
 // legacyToInput of the old output) against the native connector.
 
 type Expected = Record<string, unknown> | { error: true } | { unknown: string } | { listing: true };

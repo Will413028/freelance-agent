@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { readSettings } from "@/modules/evaluation/public";
-import { intakeListings, listingId } from "@/modules/listings/public";
+import { intakeListings, listingBy } from "@/modules/listings/public";
 import { Conflict, InvalidSettings, NotFound } from "@/platform/errors";
 import { saveSettings, setFeedback, validSettings } from "./public";
 import { freshPg } from "../../../tests/helpers/pg";
@@ -15,9 +15,10 @@ afterAll(async () => close());
 beforeEach(async () => {
   await db.execute(sql`truncate listings, settings cascade`);
   await intakeListings(db, "jobicy", [{ external_id: "a", title: "API work", kind: "contract" }], "page");
+  id = (await listingBy(db, "jobicy", "a"))!.id;
 });
 
-const id = listingId("jobicy", "a");
+let id: number;
 const s = { maxWeeklyHours: 20, minFixedTwd: 3000, categories: ["AI agent"] as const };
 
 describe("setFeedback", () => {
@@ -34,7 +35,7 @@ describe("setFeedback", () => {
   });
 
   it("says NotFound for a listing that does not exist", async () => {
-    await expect(setFeedback(db, "missing", "0", "interested")).rejects.toBeInstanceOf(NotFound);
+    await expect(setFeedback(db, id + 1000, "0", "interested")).rejects.toBeInstanceOf(NotFound);
   });
 });
 

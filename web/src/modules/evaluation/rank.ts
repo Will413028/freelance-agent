@@ -14,7 +14,7 @@ export type FeedbackState = (typeof FEEDBACK_STATES)[number];
 export type RankFacts = Pick<Facts, "category" | "categoryScore" | "hardExcluded" | "confirmedBase" | "fixedTwdMax" | "publishedAt" | "deadlineAt">
   & { fingerprint: string; weeklyHours: number | null };
 
-export type Rankable = { id: string; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
+export type Rankable = { id: number; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
 
 const DAY_MS = 86_400_000;
 export const RECENT_MS = 2 * DAY_MS;
@@ -47,7 +47,7 @@ export function freshTenths(publishedAt: Date | null, now: Date): 0 | 60 | 100 {
 export const optionTenths = (f: RankFacts, s: Settings, now: Date) =>
   f.categoryScore * 7 + 25 * (f.confirmedBase + (hoursOk(f, s) ? 1 : 0)) + freshTenths(f.publishedAt, now);
 
-export type Ranked = { id: string; candidate: boolean; scoreTenths: number; basis: string };
+export type Ranked = { id: number; candidate: boolean; scoreTenths: number; basis: string };
 
 /**
  * The best still-possible content (the listing or one of its differing versions) gives the score; when

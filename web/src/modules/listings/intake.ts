@@ -3,7 +3,7 @@ import type { PgDb } from "@/db/pg/client";
 import { listings, listingVersions } from "@/db/pg/schema";
 import { factsOf, type Listing } from "@/modules/evaluation/public";
 import { deadlineColumns, deadlineOfColumns, listingOf, parseListingInput, type ListingInput } from "./contract";
-import { fingerprint, listingId } from "./id";
+import { fingerprint } from "./id";
 
 // Listing intake (step-3-design.md core choices 2–4, plan D8): every listing is parsed into the
 // contract first, so nothing unparsed is stored; one transaction per batch; a listing is keyed
@@ -88,29 +88,29 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
   if (!source) throw new Error("source must be non-empty");
   const items = [...given.map((value) => [value, false] as const), ...refreshOnly.map((value) => [value, true] as const)].map(([value, onlyIfStored]) => {
     const input = parseListingInput(storable(value));
-    return { id: listingId(source, input.external_id), externalId: input.external_id, columns: contentColumns(input), onlyIfStored };
+    return { externalId: input.external_id, columns: contentColumns(input), onlyIfStored };
   });
-  const ids = items.map((i) => i.id);
+  const ids = items.map((i) => i.externalId);
   if (new Set(ids).size !== ids.length) throw new Error(`${source} batch lists the same external_id twice`);
   const counts: IntakeCounts = { inserted: 0, updated: 0, unchanged: 0, versioned: 0 };
   if (!items.length) return counts;
   await db.transaction(async (tx) => {
-    const existing = new Map((await tx.select().from(listings).where(inArray(listings.id, ids)).for("update")).map((r) => [r.id, r]));
-    for (const { id, externalId, columns, onlyIfStored } of items) {
-      const old = existing.get(id);
+    const existing = new Map((await tx.select().from(listings).where(and(eq(listings.source, source), inArray(listings.externalId, ids))).for("update")).map((r) => [r.externalId, r]));
+    for (const { externalId, columns, onlyIfStored } of items) {
+      const old = existing.get(externalId);
       if (!old && onlyIfStored) continue;
       if (!old) {
-        await tx.insert(listings).values({ id, source, externalId, ...columns, firstSeenAt: observedAt, updatedAt: observedAt });
+        await tx.insert(listings).values({ source, externalId, ...columns, firstSeenAt: observedAt, updatedAt: observedAt });
         counts.inserted++;
       } else if (old.fingerprint === columns.fingerprint) {
         counts.unchanged++;
       } else if (mode === "page") {
-        await tx.update(listings).set({ ...columns, updatedAt: observedAt }).where(eq(listings.id, id));
+        await tx.update(listings).set({ ...columns, updatedAt: observedAt }).where(eq(listings.id, old.id));
         counts.updated++;
       } else {
         // The row's content becomes a version too, as first seen: its stored columns, never a re-parse of raw.
         const first = Object.fromEntries(CONTENT_KEYS.map((k) => [k, old[k]])) as Pick<typeof old, (typeof CONTENT_KEYS)[number]>;
-        const added = await tx.insert(listingVersions).values([{ listingId: id, ...first, observedAt: old.updatedAt }, { listingId: id, ...columns, observedAt }])
+        const added = await tx.insert(listingVersions).values([{ listingId: old.id, ...first, observedAt: old.updatedAt }, { listingId: old.id, ...columns, observedAt }])
           .onConflictDoNothing({ target: [listingVersions.listingId, listingVersions.fingerprint] }).returning({ fingerprint: listingVersions.fingerprint });
         if (added.some((r) => r.fingerprint === columns.fingerprint)) counts.versioned++;
         else counts.unchanged++;
@@ -133,5 +133,5 @@ export async function listingBy(db: PgDb, source: string, externalId: string) {
   return row ?? null;
 }
 
-export const versionCount = async (db: PgDb, id: string) =>
+export const versionCount = async (db: PgDb, id: number) =>
   Number((await db.select({ n: sql<number>`count(*)` }).from(listingVersions).where(eq(listingVersions.listingId, id)))[0].n);

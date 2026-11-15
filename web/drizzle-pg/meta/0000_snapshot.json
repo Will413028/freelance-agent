@@ -1,5 +1,5 @@
 {
-  "id": "74bb1bfc-fdc1-4717-ae90-77cc781990fd",
+  "id": "86dfac9a-5649-4f0d-9caa-c5443589c368",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -10,7 +10,7 @@
       "columns": {
         "listing_id": {
           "name": "listing_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": true,
           "notNull": true
         },
@@ -88,7 +88,7 @@
         },
         "listing_id": {
           "name": "listing_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -171,7 +171,7 @@
       "columns": {
         "listing_id": {
           "name": "listing_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -402,9 +402,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "listings_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "source": {
           "name": "source",
@@ -584,7 +595,7 @@
           "name": "first_seen_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "updated_at": {

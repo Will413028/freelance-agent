@@ -55,9 +55,9 @@ export type ListingInput = z.output<typeof listingInputSchema>;
 export type ListingInputDraft = z.input<typeof listingInputSchema>;
 
 /**
- * The same contract for old-system rows only (legacyToInput): an empty title is kept, since the old
- * system stored such titles and plan D8 never refuses a legacy row for a field. Stored rows of both
- * read back through listingOfRow, so evaluation sees one shape.
+ * The contract with an empty title allowed, for the frozen evaluate and recommendation fixtures only:
+ * their inputs came from old-system jobs (some with empty titles) through legacyToInput, deleted in
+ * step 5a2 (plan D10). Nothing stores through it; delete it with those fixtures.
  */
 export const legacyListingInputSchema = listingInputSchema.extend({ title: z.string() });
 

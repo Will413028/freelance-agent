@@ -124,6 +124,10 @@
 - [ ] **5. 其餘 17 個公開來源**（被擋於：步驟 4）
   - 拆成子步驟，各一個 PR、各自跑完驗收才算完成（2026-11-15，一個 session 做不完）：**5a** API 類、**5a2** 收案存全部（D9）、**5b** feed 類、**5c** 頁面類；5b、5c 被擋於 5a2（共用的 `shared/` 解析、catalog 與 connector 輸出形狀由 5a、5a2 定下）。
   - **5a2 收案存全部（D9）**（被擋於：5a 程式完成）：
+    - 拆成三個子步驟，各一個 PR、各自跑完驗收（2026-11-15，一個 session 做不完；兩天量測要等 connector 改成「標記」之後才量得到「全部讀到的」，現行 connector 在內部就篩掉了）：
+      - **5a2-1 D10 清理**（被擋於：無）：代理主鍵加 `(source, external_id)` 唯一鍵與外鍵；刪舊 `id` 算法、`id.fixtures.json`、cryptojobslist／v2ex 相容 id 函式、`legacyToInput` 與依賴它的產生器；改 `AGENTS.md`、checklist §3、步驟 10、11 文字。驗收：`pnpm check`、`pnpm build` 綠；mutation：拿掉唯一鍵要有測試失敗。
+      - **5a2-2 D9 收案存全部**（被擋於：5a2-1）：規則欄、`last_seen_at`、`gone_at`、`intakeListings` 寫全部、刪 `refreshOnly` 與 `others`、10 個 connector 改標記、catalog 完整讀取旗標、清單查詢條件、checklist §2。驗收：下面列的前三個 mutation 與 VM 連跑兩次的 `last_seen_at`／`updated_at` 檢查。
+      - **5a2-3 量測與保留期限**（被擋於：5a2-2 部署到 VM）：兩天量測（Will 2026-11-15 已授權部署與兩天量測）、定 N、保留期限刪除操作、3,500 列清單頁 ≤ 250 ms。驗收：下面列的保留期限 mutation 與延遲實量。
     - 範圍（D10 追加）：主鍵改成代理主鍵（資料庫產生）加 `(source, external_id)` 唯一鍵，`listing_feedback`、`listing_versions` 的外鍵跟著改；刪舊 `id` 算法與 `id.fixtures.json`、cryptojobslist／v2ex 的相容 id 函式（改用標準 `URL`）、`legacyToInput` 與依賴它的 fixture 產生器（`cases.json` 已產生、保留）；改 `AGENTS.md` 的「stored hashes 維持 v1」「golden 凍結」「切換前不能動歷史表」等條目與 checklist §3；步驟 10、11 的文字照 D10 改寫。
     - 範圍：先在 VM 對 5a 的 8 個來源與 jobicy、remotive 連兩天各跑一次，量不重複 `external_id` 的成長與每列 `raw` 的大小（只輸出計數與位元組數），依此定保留期限 N 與清單查詢要不要先用 SQL 篩。之後：`web/src/db/pg/schema.ts` 的 `listings`（與 `listing_versions` 對應的欄）加來源規則的三態欄、`last_seen_at`、`gone_at`，重產 `web/drizzle-pg/`；`intakeListings` 寫全部、每次讀到都寫 `last_seen_at`、刪 `refreshOnly`；`collectSource` 不再篩，刪 `others` 處理；10 個來源（free-jobs 與 5a 的 8 個）的 connector 由「篩掉」改成「標記」；catalog 加「完整讀取」旗標；`modules/evaluation/list.ts` 的查詢加來源規則與硬性排除的條件；保留期限的刪除寫成可重跑的操作，由步驟 6 的每日執行呼叫；checklist §2 改寫。
     - 消費端：`rg -n "others|refreshOnly|storedExternalIds|screen\(" web/src web/scripts`；`rg -n "listings\b" web/src/modules/evaluation web/src/app`。
@@ -164,18 +168,16 @@
   - 驗收：在 VM 上對一個故意讓健康檢查失敗的 commit 跑 `deploy.sh`，服務回到前一個 tag（貼出前後的映像 tag 與健康檢查結果）；對一個故意失敗的 migration，新版不啟動、舊版繼續服務（同樣實際做一次）。
   - 需要人做的事：授權部署（部署點，兩次演練）。
 - [ ] **10. 正式切換與舊資源退役（deploy，必須連著做）**（被擋於：步驟 3、5、6、7、9；Will 明確授權）
-  - **D10（Will 2026-11-15）取代本步驟的資料搬移與封存：不寫 `migrate-from-d1.ts`、不演練載入、不匯出封存；切換當天只有停 Cron、清空影子資料、VM 開始正式每日執行、隔天驗收後退役。下面的範圍、順序與驗收在 5a2 完成後改寫，舊文字保留為紀錄，不照做。**
-  - 範圍（舊，被 D10 取代）：`web/scripts/migrate-from-d1.ts`（新增）：讀 D1 的匯出（結構是 0004 形狀）、轉成新形狀、載入；可重跑，鍵取自來源身分；載入後對每筆職缺用現行設定重算評估結果欄位（舊的投影表不搬）；D1 的 `daily_runs` 搬進 `runs` 時，停在 `running` 的列改記成 `failed` 並註明是搬移時改的，切換當天那一列照原狀搬（當天已跑過就不再跑）。先在 VM 的暫時資料庫用步驟 1 第 4 項的真實匯出演練兩輪，演練完刪暫時資料庫；演練時用新的 `id` 函式對匯出的每一組 `(source, external_id)` 重算，要全等於 `id`，並對匯出資料跑一次「相同 `(source, canonical_url)` 的列數」當基準。
+  - 範圍（步驟 5a2 依 D10 改寫）：不搬資料、不匯出、不封存。新庫從空庫開始，由 VM 的每日執行收案；D1 的職缺、回饋、信件紀錄、執行歷史與歷史表全部隨 D1 刪除。
   - 切換當天的順序（避開台灣 09:00–13:00）：
     1. Will 在 Vercel 後台停用 Cron Jobs。確認沒有執行中的 run：正式庫最新一列 `daily_runs` 不是 `running`，或它的 `started_at` 早於 1 小時前（中斷的 run 會永遠停在 `running`）。
-    2. 匯出 D1。把三張歷史表與職缺裡的提案文字匯出成封存檔，放到 Will 指定的 repo 外位置。
-    3. 停 VM 的 timer；清空新庫的影子資料；載入；跑驗證。
-    4. timer 改成台灣 09:00 並啟用。
-    5. 隔天自然執行驗收通過後，同一天退役：刪 Vercel 專案、`freelance-agent-prod`、`freelance-agent-ci-test`、`freelance-agent-spike-1f`、GitHub 的三個 D1 secrets；刪所有匯出與複本：步驟 1 第 3、4 項的匯出檔、切換當天的匯出檔、複製到 VM 上供載入的那份（封存檔留著，它是唯一保留的歷史資料）。
-  - 回滾：只在第 5 小步之前存在：停 VM 的 timer、Will 在後台重新啟用 Vercel Cron；D1 在切換時沒有被改動。第 5 小步之後沒有回滾路徑，也沒有備份（D1、D5）。
-  - 驗收：職缺筆數與 id 集合等於 D1 匯出的；回饋、回饋事件、信件紀錄、信件游標、內容版本、執行紀錄逐列逐欄等於匯出資料轉換後的預期值（搬移腳本輸出比對報告）；每筆職缺都有評估結果，清單頁四種檢視的筆數與切換前正式站同一時刻的筆數相等；隔天 VM 的自然執行有一列 `runs`、至少 18 個來源成功、總時間 ≤ 15 分鐘、常駐容器 ≤ 2 GB；那次執行對每個來源做步驟 4 的 id 比對（這是防 id 漂移的主要關卡，各來源在步驟 4、5、7 已各過一次）；第二道：新庫裡相同 `(source, canonical_url)` 的列數不多於演練時量到的基準；Will 在 tailnet 內確認看得到資料並按一次回饋。
-  - 停止條件：id 集合不相等，或隔天沒有完成收案，或 id 比對出現說明不了的新 `external_id`，或重複列數超過基準 → 照回滾處理，不做第 5 小步。
-  - 需要人做的事：授權切換；在 Vercel 後台停用 Cron；指定封存檔位置；驗收通過後授權退役（不可逆）；切換若晚於 2026-11-30，先照前提換 D1 token。
+    2. 停 VM 的 timer；清空新庫（影子資料）；把 `web/drizzle-pg/` 壓成的起始 migration 套上（全域約束）。
+    3. timer 改成台灣 09:00 並啟用；當天手動觸發一次每日執行（新庫是空的，不等隔天）。
+    4. 隔天自然執行驗收通過後，同一天退役（不可逆，執行當下再取得 Will 確認，D10）：刪 Vercel 專案、`freelance-agent-prod`、`freelance-agent-ci-test`、`freelance-agent-spike-1f`、GitHub 的三個 D1 secrets；刪 repo 外 spike 的原始輸出與步驟 1 第 3、4 項的匯出檔（位置見本機個人脈絡檔）。
+  - 回滾：只在第 4 小步之前存在：停 VM 的 timer、Will 在後台重新啟用 Vercel Cron；D1 在切換時沒有被改動。第 4 小步之後沒有回滾路徑，也沒有備份（D1、D5、D10）。
+  - 驗收：第 3 小步的手動執行與隔天的自然執行各有一列 `runs`、至少 18 個來源成功、總時間 ≤ 15 分鐘、常駐容器 ≤ 2 GB；兩次執行之間同一來源的 `(source, external_id)` 重複讀到時沒有新增列（id 穩定的關卡，各來源在步驟 4、5、7 的 fixture 已各過一次）；清單頁四種檢視都有資料；Will 在 tailnet 內確認看得到資料並按一次回饋。
+  - 停止條件：手動執行或隔天沒有完成收案，或同一職缺第二次讀到時多出一列 → 照回滾處理，不做第 4 小步。
+  - 需要人做的事：授權切換；在 Vercel 後台停用 Cron；驗收通過後確認退役（不可逆）；切換若晚於 2026-11-30，先照前提換 D1 token。
 - [ ] **11. 刪掉舊機制**（被擋於：步驟 10；步驟 8 不擋它）
   - 範圍：`inventory.md` 標「刪除」與「取代」的每一列對應的檔案（刪除），包含 `web/src/platform/py/`、`web/tests/fixtures/golden.json`、`web/tests/helpers/golden.ts`、`web/src/db/{client,schema,usage,migrate,unit}.ts`、`web/src/db/d1/`、`web/drizzle/`、`web/drizzle.config.ts`、`web/src/workflows/`、`web/src/ops/`、`web/src/app/api/cron/`、`web/src/app/_lib/usage.ts`、`web/scripts/{migrate,rebuild-projection,check-storage-triggers}.ts`、`web/src/modules/{legacy,applications,notifications,discovery,collection,preferences}/`、`web/src/services/`（舊的）、`web/tests/d1-*.test.ts`、`test:d1` script、`web/vercel.json`、`next.config.ts` 的 `withWorkflow`（修改）、`workflow` 與 `@vercel/*` 相依套件（修改 `package.json`）；`docs/operations.md` 的 Vercel 章節（刪除）；`AGENTS.md`（修改：拿掉過渡期文字）。附件新增 `allowed-residue.md` 與 `check_inventory.py` 的複本（複本讀同目錄的殘留清單）、`check-deleted.sh`（新增：從 `inventory.md` 取出標刪除的路徑與表名，任何一個還存在就失敗）。
   - 消費端：`rg -n -l "@/platform/py/|golden|@/db/d1|@/db/client|workflow|vercel|sqliteTable|D1_|oci-a1" . -g '!node_modules'`。

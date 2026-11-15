@@ -3,7 +3,7 @@ import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
-import { childText, children, parseXml, splitUrl } from "../shared/xml-feed";
+import { childText, children, parseXml } from "../shared/xml-feed";
 
 // Public community hiring leads: Hacker News "Who is hiring?" and "Freelancer?" threads, and V2EX's
 // outsourcing node (old collection/community_jobs.py, web/src/modules/collection/sources/community-jobs.ts
@@ -137,13 +137,13 @@ const WANTED = /招聘|寻找|尋找|求助|需求|外包|找[^\n]{0,20}(开发|
 const asciiUpper = (raw: Uint8Array) => Buffer.from(raw.map((b) => (b >= 0x61 && b <= 0x7a ? b - 0x20 : b))).toString("latin1");
 
 /**
- * The topic number of a V2EX link, which is the external_id, or null. Compatibility function
- * (spikes.md section 3): the stored ids came from Python urlsplit and a Unicode `\d`; WHATWG URL would
- * percent-encode a path of non-ASCII digits (fixture case) and accept another host case.
+ * The topic number of a V2EX link, which is the external_id, or null. Read with the standard URL
+ * parser (plan D10: no stored ids to match): ASCII digits only, the host in any case.
  */
 export function v2exTopicId(href: string): string | null {
-  const u = splitUrl(href), m = /^\/t\/(\p{Nd}+)$/u.exec(u.path);
-  return u.scheme === "https" && u.netloc === "www.v2ex.com" && m ? m[1] : null;
+  if (!URL.canParse(href)) return null;
+  const u = new URL(href), m = /^\/t\/([0-9]+)$/.exec(u.pathname);
+  return u.protocol === "https:" && u.host === "www.v2ex.com" && !u.username && !u.password && m ? m[1] : null;
 }
 
 /** The feed's leads the source's rule keeps: titles asking for help, published in the last 90 days. */

@@ -10,7 +10,7 @@ import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
 import { arbeitnowConnector, ARBEITNOW_SETTINGS, descriptionText, ENDPOINT, MAX_PAGES, normalize, parsePage, scan } from ".";
 
-// Plan step 5: the golden payloads (fixtures/cases.json, written by generate.ts from legacyToInput of
+// Plan step 5: the golden payloads (fixtures/cases.json, written by fixtures/generate.ts (deleted in step 5a2 with legacyToInput, D10; see it and its list of deliberate differences at 9a68d6b) from legacyToInput of
 // the old output) against the native connector, then the batch, filter and unknown-field rules.
 
 type Expected = Record<string, unknown>;

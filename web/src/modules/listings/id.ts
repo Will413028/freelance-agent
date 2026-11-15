@@ -1,21 +1,5 @@
 import { createHash } from "node:crypto";
 
-// Listing identity (plan global constraint "職缺 id 不變"): the old id is sha256 of Python's
-// json.dumps([source, external_id], sort_keys=True, ensure_ascii=False), so ", " between items and
-// non-ASCII left unescaped. JSON.stringify escapes a string the way Python does with ensure_ascii off
-// (quote, backslash, \b \f \n \r \t, other controls as lowercase \u00XX) except for lone surrogates,
-// which Python could not encode as UTF-8 anyway; those are refused. id.fixtures.json pins the values.
-
-const LONE_SURROGATE = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/;
-
-export function listingId(source: string, externalId: string): string {
-  for (const part of [source, externalId]) {
-    if (!part) throw new Error("source and external_id must be non-empty");
-    if (LONE_SURROGATE.test(part)) throw new Error("source and external_id must be well-formed Unicode");
-  }
-  return createHash("sha256").update(`[${JSON.stringify(source)}, ${JSON.stringify(externalId)}]`, "utf8").digest("hex");
-}
-
 /** JSON with object keys sorted at every depth, so equal content gives equal text. */
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;

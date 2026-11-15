@@ -30,7 +30,7 @@ export async function readRankables(db: PgDb): Promise<Rankable[]> {
       .from(listings).leftJoin(listingFeedback, eq(listingFeedback.listingId, listings.id)),
     db.select({ listingId: listingVersions.listingId, ...factColumns(listingVersions) }).from(listingVersions),
   ]);
-  const byListing = new Map<string, RankFacts[]>();
+  const byListing = new Map<number, RankFacts[]>();
   for (const { listingId, ...v } of versions) {
     const list = byListing.get(listingId);
     if (list) list.push(v as RankFacts);

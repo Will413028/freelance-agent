@@ -29,14 +29,14 @@ export const CRYPTOJOBSLIST_SETTINGS: Omit<SourceSettings, "order"> = {
 
 /**
  * The job's canonical URL, which is its external_id: `https://cryptojobslist.com/jobs/<slug>` without
- * query or fragment, or null. Compatibility function (spikes.md section 3): stored ids were made by
- * Python urlsplit, which keeps the host exactly as written; WHATWG URL would also accept a default
- * port (`:443`) or a trailing space, which the old reader refused (fixture cases).
+ * query or fragment, or null. Read with the standard URL parser (plan D10: no stored ids to match), so
+ * a default port or surrounding spaces name the same job.
  */
 export function canonicalJobUrl(value: string | null): string | null {
-  if (value === null) return null;
-  const u = splitUrl(value);
-  return u.scheme === "https" && u.netloc === "cryptojobslist.com" && /^\/jobs\/[a-z0-9][a-z0-9-]+$/.test(u.path) ? `https://cryptojobslist.com${u.path}` : null;
+  if (value === null || !URL.canParse(value)) return null;
+  const u = new URL(value);
+  return u.protocol === "https:" && u.host === "cryptojobslist.com" && !u.username && !u.password && /^\/jobs\/[a-z0-9][a-z0-9-]+$/.test(u.pathname)
+    ? `https://cryptojobslist.com${u.pathname}` : null;
 }
 
 const cmpCodePoints = (a: string, b: string) => {

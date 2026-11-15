@@ -1,5 +1,5 @@
 CREATE TABLE "listing_feedback" (
-	"listing_id" text PRIMARY KEY NOT NULL,
+	"listing_id" integer PRIMARY KEY NOT NULL,
 	"state" text NOT NULL,
 	"revision" integer NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE "listing_feedback" (
 --> statement-breakpoint
 CREATE TABLE "listing_feedback_events" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "listing_feedback_events_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
-	"listing_id" text NOT NULL,
+	"listing_id" integer NOT NULL,
 	"revision" integer NOT NULL,
 	"state" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE "listing_feedback_events" (
 );
 --> statement-breakpoint
 CREATE TABLE "listing_versions" (
-	"listing_id" text NOT NULL,
+	"listing_id" integer NOT NULL,
 	"fingerprint" text NOT NULL,
 	"raw" jsonb NOT NULL,
 	"title" text NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE "listing_versions" (
 );
 --> statement-breakpoint
 CREATE TABLE "listings" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "listings_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"source" text NOT NULL,
 	"external_id" text NOT NULL,
 	"fingerprint" text NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE "listings" (
 	"hard_excluded" boolean NOT NULL,
 	"confirmed_base" smallint NOT NULL,
 	"fixed_twd_max" double precision,
-	"first_seen_at" timestamp with time zone DEFAULT now(),
+	"first_seen_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "listings_kind" CHECK ("listings"."kind" in ('fixed', 'hourly', 'contract', 'full_time')),
 	CONSTRAINT "listings_deadline_kind" CHECK ("listings"."deadline_kind" in ('date', 'instant', 'no_timezone', 'invalid')),

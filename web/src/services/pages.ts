@@ -42,7 +42,7 @@ export type Feedback = "neutral" | "interested" | "skipped";
 export type ContentVersion = { fingerprint: string; original: boolean; status: string; job: JobFields };
 
 export type JobView = {
-  id: string;
+  id: number;
   /** What the page sends back with its feedback: the listing's feedback revision when the page was rendered. */
   token: string;
   source: string;
@@ -117,15 +117,23 @@ export async function listJobs(db: PgDb, now: Date, view: View, page: number): P
   return { view, page, jobs, hasNext: page * PAGE_SIZE < total };
 }
 
-export async function jobDetail(db: PgDb, now: Date, id: string): Promise<JobView> {
+/** A listing id as a URL carries it: a positive integer in the id column's range, otherwise not found. */
+function idOf(text: string): number {
+  const id = /^[1-9][0-9]{0,9}$/.test(text) ? Number(text) : 0;
+  if (!id || id > 2 ** 31 - 1) throw new NotFound(text);
+  return id;
+}
+
+export async function jobDetail(db: PgDb, now: Date, text: string): Promise<JobView> {
+  const id = idOf(text);
   const [{ settings }, shown] = await Promise.all([readSettings(db), readShown(db, [id])]);
   const s = shown.get(id);
-  if (!s) throw new NotFound(id);
+  if (!s) throw new NotFound(text);
   return jobView(s, settings, now, null);
 }
 
 /** The page writes (plan step 3c): routes call these, never the module. */
-export const writeFeedback = (db: PgDb, id: string, token: string, state: FeedbackState, now: Date) => setFeedback(db, id, token, state, now);
+export const writeFeedback = (db: PgDb, id: string, token: string, state: FeedbackState, now: Date) => setFeedback(db, idOf(id), token, state, now);
 export const writeSettings = (db: PgDb, revision: number, s: Settings) => saveSettings(db, revision, s);
 
 export type SettingsView = {
