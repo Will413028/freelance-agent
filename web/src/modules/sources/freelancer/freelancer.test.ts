@@ -9,7 +9,7 @@ import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
 import { FREELANCER_SETTINGS, freelancerConnector, normalize, outOfScope, pageUrl, QUERIES, searchQuery, titleSignal } from ".";
 
-// Plan step 5a: the golden payloads (fixtures/cases.json, written by generate.ts from legacyToInput
+// Plan step 5a: the golden payloads (fixtures/cases.json, written by fixtures/generate.ts (deleted in step 5a2 with legacyToInput, D10; see it and its list of deliberate differences at 9a68d6b) from legacyToInput
 // of the old output) against the native connector, then the connector's own rules and intake.
 
 type Expected = Record<string, unknown> | { error: true } | { unknown: string } | { listing: true };

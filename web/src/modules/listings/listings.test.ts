@@ -1,8 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { fingerprint, intakeListings, listingBy, listingId, listingOf, listingOfRow, parseListingInput, versionCount } from "@/modules/listings/public";
-import fixtures from "./id.fixtures.json";
+import { fingerprint, intakeListings, listingBy, listingOf, listingOfRow, parseListingInput, versionCount } from "@/modules/listings/public";
 import { freshPg } from "../../../tests/helpers/pg";
 
 // Plan steps 3a, 3b2: the listing data model and intake core on Postgres (PGlite here, a real server in CI).
@@ -17,17 +16,6 @@ const job = (externalId: string, extra: Record<string, unknown> = {}) => ({
   url: `https://example.com/jobs/${externalId}`, kind: "contract", ...extra,
 });
 
-describe("listing id", () => {
-  it("reproduces every id the old system computed for the synthetic pairs", () => {
-    expect(fixtures.cases.length).toBeGreaterThanOrEqual(20);
-    for (const c of fixtures.cases) expect(listingId(c.source, c.external_id), `${c.source}/${c.external_id}`).toBe(c.id);
-  });
-
-  it("refuses empty parts and lone surrogates", () => {
-    expect(() => listingId("", "1")).toThrow();
-    expect(() => listingId("jobicy", "\ud800x")).toThrow();
-  });
-});
 
 describe("fingerprint", () => {
   it("ignores key order and extra, sees content changes", () => {
@@ -55,7 +43,7 @@ describe("intake", () => {
   it("inserts, then leaves the same content unchanged and keeps first_seen_at", async () => {
     expect(await intakeListings(db, "jobicy", [job("1"), job("2")], "page")).toMatchObject({ inserted: 2 });
     const first = await listingBy(db, "jobicy", "1");
-    expect(first).toMatchObject({ id: listingId("jobicy", "1"), title: "Backend API contractor", taiwanEligible: null, categoryScore: 85 });
+    expect(first).toMatchObject({ source: "jobicy", externalId: "1", title: "Backend API contractor", taiwanEligible: null, categoryScore: 85 });
     expect(await intakeListings(db, "jobicy", [job("1", { extra: { received_at: "later" } })], "page")).toMatchObject({ unchanged: 1 });
     expect((await listingBy(db, "jobicy", "1"))!.firstSeenAt).toEqual(first!.firstSeenAt);
   });
@@ -134,9 +122,18 @@ describe("schema constraints", () => {
     await db.execute(sql`delete from settings`);
   });
 
+  it("keys a listing by a database id and keeps (source, external_id) unique", async () => {
+    await intakeListings(db, "jobicy", [job("1")], "page");
+    await intakeListings(db, "remotive", [job("1")], "page");
+    const [a, b] = [await listingBy(db, "jobicy", "1"), await listingBy(db, "remotive", "1")];
+    expect(Number.isInteger(a!.id) && Number.isInteger(b!.id) && a!.id !== b!.id).toBe(true);
+    await expect(db.execute(sql`insert into listings (source, external_id, fingerprint, raw, title, kind, category, category_score, hard_excluded, confirmed_base)
+      select source, external_id, fingerprint, raw, title, kind, category, category_score, hard_excluded, confirmed_base from listings where id = ${a!.id}`)).rejects.toMatchObject({ cause: { code: "23505" } }); // unique_violation
+  });
+
   it("feedback events are one per listing revision and states are closed", async () => {
     await intakeListings(db, "jobicy", [job("1")], "page");
-    const id = listingId("jobicy", "1");
+    const id = (await listingBy(db, "jobicy", "1"))!.id;
     await db.execute(sql`insert into listing_feedback_events (listing_id, revision, state) values (${id}, 1, 'interested')`);
     await expect(db.execute(sql`insert into listing_feedback_events (listing_id, revision, state) values (${id}, 1, 'skipped')`)).rejects.toThrow();
     await expect(db.execute(sql`insert into listing_feedback (listing_id, state, revision) values (${id}, 'applied', 1)`)).rejects.toThrow();

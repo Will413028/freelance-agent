@@ -29,7 +29,7 @@ describe("B1: a date-only deadline expires at the Asia/Taipei day boundary", () 
 });
 
 describe("rank", () => {
-  const base = { id: "x", feedback: "neutral" as const, versions: [] };
+  const base = { id: 1, feedback: "neutral" as const, versions: [] };
 
   it("scores category × 0.7, 2.5 per confirmed condition and freshness, in tenths", () => {
     // AI agent 95 × 7 + 25 × (3 confirmed + hours within 30) + published within two days.
@@ -66,23 +66,24 @@ describe("rank", () => {
 
   it("orders candidates first, then the higher score, then the id", () => {
     const items = [
-      { id: "b", candidate: true, scoreTenths: 500, basis: "" }, { id: "a", candidate: true, scoreTenths: 500, basis: "" },
-      { id: "c", candidate: false, scoreTenths: 900, basis: "" }, { id: "d", candidate: true, scoreTenths: 700, basis: "" },
+      { id: 10, candidate: true, scoreTenths: 500, basis: "" }, { id: 9, candidate: true, scoreTenths: 500, basis: "" },
+      { id: 2, candidate: false, scoreTenths: 900, basis: "" }, { id: 4, candidate: true, scoreTenths: 700, basis: "" },
     ];
-    expect([...items].sort(byRank).map((i) => i.id)).toEqual(["d", "a", "b", "c"]);
+    // Numeric id order (10 after 9), not text order.
+    expect([...items].sort(byRank).map((i) => i.id)).toEqual([4, 9, 10, 2]);
   });
 
   it("matches recommend's score and basis for a listing with versions", () => {
     const contents = [{ fingerprint: "a", listing: typed({ weekly_hours: 50 }) }, { fingerprint: "b", listing: typed({ taiwan_eligible: null }) }, { fingerprint: "c", listing: typed() }];
     const r = recommend(contents[0], contents, "interested", DEFAULT_SETTINGS, now);
-    const ranked = rank({ id: "x", feedback: "interested", listing: rankFactsOf("a", contents[0].listing), versions: contents.map((c) => rankFactsOf(c.fingerprint, c.listing)) }, DEFAULT_SETTINGS, now);
+    const ranked = rank({ id: 1, feedback: "interested", listing: rankFactsOf("a", contents[0].listing), versions: contents.map((c) => rankFactsOf(c.fingerprint, c.listing)) }, DEFAULT_SETTINGS, now);
     expect({ score: r.score * 10, basis: r.basis }).toEqual({ score: ranked.scoreTenths, basis: ranked.basis });
     expect(r.reasons.at(-1)).toBe("通知內容有差異；依可能符合的一份排序，需核對原文");
   });
 
   it("never reaches the 100-point cap with the current categories, so comparing before or after it picks the same content", () => {
     // AI agent 95 × 0.7 + 4 confirmed × 2.5 + recent 10 + saved 10 = 96.5 points.
-    const top = rank({ id: "x", feedback: "interested", listing: facts("a"), versions: [] }, { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now);
+    const top = rank({ id: 1, feedback: "interested", listing: facts("a"), versions: [] }, { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now);
     expect(top.scoreTenths).toBe(965);
   });
 

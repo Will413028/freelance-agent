@@ -10,8 +10,8 @@ export type VersionRow = typeof listingVersions.$inferSelect;
 export type Shown = { row: ListingRow; versions: VersionRow[]; feedback: { state: "neutral" | "interested" | "skipped"; revision: number } };
 
 /** The listings of `ids` with their versions (oldest first) and feedback; missing ids are left out. */
-export async function readShown(db: PgDb, ids: readonly string[]): Promise<Map<string, Shown>> {
-  const shown = new Map<string, Shown>();
+export async function readShown(db: PgDb, ids: readonly number[]): Promise<Map<number, Shown>> {
+  const shown = new Map<number, Shown>();
   if (!ids.length) return shown;
   const list = [...ids];
   const [rows, versions, feedback] = await Promise.all([

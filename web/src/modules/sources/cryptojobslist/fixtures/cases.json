@@ -902,20 +902,78 @@
   "input": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rss xmlns:media=\"http://search.yahoo.com/mrss/\" version=\"2.0\"><channel><title>CJL</title><lastBuildDate>Sat, 24 Oct 2026 07:50:03 GMT</lastBuildDate><item><link>https://cryptojobslist.com:443/jobs/ab</link><title><![CDATA[Backend Engineer]]></title><description><![CDATA[<p>Tags: <a href=\"https://cryptojobslist.com/part-time\">Part-time</a> <a href=\"https://cryptojobslist.com/remote\">Remote</a></p><p>Build things.</p>]]></description><media:location>Remote</media:location><pubDate>Sat, 24 Oct 2026 07:50:03 GMT</pubDate></item></channel></rss>",
   "expect": {
    "seen": 1,
-   "listings": [],
-   "rejected": 1
+   "listings": [
+    {
+     "external_id": "https://cryptojobslist.com/jobs/ab",
+     "title": "Backend Engineer",
+     "company": null,
+     "description": "Tags: Part-time Remote Build things.",
+     "url": "https://cryptojobslist.com/jobs/ab",
+     "canonical_url": "https://cryptojobslist.com/jobs/ab",
+     "location": "Remote",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-10-24T07:50:03.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_tags": [
+       "part-time",
+       "remote"
+      ],
+      "remote_evidence": true
+     }
+    }
+   ],
+   "rejected": 0
   },
-  "why": "SET_ASIDE: job link not https://cryptojobslist.com/jobs/<slug> as written"
+  "why": "Step 5a2 (plan D10): ids are read with the standard URL parser now, not to match the old stored ids."
  },
  {
   "index": 38,
   "input": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rss xmlns:media=\"http://search.yahoo.com/mrss/\" version=\"2.0\"><channel><title>CJL</title><lastBuildDate>Sat, 24 Oct 2026 07:50:03 GMT</lastBuildDate><item><link> https://cryptojobslist.com/jobs/ab </link><title><![CDATA[Backend Engineer]]></title><description><![CDATA[<p>Tags: <a href=\"https://cryptojobslist.com/part-time\">Part-time</a> <a href=\"https://cryptojobslist.com/remote\">Remote</a></p><p>Build things.</p>]]></description><media:location>Remote</media:location><pubDate>Sat, 24 Oct 2026 07:50:03 GMT</pubDate></item></channel></rss>",
   "expect": {
    "seen": 1,
-   "listings": [],
-   "rejected": 1
+   "listings": [
+    {
+     "external_id": "https://cryptojobslist.com/jobs/ab",
+     "title": "Backend Engineer",
+     "company": null,
+     "description": "Tags: Part-time Remote Build things.",
+     "url": "https://cryptojobslist.com/jobs/ab",
+     "canonical_url": "https://cryptojobslist.com/jobs/ab",
+     "location": "Remote",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-10-24T07:50:03.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_tags": [
+       "part-time",
+       "remote"
+      ],
+      "remote_evidence": true
+     }
+    }
+   ],
+   "rejected": 0
   },
-  "why": "SET_ASIDE: job link not https://cryptojobslist.com/jobs/<slug> as written"
+  "why": "Step 5a2 (plan D10): ids are read with the standard URL parser now, not to match the old stored ids."
  },
  {
   "index": 39,

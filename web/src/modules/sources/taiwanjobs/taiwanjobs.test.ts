@@ -9,7 +9,7 @@ import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
 import { parseBatch, sourceDate, TAIWANJOBS_SETTINGS, taiwanjobsConnector } from ".";
 
-// Plan step 5a: the golden responses (fixtures/cases.json, written by generate.ts from legacyToInput
+// Plan step 5a: the golden responses (fixtures/cases.json, written by fixtures/generate.ts (deleted in step 5a2 with legacyToInput, D10; see it and its list of deliberate differences at 9a68d6b) from legacyToInput
 // of the old output) against the native connector, then the connector's own rules and intake.
 
 type BatchCase = { input: string; expect: { error: true } | { seen: number; listings?: unknown[]; rejected?: number }; why?: string };

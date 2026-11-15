@@ -71,22 +71,3 @@ export function parseXml(raw: Uint8Array): XmlElement {
 export const children = (el: XmlElement, tag: string) => el.children.filter((c) => c.tag === tag);
 /** The first child's text: null without such a child, "" when it has none. */
 export const childText = (el: XmlElement, tag: string): string | null => children(el, tag)[0]?.text ?? null;
-
-/**
- * A URL split the way the boards' stored links were made (Python urlsplit): leading controls and spaces
- * trimmed, tabs and newlines removed, scheme lower-cased, host kept exactly as written (no lower-casing,
- * no default-port removal, no percent-encoding, trailing space kept), unlike WHATWG URL.
- */
-export function splitUrl(value: string): { scheme: string; netloc: string; path: string } {
-  let rest = value.replace(/^[\x00-\x20]+/, "").replace(/[\t\n\r]/g, "");
-  let scheme = "";
-  const colon = rest.indexOf(":");
-  if (colon > 0 && /^[A-Za-z][A-Za-z0-9+.-]*$/.test(rest.slice(0, colon))) scheme = rest.slice(0, colon).toLowerCase(), (rest = rest.slice(colon + 1));
-  let netloc = "";
-  if (rest.startsWith("//")) {
-    const end = rest.slice(2).search(/[/?#]/);
-    netloc = end < 0 ? rest.slice(2) : rest.slice(2, end + 2);
-    rest = end < 0 ? "" : rest.slice(end + 2);
-  }
-  return { scheme, netloc, path: rest.split(/[?#]/, 1)[0] };
-}

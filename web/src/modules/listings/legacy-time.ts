@@ -1,6 +1,6 @@
-// Python's datetime.fromisoformat (3.11+), natively, for text written by the old system only (plan
-// D8: the new contract takes RFC 3339; this reads what old connectors stored, for the step 10
-// migration and the golden conversion). legacy-time.fixtures.json holds golden's 61 cases.
+// Python's datetime.fromisoformat (3.11+), natively. Live connectors read source times with it
+// (sources/shared/time.ts, himalayas, v2ex) so they accept the forms the old connectors accepted;
+// the step 10 migration it was first written for is gone (plan D10). legacy-time.fixtures.json holds golden's 61 cases.
 // Accepted: a date `YYYY-MM-DD`, `YYYYMMDD`, or ISO week `YYYY-Www[-D]` / `YYYYWww[D]`; then any one
 // character and a time `HH[:MM[:SS[(.|,|:)fraction]]]` (or basic `HHMMSS`), with an optional `Z` or
 // `±HH[:MM[:SS[.fraction]]]` offset. Fractions keep milliseconds (JavaScript Date).

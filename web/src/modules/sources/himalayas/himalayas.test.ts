@@ -9,7 +9,7 @@ import { HIMALAYAS_SETTINGS, himalayasConnector, normalize, readAll, searchUrl }
 import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
 
-// Plan step 5: golden's payloads and fetch scenarios (fixtures/cases.json, written by generate.ts
+// Plan step 5: golden's payloads and fetch scenarios (fixtures/cases.json, written by fixtures/generate.ts (deleted in step 5a2 with legacyToInput, D10; see it and its list of deliberate differences at 9a68d6b)
 // from legacyToInput of the old output) against the native connector.
 
 type NormalizeCase = { payload: unknown; expect: Record<string, unknown> | { error: true } | { field: string; value: unknown }; why?: string };

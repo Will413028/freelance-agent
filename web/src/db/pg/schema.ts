@@ -64,12 +64,12 @@ const deadlineChecks = (prefix: string, t: { deadlineKind: unknown; deadlineText
 ];
 
 export const listings = pgTable("listings", {
-  id: text("id").primaryKey(),
+  /** Surrogate key (plan D10); a listing's identity is (source, external_id). */
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   source: text("source").notNull(),
   externalId: text("external_id").notNull(),
   ...content(),
-  /** Null for rows carried over from the old system, which never recorded it. */
-  firstSeenAt: at("first_seen_at").defaultNow(),
+  firstSeenAt: at("first_seen_at").notNull().defaultNow(),
   updatedAt: at("updated_at").notNull().defaultNow(),
 }, (t) => [
   uniqueIndex("listings_source_external_id").on(t.source, t.externalId),
@@ -80,7 +80,7 @@ export const listings = pgTable("listings", {
 
 /** Contradicting contents of one mail listing (step-3-design.md core choice 4): the listing row stays as first written. */
 export const listingVersions = pgTable("listing_versions", {
-  listingId: text("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  listingId: integer("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
   ...content(),
   observedAt: at("observed_at").notNull().defaultNow(),
 }, (t) => [
@@ -92,7 +92,7 @@ export const listingVersions = pgTable("listing_versions", {
 
 /** Save/skip state; no row means neutral at revision 0. */
 export const listingFeedback = pgTable("listing_feedback", {
-  listingId: text("listing_id").primaryKey().references(() => listings.id, { onDelete: "cascade" }),
+  listingId: integer("listing_id").primaryKey().references(() => listings.id, { onDelete: "cascade" }),
   state: text("state", { enum: FEEDBACK_STATES }).notNull(),
   revision: integer("revision").notNull(),
   updatedAt: at("updated_at").notNull().defaultNow(),
@@ -103,7 +103,7 @@ export const listingFeedback = pgTable("listing_feedback", {
 
 export const listingFeedbackEvents = pgTable("listing_feedback_events", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  listingId: text("listing_id").notNull(),
+  listingId: integer("listing_id").notNull(),
   revision: integer("revision").notNull(),
   state: text("state", { enum: FEEDBACK_STATES }).notNull(),
   createdAt: at("created_at").notNull().defaultNow(),

@@ -12,7 +12,7 @@ import { HACKERNEWS_SETTINGS, V2EX_SETTINGS } from ".";
 import { hackernewsConnector, hnListing, parseV2ex, v2exConnector, v2exTopicId } from ".";
 
 // Plan step 5a: the golden comments, fetch scenarios and feeds (fixtures/cases.json, written by
-// generate.ts from legacyToInput of the old output) against the native connectors, then their own rules.
+// fixtures/generate.ts (deleted in step 5a2 with legacyToInput, D10; see it at 9a68d6b) from legacyToInput of the old output) against the native connectors, then their own rules.
 
 type Expected = { error: true } | { skip: true } | Record<string, unknown>;
 type Pages = Record<string, [number, string]>;
@@ -174,9 +174,11 @@ describe("v2ex", () => {
     }
   });
 
-  it("keeps the topic number as written, as the stored ids were made", () => {
+  it("reads the topic number with the standard URL parser: one id per topic, ASCII digits only", () => {
     expect(["https://www.v2ex.com/t/1?a=1", " https://www.v2ex.com/t/1", "HTTPS://www.v2ex.com/t/1", "https://WWW.v2ex.com/t/1", "https://www.v2ex.com:443/t/1"].map(v2exTopicId))
-      .toEqual(["1", "1", "1", null, null]);
+      .toEqual(["1", "1", "1", "1", "1"]);
+    expect(["https://www.v2ex.com/t/١٢٣", "http://www.v2ex.com/t/1", "https://v2ex.com/t/1", "https://a@www.v2ex.com/t/1", "https://www.v2ex.com/t/1/x"].map(v2exTopicId))
+      .toEqual([null, null, null, null, null]);
   });
 
   it("a post without body uses its title; unknown stays unknown; the same feed gives the same result", async () => {
