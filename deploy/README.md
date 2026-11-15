@@ -1,6 +1,6 @@
 # deploy — the self-hosted stack on the VM
 
-Plan: `docs/plans/2026-11-15-self-hosted-rebuild.md` (step 2 builds this walking skeleton; step 9 writes the full operations procedure).
+Plan: `docs/plans/2026-11-15-self-hosted-rebuild.md` (step 2 built the walking skeleton, step 3 the data model; step 9 writes the full operations procedure).
 Every deploy, scheduled job or new container on the VM needs Will's authorization first.
 
 - Checkout: `/opt/side-income` (a git clone of this repository).
@@ -23,7 +23,8 @@ compose up -d web
 compose ps
 ```
 
-Walking skeleton only (removed in step 3): `compose run --rm daily pnpm exec tsx scripts/seed-skeleton.ts` writes one synthetic listing shown at `/skeleton`.
+
+Before cutover (plan step 10) the migrations may be regenerated in place (`web/drizzle-pg/` squashed to one `0000_init.sql`, as in step 3a). The migrator then tries to re-run `0000` on the old database and stops at "already exists": the database holds only shadow data, so remove the `db` volume (`compose down -v`, with Will's go-ahead like every VM deploy) and run the steps above again.
 
 ## Tailscale Serve
 
@@ -37,6 +38,6 @@ Choose an HTTPS port no other service on the VM's Serve config uses (check `tail
 ## Checks
 
 - `compose ps`: `db` and `web` healthy (`web`'s healthcheck calls `/healthz`, which only checks Postgres).
-- From another tailnet machine: `curl -fsS https://<vm>.<tailnet>.ts.net:<port>/skeleton`.
+- From another tailnet machine: `curl -fsS https://<vm>.<tailnet>.ts.net:<port>/healthz`.
 - `ss -ltnp`: 3347 listens on 127.0.0.1 only.
 - The old pages (`/`, `/jobs`, `/sources`, `/settings`) still read D1 and fail on the VM, which has no D1 credentials; steps 3 and 6 replace them.

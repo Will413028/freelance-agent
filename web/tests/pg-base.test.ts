@@ -1,31 +1,22 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { renderToStaticMarkup } from "react-dom/server";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { latestListings, seedSkeleton, SKELETON_LISTING } from "@/services/skeleton";
-import { SkeletonList } from "@/app/_lib/skeleton";
 import { health } from "@/app/_lib/health";
 import { freshPg } from "./helpers/pg";
 
-// Plan step 2: the walking skeleton's path on Postgres (PGlite here, a real server in CI).
+// The Postgres base (plan steps 2 and 3a): migrations, run constraints and healthz, on PGlite here and a real server in CI.
 
 let db: PgDb, close: () => Promise<void>;
 beforeAll(async () => ({ db, close } = await freshPg()));
 afterAll(async () => close());
 
-describe("walking skeleton", () => {
-  it("migrations create the skeleton tables", async () => {
+describe("postgres base", () => {
+  it("migrations create the step 3 tables", async () => {
     // node-postgres and PGlite both return { rows }.
     const { rows } = (await db.execute(sql`select table_name from information_schema.tables where table_schema = 'public' order by 1`)) as unknown as { rows: { table_name: string }[] };
-    expect(rows.map((r) => r.table_name)).toEqual(["listings", "runs"]);
-  });
-
-  it("seeding twice leaves one listing, and the page shows it", async () => {
-    await seedSkeleton(db);
-    await seedSkeleton(db);
-    const listings = await latestListings(db);
-    expect(listings).toEqual([{ id: SKELETON_LISTING.id, source: "skeleton", title: SKELETON_LISTING.title, url: SKELETON_LISTING.url }]);
-    expect(renderToStaticMarkup(<SkeletonList listings={listings} />)).toContain(SKELETON_LISTING.title);
+    expect(rows.map((r) => r.table_name)).toEqual([
+      "listing_feedback", "listing_feedback_events", "listing_versions", "listings", "mail_cursors", "mail_messages", "run_sources", "runs", "settings",
+    ]);
   });
 
   it("runs refuses a status outside running, succeeded, failed", async () => {

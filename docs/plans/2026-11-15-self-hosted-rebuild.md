@@ -205,7 +205,7 @@
 |---|---|---|---|---|
 | 1 規則與 spike | 完成 | repo 改名 `side-income`（Will 2026-11-15 選定）；規則條目 diff；spike 1–4 各有指令與結論，第 2 節每個平台一列；VM 暫時資源查無 | spike 3 原始網址那一側（移到步驟 4、5 的驗收） | `832d183`、本 PR |
 | 2 Walking skeleton | 完成 | CI 全綠（`web`：`pnpm check` 含 PGlite 測試、真 Postgres 18 重跑、build；`image`：arm64 runner 建映像並以 runtime 使用者離線跑 pnpm）；mutation 4 個都被擋（compose 埠改 `0.0.0.0`、拿掉 seed 的衝突保護、拿掉 `runs.status` 的 CHECK、healthz 失敗回 200）；VM：`docker compose ps` 兩個 healthy、tailnet 內 `/skeleton` 200 含假職缺、`/healthz` 200、公網 3347／10443／443 逾時、`ss -ltnp` 只有 127.0.0.1:3347 與 tailscale0 介面、映像 `env` 與 `docker history` 無憑證；seed 跑兩次仍 1 列。測試 415→420 過（+5，無刪除） | 無 | `aa42857`（PR #15）、本 PR |
-| 3 新形狀 | 進行中 | 設計稿 design-review 兩輪：發現 10（blocking 0），改 7、記 1、交 Will 2（D6、D7）、駁回 0 | 3a–3d 未開工（Q1、Q2 已決為 D6、D7） | |
+| 3 新形狀 | 進行中（3a 完成） | 設計稿 design-review 兩輪：發現 10（blocking 0），改 7、記 1、交 Will 2（D6、D7）。3a：`pnpm check`、`pnpm build` 綠；`id.fixtures.json` 20 例全過；mutation 4 個都被擋（id 分隔字元、拿掉 `(source, external_id)` 唯一鍵、信件第二封改覆寫、截止日改回 UTC）；`/code-review` 發現 10（blocking 0）全改。測試 420→435 過（+16；刪 1：skeleton 的 seed／頁面案例，由 `listings.test.ts`「inserts, then leaves the same content unchanged」取代） | 3b、3c 未開工；3d 待 Will 授權（VM db volume 要重建） | 本 PR |
 | 4 第一個來源 | 未開始 | | | |
 | 5 其餘公開來源 | 未開始 | | | |
 | 6 每日執行 | 未開始 | | | |

@@ -90,6 +90,7 @@
 ## 子步驟（一個 session 做不完，拆成各有驗收的子步驟）
 
 - **3a 資料模型與收案核心**：schema 與 migration；`modules/listings/`（id 函式、fingerprint、`upsertListing` 一個交易內寫職缺／版本、評估欄位的寫入端計算）；`id.fixtures.json`。驗收：`pnpm check`；`id.fixtures.json` 全過；信件職缺先新後舊兩封：職缺列不變、版本多一列；一般來源 A→B→A 最後是 A（D6）；mutation（id 分隔字元、拿掉唯一鍵、信件第二封改成覆寫職缺列）各有測試失敗。
+  - 實作紀錄（2026-11-15）：`web/drizzle-pg/` 重新產生成單一 `0000_init.sql`（切換前可重建，計畫全域約束）；VM 上步驟 2 的庫有舊 `0000` 的紀錄，3d 部署時要整個重建 db volume，不是跑 migration。walking skeleton 的 `/skeleton` 頁、`seed-skeleton.ts` 與 `services/skeleton.ts` 提前在 3a 刪除（新 `listings` 欄位讓 skeleton 的寫入不成立）；它唯一的測試案例（seed 兩次仍一列並顯示在頁面）由 `listings.test.ts`「inserts, then leaves the same content unchanged」取代，其餘案例留在 `tests/pg-base.test.ts`。評估事實放 `web/src/modules/evaluation/facts.ts`（3b 在同一模組加評估與排序）。
 - **3b 評估與排序**：`modules/evaluation/`（原生型別的 evaluate、排序、清單查詢）；golden 的 `evaluate` 492 例與 `recommendation` 198 例轉成原生 fixture（拿掉 `portfolio_ids` 與群組欄）；先量「讀 3,500 列加 TS 全量排序」（核心選擇 1），依結果二選一：≤ 250 ms 只留 TS 排序、SQL 只撈列；否則採 SQL 算式並加 TS 與 SQL 同 fixture 一致的測試。截止日改台北日界線（D7），受影響的 fixture 預期逐筆記下。驗收：量測數字寫回核心選擇 1；fixture 全過；B1 回歸測試；mutation：把版本取最高分或候選條件改掉要有測試失敗。
 - **3c 頁面與寫入路由**：四個頁面、回饋與設定路由改讀寫新表；刪 `app/skeleton/`、`seed-skeleton.ts`；`web-pages`、`web-guard` 測試改對 PGlite（每個原案例都有對應，D1 專屬的用量記錄與儲存訊號兩案例刪除並記下）。驗收：`pnpm check`；mutation：過期 revision 檢查、同站來源檢查各拿掉要有測試失敗。
 - **3d VM 驗收**（部署點，要 Will 授權）：灌 3,500 筆合成職缺，清單頁伺服器端 20 次中位數 ≤ 500 ms；經 Tailscale Serve 送一次回饋與一次設定儲存都成功。
