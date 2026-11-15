@@ -1,6 +1,6 @@
 import type { View } from "@/modules/evaluation/public";
-import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView } from "@/services/pages";
-import { LIST_BUDGET_MS } from "@/services/pages";
+import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView, StaleRun } from "@/services/pages";
+import { LIST_BUDGET_MS, STALE_RUN_HOURS } from "@/services/pages";
 import { NOTICES, type Notice } from "./writes";
 
 // The pages' markup (plan step 11), synchronous and props-only so tests can render it with
@@ -63,6 +63,14 @@ export function NoticeLine({ notice }: { notice: string | undefined }) {
 }
 
 const pageHref = (view: View, page: number) => `/?view=${view}${page > 1 ? `&page=${page}` : ""}`;
+
+/** Plan step 6b: one line when no source has been read successfully for over STALE_RUN_HOURS. */
+export function StaleLine({ stale }: { stale: StaleRun }) {
+  if (!stale) return null;
+  return <p role="status" className="notice">{stale.lastSuccessAt
+    ? `每日收案最近一次成功讀取來源已超過 ${STALE_RUN_HOURS} 小時（${taipei(stale.lastSuccessAt)}），排程可能停了。`
+    : "每日收案還沒有成功讀取過任何來源，清單可能是空的或過時。"}</p>;
+}
 
 export function JobList({ data }: { data: ListView }) {
   return <>
@@ -183,6 +191,7 @@ function countsLine(c: Record<string, Plain>) {
 export function SourcesTable({ data }: { data: SourcesView }) {
   const run = data.lastRun;
   return <>
+    <StaleLine stale={data.stale} />
     <h1>來源狀態</h1>
     <section className="schedule" aria-label="最近一次每日收案">
       <span className="eyebrow">最近一次每日收案</span>

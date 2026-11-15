@@ -25,7 +25,7 @@ describe("sources page", () => {
     const latest = await run("2026-11-16", "failed", { reason: "one_or_more_sources_failed", counts: { pruned: 4, listMs: 80 }, finishedAt: new Date("2026-11-16T06:05:00Z") });
     await db.insert(runSources).values({ runId: latest, source: "remotive", status: "failed", reason: "http_status", error: "FetchError: 503", counts: { attempts: 3 } });
     await db.insert(runSources).values({ runId: latest, source: "arbeitnow", status: "ok", counts: { seen: 4210, rejected: 2, truncated: true, attempts: 2 } });
-    const view = await sourcesPage(db);
+    const view = await sourcesPage(db, new Date());
     expect(view.lastRun).toMatchObject({ localDate: "2026-11-16", status: "failed", pruned: 4, listMs: 80, listSlow: false });
     const by = Object.fromEntries(view.sources.map((s) => [s.source, s.latest]));
     expect(by.jobicy).toMatchObject({ localDate: "2026-11-15", status: "ok" });
@@ -42,9 +42,9 @@ describe("sources page", () => {
   });
 
   it("flags a run whose list query took longer than the budget, and says when there is no run", async () => {
-    expect(renderToStaticMarkup(<SourcesTable data={await sourcesPage(db)} />)).toContain("尚無每日執行紀錄");
+    expect(renderToStaticMarkup(<SourcesTable data={await sourcesPage(db, new Date())} />)).toContain("尚無每日執行紀錄");
     await run("2026-11-16", "running", { counts: { listMs: 400 } });
-    const view = await sourcesPage(db);
+    const view = await sourcesPage(db, new Date());
     expect(view.lastRun).toMatchObject({ listSlow: true });
     const html = renderToStaticMarkup(<SourcesTable data={view} />);
     expect(html).toContain("清單頁查詢 400 ms，超過 250 ms 上限");

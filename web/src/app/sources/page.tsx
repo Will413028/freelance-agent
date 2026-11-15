@@ -7,5 +7,5 @@ export const dynamic = "force-dynamic";
 
 /** Source health and the latest daily run, from runs and run_sources (plan step 6). */
 export default async function Page() {
-  return <Shell active="sources"><SourcesTable data={await withPageLog("/sources", () => sourcesPage(getPgDb()))} /></Shell>;
+  return <Shell active="sources"><SourcesTable data={await withPageLog("/sources", () => sourcesPage(getPgDb(), new Date()))} /></Shell>;
 }
