@@ -153,6 +153,9 @@ describe("arbeitnow connector", () => {
       expect(() => normalize(job({ url }))).toThrow(/canonical URL/);
     }
     expect(normalize(job({ url: "https://www.arbeitnow.fr/jobs/companies/acme/ai-agent-123/?utm=x#y" })).url).toBe("https://www.arbeitnow.fr/jobs/companies/acme/ai-agent-123/");
+    // The board's newer host (seen on the real API 2026-11-15); the id stays the slug.
+    expect(normalize(job({ url: "https://www.arbeitnow.nl/jobs/companies/acme/ai-agent-123" }))).toMatchObject({ external_id: "ai-agent-123", url: "https://www.arbeitnow.nl/jobs/companies/acme/ai-agent-123" });
+    expect(() => normalize(job({ url: "https://www.arbeitnow.de/jobs/companies/acme/ai-agent-123" }))).toThrow(/canonical URL/);
   });
 
   it("keeps unknown eligibility, hours and budget unknown; remote is no Taiwan eligibility; a bad location is unknown", () => {
