@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseIsoTime } from "./time";
-import fixtures from "./time.fixtures.json";
+import { parseIsoTime } from "./legacy-time";
+import fixtures from "./legacy-time.fixtures.json";
 
-// Plan step 3b: the native ISO parser against Python's fromisoformat cases (time.fixtures.json).
+// Plans steps 3b, 3b2: the legacy ISO parser against Python's fromisoformat cases (legacy-time.fixtures.json).
 
 const shown = (text: string) => {
   const p = parseIsoTime(text);

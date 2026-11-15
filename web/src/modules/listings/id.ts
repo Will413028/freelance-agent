@@ -16,21 +16,22 @@ export function listingId(source: string, externalId: string): string {
   return createHash("sha256").update(`[${JSON.stringify(source)}, ${JSON.stringify(externalId)}]`, "utf8").digest("hex");
 }
 
-/** Fields that describe an observation, not the content: they never change the fingerprint. */
-const OBSERVATION_FIELDS = new Set(["received_at", "receipt_id", "evidence_ref", "raw_evidence_ref"]);
-
 /** JSON with object keys sorted at every depth, so equal content gives equal text. */
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value !== null && typeof value === "object") {
-    const keys = Object.keys(value).filter((k) => (value as Record<string, unknown>)[k] !== undefined).sort();
+    // Absent, undefined and null are one unknown, so a field added to the contract later changes no fingerprint.
+    const keys = Object.keys(value).filter((k) => (value as Record<string, unknown>)[k] != null).sort();
     return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`).join(",")}}`;
   }
   return JSON.stringify(value) ?? "null";
 }
 
-/** The content identity of a listing: whether a source now says something different (step-3-design.md core choice 3). */
-export function fingerprint(job: Readonly<Record<string, unknown>>): string {
-  const content = Object.fromEntries(Object.entries(job).filter(([k]) => !OBSERVATION_FIELDS.has(k)));
+/**
+ * The content identity of a listing (step-3-design.md core choice 3, plan D8): sha256 of the parsed
+ * contract without `extra`, so only what is shown or evaluated makes a new content.
+ */
+export function fingerprint(input: Readonly<Record<string, unknown>>): string {
+  const { extra: _, ...content } = input;
   return createHash("sha256").update(canonical(content), "utf8").digest("hex");
 }

@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { fingerprint, intakeListings, listingBy, listingId, versionCount } from "@/modules/listings/public";
+import { fingerprint, intakeListings, listingBy, listingId, listingOf, listingOfRow, parseListingInput, versionCount } from "@/modules/listings/public";
 import fixtures from "./id.fixtures.json";
 import { freshPg } from "../../../tests/helpers/pg";
 
-// Plan step 3a: the listing data model and intake core on Postgres (PGlite here, a real server in CI).
+// Plan steps 3a, 3b2: the listing data model and intake core on Postgres (PGlite here, a real server in CI).
 
 let db: PgDb, close: () => Promise<void>;
 beforeAll(async () => ({ db, close } = await freshPg()));
@@ -13,7 +13,7 @@ afterAll(async () => close());
 beforeEach(async () => db.execute(sql`truncate listings cascade`));
 
 const job = (externalId: string, extra: Record<string, unknown> = {}) => ({
-  source: "jobicy", external_id: externalId, title: "Backend API contractor", description: "Build an LLM automation backend",
+  external_id: externalId, title: "Backend API contractor", description: "Build an LLM automation backend",
   url: `https://example.com/jobs/${externalId}`, kind: "contract", ...extra,
 });
 
@@ -30,10 +30,17 @@ describe("listing id", () => {
 });
 
 describe("fingerprint", () => {
-  it("ignores key order and observation fields, sees content changes", () => {
+  it("ignores key order and extra, sees content changes", () => {
     expect(fingerprint({ a: 1, b: { c: 2, d: 3 } })).toBe(fingerprint({ b: { d: 3, c: 2 }, a: 1 }));
-    expect(fingerprint({ a: 1, received_at: "x", receipt_id: "r" })).toBe(fingerprint({ a: 1 }));
+    expect(fingerprint({ a: 1, extra: { received_at: "x" } })).toBe(fingerprint({ a: 1, extra: {} }));
+    // A field added to the contract later (null for every existing listing) changes no fingerprint.
+    expect(fingerprint({ a: 1, added: null })).toBe(fingerprint({ a: 1 }));
     expect(fingerprint({ a: 1 })).not.toBe(fingerprint({ a: 2 }));
+  });
+
+  it("is the same for a listing written with or without its defaulted fields (computed on the parsed contract)", async () => {
+    await intakeListings(db, "jobicy", [job("1")], "page");
+    expect(await intakeListings(db, "jobicy", [{ ...job("1"), company: null, deadline: null, extra: {} }], "page")).toMatchObject({ unchanged: 1 });
   });
 });
 
@@ -42,7 +49,7 @@ describe("intake", () => {
     expect(await intakeListings(db, "jobicy", [job("1"), job("2")], "page")).toMatchObject({ inserted: 2 });
     const first = await listingBy(db, "jobicy", "1");
     expect(first).toMatchObject({ id: listingId("jobicy", "1"), title: "Backend API contractor", taiwanEligible: null, categoryScore: 85 });
-    expect(await intakeListings(db, "jobicy", [job("1", { received_at: "later" })], "page")).toMatchObject({ unchanged: 1 });
+    expect(await intakeListings(db, "jobicy", [job("1", { extra: { received_at: "later" } })], "page")).toMatchObject({ unchanged: 1 });
     expect((await listingBy(db, "jobicy", "1"))!.firstSeenAt).toEqual(first!.firstSeenAt);
   });
 
@@ -56,14 +63,14 @@ describe("intake", () => {
   });
 
   it("a mail listing keeps its first content; a later older mail adds a version, not an overwrite", async () => {
-    const mail = (title: string, receivedAt: string) => ({ ...job("m1", { title, received_at: receivedAt }), source: "tasker" });
-    await intakeListings(db, "tasker", [mail("Newer content", "2026-11-10T00:00:00Z")], "mail");
-    expect(await intakeListings(db, "tasker", [mail("Older content", "2026-11-01T00:00:00Z")], "mail")).toMatchObject({ versioned: 1 });
+    const mail = (title: string) => job("m1", { title });
+    await intakeListings(db, "tasker", [mail("Newer content")], "mail", new Date("2026-11-10T00:00:00Z"));
+    expect(await intakeListings(db, "tasker", [mail("Older content")], "mail", new Date("2026-11-11T00:00:00Z"))).toMatchObject({ versioned: 1 });
     const row = (await listingBy(db, "tasker", "m1"))!;
     expect(row.title).toBe("Newer content");
     expect(await versionCount(db, row.id)).toBe(2);
     // The same contradicting mail again adds nothing and is counted unchanged.
-    expect(await intakeListings(db, "tasker", [mail("Older content", "2026-11-02T00:00:00Z")], "mail")).toMatchObject({ versioned: 0, unchanged: 1 });
+    expect(await intakeListings(db, "tasker", [mail("Older content")], "mail", new Date("2026-11-12T00:00:00Z"))).toMatchObject({ versioned: 0, unchanged: 1 });
     expect(await versionCount(db, row.id)).toBe(2);
     // The first content's version keeps when it was seen and the row's fingerprint.
     const versions = await db.execute(sql`select fingerprint, observed_at from listing_versions where listing_id = ${row.id} order by observed_at`) as unknown as { rows: { fingerprint: string; observed_at: Date | string }[] };
@@ -74,6 +81,7 @@ describe("intake", () => {
   it("refuses a batch naming one external_id twice, and writes nothing of a failing batch", async () => {
     await expect(intakeListings(db, "jobicy", [job("1"), job("1")], "page")).rejects.toThrow(/twice/);
     await expect(intakeListings(db, "jobicy", [job("2"), job("3", { title: "" })], "page")).rejects.toThrow(/title/);
+    await expect(intakeListings(db, "jobicy", [job("2"), job("4", { deadline: "2026-12-01" })], "page")).rejects.toThrow(/deadline/);
     expect(await listingBy(db, "jobicy", "2")).toBeNull();
   });
 
@@ -83,6 +91,17 @@ describe("intake", () => {
     expect(row).toMatchObject({ title: "ab", description: "x\ufffdy" });
     expect(await intakeListings(db, "jobicy", [job("1", { title: "a\u0000b", description: "x\ud800y" })], "page")).toMatchObject({ unchanged: 1 });
     expect(fingerprint(row.raw as Record<string, unknown>)).toBe(row.fingerprint);
+  });
+
+  it("stores the deadline as kind, text and expiry, and reads a row back to the same typed listing", async () => {
+    const deadlines = [{ kind: "date", date: "2026-12-01" }, { kind: "instant", at: "2026-12-01T18:00:00+08:00" }, { kind: "no_timezone", text: "2026-12-01 10:00" }, { kind: "invalid", text: "soon" }, null];
+    await intakeListings(db, "jobicy", deadlines.map((deadline, i) => job(String(i), { deadline, published_at: "2026-11-01T00:00:00Z" })), "page");
+    for (const [i, deadline] of deadlines.entries()) {
+      const row = (await listingBy(db, "jobicy", String(i)))!;
+      expect(listingOfRow(row)).toEqual(listingOf(parseListingInput(job(String(i), { deadline, published_at: "2026-11-01T00:00:00Z" }))));
+    }
+    expect(await listingBy(db, "jobicy", "0")).toMatchObject({ deadlineKind: "date", deadlineText: "2026-12-01", deadlineAt: new Date("2026-12-01T16:00:00Z") });
+    expect(await listingBy(db, "jobicy", "3")).toMatchObject({ deadlineKind: "invalid", deadlineText: "soon", deadlineAt: null });
   });
 
   it("first_seen_at and updated_at both come from the observation time", async () => {
