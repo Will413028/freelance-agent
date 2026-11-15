@@ -1,4 +1,4 @@
-import { and, lt, notExists, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, notExists, sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { listingFeedback, listings } from "@/db/pg/schema";
 
@@ -19,9 +19,13 @@ const DAY_MS = 86_400_000;
 export async function pruneListings(db: PgDb, now = new Date(), days = RETENTION_DAYS): Promise<number> {
   if (!Number.isSafeInteger(days) || days < 1) throw new RangeError(`days must be a whole number from 1, not ${days}`);
   const cutoff = new Date(now.getTime() - days * DAY_MS);
-  const gone = await db.delete(listings).where(and(
+  // The candidates are locked first and skipped when locked: setFeedback holds the listing row FOR UPDATE
+  // while it writes feedback, and a DELETE that waited on that lock would not recheck NOT EXISTS (the row
+  // was only locked, not updated) and would delete the new save. A skipped row goes on a later run.
+  const doomed = db.select({ id: listings.id }).from(listings).where(and(
     lt(listings.lastSeenAt, cutoff),
-    notExists(db.select({ one: sql`1` }).from(listingFeedback).where(sql`${listingFeedback.listingId} = ${listings.id}`)),
-  )).returning({ id: listings.id });
+    notExists(db.select({ one: sql`1` }).from(listingFeedback).where(eq(listingFeedback.listingId, listings.id))),
+  )).for("update", { skipLocked: true });
+  const gone = await db.delete(listings).where(inArray(listings.id, doomed)).returning({ id: listings.id });
   return gone.length;
 }
