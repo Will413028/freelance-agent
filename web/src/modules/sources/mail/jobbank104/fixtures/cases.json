@@ -1,0 +1,918 @@
+[
+ {
+  "name": "golden 0",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 1",
+  "message": {
+   "sender": "imposter@104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_unsupported"
+  }
+ },
+ {
+  "name": "golden 2",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "104_unsupported"
+  }
+ },
+ {
+  "name": "golden 3",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "驗證通知",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_unsupported"
+  }
+ },
+ {
+  "name": "golden 4 (ENVELOPE: received_at without a time is checked by readMessage (bad_received_at, message.test.ts), not by the parser)",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 5",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺2筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_incomplete_digest"
+  }
+ },
+ {
+  "name": "golden 6",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>新版格式</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_incomplete_digest"
+  }
+ },
+ {
+  "name": "golden 7",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://evil.test/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://evil.test/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_unsupported_job_link"
+  }
+ },
+ {
+  "name": "golden 8",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"http://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"http://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_invalid_card"
+  }
+ },
+ {
+  "name": "golden 9",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">未完整</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">未完整</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_incomplete_digest"
+  }
+ },
+ {
+  "name": "golden 10",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺2筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_duplicate_card"
+  }
+ },
+ {
+  "name": "golden 11",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<p>私人稱呼</p><a href=\"https://www.104.com.tw/job/abc123?tracking=other\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/recommend?tracking=other\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 12",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "x09/26的配對日報，符合職缺2筆",
+   "body": "<a href=\"https://www.104.com.tw/job/a1?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><a href=\"https://www.104.com.tw/job/b2?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "a1",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/a1",
+     "canonical_url": "https://www.104.com.tw/job/a1",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    },
+    {
+     "external_id": "b2",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/b2",
+     "canonical_url": "https://www.104.com.tw/job/b2",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 13",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "x09/26的配對日報，符合職缺2筆",
+   "body": "<a href=\"https://www.104.com.tw/job/a1?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><a href=\"https://www.104.com.tw/job/a1?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_duplicate_card"
+  }
+ },
+ {
+  "name": "golden 14",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_invalid_card"
+  }
+ },
+ {
+  "name": "golden 15",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_invalid_card"
+  }
+ },
+ {
+  "name": "golden 16",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/c1\">A</a><a href=\"https://www.104.com.tw/company/c2\">B</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_ambiguous_company"
+  }
+ },
+ {
+  "name": "golden 17",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\"></a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_unsupported_job_link"
+  }
+ },
+ {
+  "name": "golden 18",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">全職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "全職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 19",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">Part-time Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "Part-time Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 20",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">接案 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "接案 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 21",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">Contract Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "Contract Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 22",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 23",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/ABC123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_incomplete_digest"
+  }
+ },
+ {
+  "name": "golden 24",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123/?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_incomplete_digest"
+  }
+ },
+ {
+  "name": "golden 25",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\"><b>兼職</b> Backend <i>API</i></a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 26",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>  台北市   | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市   | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 27",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\"><a>兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_nested_link"
+  }
+ },
+ {
+  "name": "golden 28",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://www.104.com.tw/job/zz9\">兼職</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 29",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><a href=\"https://[bad\">x</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_invalid_link"
+  }
+ },
+ {
+  "name": "golden 30",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"https://[bad\">x</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_invalid_link"
+  }
+ },
+ {
+  "name": "golden 31",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href>x</a><a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 32 (ACCEPTED: an unclosed link at the very end is closed by the HTML parser; the card count still guards a cut-off digest)",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2><a href=\"x\">unclosed",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 33",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\"> 我要應徵 </a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 34 (REFUSED: a fullwidth digit in the subject count: JavaScript \\d is ASCII; 104 writes ASCII digits)",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺０1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_unsupported"
+  }
+ },
+ {
+  "name": "golden 35",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺01筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 36",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺0筆",
+   "body": "<h2>適合你大展身手的工作</h2>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_incomplete_digest"
+  }
+ },
+ {
+  "name": "golden 37",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><p>適合你大展身手的工作</p>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 38",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><p> 適合你大展身手的工作 </p>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abc123",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "台北市 | 經歷不拘\nAPI 開發需求摘要...\n時薪300元以上",
+     "url": "https://www.104.com.tw/job/abc123",
+     "canonical_url": "https://www.104.com.tw/job/abc123",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {}
+    }
+   ]
+  }
+ },
+ {
+  "name": "golden 39",
+  "message": {
+   "sender": "jobbank@ms1.104.com.tw",
+   "subject": "測試09/26的配對日報，符合職缺1筆",
+   "body": "<a href=\"https://www.104.com.tw/job/abc123?tracking=private\">兼職 Backend API 工程師</a><a href=\"https://www.104.com.tw/company/company1\">Example</a><p>台北市 | 經歷不拘</p><p>API 開發需求摘要...</p><p>時薪300元以上</p><a href=\"https://104app.onelink.me/zB8j/apply?private=token\">我要應徵</a><a href=\"x\">適合你大展身手的工作</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "104_incomplete_digest"
+  }
+ }
+]

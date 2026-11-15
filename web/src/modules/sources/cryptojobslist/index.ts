@@ -6,7 +6,7 @@ import { setAside } from "../shared/set-aside";
 import { pubDateInstant } from "../shared/time";
 
 export { pubDateInstant };
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { childText, children, parseXml, type XmlElement } from "../shared/xml-feed";
 
 // CryptoJobsList: the official advertised RSS feed, without API keys or account access (old
@@ -23,7 +23,7 @@ const LIMIT = 2_000_000;
 const MEDIA = "{http://search.yahoo.com/mrss/}";
 
 /** Old cryptojobslist.ts:117 sends one GET per run. */
-export const CRYPTOJOBSLIST_SETTINGS: Omit<SourceSettings, "order"> = {
+export const CRYPTOJOBSLIST_SETTINGS: Omit<PageSourceSettings, "order"> = {
   name: "cryptojobslist", connector: cryptojobslistConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 

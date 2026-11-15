@@ -1,34 +1,20 @@
 import type { PgDb } from "@/db/pg/client";
-import { CATEGORIES } from "@/db/pg/schema";
-import { evaluate, type Settings } from "@/modules/evaluation/public";
-import { intakeListings, listingOf, type IntakeCounts, type ListingInput } from "@/modules/listings/public";
+import { intakeListings } from "@/modules/listings/public";
 import { SourceError, sourceSettings, type SourceSettings } from "@/modules/sources/public";
 import { createFetcher, type Fetcher } from "@/platform/fetch";
+import { collectMail, type MailEnv } from "./collect-mail";
+import { screen, type SourceRun } from "./source-run";
+
+export { INTAKE_SETTINGS, screen, type SourceRun } from "./source-run";
 
 // One source, once: read through its fetcher and write every listing read, each marked with the source's
 // own rule (plan D9; the listing query picks). The daily run of step 6 calls this per source and records run_sources.
 
-/**
- * Intake screening with no personal limits (old qualifyForIntake): only a reason that no setting can
- * undo. Since plan D9 it drops nothing from storage; it gives SourceRun.jobs the old meaning, for the
- * comparisons with production, while the listing query reads the stored hard_excluded.
- */
-export const INTAKE_SETTINGS: Settings = { maxWeeklyHours: null, minFixedTwd: 0, categories: CATEGORIES };
-
-export const screen = (listings: readonly ListingInput[], now: Date) =>
-  listings.filter((l) => evaluate(listingOf(l), INTAKE_SETTINGS, now).status !== "excluded");
-
-/**
- * `truncated`: the source stopped at its read cap (old partial); `rejected`: listings the connector set aside,
- * out of `examined` entries checked. Step 6 records both (a run is partial when `truncated || rejected > 0`).
- * `stored`: every listing written (plan D9: all of them); `jobs`: the ones the source's rule keeps and intake
- * screening allows, the old count the step 4/5 comparisons with production use. `externalIds`: the stored ones; `jobIds`: the ones counted in `jobs`.
- */
-export type SourceRun = { source: string; seen: number; stored: number; jobs: number; jobIds: string[]; requests: number; intake: IntakeCounts; externalIds: string[]; truncated: boolean; rejected: number; examined: number };
-
-export async function collectSource(db: PgDb, source: string | SourceSettings, now = new Date(), fetcher?: Fetcher): Promise<SourceRun> {
+/** `mailEnv`: the Resend key and inbox for a mail source (default: RESEND_API_KEY, RESEND_INBOX). */
+export async function collectSource(db: PgDb, source: string | SourceSettings, now = new Date(), fetcher?: Fetcher, mailEnv?: MailEnv): Promise<SourceRun> {
   const s = typeof source === "string" ? sourceSettings(source) : source;
   if (s.disabled) throw new Error(`${s.name} is disabled: ${s.disabled}`);
+  if (s.kind === "mail") return collectMail(db, s, now, { fetcher, env: mailEnv });
   const f = fetcher ?? createFetcher(s);
   const collected = await s.connector(f, now);
   const rejected = collected.rejected ?? 0;

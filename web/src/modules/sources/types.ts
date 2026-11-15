@@ -39,12 +39,13 @@ export type Collected = {
 
 export type Connector = (fetcher: Fetcher, now: Date) => Promise<Collected>;
 
-/** A source as configured (plan step 4, inventory: one entry per source). */
-export type SourceSettings = FetchPolicy & {
+/** One notification as a mail parser reads it. Never logged or stored: only the listings it yields are. */
+export type MailMessage = { id: string; sender: string; subject: string; body: string; isHtml: boolean; receivedAt: string };
+
+type BaseSettings = FetchPolicy & {
   name: string;
   /** Order in the daily run. */
   order: number;
-  connector: Connector;
   /**
    * One successful, untruncated read shows every listing the source has (plan D9): a stored listing such
    * a read no longer shows gets gone_at. False for sources read through searches, latest-N feeds or
@@ -54,6 +55,28 @@ export type SourceSettings = FetchPolicy & {
   /** Set when the source has a lasting block; the daily run skips it. */
   disabled: string | null;
 };
+
+/** A source read from public pages (plan step 4, inventory: one entry per source). */
+export type PageSourceSettings = BaseSettings & { kind?: "page"; connector: Connector };
+
+/**
+ * A source read from notifications in the Resend inbox (plan step 7): the inbox list is filtered by
+ * the one sender address and the subject gate, each new message is parsed on its own and written in
+ * its own transaction, and mail_messages records it once (services/collect-mail). Mail has no
+ * current state, so completeRead is always false and a contradicting content becomes a version.
+ */
+export type MailSourceSettings = BaseSettings & {
+  kind: "mail";
+  sender: string;
+  subjectGate: (subject: string) => boolean;
+  /** The listings of one message; throws MailRejection naming the check that failed. */
+  parse: (message: MailMessage) => ListingInput[];
+  /** Read only the text part (a parser of plain-text notifications). */
+  preferText: boolean;
+  completeRead: false;
+};
+
+export type SourceSettings = PageSourceSettings | MailSourceSettings;
 
 /** Why a source run failed, for the source's run row: a read failure kind, or a payload the connector refused. */
 export type SourceErrorKind = FetchErrorKind | "bad_payload";

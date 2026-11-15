@@ -1,7 +1,7 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { parseXml } from "./xml";
 
 // TaiwanJobs: the official open-data XML of the latest 1000 updated listings; no login, no
@@ -186,6 +186,6 @@ export async function taiwanjobsConnector(fetcher: Fetcher, now: Date): Promise<
 }
 
 /** One request per run (old taiwanjobs.ts:150, a single GET of ENDPOINT). */
-export const TAIWANJOBS_SETTINGS: Omit<SourceSettings, "order"> = {
+export const TAIWANJOBS_SETTINGS: Omit<PageSourceSettings, "order"> = {
   name: "taiwanjobs", connector: taiwanjobsConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

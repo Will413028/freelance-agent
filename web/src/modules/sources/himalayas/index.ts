@@ -3,7 +3,7 @@ import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modu
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Himalayas: the public search API, 4 fixed queries x 2 employment types, first page each (old
 // collection/himalayas.py, web/src/modules/collection/sources/himalayas.ts until step 11). A listing
@@ -180,7 +180,7 @@ export async function himalayasConnector(fetcher: Fetcher): Promise<Collected> {
   return { seen: all.length, listings: all, sourceKept: (l) => l.kind === "contract", rejected, examined };
 }
 
-export const HIMALAYAS_SETTINGS: Omit<SourceSettings, "order"> = {
+export const HIMALAYAS_SETTINGS: Omit<PageSourceSettings, "order"> = {
   name: "himalayas", connector: himalayasConnector, maxTier: "plain",
   // Old: 600 ms between searches (collection/sources/himalayas.ts:116), raised to the 1 s floor.
   minIntervalMs: 1000,

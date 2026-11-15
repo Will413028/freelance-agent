@@ -2,7 +2,7 @@ import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modu
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { childText, children, parseXml } from "../shared/xml-feed";
 
 // Public community hiring leads: Hacker News "Who is hiring?" and "Freelancer?" threads, and V2EX's
@@ -31,11 +31,11 @@ const HEADERS = { "User-Agent": "side-income/0.1 personal-job-discovery" };
 /** Neither board has a per-listing rule of its own: every listing read passes it. */
 const keepAll = () => true;
 
-export const HACKERNEWS_SETTINGS: Omit<SourceSettings, "order"> = {
+export const HACKERNEWS_SETTINGS: Omit<PageSourceSettings, "order"> = {
   name: "hackernews", connector: hackernewsConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + 6 + 2 * 100, completeRead: false, disabled: null,
 };
 /** Old community-jobs.ts:140: one feed request. */
-export const V2EX_SETTINGS: Omit<SourceSettings, "order"> = {
+export const V2EX_SETTINGS: Omit<PageSourceSettings, "order"> = {
   name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 

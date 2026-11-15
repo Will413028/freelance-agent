@@ -97,9 +97,10 @@ describe("read_notification", () => {
       expect(() => assertReceivingUrl(bad), bad).toThrow("Refused Resend request");
     }
   });
+  // Plus the new system's one client (plan step 7a) until this old one is deleted in step 11.
   it("is the only product module in web/src that names the Resend API", () => {
     const files = execSync("grep -rl --exclude='*.test.ts' 'resend.com' src", { cwd: path.resolve(import.meta.dirname, "../../../..") }).toString().trim().split("\n");
-    expect(files).toEqual(["src/modules/collection/mail/receiving.ts"]);
+    expect(files.sort()).toEqual(["src/modules/collection/mail/receiving.ts", "src/modules/sources/mail/receiving.ts"]);
   });
   it("fails a response past 2 MB at fetch", async () => {
     const big = new Uint8Array(MAX_BYTES + 1).fill(0x20);
