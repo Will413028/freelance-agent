@@ -1,0 +1,105 @@
+{
+  "comment": "Synthetic (source, external_id) pairs; id expected values produced by the old opportunityId (web/src/modules/collection/ingest.ts, commit 615f485). Never regenerate.",
+  "cases": [
+    {
+      "source": "jobicy",
+      "external_id": "12345",
+      "id": "b4425134987136f3526e4034be2df9417a9afb67f4b6e68d22d08539e68ae228"
+    },
+    {
+      "source": "remotive",
+      "external_id": "remote-dev-777",
+      "id": "5846ab4f28d5901a7561a6677ead5e3de1bfe152e7826806d33dfde10aaf6299"
+    },
+    {
+      "source": "ptt_soho",
+      "external_id": "M.1731600000.A.1B2",
+      "id": "f36c23bc7a231eb4ff858db01b664b46b91a4a1941fd30a564775033827fe645"
+    },
+    {
+      "source": "tasker",
+      "external_id": "案件-台北-網站",
+      "id": "bc2f48fd3cc8615fafaf4521896798ff63292d81cfa3dc3ccef98993a5bdfec0"
+    },
+    {
+      "source": "v2ex",
+      "external_id": "日本語のテキスト",
+      "id": "963c21f25d066798fa7c915e2eeba2ee9d62ef3873f016eaefd494c3045ea449"
+    },
+    {
+      "source": "linkedin",
+      "external_id": "Ünïcödé café",
+      "id": "faf4637790c1ac616c81794dddaf581d8a6f1c45b1fff6d159dd0d147f403332"
+    },
+    {
+      "source": "hackernews",
+      "external_id": "emoji 🚀 job",
+      "id": "7c2a28762e5ce11f799dd2fba094d8331d7d265fbe63d8fdcc6679617dcbbf7d"
+    },
+    {
+      "source": "freelancer",
+      "external_id": "quote\"inside",
+      "id": "323470b9a81a16e0f92ee74d01d76a8434568d2f3379f14bde02132c521bc81a"
+    },
+    {
+      "source": "himalayas",
+      "external_id": "back\\slash",
+      "id": "7899c6c43e3dee5247022c336051222baddeca0107b33efd93c6a3906047dbfc"
+    },
+    {
+      "source": "cake",
+      "external_id": "tab\there",
+      "id": "515125f302eae8cb5ae890a455826096c05fa455fd0b94850d2bcf504681b6e1"
+    },
+    {
+      "source": "glassdoor",
+      "external_id": "new\nline",
+      "id": "e33343b299964128015240f1525c6cb8a29047d5f5db1fc713803fef8eb0a71b"
+    },
+    {
+      "source": "arbeitnow",
+      "external_id": "ctrl\u0001\u001f",
+      "id": "7415699ac9e9cfb0c6bd50e450a04be9627d0604c2f950c53bff1282476daf8a"
+    },
+    {
+      "source": "remoteok",
+      "external_id": "slash/and?query=1&x=2",
+      "id": "a712a7f7169201ee0cc176649cb6675615721eb3ef95d825be9e443e848d37be"
+    },
+    {
+      "source": "nodesk",
+      "external_id": "https://nodesk.co/remote-jobs/x/",
+      "id": "f96dc95951eefbc3ec610c3859815abd2225ead7a564e40483e30ec425706899"
+    },
+    {
+      "source": "jobbank104",
+      "external_id": "delchar",
+      "id": "a44320742f27c8869018f72e5a7f077ab2db51116ab7557ed280c0d27d5430ea"
+    },
+    {
+      "source": "talent",
+      "external_id": " line-sep ",
+      "id": "235e6bee2d3cff179693ad2f2c51f10db451f34f06f26aaa3bf214c555181275"
+    },
+    {
+      "source": "weworkremotely",
+      "external_id": "a, b",
+      "id": "1e61e122be768d48ecc636727ba5dffaf7e61b61e58c007fb4dda77a29decb4e"
+    },
+    {
+      "source": "src",
+      "external_id": "[\"nested\", \"json\"]",
+      "id": "83ff0e89b9b8a177cc04c7e4f8536953931ca5441bd9bb5f408badb81fb92338"
+    },
+    {
+      "source": "chickpt",
+      "external_id": " leading and trailing ",
+      "id": "ac95228caad05ef8391c803127314ff108350b23f799afe0c0fb1b4110d4a00d"
+    },
+    {
+      "source": "taiwanjobs",
+      "external_id": "全形　空白",
+      "id": "347ef64dfea897743e2886fa5270815d45bce3d458e9c79cd1e09d74e1cec4ab"
+    }
+  ]
+}
