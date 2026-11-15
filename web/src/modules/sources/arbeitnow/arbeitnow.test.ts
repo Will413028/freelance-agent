@@ -119,12 +119,19 @@ describe("arbeitnow connector", () => {
     expect([got.seen, got.listings.map((l) => l.external_id), fetcher.urls]).toEqual([3, ["ai-agent-123", "b"], [ENDPOINT, `${ENDPOINT}?page=2`]]);
   });
 
-  it("fails the run when a listing changes during pagination, pagination is inconsistent; marks a scan cut short by the page cap truncated", async () => {
+  it("fails the run when a listing changes during pagination, page meta is invalid; marks a scan cut short by the page cap truncated", async () => {
     const two = `${ENDPOINT}?page=2`;
     const changed = site({ [ENDPOINT]: [200, JSON.stringify(pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })], 1, two))], [two]: [200, JSON.stringify(pageOf([job({ title: "Other" })], 2))] });
     await expect(scan(changed)).rejects.toThrow(/changed during pagination/);
-    const short = site({ [ENDPOINT]: [200, JSON.stringify(pageOf([job()], 1, two))] });
-    await expect(scan(short)).rejects.toThrow(/inconsistent pagination/);
+    // A page holding more listings than its own per_page is still refused.
+    const over = site({ [ENDPOINT]: [200, JSON.stringify({ ...pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })]), meta: { current_page: 1, per_page: 1, from: 1, to: 1 } })] });
+    await expect(scan(over)).rejects.toThrow(/invalid page meta/);
+    // The real API's per_page changes from page to page and a short page links the next one (page 6: per_page 224, next page 7).
+    const varying = site({
+      [ENDPOINT]: [200, JSON.stringify(pageOf([job()], 1, two, 5))],
+      [two]: [200, JSON.stringify({ ...pageOf([job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })], 2), meta: { current_page: 2, per_page: 3, from: 501, to: 1 } })],
+    });
+    expect((await scan(varying)).listings.map((l) => l.external_id)).toEqual(["ai-agent-123", "b"]);
     // The real API misreports meta.from/to (page 2 of 2-per-page as from 2, to 2); distinct listings are still read.
     const misnumbered = site({
       [ENDPOINT]: [200, JSON.stringify(pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })], 1, two))],

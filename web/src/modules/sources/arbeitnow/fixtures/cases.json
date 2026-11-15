@@ -2698,9 +2698,17 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 3,
+    "ids": [
+     "job-1",
+     "job-2"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api",
+     "https://www.arbeitnow.com/api/job-board-api?page=2"
+    ]
    },
-   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
+   "why": "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages"
   },
   {
    "input": {
@@ -2792,7 +2800,7 @@
      "https://www.arbeitnow.com/api/job-board-api"
     ]
    },
-   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
+   "why": "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages"
   },
   {
    "input": {
@@ -2822,7 +2830,7 @@
      "https://www.arbeitnow.com/api/job-board-api"
     ]
    },
-   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
+   "why": "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages"
   },
   {
    "input": {
@@ -2840,7 +2848,7 @@
      "https://www.arbeitnow.com/api/job-board-api"
     ]
    },
-   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
+   "why": "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages"
   },
   {
    "input": {
@@ -2923,7 +2931,7 @@
      "https://www.arbeitnow.com/api/job-board-api"
     ]
    },
-   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
+   "why": "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages"
   },
   {
    "input": {
@@ -2937,9 +2945,17 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 2,
+    "ids": [
+     "job-1",
+     "job-2"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api",
+     "https://www.arbeitnow.com/api/job-board-api?page=2"
+    ]
    },
-   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
+   "why": "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages"
   },
   {
    "input": {
@@ -2953,9 +2969,17 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 2,
+    "ids": [
+     "job-1",
+     "job-2"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api",
+     "https://www.arbeitnow.com/api/job-board-api?page=2"
+    ]
    },
-   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
+   "why": "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages"
   },
   {
    "input": {
