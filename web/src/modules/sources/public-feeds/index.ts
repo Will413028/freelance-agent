@@ -5,7 +5,7 @@ import { setAside } from "../shared/set-aside";
 import { pyStrip, visibleLines } from "../shared/text";
 import { pubDateInstant } from "../shared/time";
 import { childText, children, parseXmlText } from "../shared/xml-feed";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Official public feeds read as configuration (plan step 5b; old collection/public_feeds.py,
 // web/src/modules/collection/sources/public-feeds.ts, deleted in step 11; see d067222): Remote OK and Working Nomads
@@ -53,7 +53,7 @@ export const FEEDS: Record<FeedName, Feed> = {
 };
 
 /** Old public-feeds.ts:159-172: one GET per run per feed, without redirects. */
-const settings = (name: FeedName): Omit<SourceSettings, "order"> => ({
+const settings = (name: FeedName): Omit<PageSourceSettings, "order"> => ({
   name, label: FEEDS[name].label, connector: (fetcher, now) => publicFeedConnector(name, fetcher, now), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 });
 export const REMOTEOK_SETTINGS = settings("remoteok");

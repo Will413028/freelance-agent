@@ -5,6 +5,7 @@ import { freeJobsConnector } from "./free-jobs";
 import { FREELANCER_SETTINGS } from "./freelancer";
 import { GETONBOARD_SETTINGS } from "./getonboard";
 import { HIMALAYAS_SETTINGS } from "./himalayas";
+import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
 import { REALWORKFROMANYWHERE_SETTINGS, REMOTEOK_SETTINGS, WEWORKREMOTELY_SETTINGS, WORKINGNOMADS_SETTINGS } from "./public-feeds";
 import { TAIWANJOBS_SETTINGS } from "./taiwanjobs";
 import type { SourceSettings } from "./types";
@@ -19,6 +20,7 @@ import type { SourceSettings } from "./types";
 // window, where an open listing can drop out.
 
 export const SOURCES: readonly SourceSettings[] = [
+  { ...JOBBANK104_SETTINGS, order: 30 },
   { name: "remotive", label: "Remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
   { name: "jobicy", label: "Jobicy", order: 60, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
   { ...FREELANCER_SETTINGS, order: 50 },

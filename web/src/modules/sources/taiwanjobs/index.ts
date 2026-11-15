@@ -1,7 +1,7 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { parseXmlText } from "../shared/xml-feed";
 import { codePoints } from "../shared/json";
 import { pyStrip as strip } from "../shared/text";
@@ -183,6 +183,6 @@ export async function taiwanjobsConnector(fetcher: Fetcher, now: Date): Promise<
 }
 
 /** One request per run (old taiwanjobs.ts:150, a single GET of ENDPOINT). */
-export const TAIWANJOBS_SETTINGS: Omit<SourceSettings, "order"> = {
+export const TAIWANJOBS_SETTINGS: Omit<PageSourceSettings, "order"> = {
   label: "台灣就業通", name: "taiwanjobs", connector: taiwanjobsConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

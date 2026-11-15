@@ -1,7 +1,7 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { codePoints, isObject, truthy } from "../shared/json";
 import { visibleLines } from "../shared/text";
 
@@ -154,7 +154,7 @@ export async function getonboardConnector(fetcher: Fetcher, now: Date): Promise<
   return { seen: read.seen, listings: read.listings, sourceKept: (l) => kept.has(l.external_id), truncated: read.truncated, rejected: read.rejected, examined: read.examined };
 }
 
-export const GETONBOARD_SETTINGS: Omit<SourceSettings, "order"> = {
+export const GETONBOARD_SETTINGS: Omit<PageSourceSettings, "order"> = {
   label: "Get on Board", name: "getonboard", connector: getonboardConnector, maxTier: "plain",
   // Old: 600 ms before each search page (collection/sources/getonboard.ts:90), raised to the 1 s floor.
   minIntervalMs: 1000,

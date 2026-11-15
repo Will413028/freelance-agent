@@ -1,7 +1,7 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { codePoints, isObject } from "../shared/json";
 import { pyRstrip, pyStrip, visibleLines } from "../shared/text";
 
@@ -197,6 +197,6 @@ export async function arbeitnowConnector(fetcher: Fetcher, now: Date): Promise<C
 }
 
 /** Catalog entry without its order (the orchestrator wires it): up to 20 pages, 3 s apart (old arbeitnow.ts:146,155). */
-export const ARBEITNOW_SETTINGS: Omit<SourceSettings, "order"> = {
+export const ARBEITNOW_SETTINGS: Omit<PageSourceSettings, "order"> = {
   label: "Arbeitnow", name: "arbeitnow", connector: arbeitnowConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: MAX_PAGES, completeRead: true, disabled: null,
 };

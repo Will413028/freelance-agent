@@ -9,8 +9,10 @@ import { listJobs } from "./pages";
 // The daily run of the new system (plan step 6): claim the Asia/Taipei day, run each enabled source in
 // catalog order, record each in run_sources, prune, time the list page, finish. A rerun the same day skips
 // the sources already `ok` and does the rest; a succeeded day is not run again. Only transient read errors
-// (network, timeout, HTTP 429 and 5xx) are retried, after 30 and 120 seconds; a read that failed wrote
-// nothing (collectSource writes after the whole read), so a retry starts clean. One source failing never
+// (network, timeout, HTTP 429 and 5xx) are retried, after 30 and 120 seconds; a page source that failed wrote
+// nothing (collectSource writes after the whole read), so a retry starts clean; a mail source writes message
+// by message and records each in mail_messages, so a retry skips what was written (a failed row's counts
+// then show only the attempts; what was written is in mail_messages and listings). One source failing never
 // stops the others. Records carry ids, counts and statuses only, never listing text.
 
 export const RETRY_DELAYS_MS = [30_000, 120_000] as const;

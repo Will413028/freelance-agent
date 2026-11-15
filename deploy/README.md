@@ -4,7 +4,7 @@ Plan: `docs/plans/2026-11-15-self-hosted-rebuild.md` (step 2 built the walking s
 Every deploy, scheduled job or new container on the VM needs Will's authorization first.
 
 - Checkout: `/opt/side-income` (a git clone of this repository).
-- Env file: `/etc/side-income/compose.env`, mode 0600, owned by root. It sets `APP_IMAGE` (the image tag, e.g. `side-income-web:<commit>`) and `POSTGRES_PASSWORD` (hex, so it needs no URL escaping). Never commit it.
+- Env file: `/etc/side-income/compose.env`, mode 0600, owned by root. It sets `APP_IMAGE` (the image tag, e.g. `side-income-web:<commit>`) `POSTGRES_PASSWORD` (hex, so it needs no URL escaping), and `RESEND_API_KEY` and `RESEND_INBOX` for the mail sources (passed to the `daily` service only). Never commit it.
 - Ports: `web` publishes `127.0.0.1:3347` only; `db` publishes nothing. `deploy/check-compose.mjs` (in `pnpm check` and CI) fails on any other binding. Tailscale Serve is the only way in.
 
 ## Deploy

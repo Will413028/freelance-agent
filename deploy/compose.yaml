@@ -1,12 +1,12 @@
 # The self-hosted system (plan step 2). Run from the repository root on the VM:
 #   docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml up -d
-# The env file (0600) sets APP_IMAGE and POSTGRES_PASSWORD. Every published port binds 127.0.0.1;
+# The env file (0600) sets APP_IMAGE and POSTGRES_PASSWORD, and RESEND_API_KEY and RESEND_INBOX for the daily run. Every published port binds 127.0.0.1;
 # deploy/check-compose.mjs fails otherwise. Tailscale Serve is the only way in.
 name: side-income
 
 x-app: &app
   image: ${APP_IMAGE:?set APP_IMAGE in the env file}
-  environment:
+  environment: &app-env
     DATABASE_URL: postgres://side_income:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}@db:5432/side_income
   depends_on:
     db:
@@ -44,8 +44,14 @@ services:
 
   # The daily run (plan step 6; deploy/systemd/side-income-daily.timer starts it): docker compose run --rm daily
   # One-off commands override the command: docker compose run --rm daily pnpm exec tsx scripts/<name>.ts
+  # Only this service gets the Resend key (full_access; the code sends GETs to Receiving only, plan step 7).
+  # Unset values reach the run as empty: the mail sources then fail with MailConfigError, the rest still run.
   daily:
     <<: *app
+    environment:
+      <<: *app-env
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_INBOX: ${RESEND_INBOX:-}
     profiles: [jobs]
     command: ["pnpm", "exec", "tsx", "scripts/daily.ts"]
 

@@ -1,7 +1,7 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
-import { SourceError, type Collected, type SourceSettings } from "../types";
+import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { codePoints, isObject as isRecord, truthy } from "../shared/json";
 
 // Freelancer: the public official active-project search, three fixed queries, paginated; never bids
@@ -163,6 +163,6 @@ export async function freelancerConnector(fetcher: Fetcher): Promise<Collected> 
  * is not carried over: the page cap bounds what is read, and a query of 20 pages one second apart
  * needs about 20 s plus the answers.
  */
-export const FREELANCER_SETTINGS: Omit<SourceSettings, "order"> = {
+export const FREELANCER_SETTINGS: Omit<PageSourceSettings, "order"> = {
   label: "Freelancer", name: "freelancer", connector: freelancerConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: QUERIES.length * MAX_PAGES, completeRead: false, disabled: null,
 };
