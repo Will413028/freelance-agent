@@ -1,8 +1,9 @@
-import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
+import { codePoints, isObject, truthy } from "../shared/json";
+import { visibleLines } from "../shared/text";
 
 // Get on Board: the official public API (old collection/getonboard.py,
 // web/src/modules/collection/sources/getonboard.ts at ce1254d): the modality taxonomy, then the
@@ -23,21 +24,10 @@ const TECH = new Set(["Programming", "Machine Learning & AI", "Mobile Developmen
 // requirements in the title still exclude Taiwan. Word boundaries as Python's Unicode \b reads them.
 const REGIONAL = /(?<![\p{L}\p{N}_])(?:LATAM|Latin America|US[- ]only|EU[- ]only)(?![\p{L}\p{N}_])/iu;
 
-const isObject = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
-const codePoints = (s: string) => [...s].length;
-const truthy = (v: unknown) =>
-  v !== undefined && v !== null && v !== false && v !== 0 && v !== "" && !(Array.isArray(v) && !v.length) && !(isObject(v) && !Object.keys(v).length);
-/** Python's str.splitlines boundaries. */
-const LINE_BREAK = /\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/;
-
 /** Visible text of an HTML field: block tags as line breaks, script and style dropped, blank lines dropped, spaces collapsed. */
 export function fieldText(value: unknown, field: string): string {
   if (typeof value !== "string" || !value.trim() || codePoints(value) > 200_000) throw new SourceError(`getonboard: ${field} required`);
-  const $ = load(value.replace(/<\/(?:p|div|li|h1|h2|h3|tr|br)\s*>/gi, (m) => `\n${m}\n`), { scriptingEnabled: false }, false);
-  $("script, style").remove();
-  $("p, div, li, h1, h2, h3, tr").before("\n").after("\n");
-  $("br").replaceWith("\n");
-  const text = $.root().text().split(LINE_BREAK).map((line) => line.split(/\s+/u).filter(Boolean).join(" ")).filter(Boolean).join("\n");
+  const text = visibleLines(value);
   if (!text) throw new SourceError(`getonboard: empty ${field}`);
   return text;
 }

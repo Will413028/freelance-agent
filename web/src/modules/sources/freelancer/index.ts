@@ -2,6 +2,7 @@ import { parseListingInput, type ListingInput } from "@/modules/listings/public"
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
+import { codePoints, isObject as isRecord, truthy } from "../shared/json";
 
 // Freelancer: the public official active-project search, three fixed queries, paginated; never bids
 // (old collection/freelancer.py, web/src/modules/collection/sources/freelancer.ts at ce1254d).
@@ -29,11 +30,6 @@ const word = (body: string) => new RegExp(String.raw`(?<!${W})(?:${body})(?!${W}
 const TITLE_SIGNAL = word(String.raw`ai|agent|api|backend|back[^\n]end|full[^\n]stack|mvp|website|web\s+app|web\s+development|software\s+development|app\s+development|automation|integration|chatbot|bot`);
 const OUT_OF_SCOPE = word(String.raw`copywriting|seo|link\s+building|lead\s+generation|sales|commission|testing|vapt|scraping|data\s+entry|logo|graphic\s+design`);
 
-const codePoints = (s: string) => [...s].length;
-const isRecord = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
-/** Python truthiness of a JSON value, as the old check read deleted and nonpublic. */
-const truthy = (v: unknown) =>
-  !(v === undefined || v === null || v === false || v === 0 || v === "" || (Array.isArray(v) && !v.length) || (isRecord(v) && !Object.keys(v).length));
 /** A budget bound: a non-negative number JavaScript holds exactly (past 2^53 two different bounds can read as one). */
 const amount = (v: unknown) => (typeof v === "number" && v >= 0 && v <= Number.MAX_SAFE_INTEGER ? v : null);
 

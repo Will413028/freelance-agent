@@ -2,7 +2,9 @@ import { parseListingInput, type ListingInput } from "@/modules/listings/public"
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
-import { parseXml } from "./xml";
+import { parseXmlText } from "../shared/xml-feed";
+import { codePoints } from "../shared/json";
+import { pyStrip as strip } from "../shared/text";
 
 // TaiwanJobs: the official open-data XML of the latest 1000 updated listings; no login, no
 // application (old collection/taiwanjobs.py, web/src/modules/collection/sources/taiwanjobs.ts at
@@ -26,11 +28,6 @@ const MAX_ROWS = 1000;
 const DAY_MS = 86_400_000;
 const FRESH_DAYS = 90;
 const CONTRACT = /兼職|部分工時|接案|承攬/;
-
-const codePoints = (s: string) => [...s].length;
-/** Python's str.isspace set, so fields strip as str.strip() did (JavaScript's trim also strips U+FEFF and keeps U+001C–U+001F and U+0085). */
-const PY_SPACE = "\t\n\v\f\r\x1c\x1d\x1e\x1f \x85\xa0                　";
-const strip = (s: string) => s.replace(new RegExp(`^[${PY_SPACE}]+|[${PY_SPACE}]+$`, "gu"), "");
 
 /** Value of a Unicode decimal digit: digits come in aligned runs of ten, 0 first. */
 function digitValue(ch: string): number {
@@ -146,18 +143,18 @@ export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings
   }
   let root;
   try {
-    root = parseXml(pieces.join(""));
+    root = parseXmlText(pieces.join(""));
   } catch {
     throw new SourceError("taiwanjobs: unsupported XML format");
   }
-  if (root.tag !== "DataList" || root.children.length > MAX_ROWS || strip(root.text ?? "")) throw new SourceError("taiwanjobs: unsupported data list");
+  if (root.tag !== "DataList" || root.children.length > MAX_ROWS || strip(root.text)) throw new SourceError("taiwanjobs: unsupported data list");
   const records: Map<string, string>[] = [];
   for (const record of root.children) {
-    if (record.tag !== "Data" || record.attrib.size) throw new SourceError("taiwanjobs: invalid record");
+    if (record.tag !== "Data" || record.attrs.size) throw new SourceError("taiwanjobs: invalid record");
     const fields = new Map<string, string>();
     for (const child of record.children) {
-      if (!Object.hasOwn(LABELS, child.tag) || fields.has(child.tag) || child.children.length || child.attrib.size) throw new SourceError("taiwanjobs: unsupported field");
-      fields.set(child.tag, strip(child.text ?? ""));
+      if (!Object.hasOwn(LABELS, child.tag) || fields.has(child.tag) || child.children.length || child.attrs.size) throw new SourceError("taiwanjobs: unsupported field");
+      fields.set(child.tag, strip(child.text));
     }
     records.push(fields);
   }

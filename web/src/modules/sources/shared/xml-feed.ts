@@ -1,8 +1,9 @@
 import { SaxesParser } from "saxes";
 
-// XML feeds and the URL split the feed sources use (plan step 5a: cryptojobslist, v2ex). The parser is strict XML 1.0 with namespaces (saxes) and never reads a DTD: a
-// document with one is refused. Element text is the character data before its first child, the way
-// the old ElementTree readers saw it.
+// The XML element tree the feed connectors read (cryptojobslist, v2ex, taiwanjobs, and the step 5b
+// feeds). The parser is strict XML 1.0 with namespaces (saxes) and never reads a DTD: a document with
+// one is refused. Element text is the character data before its first child, the way the old
+// ElementTree readers saw it ("" when there is none). Step 5b merged taiwanjobs' own copy in here.
 
 export type XmlElement = { tag: string; attrs: Map<string, string>; text: string; children: XmlElement[] };
 
@@ -35,10 +36,20 @@ function decode(raw: Uint8Array): string {
   throw new Error(`unsupported encoding ${declared}`);
 }
 
-/** The document's root element; throws when the bytes are not well-formed XML or carry a DTD. */
+/** The document's root element from bytes; throws when they are not well-formed XML or carry a DTD. */
 export function parseXml(raw: Uint8Array): XmlElement {
   const text = decode(raw);
   // decode() has consumed the one BOM a document may carry; another is not well-formed.
+  if (text.startsWith("\ufeff")) throw new Error("second BOM");
+  return parseXmlText(text);
+}
+
+/**
+ * The root element of an already decoded document (a connector that repairs the text first). One
+ * leading BOM is skipped as ElementTree did; a second is not well-formed, as expat rejected it.
+ */
+export function parseXmlText(text: string): XmlElement {
+  if (text.startsWith("\ufeff")) text = text.slice(1);
   if (text.startsWith("\ufeff")) throw new Error("second BOM");
   const parser = new SaxesParser({ xmlns: true, defaultXMLVersion: "1.0", forceXMLVersion: true });
   const stack: XmlElement[] = [];

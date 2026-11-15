@@ -1,8 +1,9 @@
-import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
+import { codePoints, isObject } from "../shared/json";
+import { pyRstrip, pyStrip, visibleLines } from "../shared/text";
 
 // Arbeitnow: the official free job-board API, read page by page (old collection/arbeitnow.py,
 // web/src/modules/collection/sources/arbeitnow.ts at ce1254d). A listing without its identity
@@ -32,25 +33,13 @@ export const PROMOTIONAL_FOOTERS = [
 const HOSTS = new Set(["www.arbeitnow.com", "www.arbeitnow.co.uk", "www.arbeitnow.fr", "www.arbeitnow.ch", "www.arbeitnow.nl"]);
 const NEXT_HOSTS = new Set(["www.arbeitnow.com", "www.arbeitnow.nl"]);
 
-/** Python's str.strip() whitespace (it differs from JavaScript's \s: U+001C–U+001F yes, BOM no). */
-const PY_SPACE = "\\t\\n\\v\\f\\r\\x1c-\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000";
-const pyRstrip = (s: string) => s.replace(new RegExp(`[${PY_SPACE}]+$`, "u"), "");
-const pyStrip = (s: string) => pyRstrip(s.replace(new RegExp(`^[${PY_SPACE}]+`, "u"), ""));
-const codePoints = (s: string) => [...s].length;
-const isObject = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
-
 /**
  * Visible text with its lines (old text.ts `text`: block tags as line breaks, empty lines dropped, spaces
  * collapsed within a line); refuses empty input or text over 200 000 characters as the old one did.
  */
 export function visibleText(value: unknown, what: string): string {
   if (typeof value !== "string" || !pyStrip(value) || codePoints(value) > 200_000) throw new SourceError(`arbeitnow: invalid ${what}`);
-  const $ = load(value.replace(/<\/(?:p|div|li|br|h1|h2|h3|tr)\s*>/gi, (m) => `\n${m}\n`), { scriptingEnabled: false }, false);
-  $("script, style").remove();
-  $("p, div, li, h1, h2, h3, tr").before("\n").after("\n");
-  $("br").replaceWith("\n");
-  const result = $.root().text().split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/u)
-    .map((line) => line.split(/\s+/u).filter(Boolean).join(" ")).filter(Boolean).join("\n");
+  const result = visibleLines(value);
   if (!result) throw new SourceError(`arbeitnow: empty ${what}`);
   return result;
 }
