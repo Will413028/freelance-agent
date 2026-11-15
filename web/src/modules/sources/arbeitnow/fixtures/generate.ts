@@ -44,6 +44,9 @@ const ACCEPTED_PAGES = new Map<number, string>([
 const ACCEPTED_SCAN = new Map<number, string>([
   [20, "JSON has one number type: per_page 1.0 is 1"],
   [21, "JSON has one number type: from 1.0 is 1"],
+  // Old refused a listing met again with other content ("Listing changed during pagination"); the board updates
+  // while it is read, so the last read is kept (Will 2026-11-15, plan D6).
+  [3, "a listing changed during pagination is kept as last read (Will 2026-11-15)"],
 ]);
 
 /** Old results the new connector deliberately changes: the expected output is patched, with the reason. */

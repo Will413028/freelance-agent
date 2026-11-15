@@ -15,7 +15,8 @@
 - 每筆職缺經 `parseListingInput` 產出 `ListingInput`。
 - 單筆擱置、太多才失敗（Will 2026-11-15，步驟 5a 在 VM 實跑：taiwanjobs 1000 筆裡 2 筆標題空白、freelancer 第 1 頁 100 筆裡 2 筆 `seo_url` 沒有斜線，照舊規則兩個來源天天整批失敗、一筆都收不到）：
   - 正規化**一筆**職缺時丟出的拒收（身分欄位 id、標題、內文、來源自己的網址缺或格式不對；來源自己的篩選規則要讀的欄位讀不到，例：工作類型）：這一筆擱置、計入 `Collected.rejected`，其他照收。拒收規則本身不變，只是範圍從整批改成單筆。共用的 `shared/set-aside.ts` 只接 `SourceError` 與清單契約（`parseListingInput`）丟的 `ZodError`，其他錯誤照樣往外丟；它回傳 `{ listings, rejected, examined }`，`examined` 是它跑過正規化的筆數（收下、被來源規則略過、擱置都算）。
-  - 整批層級的問題仍丟 `SourceError`、整批失敗、不寫任何一筆：內文解不了碼或不是 JSON／XML、外層或清單不在、超量、分頁不一致、分頁途中職缺變了、同一個 id 有互相衝突的版本、舊程式整批拒收的重複 id、請求失敗。
+  - 整批層級的問題仍丟 `SourceError`、整批失敗、不寫任何一筆：內文解不了碼或不是 JSON／XML、外層或清單不在、超量、單頁自己的分頁資訊不合理、同一個 id 在同一頁或同一次查詢裡有互相衝突的版本、舊程式整批拒收的重複 id、請求失敗。
+  - 分頁讀取途中同一筆在後面的頁又出現：留最後讀到的版本，不拒收（來源在讀取中更新；arbeitnow VM 實測 20 頁 7 筆重複、3 筆內文不同，Will 2026-11-15）。來源的分頁資訊（`from`／`to`／每頁筆數）不跨頁比對，除非該來源實測可靠。
   - 這條適用每一個來源，沒有個別例外：舊程式為了一筆壞資料整批拒收的來源（himalayas、hackernews、v2ex、jobicy、remotive）也改成單筆擱置，這是刻意的改變（Will 2026-11-15）；fixture 產生器把這類案例的預期改成「其他筆照收加上 `rejected`」，理由寫「old refused the batch for one listing; Will 2026-11-15 set aside and count」。
   - 門檻的分母是 `Collected.examined`：把每次 `setAside` 回傳的 `examined` 加總，和 `rejected` 同一層級計數（同一筆在好幾頁或好幾個查詢出現，兩邊都各算一次）。`seen` 維持各來源原本的回報意義，不為門檻加上擱置數。擱置的超過一半（`rejected * 2 > examined`）時 `collectSource` 在寫入前丟 `SourceError`（`<來源>: <n> of <examined> listings refused`），所以格式真的變了仍是「來源失敗」；剛好一半照寫。`rejected > 0` 卻沒給 `examined` 是 connector 的程式錯誤，丟一般 `Error`。`SourceRun.rejected` 回報擱置數，步驟 6 把 `truncated || rejected > 0` 記成 partial。
 - 同一個 id 在一次回應裡出現兩次：留最後一筆（收案核心拒收重複的批次）。

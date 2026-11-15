@@ -159,15 +159,15 @@ const int = (v: unknown): v is number => typeof v === "number" && Number.isSafeI
  * of which page 1 had; page 6 says per_page 224, from 501, to 224 and links a page 7), so equal
  * per_page, from/to and "a page with a next link is full" (old arbeitnow.ts:161-167) are not checked.
  * Accepted trade-off: a page that repeats earlier listings unchanged, or skips some, is not detected;
- * a repeated listing with different content still refuses the run, and the page cap marks truncation.
+ * a repeated listing is kept as last read, and the page cap marks truncation.
  */
 export function pageShapeOk(perPage: unknown, count: number): boolean {
   return int(perPage) && perPage > 0 && perPage <= MAX_PAGE_ENTRIES && count <= perPage;
 }
 
 /**
- * Every page of the API up to the page cap: the listings seen (a job listed twice with the same
- * content kept once, as its last entry); `truncated` when a next page remained (old: partial, what
+ * Every page of the API up to the page cap: the listings seen (a job listed twice kept once, as
+ * last read); `truncated` when a next page remained (old: partial, what
  * was read still written).
  */
 export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: ListingInput[]; truncated: boolean; rejected: number; examined: number }> {
@@ -183,11 +183,10 @@ export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: 
     seen += p.count;
     rejected += p.rejected;
     examined += p.examined;
-    for (const l of p.listings) {
-      const previous = byId.get(l.external_id);
-      if (previous && JSON.stringify(previous) !== JSON.stringify(l)) throw new SourceError("arbeitnow: listing changed during pagination");
-      byId.set(l.external_id, l);
-    }
+    // A listing met again on a later page is kept as last read, also with other content: the board
+    // updates hourly and a 20-page read takes over a minute (VM 2026-11-15: 7 repeats in 20 pages,
+    // 3 with another description). Will 2026-11-15 (plan step 5 progress; within one read, as D6 is across runs).
+    for (const l of p.listings) byId.set(l.external_id, l);
     url = p.next;
     page++;
   }

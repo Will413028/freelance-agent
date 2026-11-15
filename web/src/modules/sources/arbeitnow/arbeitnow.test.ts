@@ -119,10 +119,11 @@ describe("arbeitnow connector", () => {
     expect([got.seen, got.listings.map((l) => l.external_id), fetcher.urls]).toEqual([3, ["ai-agent-123", "b"], [ENDPOINT, `${ENDPOINT}?page=2`]]);
   });
 
-  it("fails the run when a listing changes during pagination, page meta is invalid; marks a scan cut short by the page cap truncated", async () => {
+  it("keeps a listing changed during pagination as last read, fails the run when page meta is invalid; marks a scan cut short by the page cap truncated", async () => {
     const two = `${ENDPOINT}?page=2`;
     const changed = site({ [ENDPOINT]: [200, JSON.stringify(pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })], 1, two))], [two]: [200, JSON.stringify(pageOf([job({ title: "Other" })], 2))] });
-    await expect(scan(changed)).rejects.toThrow(/changed during pagination/);
+    // The board updates while it is read: a listing met again with other content is kept as last read.
+    expect((await scan(changed)).listings.map((l) => [l.external_id, l.title])).toEqual([["ai-agent-123", "Other"], ["b", "Part time AI agent developer"]]);
     // A page holding more listings than its own per_page is still refused.
     const over = site({ [ENDPOINT]: [200, JSON.stringify({ ...pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })]), meta: { current_page: 1, per_page: 1, from: 1, to: 1 } })] });
     await expect(scan(over)).rejects.toThrow(/invalid page meta/);
