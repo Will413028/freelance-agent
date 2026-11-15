@@ -19,6 +19,7 @@
   - 分頁讀取途中同一筆在後面的頁又出現：留最後讀到的版本，不拒收（來源在讀取中更新；arbeitnow VM 實測 20 頁 7 筆重複、3 筆內文不同，Will 2026-11-15）。來源的分頁資訊（`from`／`to`／每頁筆數）不跨頁比對，除非該來源實測可靠。
   - 這條適用每一個來源，沒有個別例外：舊程式為了一筆壞資料整批拒收的來源（himalayas、hackernews、v2ex、jobicy、remotive）也改成單筆擱置，這是刻意的改變（Will 2026-11-15）；fixture 產生器把這類案例的預期改成「其他筆照收加上 `rejected`」，理由寫「old refused the batch for one listing; Will 2026-11-15 set aside and count」。
   - 門檻的分母是 `Collected.examined`：把每次 `setAside` 回傳的 `examined` 加總，和 `rejected` 同一層級計數（同一筆在好幾頁或好幾個查詢出現，兩邊都各算一次）。`seen` 維持各來源原本的回報意義，不為門檻加上擱置數。擱置的超過一半（`rejected * 2 > examined`）時 `collectSource` 在寫入前丟 `SourceError`（`<來源>: <n> of <examined> listings refused`），所以格式真的變了仍是「來源失敗」；剛好一半照寫。`rejected > 0` 卻沒給 `examined` 是 connector 的程式錯誤，丟一般 `Error`。`SourceRun.rejected` 回報擱置數，步驟 6 把 `truncated || rejected > 0` 記成 partial。
+  - 先讀索引再讀詳細頁的來源（步驟 5c）：`examined` 是在索引被擱置的筆數加上實際讀過的詳細頁數；讀取範圍外（例如超過 90 天、不在讀取類別）沒讀詳細頁的項目不算，否則詳細頁全壞時門檻會被稀釋而不觸發。同一筆在索引或詳細頁被擱置，`rejected` 只算一次。
 - 同一個 id 在一次回應裡出現兩次：留最後一筆（收案核心拒收重複的批次）。
 - `Fetcher` 依呼叫順序一次服務一個請求，connector 可以並行呼叫，間隔與上限仍成立。
 - 其他欄位轉不了：寫 `null`（未知），不猜、不拒收（D8）。三態欄位只在來源明說時寫 `true`／`false`；remote、worldwide 不等於台灣可接。
