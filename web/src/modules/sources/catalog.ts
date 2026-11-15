@@ -5,6 +5,7 @@ import { freeJobsConnector } from "./free-jobs";
 import { FREELANCER_SETTINGS } from "./freelancer";
 import { GETONBOARD_SETTINGS } from "./getonboard";
 import { HIMALAYAS_SETTINGS } from "./himalayas";
+import { REALWORKFROMANYWHERE_SETTINGS, REMOTEOK_SETTINGS, WEWORKREMOTELY_SETTINGS, WORKINGNOMADS_SETTINGS } from "./public-feeds";
 import { TAIWANJOBS_SETTINGS } from "./taiwanjobs";
 import type { SourceSettings } from "./types";
 
@@ -14,7 +15,8 @@ import type { SourceSettings } from "./types";
 // each connector's settings cite the old request count and pause. completeRead (plan D9): only sources
 // whose one read pages through the whole board to its end (arbeitnow; getonboard reads a remote-only
 // search, so a listing can leave the read while still open); the free boards
-// (limit/count 200) and taiwanjobs (count=1000) answer a latest-N window, where an open listing can drop out.
+// (limit/count 200), the public feeds (latest 200 entries) and taiwanjobs (count=1000) answer a latest-N
+// window, where an open listing can drop out.
 
 export const SOURCES: readonly SourceSettings[] = [
   { name: "remotive", label: "Remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
@@ -23,6 +25,10 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...HIMALAYAS_SETTINGS, order: 80 },
   { ...HACKERNEWS_SETTINGS, order: 90 },
   { ...V2EX_SETTINGS, order: 100 },
+  { ...REMOTEOK_SETTINGS, order: 130 },
+  { ...REALWORKFROMANYWHERE_SETTINGS, order: 140 },
+  { ...WEWORKREMOTELY_SETTINGS, order: 150 },
+  { ...WORKINGNOMADS_SETTINGS, order: 160 },
   { ...TAIWANJOBS_SETTINGS, order: 170 },
   { ...ARBEITNOW_SETTINGS, order: 180 },
   { ...GETONBOARD_SETTINGS, order: 200 },

@@ -4,6 +4,7 @@ import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
+import { codePoints, isObject, truthy } from "../shared/json";
 
 // Himalayas: the public search API, 4 fixed queries x 2 employment types, first page each (old
 // collection/himalayas.py, web/src/modules/collection/sources/himalayas.ts at ce1254d). A listing
@@ -21,11 +22,6 @@ export const searchUrl = (q: string, employment: string) =>
   "https://himalayas.app/jobs/api/search?" + new URLSearchParams({ q, employment_type: employment, country: "TW", sort: "recent", page: "1" });
 
 const TAIWAN = new Set(["tw", "taiwan", "taiwan, province of china"]);
-const codePoints = (s: string) => [...s].length;
-const isObject = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
-/** Python truthiness for the `alpha2 or name` choice. */
-const truthy = (v: unknown) =>
-  v !== undefined && v !== null && v !== false && v !== 0 && v !== "" && !(Array.isArray(v) && !v.length) && !(isObject(v) && !Object.keys(v).length);
 
 const rfc3339 = (d: Date) => {
   const y = d.getUTCFullYear();

@@ -5,6 +5,7 @@ import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
 import { utcInstant } from "../shared/time";
 import { SourceError, type Collected } from "../types";
+import { codePoints } from "../shared/json";
 
 // jobicy and remotive: public JSON APIs with the latest listings (old collection/free_jobs.py,
 // web/src/modules/collection/sources/free-jobs.ts at ce1254d). A listing without its identity
@@ -31,7 +32,6 @@ const FIELDS = {
 /** Generic labels of a country or region exclude Taiwan; "worldwide" and the like do not establish eligibility. */
 const EXCLUDED_GEO = new Set(["usa", "us", "united states", "uk", "united kingdom", "canada", "europe", "eu", "australia"]);
 
-const codePoints = (s: string) => [...s].length;
 const feedSchema = z.object({ jobs: z.array(z.unknown()).max(200) });
 
 /** The source's own types, normalized: lower case, `-` and spaces as `_`; null when the field is not a list of text. */
