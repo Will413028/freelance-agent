@@ -45,14 +45,16 @@ export const jobUrl = (value: unknown) => boardUrl(ORIGIN, HOST, ARTICLE, value)
 export function parseIndex(raw: Uint8Array): { urls: string[]; rejected: number } {
   const $ = load(pageHtml("dynamitejobs", raw), { scriptingEnabled: false });
   const urls = new Set<string>();
-  let rejected = 0;
+  // A card links its job several times (title, logo, apply): a bad link counts once, as a good one does.
+  const bad = new Set<string>();
   $("a[href]").each((_, el) => {
     const href = $(el).attr("href") ?? "";
     if (!href.includes("/remote-job/")) return;
     const url = jobUrl(href);
-    if (url === null) rejected++;
+    if (url === null) bad.add(href);
     else urls.add(url);
   });
+  const rejected = bad.size;
   if (!urls.size && !rejected) throw new SourceError("dynamitejobs: no job links on the development page");
   if (urls.size > MAX_LINKS) throw new SourceError("dynamitejobs: more than 200 job links on the development page");
   return { urls: [...urls], rejected };

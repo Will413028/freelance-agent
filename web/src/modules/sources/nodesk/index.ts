@@ -54,13 +54,8 @@ const UNTOUCHED = /(<!\[CDATA\[[\s\S]*?\]\]>|<!--[\s\S]*?-->)/;
 
 /** The feed's first 20 items (an id listed twice keeps its last item), what was set aside, and whether it had more. */
 export function parseFeed(raw: Uint8Array): { entries: Entry[]; seen: number; rejected: number; examined: number; truncated: boolean } {
-  if (!raw.length || raw.length > PAGE_BYTES) throw new SourceError("nodesk: empty or oversize feed");
-  let xml: string;
-  try {
-    xml = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw);
-  } catch {
-    throw new SourceError("nodesk: feed is not UTF-8");
-  }
+  // Size, strict UTF-8 and an access challenge (a challenge page fails the source as itself, not as bad XML).
+  const xml = pageHtml("nodesk", raw);
   if (DECLARATION.test(xml)) throw new SourceError("nodesk: XML declarations forbidden");
   const parts = xml.split(UNTOUCHED);
   for (let i = 0; i < parts.length; i += 2) parts[i] = parts[i].replaceAll("&ndash;", "&#8211;").replaceAll("&rsquo;", "&#8217;");
@@ -144,9 +139,11 @@ const page = (fetcher: Fetcher, url: string) => fetcher.get({ url, maxBytes: PAG
 export async function nodeskConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
   const feed = parseFeed((await page(fetcher, FEED)).body);
   const details = await readDetails(feed.entries.filter((e) => recent(e, now)), async (e) => parseArticle((await page(fetcher, e.url)).body, e));
-  // Each feed item is counted once in `examined`; one set aside in the feed or on its page counts once in `rejected`.
+  // The threshold counts what could become a listing (checklist §2), as the other page sources do: items set
+  // aside in the feed plus the job pages read. Items outside the read scope (older than 90 days) are not
+  // counted, so a broken job page layout is not diluted by them.
   return {
     seen: feed.seen, listings: details.listings, sourceKept: kept, truncated: feed.truncated || details.truncated,
-    rejected: feed.rejected + details.rejected, examined: feed.examined,
+    rejected: feed.rejected + details.rejected, examined: feed.rejected + details.examined,
   };
 }

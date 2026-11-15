@@ -71,6 +71,11 @@ const page = (o: Record<string, unknown> = {}) => new TextEncoder().encode(`<htm
 const indexOf = (...hrefs: string[]) => new TextEncoder().encode(hrefs.map((h) => `<a href="${h}">job</a>`).join(""));
 
 describe("dynamitejobs rules", () => {
+  it("counts a bad job link once however many times a card repeats it, as a good link is", () => {
+    const bad = "https://dynamitejobs.com/company/acme/remote-job/";
+    expect(parseIndex(indexOf(URL0, URL0, bad, bad, bad))).toEqual({ urls: [URL0], rejected: 1 });
+  });
+
   it("marks remote contract jobs of the last 90 days kept; returns the rest marked (plan D9)", () => {
     const l = (o: Record<string, unknown>) => kept(normalizeArticle(page(o), URL0), NOW);
     expect([l({}), l({ employmentType: "FULL_TIME" }), l({ jobLocationType: null }), l({ datePosted: "2026-06-01T00:00:00Z" }), l({ datePosted: "2026-10-02T00:00:00Z" })])

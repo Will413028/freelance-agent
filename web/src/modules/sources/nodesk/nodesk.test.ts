@@ -7,6 +7,7 @@ import { listingBy } from "@/modules/listings/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
 import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
+import { AccessChallenge } from "../shared/job-pages";
 import { FEED, jobUrl, kept, nodeskConnector, NODESK_SETTINGS, parseArticle, parseFeed } from ".";
 
 // Plan step 5c: the golden feeds and job pages against the native connector, then its own rules.
@@ -16,6 +17,9 @@ import { FEED, jobUrl, kept, nodeskConnector, NODESK_SETTINGS, parseArticle, par
 // Differences: feed ACCEPTED 1 (host case), SET_ASIDE 1 (pubDate past 9999: old refused the batch);
 // job pages D8_UNKNOWN 2 (validThrough not text), REFUSED 2 (NaN in metadata; duplicate type attribute),
 // ACCEPTED 3 (script tags and type attribute read by the HTML standard), PATCHED 1 (Unicode upper case version).
+// Fetch behavior (not in the golden cases): the old reader set aside a job page on any read failure and had no
+// access-challenge check; a challenge page or HTTP 401/403/429 on a job page now fails the source, as the other
+// page sources did (shared/job-pages readDetails: being blocked is a source failure, not a bad listing; plan step 8).
 
 type FeedCase = { index: number; input: string; why?: string; expect: { error: true } | { entries: unknown[]; seen: number; rejected: number; examined: number; truncated: boolean } };
 type ArticleCase = { index: number; input: string; entry: { url: string; published_at: string }; why?: string; expect: { listing: unknown } | { setAside: true } };
@@ -92,6 +96,10 @@ describe("nodesk rules", () => {
     expect(got.entries).toEqual([{ url: A, published_at: "2026-09-27T00:00:00.000Z", pubDate: "Sun, 27 Sep 2026 00:00:00 GMT" }, expect.objectContaining({ url: B })]);
   });
 
+  it("reports a challenge page served for the feed as an access challenge, not as bad XML", () => {
+    expect(() => parseFeed(latin1("<!DOCTYPE html><title>Just a moment...</title>"))).toThrow(AccessChallenge);
+  });
+
   it("reads at most 20 items and marks the feed truncated when it has more", () => {
     const many = Array.from({ length: 21 }, (_, i) => item(`https://nodesk.co/remote-jobs/j${i}/`));
     expect([parseFeed(rss(...many)).entries.length, parseFeed(rss(...many)).truncated, parseFeed(rss(...many.slice(0, 20))).truncated]).toEqual([20, true, false]);
@@ -154,12 +162,17 @@ describe("nodesk connector", () => {
     const f = fakeFetcher({ [FEED]: feed, [A]: job(), [B]: job({ employmentType: "FULL_TIME" }), [C]: job() });
     const got = await nodeskConnector(f, NOW);
     expect(f.urls).toEqual([FEED, A, B, C]);
-    expect([got.seen, got.listings.map((l) => [l.external_id, got.sourceKept(l)]), got.rejected, got.examined, got.truncated]).toEqual([4, [[A, true], [B, false], [C, true]], 0, 4, false]);
+    expect([got.seen, got.listings.map((l) => [l.external_id, got.sourceKept(l)]), got.rejected, got.examined, got.truncated]).toEqual([4, [[A, true], [B, false], [C, true]], 0, 3, false]); // the item older than 90 days is not read, not counted
   });
 
   it("sets aside a job whose page is missing (404) and keeps the others", async () => {
     const got = await nodeskConnector(fakeFetcher({ [FEED]: feed, [A]: job(), [B]: 404, [C]: job() }), NOW);
-    expect([got.listings.map((l) => l.external_id), got.rejected, got.examined]).toEqual([[A, C], 1, 4]);
+    expect([got.listings.map((l) => l.external_id), got.rejected, got.examined]).toEqual([[A, C], 1, 3]);
+  });
+
+  it("counts only the jobs read, so a broken job page layout is not diluted by items outside the read scope", async () => {
+    const got = await nodeskConnector(fakeFetcher({ [FEED]: feed, [A]: 404, [B]: 404, [C]: 404 }), NOW);
+    expect([got.listings.length, got.rejected, got.examined, (got.rejected ?? 0) * 2 > (got.examined ?? 0)]).toEqual([0, 3, 3, true]);
   });
 
   it("fails on a forbidden page or an access challenge", async () => {
