@@ -15,6 +15,13 @@ module.exports = {
     },
     { name: "ops-stand-alone", comment: "Operations tooling reads tables, not product modules.", severity: "error", from: { path: "^src/ops" }, to: { path: "^src/(modules|workflows|app|services)" } },
     { name: "product-not-ops", severity: "error", from: { path: "^src/(modules|workflows|app|db|platform)" }, to: { path: "^src/ops" } },
+    {
+      name: "sources-are-native",
+      comment: "Plan step 4: a rebuilt source reads no Python emulation; fixture generators may, to read golden.json.",
+      severity: "error",
+      from: { path: "^src/modules/sources/", pathNot: "/fixtures/" },
+      to: { path: "^src/platform/py/" },
+    },
     { name: "workflows-not-app", severity: "error", from: { path: "^src/workflows" }, to: { path: "^src/app" } },
     {
       name: "modules-use-public-contracts",
