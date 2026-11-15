@@ -12,6 +12,17 @@ describe("module layout", () => {
   });
 });
 
+// Plan step 4: every source directory carries its own tests (its fixtures are read by them).
+describe("source layout", () => {
+  it("has at least one *.test.ts in every src/modules/sources/* directory", () => {
+    const root = path.resolve(import.meta.dirname, "../src/modules/sources");
+    const dirs = readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory());
+    expect(dirs.length).toBeGreaterThan(0);
+    const missing = dirs.filter((d) => !readdirSync(path.join(root, d.name)).some((f) => f.endsWith(".test.ts"))).map((d) => d.name);
+    expect(missing).toEqual([]);
+  });
+});
+
 // Plan step 11: pages render on the server; a client component ("use client") ships to the browser,
 // so it must not import server code (services, db, modules, platform) or read the environment.
 describe("client components", () => {

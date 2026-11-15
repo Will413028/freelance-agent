@@ -1,0 +1,103 @@
+import { z } from "zod";
+import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import type { Fetcher } from "@/platform/fetch";
+import { htmlText } from "../shared/html";
+import { utcInstant } from "../shared/time";
+import { SourceError, type Collected } from "../types";
+
+// jobicy and remotive: public JSON APIs with the latest listings (old collection/free_jobs.py,
+// web/src/modules/collection/sources/free-jobs.ts until step 11). A listing without its identity
+// (id, title, description, the board's own URL) refuses the whole batch, so a format change is a
+// failed source and never an empty success; any other field the connector cannot read is unknown
+// (plan D8). The source's own rule keeps only contract, part-time and freelance listings.
+
+export const FREE_JOB_SOURCES = ["remotive", "jobicy"] as const;
+export type FreeJobSource = (typeof FREE_JOB_SOURCES)[number];
+
+export const ENDPOINTS: Record<FreeJobSource, string> = {
+  remotive: "https://remotive.com/api/remote-jobs?category=software-dev&limit=200",
+  jobicy: "https://jobicy.com/api/v2/remote-jobs?count=200",
+};
+
+const FIELDS = {
+  remotive: { title: "title", description: "description", types: "job_type", geo: "candidate_required_location", published: "publication_date", path: "/remote-jobs/" },
+  jobicy: { title: "jobTitle", description: "jobDescription", types: "jobType", geo: "jobGeo", published: "pubDate", path: "/jobs/" },
+} as const;
+
+/** Generic labels of a country or region exclude Taiwan; "worldwide" and the like do not establish eligibility. */
+const EXCLUDED_GEO = new Set(["usa", "us", "united states", "uk", "united kingdom", "canada", "europe", "eu", "australia"]);
+
+const codePoints = (s: string) => [...s].length;
+const feedSchema = z.object({ jobs: z.array(z.unknown()).max(200) });
+
+/** The source's own types, normalized: lower case, `-` and spaces as `_`; null when the field is not a list of text. */
+function employmentTypes(source: FreeJobSource, raw: unknown): string[] | null {
+  const list = source === "remotive" ? (raw === undefined ? [""] : [raw]) : raw === undefined ? [] : raw;
+  if (!Array.isArray(list) || list.some((t) => typeof t !== "string")) return null;
+  return [...new Set((list as string[]).map((t) => t.toLowerCase().replaceAll("-", "_").replaceAll(" ", "_")))].sort();
+}
+
+function kindOf(types: string[] | null): ListingInput["kind"] {
+  if (types === null) return null;
+  if (types.includes("full_time")) return "full_time";
+  return ["contract", "part_time", "freelance"].some((t) => types.includes(t)) ? "contract" : null;
+}
+
+/** One listing of the feed in the contract; throws SourceError when its identity is missing. */
+export function normalize(source: FreeJobSource, item: unknown): ListingInput {
+  if (item === null || typeof item !== "object" || Array.isArray(item)) throw new SourceError(`${source}: a listing is not an object`);
+  const p = item as Record<string, unknown>, f = FIELDS[source];
+  if (typeof p.id !== "number" || !Number.isSafeInteger(p.id) || p.id <= 0) throw new SourceError(`${source}: invalid id`);
+  const title = p[f.title], rawDescription = p[f.description];
+  if (typeof title !== "string" || codePoints(title) < 1 || codePoints(title) > 500) throw new SourceError(`${source}: invalid title`);
+  if (typeof rawDescription !== "string" || codePoints(rawDescription) < 1 || codePoints(rawDescription) > 100_000) throw new SourceError(`${source}: full description required`);
+  const description = htmlText(rawDescription);
+  if (!description) throw new SourceError(`${source}: empty description`);
+  // The board's own origin, as both URL parsers read it (outer controls and spaces trimmed, tabs and
+  // newlines removed, scheme in any case), but spelled exactly: no port, user, other host case or
+  // subdomain. The link keeps the board's spelling without query and fragment (WHATWG URL would
+  // percent-encode its path).
+  const raw = typeof p.url === "string" ? p.url.replace(/^[\x00-\x20]+|[\x00-\x20]+$/g, "").replace(/[\t\n\r]/g, "") : "";
+  const rest = raw.slice("https://".length);
+  if (raw.slice(0, "https://".length).toLowerCase() !== "https://" || !rest.startsWith(`${source}.com${f.path}`)) {
+    throw new SourceError(`${source}: invalid job URL`);
+  }
+  const link = `https://${rest.split(/[?#]/, 1)[0]}`;
+  if (!URL.canParse(link)) throw new SourceError(`${source}: invalid job URL`);
+  const types = employmentTypes(source, p[f.types]);
+  const geo = typeof p[f.geo] === "string" ? (p[f.geo] as string) : null;
+  const published = p[f.published];
+  return parseListingInput({
+    external_id: String(p.id), title, description, url: link, canonical_url: link,
+    location: geo || null, kind: kindOf(types),
+    taiwan_eligible: geo !== null && EXCLUDED_GEO.has(geo.trim().toLowerCase()) ? false : null,
+    complete: false,
+    // The boards publish in UTC; a time without an offset reads as UTC (plan D8, old rule in listings/legacy.ts).
+    published_at: typeof published === "string" ? utcInstant(published) : null,
+    extra: { employment_types: types, publication_evidence: typeof published === "string" ? published : null },
+  });
+}
+
+/** The feed's listings in the contract and the ones the source's rule keeps (contract, part-time, freelance). */
+export function parseFeed(source: FreeJobSource, body: Uint8Array): Collected {
+  let data: unknown;
+  try {
+    data = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(body));
+  } catch {
+    throw new SourceError(`${source}: feed is not JSON`);
+  }
+  const feed = feedSchema.safeParse(data);
+  if (!feed.success) throw new SourceError(`${source}: feed has no list of at most 200 jobs`);
+  const all = feed.data.jobs.map((item) => normalize(source, item));
+  return { seen: all.length, listings: all.filter((l) => l.kind === "contract") };
+}
+
+export function freeJobsConnector(source: FreeJobSource) {
+  return async (fetcher: Fetcher): Promise<Collected> => {
+    const r = await fetcher.get({
+      url: ENDPOINTS[source], maxBytes: 8_000_000, timeoutMs: 25_000,
+      headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/json" },
+    });
+    return parseFeed(source, r.body);
+  };
+}
