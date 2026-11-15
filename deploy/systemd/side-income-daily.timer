@@ -1,0 +1,11 @@
+# Shadow period: 14:00 Asia/Taipei, clear of production's 09:00 and 12:00 triggers, so one source is never
+# read by both systems at once. Plan step 10 moves it to 09:00.
+[Unit]
+Description=side-income daily run at 14:00 Asia/Taipei
+
+[Timer]
+OnCalendar=*-*-* 14:00:00 Asia/Taipei
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,10 +1,11 @@
+import { getPgDb } from "@/db/pg/client";
 import { sourcesPage } from "@/services/pages";
 import { Shell, SourcesTable } from "../_lib/views";
-import { withPageDb } from "../_lib/usage";
+import { withPageLog } from "../_lib/usage";
 
 export const dynamic = "force-dynamic";
 
-/** Source health and the latest daily run (moved from `/` in plan step 11). */
+/** Source health and the latest daily run, from runs and run_sources (plan step 6). */
 export default async function Page() {
-  return <Shell active="sources"><SourcesTable data={await withPageDb("/sources", sourcesPage)} /></Shell>;
+  return <Shell active="sources"><SourcesTable data={await withPageLog("/sources", () => sourcesPage(getPgDb()))} /></Shell>;
 }

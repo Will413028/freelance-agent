@@ -177,6 +177,8 @@ export const runs = pgTable("runs", {
   localDate: date("local_date").notNull().unique(),
   status: text("status", { enum: ["running", "succeeded", "failed"] }).notNull(),
   reason: text("reason"),
+  /** Run-level counts (step 6): listings pruned, the list page's query time after intake. */
+  counts: jsonb("counts").notNull().default({}),
   startedAt: at("started_at").notNull().defaultNow(),
   finishedAt: at("finished_at"),
 }, (t) => [check("runs_status", sql`${t.status} in ('running', 'succeeded', 'failed')`)]);
