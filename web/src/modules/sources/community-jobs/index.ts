@@ -4,6 +4,8 @@ import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 import { childText, children, parseXml } from "../shared/xml-feed";
+import { isObject as isAny, truthy, type Json } from "../shared/json";
+const isObject = (v: unknown): v is Record<string, Json> => isAny(v);
 
 // Public community hiring leads: Hacker News "Who is hiring?" and "Freelancer?" threads, and V2EX's
 // outsourcing node (old collection/community_jobs.py, web/src/modules/collection/sources/community-jobs.ts
@@ -39,10 +41,6 @@ export const V2EX_SETTINGS: Omit<SourceSettings, "order"> = {
   label: "V2EX", name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 
-type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
-const isObject = (v: unknown): v is Record<string, Json> => v !== null && typeof v === "object" && !Array.isArray(v);
-/** Truthiness of a JSON value as the old Python reader judged `deleted` and `dead`. */
-const truthy = (v: unknown) => v !== undefined && v !== null && v !== false && v !== 0 && v !== "" && !(Array.isArray(v) && !v.length) && !(isObject(v) && !Object.keys(v).length);
 /** The first n code points. */
 const head = (s: string, n: number) => [...s].slice(0, n).join("");
 const rfc3339 = (d: Date) => (Number.isFinite(d.getTime()) && d.getUTCFullYear() >= 1 && d.getUTCFullYear() <= 9999 ? d.toISOString() : null);
