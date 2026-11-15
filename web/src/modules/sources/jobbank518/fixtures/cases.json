@@ -1,0 +1,2194 @@
+{
+ "index": [
+  {
+   "index": 0,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><p>æ±æ­æ²ææå°é©åçè·ç¼º</p>",
+   "expect": {
+    "urls": []
+   }
+  },
+  {
+   "index": 1,
+   "input": "<h1>No data</h1>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 2,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 3,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><p>æ±æ­æ²ææå°é©åçè·ç¼º</p>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 4,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¨è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 5,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><a href=\"https://www.tasker.com.tw/job-Ab1234.html\">job</a>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 6,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><a href=\"/job-Ab1235.html?x=1\">job</a><a href=\"job-index.html\">job</a><a href=\"#top\">job</a>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html",
+     "https://www.518.com.tw/job-Ab1235.html"
+    ]
+   }
+  },
+  {
+   "index": 7,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"/job-A00000.html\">job</a><a href=\"/job-A00001.html\">job</a><a href=\"/job-A00002.html\">job</a><a href=\"/job-A00003.html\">job</a><a href=\"/job-A00004.html\">job</a><a href=\"/job-A00005.html\">job</a><a href=\"/job-A00006.html\">job</a><a href=\"/job-A00007.html\">job</a><a href=\"/job-A00008.html\">job</a><a href=\"/job-A00009.html\">job</a><a href=\"/job-A00010.html\">job</a><a href=\"/job-A00011.html\">job</a><a href=\"/job-A00012.html\">job</a><a href=\"/job-A00013.html\">job</a><a href=\"/job-A00014.html\">job</a><a href=\"/job-A00015.html\">job</a><a href=\"/job-A00016.html\">job</a><a href=\"/job-A00017.html\">job</a><a href=\"/job-A00018.html\">job</a><a href=\"/job-A00019.html\">job</a><a href=\"/job-A00020.html\">job</a><a href=\"/job-A00021.html\">job</a><a href=\"/job-A00022.html\">job</a><a href=\"/job-A00023.html\">job</a><a href=\"/job-A00024.html\">job</a><a href=\"/job-A00025.html\">job</a><a href=\"/job-A00026.html\">job</a><a href=\"/job-A00027.html\">job</a><a href=\"/job-A00028.html\">job</a><a href=\"/job-A00029.html\">job</a><a href=\"/job-A00030.html\">job</a><a href=\"/job-A00031.html\">job</a><a href=\"/job-A00032.html\">job</a><a href=\"/job-A00033.html\">job</a><a href=\"/job-A00034.html\">job</a><a href=\"/job-A00035.html\">job</a><a href=\"/job-A00036.html\">job</a><a href=\"/job-A00037.html\">job</a><a href=\"/job-A00038.html\">job</a><a href=\"/job-A00039.html\">job</a><a href=\"/job-A00040.html\">job</a><a href=\"/job-A00041.html\">job</a><a href=\"/job-A00042.html\">job</a><a href=\"/job-A00043.html\">job</a><a href=\"/job-A00044.html\">job</a><a href=\"/job-A00045.html\">job</a><a href=\"/job-A00046.html\">job</a><a href=\"/job-A00047.html\">job</a><a href=\"/job-A00048.html\">job</a><a href=\"/job-A00049.html\">job</a><a href=\"/job-A00050.html\">job</a><a href=\"/job-A00051.html\">job</a><a href=\"/job-A00052.html\">job</a><a href=\"/job-A00053.html\">job</a><a href=\"/job-A00054.html\">job</a><a href=\"/job-A00055.html\">job</a><a href=\"/job-A00056.html\">job</a><a href=\"/job-A00057.html\">job</a><a href=\"/job-A00058.html\">job</a><a href=\"/job-A00059.html\">job</a><a href=\"/job-A00060.html\">job</a><a href=\"/job-A00061.html\">job</a><a href=\"/job-A00062.html\">job</a><a href=\"/job-A00063.html\">job</a><a href=\"/job-A00064.html\">job</a><a href=\"/job-A00065.html\">job</a><a href=\"/job-A00066.html\">job</a><a href=\"/job-A00067.html\">job</a><a href=\"/job-A00068.html\">job</a><a href=\"/job-A00069.html\">job</a><a href=\"/job-A00070.html\">job</a><a href=\"/job-A00071.html\">job</a><a href=\"/job-A00072.html\">job</a><a href=\"/job-A00073.html\">job</a><a href=\"/job-A00074.html\">job</a><a href=\"/job-A00075.html\">job</a><a href=\"/job-A00076.html\">job</a><a href=\"/job-A00077.html\">job</a><a href=\"/job-A00078.html\">job</a><a href=\"/job-A00079.html\">job</a><a href=\"/job-A00080.html\">job</a><a href=\"/job-A00081.html\">job</a><a href=\"/job-A00082.html\">job</a><a href=\"/job-A00083.html\">job</a><a href=\"/job-A00084.html\">job</a><a href=\"/job-A00085.html\">job</a><a href=\"/job-A00086.html\">job</a><a href=\"/job-A00087.html\">job</a><a href=\"/job-A00088.html\">job</a><a href=\"/job-A00089.html\">job</a><a href=\"/job-A00090.html\">job</a><a href=\"/job-A00091.html\">job</a><a href=\"/job-A00092.html\">job</a><a href=\"/job-A00093.html\">job</a><a href=\"/job-A00094.html\">job</a><a href=\"/job-A00095.html\">job</a><a href=\"/job-A00096.html\">job</a><a href=\"/job-A00097.html\">job</a><a href=\"/job-A00098.html\">job</a><a href=\"/job-A00099.html\">job</a><a href=\"/job-A00100.html\">job</a><a href=\"/job-A00101.html\">job</a><a href=\"/job-A00102.html\">job</a><a href=\"/job-A00103.html\">job</a><a href=\"/job-A00104.html\">job</a><a href=\"/job-A00105.html\">job</a><a href=\"/job-A00106.html\">job</a><a href=\"/job-A00107.html\">job</a><a href=\"/job-A00108.html\">job</a><a href=\"/job-A00109.html\">job</a><a href=\"/job-A00110.html\">job</a><a href=\"/job-A00111.html\">job</a><a href=\"/job-A00112.html\">job</a><a href=\"/job-A00113.html\">job</a><a href=\"/job-A00114.html\">job</a><a href=\"/job-A00115.html\">job</a><a href=\"/job-A00116.html\">job</a><a href=\"/job-A00117.html\">job</a><a href=\"/job-A00118.html\">job</a><a href=\"/job-A00119.html\">job</a><a href=\"/job-A00120.html\">job</a><a href=\"/job-A00121.html\">job</a><a href=\"/job-A00122.html\">job</a><a href=\"/job-A00123.html\">job</a><a href=\"/job-A00124.html\">job</a><a href=\"/job-A00125.html\">job</a><a href=\"/job-A00126.html\">job</a><a href=\"/job-A00127.html\">job</a><a href=\"/job-A00128.html\">job</a><a href=\"/job-A00129.html\">job</a><a href=\"/job-A00130.html\">job</a><a href=\"/job-A00131.html\">job</a><a href=\"/job-A00132.html\">job</a><a href=\"/job-A00133.html\">job</a><a href=\"/job-A00134.html\">job</a><a href=\"/job-A00135.html\">job</a><a href=\"/job-A00136.html\">job</a><a href=\"/job-A00137.html\">job</a><a href=\"/job-A00138.html\">job</a><a href=\"/job-A00139.html\">job</a><a href=\"/job-A00140.html\">job</a><a href=\"/job-A00141.html\">job</a><a href=\"/job-A00142.html\">job</a><a href=\"/job-A00143.html\">job</a><a href=\"/job-A00144.html\">job</a><a href=\"/job-A00145.html\">job</a><a href=\"/job-A00146.html\">job</a><a href=\"/job-A00147.html\">job</a><a href=\"/job-A00148.html\">job</a><a href=\"/job-A00149.html\">job</a><a href=\"/job-A00150.html\">job</a><a href=\"/job-A00151.html\">job</a><a href=\"/job-A00152.html\">job</a><a href=\"/job-A00153.html\">job</a><a href=\"/job-A00154.html\">job</a><a href=\"/job-A00155.html\">job</a><a href=\"/job-A00156.html\">job</a><a href=\"/job-A00157.html\">job</a><a href=\"/job-A00158.html\">job</a><a href=\"/job-A00159.html\">job</a><a href=\"/job-A00160.html\">job</a><a href=\"/job-A00161.html\">job</a><a href=\"/job-A00162.html\">job</a><a href=\"/job-A00163.html\">job</a><a href=\"/job-A00164.html\">job</a><a href=\"/job-A00165.html\">job</a><a href=\"/job-A00166.html\">job</a><a href=\"/job-A00167.html\">job</a><a href=\"/job-A00168.html\">job</a><a href=\"/job-A00169.html\">job</a><a href=\"/job-A00170.html\">job</a><a href=\"/job-A00171.html\">job</a><a href=\"/job-A00172.html\">job</a><a href=\"/job-A00173.html\">job</a><a href=\"/job-A00174.html\">job</a><a href=\"/job-A00175.html\">job</a><a href=\"/job-A00176.html\">job</a><a href=\"/job-A00177.html\">job</a><a href=\"/job-A00178.html\">job</a><a href=\"/job-A00179.html\">job</a><a href=\"/job-A00180.html\">job</a><a href=\"/job-A00181.html\">job</a><a href=\"/job-A00182.html\">job</a><a href=\"/job-A00183.html\">job</a><a href=\"/job-A00184.html\">job</a><a href=\"/job-A00185.html\">job</a><a href=\"/job-A00186.html\">job</a><a href=\"/job-A00187.html\">job</a><a href=\"/job-A00188.html\">job</a><a href=\"/job-A00189.html\">job</a><a href=\"/job-A00190.html\">job</a><a href=\"/job-A00191.html\">job</a><a href=\"/job-A00192.html\">job</a><a href=\"/job-A00193.html\">job</a><a href=\"/job-A00194.html\">job</a><a href=\"/job-A00195.html\">job</a><a href=\"/job-A00196.html\">job</a><a href=\"/job-A00197.html\">job</a><a href=\"/job-A00198.html\">job</a><a href=\"/job-A00199.html\">job</a><a href=\"/job-A00200.html\">job</a>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 8,
+   "input": "<h1>AIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 9,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸«</h1><h1>çå¼è·å·¥ä½è·ç¼º</h1><a href=\"/job-Ab1234.html\">x</a>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 10,
+   "input": "<h1><span>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸«</span> çå¼è·å·¥ä½è·ç¼º</h1><a href=\"/job-Ab1234.html\">x</a>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 11,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script>var t = \"æ±æ­æ²ææå°é©åçè·ç¼º\";</script>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 12,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><p>æ±æ­æ²ææå°é©åçè·ç¼º</p><a href>bare</a>",
+   "expect": {
+    "urls": []
+   }
+  },
+  {
+   "index": 13,
+   "input": "<title>Just a moment</title><h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a>",
+   "expect": {
+    "challenge": true
+   }
+  },
+  {
+   "index": 14,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a>ÿ",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 15,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"HTTPS://www.518.com.tw/job-Ab1234.html\">job</a><a href=\"https://www.518.com.tw/job-Ab12.html\">job</a>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 16,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\">{\"@type\": \"ItemList\", \"name\": \"a\u0001b\"}</script>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 17,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\">{\"@type\": \"ItemList\",</script>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 18,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\"></script>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  },
+  {
+   "index": 19,
+   "input": "<h1>è»é«è¨­è¨å·¥ç¨å¸«ãInternetç¨å¼è¨­è¨å¸«ãAPPå·¥ç¨å¸«ãAIå·¥ç¨å¸« çå¼è·å·¥ä½è·ç¼º</h1><a href=\"https://www.518.com.tw/job-Ab1234.html\">job</a><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\"}] x</script>",
+   "expect": {
+    "urls": [
+     "https://www.518.com.tw/job-Ab1234.html"
+    ]
+   }
+  }
+ ],
+ "article": [
+  {
+   "index": 0,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 1,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1235.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 2,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 3,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": null, \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 4,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"bad\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 5,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"FULL_TIME\", \"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "FULL_TIME",
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 6,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": \"TEMPORARY\", \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "TEMPORARY"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 7,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"\\u7db2\\u7ad9\\u6587\\u6848<br>\\u8077\\u52d9\\u985e\\u5225<br>\\u7db2\\u7ad9\\u884c\\u92b7\\u4f01\\u5283<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "網站文案\n職務類別\n網站行銷企劃\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "網站行銷企劃",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 8,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>no category</p>\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "no category",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": null,
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 9,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"x<br>\\u8077\\u52d9\\u985e\\u5225<br>APP\\u5de5\\u7a0b\\u5e2b\\u3001\\u8edf\\u9ad4\\u8a2d\\u8a08\\u5de5\\u7a0b\\u5e2b<br>\\u5176\\u4ed6<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>y\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "x\n職務類別\nAPP工程師、軟體設計工程師\n其他\n職缺條件\ny",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "APP工程師、軟體設計工程師\n其他",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 10,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01T00:00:00+08:00\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2025-12-31T16:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "index": 11,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-02-30\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 12,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"0000-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 13,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"20260101\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 14,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": 5, \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 15,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": null, \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 16,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"\\uff12\\uff10\\uff12\\uff16-\\uff10\\uff11-\\uff10\\uff11\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 17,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"Thu, 01 Jan 2026 00:00:00 +0800\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2025-12-31T16:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "index": 18,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01 \", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 19,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-W01-1\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": null,
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: datePosted unreadable (old: page rejected); publication time is unknown, D8"
+  },
+  {
+   "index": 20,
+   "input": "<script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": null,
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 21,
+   "input": "<time>æ´æ°æ¥æï¼2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 22,
+   "input": "<time>æ´æ°æ¥æ : 2026-13-01</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": null,
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: 更新日期 not a real date (old: page rejected); updated date unknown, D8"
+  },
+  {
+   "index": 23,
+   "input": "<time>æ´æ°æ¥æ:ï¼ï¼ï¼ï¼-ï¼ï¼-ï¼ï¼</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": null,
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: 更新日期 in full-width digits (old: Python \\d matched, then rejected); updated date unknown, D8"
+  },
+  {
+   "index": 24,
+   "input": "<p>æ´æ°æ¥æ</p><p>2026-09-26</p><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": null,
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 25,
+   "input": "<script>æ´æ°æ¥æ:2026-09-26</script><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": null,
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 26,
+   "input": "<time>æ´æ°æ¥æ:2026-9-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": null,
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 27,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}, \"validThrough\": \"2026-12-31\"}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": {
+      "kind": "date",
+      "date": "2026-12-31"
+     },
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 28,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}, \"validThrough\": \"\"}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 29,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}, \"validThrough\": null}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 30,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}, \"validThrough\": 0}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 31,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}, \"validThrough\": \"bad\"}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": {
+      "kind": "invalid",
+      "text": "bad"
+     },
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: validThrough 'bad' (old: page rejected); the deadline is given but unusable, D8 shape"
+  },
+  {
+   "index": 32,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}, \"validThrough\": \"2026-12-31T23:59:59Z\"}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": {
+      "kind": "instant",
+      "at": "2026-12-31T23:59:59.000Z"
+     },
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 33,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": null, \"baseSalary\": [1.5, 2], \"jobLocationType\": \"TELECOMMUTE\"}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": "2026-09-26",
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": true,
+      "location_evidence": null,
+      "salary_evidence": [
+       1.5,
+       2
+      ]
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 34,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}, {\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 35,
+   "input": "<script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "listing": {
+     "external_id": "Ab1234",
+     "title": "兼職 AI agent API 工程師",
+     "company": null,
+     "description": "開發 AI agent API\n職務類別\nAI工程師\n職缺條件\n兼職",
+     "url": "https://www.518.com.tw/job-Ab1234.html",
+     "canonical_url": "https://www.518.com.tw/job-Ab1234.html",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "posted_date": "2026-01-01",
+      "updated_date": null,
+      "employment_types": [
+       "PART_TIME"
+      ],
+      "category": "AI工程師",
+      "telecommute": false,
+      "location_evidence": {
+       "address": {
+        "addressCountry": "TW"
+       }
+      },
+      "salary_evidence": {
+       "currency": "TWD",
+       "value": {
+        "minValue": 500,
+        "unitText": "HOUR"
+       }
+      }
+     }
+    }
+   },
+   "why": "PATCHED: date-only datePosted has no zone; published_at unknown, the date in extra.posted_date"
+  },
+  {
+   "index": 36,
+   "input": "<script type=\"application/ld+json\">[1, \"x\", null]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 37,
+   "input": "<h1>Removed</h1>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 38,
+   "input": "<title>Access denied</title><time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "challenge": true
+   }
+  },
+  {
+   "index": 39,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 40,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\">{\"@type\": \"ItemList\", \"name\": \"a\u0001b\"}</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 41,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\">{\"@type\": \"ItemList\",</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 42,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\"></script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  },
+  {
+   "index": 43,
+   "input": "<time>æ´æ°æ¥æ:2026-09-26</time><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"\\u517c\\u8077 AI agent API \\u5de5\\u7a0b\\u5e2b\", \"description\": \"<p>\\u958b\\u767c AI agent API</p><br>\\u8077\\u52d9\\u985e\\u5225<br>AI\\u5de5\\u7a0b\\u5e2b<br>\\u8077\\u7f3a\\u689d\\u4ef6<br>\\u517c\\u8077\", \"url\": \"https://www.518.com.tw/job-Ab1234.html\", \"employmentType\": [\"PART_TIME\"], \"datePosted\": \"2026-01-01\", \"jobLocation\": {\"address\": {\"addressCountry\": \"TW\"}}, \"baseSalary\": {\"currency\": \"TWD\", \"value\": {\"minValue\": 500, \"unitText\": \"HOUR\"}}}, {\"@type\": \"BreadcrumbList\"}]</script><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\"}] x</script>",
+   "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
+   "expect": {
+    "setAside": true
+   },
+   "why": "SET_ASIDE: old rejected this detail page (rejected_count); set aside and counted"
+  }
+ ],
+ "date": [
+  {
+   "index": 0,
+   "input": "\"2026-09-26\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": "2026-09-26",
+    "deadline": {
+     "kind": "date",
+     "date": "2026-09-26"
+    }
+   },
+   "why": "PATCHED: a date without a zone is no instant; published_at unknown, the date kept as posted_date"
+  },
+  {
+   "index": 1,
+   "input": "\"2026-02-29\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-02-29"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 2,
+   "input": "\"2028-02-29\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": "2028-02-29",
+    "deadline": {
+     "kind": "date",
+     "date": "2028-02-29"
+    }
+   },
+   "why": "PATCHED: a date without a zone is no instant; published_at unknown, the date kept as posted_date"
+  },
+  {
+   "index": 3,
+   "input": "\"2026-13-01\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-13-01"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 4,
+   "input": "\"2026-00-10\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-00-10"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 5,
+   "input": "\"2026-01-00\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-01-00"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 6,
+   "input": "\"0000-01-01\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "0000-01-01"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 7,
+   "input": "\"0001-01-01\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": "0001-01-01",
+    "deadline": {
+     "kind": "date",
+     "date": "0001-01-01"
+    }
+   },
+   "why": "PATCHED: a date without a zone is no instant; published_at unknown, the date kept as posted_date"
+  },
+  {
+   "index": 8,
+   "input": "\"9999-12-31\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": "9999-12-31",
+    "deadline": {
+     "kind": "date",
+     "date": "9999-12-31"
+    }
+   },
+   "why": "PATCHED: a date without a zone is no instant; published_at unknown, the date kept as posted_date"
+  },
+  {
+   "index": 9,
+   "input": "\"2026-1-01\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-1-01"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 10,
+   "input": "\"20260926\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "20260926"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 11,
+   "input": "\"2026-W01\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-W01"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 12,
+   "input": "\"2026-W01-1\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-W01-1"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 13,
+   "input": "\"2026W011\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026W011"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 14,
+   "input": "\"2026-09-26T00:00\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "no_timezone",
+     "text": "2026-09-26T00:00"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 15,
+   "input": "\"２０２６-０９-２６\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "２０２６-０９-２６"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 16,
+   "input": "\"2026-09-2\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-09-2"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 17,
+   "input": "\"2026/09/26\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026/09/26"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 18,
+   "input": "\"\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": null
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 19,
+   "input": "\"2026-09-26 \"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "2026-09-26 "
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 20,
+   "input": "\"١٢٣٤-٠١-٠١\"",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "١٢٣٤-٠١-٠١"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 21,
+   "input": "null",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": null
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 22,
+   "input": "5",
+   "expect": {
+    "published_at": null,
+    "posted_date": null,
+    "deadline": {
+     "kind": "invalid",
+     "text": "5"
+    }
+   },
+   "why": "D8_UNKNOWN: old date_value refused it (page rejected); unknown, deadline given but unusable"
+  },
+  {
+   "index": 23,
+   "input": "\"2026-09-26T00:00:00Z\"",
+   "expect": {
+    "published_at": "2026-09-26T00:00:00.000Z",
+    "posted_date": null,
+    "deadline": {
+     "kind": "instant",
+     "at": "2026-09-26T00:00:00.000Z"
+    }
+   }
+  },
+  {
+   "index": 24,
+   "input": "\"Sat, 26 Sep 2026 00:00:00 GMT\"",
+   "expect": {
+    "published_at": "2026-09-26T00:00:00.000Z",
+    "posted_date": null,
+    "deadline": {
+     "kind": "instant",
+     "at": "2026-09-26T00:00:00.000Z"
+    }
+   }
+  }
+ ]
+}

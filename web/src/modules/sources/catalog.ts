@@ -1,11 +1,16 @@
 import { ARBEITNOW_SETTINGS } from "./arbeitnow";
 import { HACKERNEWS_SETTINGS, V2EX_SETTINGS } from "./community-jobs";
+import { CHICKPT_SETTINGS } from "./chickpt";
 import { CRYPTOJOBSLIST_SETTINGS } from "./cryptojobslist";
+import { DYNAMITEJOBS_SETTINGS } from "./dynamitejobs";
 import { freeJobsConnector } from "./free-jobs";
 import { FREELANCER_SETTINGS } from "./freelancer";
 import { GETONBOARD_SETTINGS } from "./getonboard";
 import { HIMALAYAS_SETTINGS } from "./himalayas";
+import { JOBBANK518_SETTINGS } from "./jobbank518";
+import { JUSTREMOTE_SETTINGS } from "./justremote";
 import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
+import { NODESK_SETTINGS } from "./nodesk";
 import { REALWORKFROMANYWHERE_SETTINGS, REMOTEOK_SETTINGS, WEWORKREMOTELY_SETTINGS, WORKINGNOMADS_SETTINGS } from "./public-feeds";
 import { TAIWANJOBS_SETTINGS } from "./taiwanjobs";
 import type { SourceSettings } from "./types";
@@ -16,8 +21,8 @@ import type { SourceSettings } from "./types";
 // each connector's settings cite the old request count and pause. completeRead (plan D9): only sources
 // whose one read pages through the whole board to its end (arbeitnow; getonboard reads a remote-only
 // search, so a listing can leave the read while still open); the free boards
-// (limit/count 200), the public feeds (latest 200 entries) and taiwanjobs (count=1000) answer a latest-N
-// window, where an open listing can drop out.
+// (limit/count 200), the public feeds (latest 200 entries), taiwanjobs (count=1000) and the page sources
+// (an index's first page or feed, plan step 5c) answer a latest-N window, where an open listing can drop out.
 
 export const SOURCES: readonly SourceSettings[] = [
   { ...JOBBANK104_SETTINGS, order: 30 },
@@ -33,8 +38,13 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...WORKINGNOMADS_SETTINGS, order: 160 },
   { ...TAIWANJOBS_SETTINGS, order: 170 },
   { ...ARBEITNOW_SETTINGS, order: 180 },
+  { ...NODESK_SETTINGS, order: 190 },
   { ...GETONBOARD_SETTINGS, order: 200 },
+  { ...JUSTREMOTE_SETTINGS, order: 210 },
   { ...CRYPTOJOBSLIST_SETTINGS, order: 220 },
+  { ...DYNAMITEJOBS_SETTINGS, order: 230 },
+  { ...JOBBANK518_SETTINGS, order: 240 },
+  { ...CHICKPT_SETTINGS, order: 250 },
 ];
 
 export function sourceSettings(name: string): SourceSettings {

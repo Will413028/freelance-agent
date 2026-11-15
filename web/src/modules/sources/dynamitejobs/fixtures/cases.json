@@ -1,0 +1,1249 @@
+{
+ "index": [
+  {
+   "index": 0,
+   "input": "<a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 1,
+   "input": "<a href=\"/company/a/remote-job/b\">job</a><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer?utm=1#x\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/a/remote-job/b",
+     "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 2,
+   "input": "<a href=\"/category/development\">job</a><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 3,
+   "input": "<a href=\"/remote-job/\">job</a><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer"
+    ],
+    "rejected": 1
+   },
+   "why": "SET_ASIDE: '/remote-job/' is not a job URL; old refused the batch for one listing; Will 2026-11-15 set aside and count"
+  },
+  {
+   "index": 4,
+   "input": "<a href=\"https://evil.example/company/a/remote-job/b\">job</a>",
+   "expect": {
+    "urls": [],
+    "rejected": 1
+   },
+   "why": "SET_ASIDE: off-board job link set aside, not the page refused; one of one set aside still fails the source (services/collect)"
+  },
+  {
+   "index": 5,
+   "input": "<h1>No recognized jobs</h1>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 6,
+   "input": "<a>x</a><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 7,
+   "input": "<a href>job</a><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer"
+    ],
+    "rejected": 0
+   },
+   "why": "ACCEPTED: a bare href attribute reads as an empty href under the HTML standard parser (old: None failed the page)"
+  },
+  {
+   "index": 8,
+   "input": "<link href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</link>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 9,
+   "input": "<a href=\"/company/a/remote-job/j0\">job</a><a href=\"/company/a/remote-job/j1\">job</a><a href=\"/company/a/remote-job/j2\">job</a><a href=\"/company/a/remote-job/j3\">job</a><a href=\"/company/a/remote-job/j4\">job</a><a href=\"/company/a/remote-job/j5\">job</a><a href=\"/company/a/remote-job/j6\">job</a><a href=\"/company/a/remote-job/j7\">job</a><a href=\"/company/a/remote-job/j8\">job</a><a href=\"/company/a/remote-job/j9\">job</a><a href=\"/company/a/remote-job/j10\">job</a><a href=\"/company/a/remote-job/j11\">job</a><a href=\"/company/a/remote-job/j12\">job</a><a href=\"/company/a/remote-job/j13\">job</a><a href=\"/company/a/remote-job/j14\">job</a><a href=\"/company/a/remote-job/j15\">job</a><a href=\"/company/a/remote-job/j16\">job</a><a href=\"/company/a/remote-job/j17\">job</a><a href=\"/company/a/remote-job/j18\">job</a><a href=\"/company/a/remote-job/j19\">job</a><a href=\"/company/a/remote-job/j20\">job</a><a href=\"/company/a/remote-job/j21\">job</a><a href=\"/company/a/remote-job/j22\">job</a><a href=\"/company/a/remote-job/j23\">job</a><a href=\"/company/a/remote-job/j24\">job</a><a href=\"/company/a/remote-job/j25\">job</a><a href=\"/company/a/remote-job/j26\">job</a><a href=\"/company/a/remote-job/j27\">job</a><a href=\"/company/a/remote-job/j28\">job</a><a href=\"/company/a/remote-job/j29\">job</a><a href=\"/company/a/remote-job/j30\">job</a><a href=\"/company/a/remote-job/j31\">job</a><a href=\"/company/a/remote-job/j32\">job</a><a href=\"/company/a/remote-job/j33\">job</a><a href=\"/company/a/remote-job/j34\">job</a><a href=\"/company/a/remote-job/j35\">job</a><a href=\"/company/a/remote-job/j36\">job</a><a href=\"/company/a/remote-job/j37\">job</a><a href=\"/company/a/remote-job/j38\">job</a><a href=\"/company/a/remote-job/j39\">job</a><a href=\"/company/a/remote-job/j40\">job</a><a href=\"/company/a/remote-job/j41\">job</a><a href=\"/company/a/remote-job/j42\">job</a><a href=\"/company/a/remote-job/j43\">job</a><a href=\"/company/a/remote-job/j44\">job</a><a href=\"/company/a/remote-job/j45\">job</a><a href=\"/company/a/remote-job/j46\">job</a><a href=\"/company/a/remote-job/j47\">job</a><a href=\"/company/a/remote-job/j48\">job</a><a href=\"/company/a/remote-job/j49\">job</a><a href=\"/company/a/remote-job/j50\">job</a><a href=\"/company/a/remote-job/j51\">job</a><a href=\"/company/a/remote-job/j52\">job</a><a href=\"/company/a/remote-job/j53\">job</a><a href=\"/company/a/remote-job/j54\">job</a><a href=\"/company/a/remote-job/j55\">job</a><a href=\"/company/a/remote-job/j56\">job</a><a href=\"/company/a/remote-job/j57\">job</a><a href=\"/company/a/remote-job/j58\">job</a><a href=\"/company/a/remote-job/j59\">job</a><a href=\"/company/a/remote-job/j60\">job</a><a href=\"/company/a/remote-job/j61\">job</a><a href=\"/company/a/remote-job/j62\">job</a><a href=\"/company/a/remote-job/j63\">job</a><a href=\"/company/a/remote-job/j64\">job</a><a href=\"/company/a/remote-job/j65\">job</a><a href=\"/company/a/remote-job/j66\">job</a><a href=\"/company/a/remote-job/j67\">job</a><a href=\"/company/a/remote-job/j68\">job</a><a href=\"/company/a/remote-job/j69\">job</a><a href=\"/company/a/remote-job/j70\">job</a><a href=\"/company/a/remote-job/j71\">job</a><a href=\"/company/a/remote-job/j72\">job</a><a href=\"/company/a/remote-job/j73\">job</a><a href=\"/company/a/remote-job/j74\">job</a><a href=\"/company/a/remote-job/j75\">job</a><a href=\"/company/a/remote-job/j76\">job</a><a href=\"/company/a/remote-job/j77\">job</a><a href=\"/company/a/remote-job/j78\">job</a><a href=\"/company/a/remote-job/j79\">job</a><a href=\"/company/a/remote-job/j80\">job</a><a href=\"/company/a/remote-job/j81\">job</a><a href=\"/company/a/remote-job/j82\">job</a><a href=\"/company/a/remote-job/j83\">job</a><a href=\"/company/a/remote-job/j84\">job</a><a href=\"/company/a/remote-job/j85\">job</a><a href=\"/company/a/remote-job/j86\">job</a><a href=\"/company/a/remote-job/j87\">job</a><a href=\"/company/a/remote-job/j88\">job</a><a href=\"/company/a/remote-job/j89\">job</a><a href=\"/company/a/remote-job/j90\">job</a><a href=\"/company/a/remote-job/j91\">job</a><a href=\"/company/a/remote-job/j92\">job</a><a href=\"/company/a/remote-job/j93\">job</a><a href=\"/company/a/remote-job/j94\">job</a><a href=\"/company/a/remote-job/j95\">job</a><a href=\"/company/a/remote-job/j96\">job</a><a href=\"/company/a/remote-job/j97\">job</a><a href=\"/company/a/remote-job/j98\">job</a><a href=\"/company/a/remote-job/j99\">job</a><a href=\"/company/a/remote-job/j100\">job</a><a href=\"/company/a/remote-job/j101\">job</a><a href=\"/company/a/remote-job/j102\">job</a><a href=\"/company/a/remote-job/j103\">job</a><a href=\"/company/a/remote-job/j104\">job</a><a href=\"/company/a/remote-job/j105\">job</a><a href=\"/company/a/remote-job/j106\">job</a><a href=\"/company/a/remote-job/j107\">job</a><a href=\"/company/a/remote-job/j108\">job</a><a href=\"/company/a/remote-job/j109\">job</a><a href=\"/company/a/remote-job/j110\">job</a><a href=\"/company/a/remote-job/j111\">job</a><a href=\"/company/a/remote-job/j112\">job</a><a href=\"/company/a/remote-job/j113\">job</a><a href=\"/company/a/remote-job/j114\">job</a><a href=\"/company/a/remote-job/j115\">job</a><a href=\"/company/a/remote-job/j116\">job</a><a href=\"/company/a/remote-job/j117\">job</a><a href=\"/company/a/remote-job/j118\">job</a><a href=\"/company/a/remote-job/j119\">job</a><a href=\"/company/a/remote-job/j120\">job</a><a href=\"/company/a/remote-job/j121\">job</a><a href=\"/company/a/remote-job/j122\">job</a><a href=\"/company/a/remote-job/j123\">job</a><a href=\"/company/a/remote-job/j124\">job</a><a href=\"/company/a/remote-job/j125\">job</a><a href=\"/company/a/remote-job/j126\">job</a><a href=\"/company/a/remote-job/j127\">job</a><a href=\"/company/a/remote-job/j128\">job</a><a href=\"/company/a/remote-job/j129\">job</a><a href=\"/company/a/remote-job/j130\">job</a><a href=\"/company/a/remote-job/j131\">job</a><a href=\"/company/a/remote-job/j132\">job</a><a href=\"/company/a/remote-job/j133\">job</a><a href=\"/company/a/remote-job/j134\">job</a><a href=\"/company/a/remote-job/j135\">job</a><a href=\"/company/a/remote-job/j136\">job</a><a href=\"/company/a/remote-job/j137\">job</a><a href=\"/company/a/remote-job/j138\">job</a><a href=\"/company/a/remote-job/j139\">job</a><a href=\"/company/a/remote-job/j140\">job</a><a href=\"/company/a/remote-job/j141\">job</a><a href=\"/company/a/remote-job/j142\">job</a><a href=\"/company/a/remote-job/j143\">job</a><a href=\"/company/a/remote-job/j144\">job</a><a href=\"/company/a/remote-job/j145\">job</a><a href=\"/company/a/remote-job/j146\">job</a><a href=\"/company/a/remote-job/j147\">job</a><a href=\"/company/a/remote-job/j148\">job</a><a href=\"/company/a/remote-job/j149\">job</a><a href=\"/company/a/remote-job/j150\">job</a><a href=\"/company/a/remote-job/j151\">job</a><a href=\"/company/a/remote-job/j152\">job</a><a href=\"/company/a/remote-job/j153\">job</a><a href=\"/company/a/remote-job/j154\">job</a><a href=\"/company/a/remote-job/j155\">job</a><a href=\"/company/a/remote-job/j156\">job</a><a href=\"/company/a/remote-job/j157\">job</a><a href=\"/company/a/remote-job/j158\">job</a><a href=\"/company/a/remote-job/j159\">job</a><a href=\"/company/a/remote-job/j160\">job</a><a href=\"/company/a/remote-job/j161\">job</a><a href=\"/company/a/remote-job/j162\">job</a><a href=\"/company/a/remote-job/j163\">job</a><a href=\"/company/a/remote-job/j164\">job</a><a href=\"/company/a/remote-job/j165\">job</a><a href=\"/company/a/remote-job/j166\">job</a><a href=\"/company/a/remote-job/j167\">job</a><a href=\"/company/a/remote-job/j168\">job</a><a href=\"/company/a/remote-job/j169\">job</a><a href=\"/company/a/remote-job/j170\">job</a><a href=\"/company/a/remote-job/j171\">job</a><a href=\"/company/a/remote-job/j172\">job</a><a href=\"/company/a/remote-job/j173\">job</a><a href=\"/company/a/remote-job/j174\">job</a><a href=\"/company/a/remote-job/j175\">job</a><a href=\"/company/a/remote-job/j176\">job</a><a href=\"/company/a/remote-job/j177\">job</a><a href=\"/company/a/remote-job/j178\">job</a><a href=\"/company/a/remote-job/j179\">job</a><a href=\"/company/a/remote-job/j180\">job</a><a href=\"/company/a/remote-job/j181\">job</a><a href=\"/company/a/remote-job/j182\">job</a><a href=\"/company/a/remote-job/j183\">job</a><a href=\"/company/a/remote-job/j184\">job</a><a href=\"/company/a/remote-job/j185\">job</a><a href=\"/company/a/remote-job/j186\">job</a><a href=\"/company/a/remote-job/j187\">job</a><a href=\"/company/a/remote-job/j188\">job</a><a href=\"/company/a/remote-job/j189\">job</a><a href=\"/company/a/remote-job/j190\">job</a><a href=\"/company/a/remote-job/j191\">job</a><a href=\"/company/a/remote-job/j192\">job</a><a href=\"/company/a/remote-job/j193\">job</a><a href=\"/company/a/remote-job/j194\">job</a><a href=\"/company/a/remote-job/j195\">job</a><a href=\"/company/a/remote-job/j196\">job</a><a href=\"/company/a/remote-job/j197\">job</a><a href=\"/company/a/remote-job/j198\">job</a><a href=\"/company/a/remote-job/j199\">job</a><a href=\"/company/a/remote-job/j200\">job</a>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 10,
+   "input": "<a href=\"/company/a/remote-job/j0\">job</a><a href=\"/company/a/remote-job/j1\">job</a><a href=\"/company/a/remote-job/j2\">job</a><a href=\"/company/a/remote-job/j3\">job</a><a href=\"/company/a/remote-job/j4\">job</a><a href=\"/company/a/remote-job/j5\">job</a><a href=\"/company/a/remote-job/j6\">job</a><a href=\"/company/a/remote-job/j7\">job</a><a href=\"/company/a/remote-job/j8\">job</a><a href=\"/company/a/remote-job/j9\">job</a><a href=\"/company/a/remote-job/j10\">job</a><a href=\"/company/a/remote-job/j11\">job</a><a href=\"/company/a/remote-job/j12\">job</a><a href=\"/company/a/remote-job/j13\">job</a><a href=\"/company/a/remote-job/j14\">job</a><a href=\"/company/a/remote-job/j15\">job</a><a href=\"/company/a/remote-job/j16\">job</a><a href=\"/company/a/remote-job/j17\">job</a><a href=\"/company/a/remote-job/j18\">job</a><a href=\"/company/a/remote-job/j19\">job</a><a href=\"/company/a/remote-job/j20\">job</a><a href=\"/company/a/remote-job/j21\">job</a><a href=\"/company/a/remote-job/j22\">job</a><a href=\"/company/a/remote-job/j23\">job</a><a href=\"/company/a/remote-job/j24\">job</a><a href=\"/company/a/remote-job/j25\">job</a><a href=\"/company/a/remote-job/j26\">job</a><a href=\"/company/a/remote-job/j27\">job</a><a href=\"/company/a/remote-job/j28\">job</a><a href=\"/company/a/remote-job/j29\">job</a><a href=\"/company/a/remote-job/j30\">job</a><a href=\"/company/a/remote-job/j31\">job</a><a href=\"/company/a/remote-job/j32\">job</a><a href=\"/company/a/remote-job/j33\">job</a><a href=\"/company/a/remote-job/j34\">job</a><a href=\"/company/a/remote-job/j35\">job</a><a href=\"/company/a/remote-job/j36\">job</a><a href=\"/company/a/remote-job/j37\">job</a><a href=\"/company/a/remote-job/j38\">job</a><a href=\"/company/a/remote-job/j39\">job</a><a href=\"/company/a/remote-job/j40\">job</a><a href=\"/company/a/remote-job/j41\">job</a><a href=\"/company/a/remote-job/j42\">job</a><a href=\"/company/a/remote-job/j43\">job</a><a href=\"/company/a/remote-job/j44\">job</a><a href=\"/company/a/remote-job/j45\">job</a><a href=\"/company/a/remote-job/j46\">job</a><a href=\"/company/a/remote-job/j47\">job</a><a href=\"/company/a/remote-job/j48\">job</a><a href=\"/company/a/remote-job/j49\">job</a><a href=\"/company/a/remote-job/j50\">job</a><a href=\"/company/a/remote-job/j51\">job</a><a href=\"/company/a/remote-job/j52\">job</a><a href=\"/company/a/remote-job/j53\">job</a><a href=\"/company/a/remote-job/j54\">job</a><a href=\"/company/a/remote-job/j55\">job</a><a href=\"/company/a/remote-job/j56\">job</a><a href=\"/company/a/remote-job/j57\">job</a><a href=\"/company/a/remote-job/j58\">job</a><a href=\"/company/a/remote-job/j59\">job</a><a href=\"/company/a/remote-job/j60\">job</a><a href=\"/company/a/remote-job/j61\">job</a><a href=\"/company/a/remote-job/j62\">job</a><a href=\"/company/a/remote-job/j63\">job</a><a href=\"/company/a/remote-job/j64\">job</a><a href=\"/company/a/remote-job/j65\">job</a><a href=\"/company/a/remote-job/j66\">job</a><a href=\"/company/a/remote-job/j67\">job</a><a href=\"/company/a/remote-job/j68\">job</a><a href=\"/company/a/remote-job/j69\">job</a><a href=\"/company/a/remote-job/j70\">job</a><a href=\"/company/a/remote-job/j71\">job</a><a href=\"/company/a/remote-job/j72\">job</a><a href=\"/company/a/remote-job/j73\">job</a><a href=\"/company/a/remote-job/j74\">job</a><a href=\"/company/a/remote-job/j75\">job</a><a href=\"/company/a/remote-job/j76\">job</a><a href=\"/company/a/remote-job/j77\">job</a><a href=\"/company/a/remote-job/j78\">job</a><a href=\"/company/a/remote-job/j79\">job</a><a href=\"/company/a/remote-job/j80\">job</a><a href=\"/company/a/remote-job/j81\">job</a><a href=\"/company/a/remote-job/j82\">job</a><a href=\"/company/a/remote-job/j83\">job</a><a href=\"/company/a/remote-job/j84\">job</a><a href=\"/company/a/remote-job/j85\">job</a><a href=\"/company/a/remote-job/j86\">job</a><a href=\"/company/a/remote-job/j87\">job</a><a href=\"/company/a/remote-job/j88\">job</a><a href=\"/company/a/remote-job/j89\">job</a><a href=\"/company/a/remote-job/j90\">job</a><a href=\"/company/a/remote-job/j91\">job</a><a href=\"/company/a/remote-job/j92\">job</a><a href=\"/company/a/remote-job/j93\">job</a><a href=\"/company/a/remote-job/j94\">job</a><a href=\"/company/a/remote-job/j95\">job</a><a href=\"/company/a/remote-job/j96\">job</a><a href=\"/company/a/remote-job/j97\">job</a><a href=\"/company/a/remote-job/j98\">job</a><a href=\"/company/a/remote-job/j99\">job</a><a href=\"/company/a/remote-job/j100\">job</a><a href=\"/company/a/remote-job/j101\">job</a><a href=\"/company/a/remote-job/j102\">job</a><a href=\"/company/a/remote-job/j103\">job</a><a href=\"/company/a/remote-job/j104\">job</a><a href=\"/company/a/remote-job/j105\">job</a><a href=\"/company/a/remote-job/j106\">job</a><a href=\"/company/a/remote-job/j107\">job</a><a href=\"/company/a/remote-job/j108\">job</a><a href=\"/company/a/remote-job/j109\">job</a><a href=\"/company/a/remote-job/j110\">job</a><a href=\"/company/a/remote-job/j111\">job</a><a href=\"/company/a/remote-job/j112\">job</a><a href=\"/company/a/remote-job/j113\">job</a><a href=\"/company/a/remote-job/j114\">job</a><a href=\"/company/a/remote-job/j115\">job</a><a href=\"/company/a/remote-job/j116\">job</a><a href=\"/company/a/remote-job/j117\">job</a><a href=\"/company/a/remote-job/j118\">job</a><a href=\"/company/a/remote-job/j119\">job</a><a href=\"/company/a/remote-job/j120\">job</a><a href=\"/company/a/remote-job/j121\">job</a><a href=\"/company/a/remote-job/j122\">job</a><a href=\"/company/a/remote-job/j123\">job</a><a href=\"/company/a/remote-job/j124\">job</a><a href=\"/company/a/remote-job/j125\">job</a><a href=\"/company/a/remote-job/j126\">job</a><a href=\"/company/a/remote-job/j127\">job</a><a href=\"/company/a/remote-job/j128\">job</a><a href=\"/company/a/remote-job/j129\">job</a><a href=\"/company/a/remote-job/j130\">job</a><a href=\"/company/a/remote-job/j131\">job</a><a href=\"/company/a/remote-job/j132\">job</a><a href=\"/company/a/remote-job/j133\">job</a><a href=\"/company/a/remote-job/j134\">job</a><a href=\"/company/a/remote-job/j135\">job</a><a href=\"/company/a/remote-job/j136\">job</a><a href=\"/company/a/remote-job/j137\">job</a><a href=\"/company/a/remote-job/j138\">job</a><a href=\"/company/a/remote-job/j139\">job</a><a href=\"/company/a/remote-job/j140\">job</a><a href=\"/company/a/remote-job/j141\">job</a><a href=\"/company/a/remote-job/j142\">job</a><a href=\"/company/a/remote-job/j143\">job</a><a href=\"/company/a/remote-job/j144\">job</a><a href=\"/company/a/remote-job/j145\">job</a><a href=\"/company/a/remote-job/j146\">job</a><a href=\"/company/a/remote-job/j147\">job</a><a href=\"/company/a/remote-job/j148\">job</a><a href=\"/company/a/remote-job/j149\">job</a><a href=\"/company/a/remote-job/j150\">job</a><a href=\"/company/a/remote-job/j151\">job</a><a href=\"/company/a/remote-job/j152\">job</a><a href=\"/company/a/remote-job/j153\">job</a><a href=\"/company/a/remote-job/j154\">job</a><a href=\"/company/a/remote-job/j155\">job</a><a href=\"/company/a/remote-job/j156\">job</a><a href=\"/company/a/remote-job/j157\">job</a><a href=\"/company/a/remote-job/j158\">job</a><a href=\"/company/a/remote-job/j159\">job</a><a href=\"/company/a/remote-job/j160\">job</a><a href=\"/company/a/remote-job/j161\">job</a><a href=\"/company/a/remote-job/j162\">job</a><a href=\"/company/a/remote-job/j163\">job</a><a href=\"/company/a/remote-job/j164\">job</a><a href=\"/company/a/remote-job/j165\">job</a><a href=\"/company/a/remote-job/j166\">job</a><a href=\"/company/a/remote-job/j167\">job</a><a href=\"/company/a/remote-job/j168\">job</a><a href=\"/company/a/remote-job/j169\">job</a><a href=\"/company/a/remote-job/j170\">job</a><a href=\"/company/a/remote-job/j171\">job</a><a href=\"/company/a/remote-job/j172\">job</a><a href=\"/company/a/remote-job/j173\">job</a><a href=\"/company/a/remote-job/j174\">job</a><a href=\"/company/a/remote-job/j175\">job</a><a href=\"/company/a/remote-job/j176\">job</a><a href=\"/company/a/remote-job/j177\">job</a><a href=\"/company/a/remote-job/j178\">job</a><a href=\"/company/a/remote-job/j179\">job</a><a href=\"/company/a/remote-job/j180\">job</a><a href=\"/company/a/remote-job/j181\">job</a><a href=\"/company/a/remote-job/j182\">job</a><a href=\"/company/a/remote-job/j183\">job</a><a href=\"/company/a/remote-job/j184\">job</a><a href=\"/company/a/remote-job/j185\">job</a><a href=\"/company/a/remote-job/j186\">job</a><a href=\"/company/a/remote-job/j187\">job</a><a href=\"/company/a/remote-job/j188\">job</a><a href=\"/company/a/remote-job/j189\">job</a><a href=\"/company/a/remote-job/j190\">job</a><a href=\"/company/a/remote-job/j191\">job</a><a href=\"/company/a/remote-job/j192\">job</a><a href=\"/company/a/remote-job/j193\">job</a><a href=\"/company/a/remote-job/j194\">job</a><a href=\"/company/a/remote-job/j195\">job</a><a href=\"/company/a/remote-job/j196\">job</a><a href=\"/company/a/remote-job/j197\">job</a><a href=\"/company/a/remote-job/j198\">job</a><a href=\"/company/a/remote-job/j199\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/a/remote-job/j0",
+     "https://dynamitejobs.com/company/a/remote-job/j1",
+     "https://dynamitejobs.com/company/a/remote-job/j2",
+     "https://dynamitejobs.com/company/a/remote-job/j3",
+     "https://dynamitejobs.com/company/a/remote-job/j4",
+     "https://dynamitejobs.com/company/a/remote-job/j5",
+     "https://dynamitejobs.com/company/a/remote-job/j6",
+     "https://dynamitejobs.com/company/a/remote-job/j7",
+     "https://dynamitejobs.com/company/a/remote-job/j8",
+     "https://dynamitejobs.com/company/a/remote-job/j9",
+     "https://dynamitejobs.com/company/a/remote-job/j10",
+     "https://dynamitejobs.com/company/a/remote-job/j11",
+     "https://dynamitejobs.com/company/a/remote-job/j12",
+     "https://dynamitejobs.com/company/a/remote-job/j13",
+     "https://dynamitejobs.com/company/a/remote-job/j14",
+     "https://dynamitejobs.com/company/a/remote-job/j15",
+     "https://dynamitejobs.com/company/a/remote-job/j16",
+     "https://dynamitejobs.com/company/a/remote-job/j17",
+     "https://dynamitejobs.com/company/a/remote-job/j18",
+     "https://dynamitejobs.com/company/a/remote-job/j19",
+     "https://dynamitejobs.com/company/a/remote-job/j20",
+     "https://dynamitejobs.com/company/a/remote-job/j21",
+     "https://dynamitejobs.com/company/a/remote-job/j22",
+     "https://dynamitejobs.com/company/a/remote-job/j23",
+     "https://dynamitejobs.com/company/a/remote-job/j24",
+     "https://dynamitejobs.com/company/a/remote-job/j25",
+     "https://dynamitejobs.com/company/a/remote-job/j26",
+     "https://dynamitejobs.com/company/a/remote-job/j27",
+     "https://dynamitejobs.com/company/a/remote-job/j28",
+     "https://dynamitejobs.com/company/a/remote-job/j29",
+     "https://dynamitejobs.com/company/a/remote-job/j30",
+     "https://dynamitejobs.com/company/a/remote-job/j31",
+     "https://dynamitejobs.com/company/a/remote-job/j32",
+     "https://dynamitejobs.com/company/a/remote-job/j33",
+     "https://dynamitejobs.com/company/a/remote-job/j34",
+     "https://dynamitejobs.com/company/a/remote-job/j35",
+     "https://dynamitejobs.com/company/a/remote-job/j36",
+     "https://dynamitejobs.com/company/a/remote-job/j37",
+     "https://dynamitejobs.com/company/a/remote-job/j38",
+     "https://dynamitejobs.com/company/a/remote-job/j39",
+     "https://dynamitejobs.com/company/a/remote-job/j40",
+     "https://dynamitejobs.com/company/a/remote-job/j41",
+     "https://dynamitejobs.com/company/a/remote-job/j42",
+     "https://dynamitejobs.com/company/a/remote-job/j43",
+     "https://dynamitejobs.com/company/a/remote-job/j44",
+     "https://dynamitejobs.com/company/a/remote-job/j45",
+     "https://dynamitejobs.com/company/a/remote-job/j46",
+     "https://dynamitejobs.com/company/a/remote-job/j47",
+     "https://dynamitejobs.com/company/a/remote-job/j48",
+     "https://dynamitejobs.com/company/a/remote-job/j49",
+     "https://dynamitejobs.com/company/a/remote-job/j50",
+     "https://dynamitejobs.com/company/a/remote-job/j51",
+     "https://dynamitejobs.com/company/a/remote-job/j52",
+     "https://dynamitejobs.com/company/a/remote-job/j53",
+     "https://dynamitejobs.com/company/a/remote-job/j54",
+     "https://dynamitejobs.com/company/a/remote-job/j55",
+     "https://dynamitejobs.com/company/a/remote-job/j56",
+     "https://dynamitejobs.com/company/a/remote-job/j57",
+     "https://dynamitejobs.com/company/a/remote-job/j58",
+     "https://dynamitejobs.com/company/a/remote-job/j59",
+     "https://dynamitejobs.com/company/a/remote-job/j60",
+     "https://dynamitejobs.com/company/a/remote-job/j61",
+     "https://dynamitejobs.com/company/a/remote-job/j62",
+     "https://dynamitejobs.com/company/a/remote-job/j63",
+     "https://dynamitejobs.com/company/a/remote-job/j64",
+     "https://dynamitejobs.com/company/a/remote-job/j65",
+     "https://dynamitejobs.com/company/a/remote-job/j66",
+     "https://dynamitejobs.com/company/a/remote-job/j67",
+     "https://dynamitejobs.com/company/a/remote-job/j68",
+     "https://dynamitejobs.com/company/a/remote-job/j69",
+     "https://dynamitejobs.com/company/a/remote-job/j70",
+     "https://dynamitejobs.com/company/a/remote-job/j71",
+     "https://dynamitejobs.com/company/a/remote-job/j72",
+     "https://dynamitejobs.com/company/a/remote-job/j73",
+     "https://dynamitejobs.com/company/a/remote-job/j74",
+     "https://dynamitejobs.com/company/a/remote-job/j75",
+     "https://dynamitejobs.com/company/a/remote-job/j76",
+     "https://dynamitejobs.com/company/a/remote-job/j77",
+     "https://dynamitejobs.com/company/a/remote-job/j78",
+     "https://dynamitejobs.com/company/a/remote-job/j79",
+     "https://dynamitejobs.com/company/a/remote-job/j80",
+     "https://dynamitejobs.com/company/a/remote-job/j81",
+     "https://dynamitejobs.com/company/a/remote-job/j82",
+     "https://dynamitejobs.com/company/a/remote-job/j83",
+     "https://dynamitejobs.com/company/a/remote-job/j84",
+     "https://dynamitejobs.com/company/a/remote-job/j85",
+     "https://dynamitejobs.com/company/a/remote-job/j86",
+     "https://dynamitejobs.com/company/a/remote-job/j87",
+     "https://dynamitejobs.com/company/a/remote-job/j88",
+     "https://dynamitejobs.com/company/a/remote-job/j89",
+     "https://dynamitejobs.com/company/a/remote-job/j90",
+     "https://dynamitejobs.com/company/a/remote-job/j91",
+     "https://dynamitejobs.com/company/a/remote-job/j92",
+     "https://dynamitejobs.com/company/a/remote-job/j93",
+     "https://dynamitejobs.com/company/a/remote-job/j94",
+     "https://dynamitejobs.com/company/a/remote-job/j95",
+     "https://dynamitejobs.com/company/a/remote-job/j96",
+     "https://dynamitejobs.com/company/a/remote-job/j97",
+     "https://dynamitejobs.com/company/a/remote-job/j98",
+     "https://dynamitejobs.com/company/a/remote-job/j99",
+     "https://dynamitejobs.com/company/a/remote-job/j100",
+     "https://dynamitejobs.com/company/a/remote-job/j101",
+     "https://dynamitejobs.com/company/a/remote-job/j102",
+     "https://dynamitejobs.com/company/a/remote-job/j103",
+     "https://dynamitejobs.com/company/a/remote-job/j104",
+     "https://dynamitejobs.com/company/a/remote-job/j105",
+     "https://dynamitejobs.com/company/a/remote-job/j106",
+     "https://dynamitejobs.com/company/a/remote-job/j107",
+     "https://dynamitejobs.com/company/a/remote-job/j108",
+     "https://dynamitejobs.com/company/a/remote-job/j109",
+     "https://dynamitejobs.com/company/a/remote-job/j110",
+     "https://dynamitejobs.com/company/a/remote-job/j111",
+     "https://dynamitejobs.com/company/a/remote-job/j112",
+     "https://dynamitejobs.com/company/a/remote-job/j113",
+     "https://dynamitejobs.com/company/a/remote-job/j114",
+     "https://dynamitejobs.com/company/a/remote-job/j115",
+     "https://dynamitejobs.com/company/a/remote-job/j116",
+     "https://dynamitejobs.com/company/a/remote-job/j117",
+     "https://dynamitejobs.com/company/a/remote-job/j118",
+     "https://dynamitejobs.com/company/a/remote-job/j119",
+     "https://dynamitejobs.com/company/a/remote-job/j120",
+     "https://dynamitejobs.com/company/a/remote-job/j121",
+     "https://dynamitejobs.com/company/a/remote-job/j122",
+     "https://dynamitejobs.com/company/a/remote-job/j123",
+     "https://dynamitejobs.com/company/a/remote-job/j124",
+     "https://dynamitejobs.com/company/a/remote-job/j125",
+     "https://dynamitejobs.com/company/a/remote-job/j126",
+     "https://dynamitejobs.com/company/a/remote-job/j127",
+     "https://dynamitejobs.com/company/a/remote-job/j128",
+     "https://dynamitejobs.com/company/a/remote-job/j129",
+     "https://dynamitejobs.com/company/a/remote-job/j130",
+     "https://dynamitejobs.com/company/a/remote-job/j131",
+     "https://dynamitejobs.com/company/a/remote-job/j132",
+     "https://dynamitejobs.com/company/a/remote-job/j133",
+     "https://dynamitejobs.com/company/a/remote-job/j134",
+     "https://dynamitejobs.com/company/a/remote-job/j135",
+     "https://dynamitejobs.com/company/a/remote-job/j136",
+     "https://dynamitejobs.com/company/a/remote-job/j137",
+     "https://dynamitejobs.com/company/a/remote-job/j138",
+     "https://dynamitejobs.com/company/a/remote-job/j139",
+     "https://dynamitejobs.com/company/a/remote-job/j140",
+     "https://dynamitejobs.com/company/a/remote-job/j141",
+     "https://dynamitejobs.com/company/a/remote-job/j142",
+     "https://dynamitejobs.com/company/a/remote-job/j143",
+     "https://dynamitejobs.com/company/a/remote-job/j144",
+     "https://dynamitejobs.com/company/a/remote-job/j145",
+     "https://dynamitejobs.com/company/a/remote-job/j146",
+     "https://dynamitejobs.com/company/a/remote-job/j147",
+     "https://dynamitejobs.com/company/a/remote-job/j148",
+     "https://dynamitejobs.com/company/a/remote-job/j149",
+     "https://dynamitejobs.com/company/a/remote-job/j150",
+     "https://dynamitejobs.com/company/a/remote-job/j151",
+     "https://dynamitejobs.com/company/a/remote-job/j152",
+     "https://dynamitejobs.com/company/a/remote-job/j153",
+     "https://dynamitejobs.com/company/a/remote-job/j154",
+     "https://dynamitejobs.com/company/a/remote-job/j155",
+     "https://dynamitejobs.com/company/a/remote-job/j156",
+     "https://dynamitejobs.com/company/a/remote-job/j157",
+     "https://dynamitejobs.com/company/a/remote-job/j158",
+     "https://dynamitejobs.com/company/a/remote-job/j159",
+     "https://dynamitejobs.com/company/a/remote-job/j160",
+     "https://dynamitejobs.com/company/a/remote-job/j161",
+     "https://dynamitejobs.com/company/a/remote-job/j162",
+     "https://dynamitejobs.com/company/a/remote-job/j163",
+     "https://dynamitejobs.com/company/a/remote-job/j164",
+     "https://dynamitejobs.com/company/a/remote-job/j165",
+     "https://dynamitejobs.com/company/a/remote-job/j166",
+     "https://dynamitejobs.com/company/a/remote-job/j167",
+     "https://dynamitejobs.com/company/a/remote-job/j168",
+     "https://dynamitejobs.com/company/a/remote-job/j169",
+     "https://dynamitejobs.com/company/a/remote-job/j170",
+     "https://dynamitejobs.com/company/a/remote-job/j171",
+     "https://dynamitejobs.com/company/a/remote-job/j172",
+     "https://dynamitejobs.com/company/a/remote-job/j173",
+     "https://dynamitejobs.com/company/a/remote-job/j174",
+     "https://dynamitejobs.com/company/a/remote-job/j175",
+     "https://dynamitejobs.com/company/a/remote-job/j176",
+     "https://dynamitejobs.com/company/a/remote-job/j177",
+     "https://dynamitejobs.com/company/a/remote-job/j178",
+     "https://dynamitejobs.com/company/a/remote-job/j179",
+     "https://dynamitejobs.com/company/a/remote-job/j180",
+     "https://dynamitejobs.com/company/a/remote-job/j181",
+     "https://dynamitejobs.com/company/a/remote-job/j182",
+     "https://dynamitejobs.com/company/a/remote-job/j183",
+     "https://dynamitejobs.com/company/a/remote-job/j184",
+     "https://dynamitejobs.com/company/a/remote-job/j185",
+     "https://dynamitejobs.com/company/a/remote-job/j186",
+     "https://dynamitejobs.com/company/a/remote-job/j187",
+     "https://dynamitejobs.com/company/a/remote-job/j188",
+     "https://dynamitejobs.com/company/a/remote-job/j189",
+     "https://dynamitejobs.com/company/a/remote-job/j190",
+     "https://dynamitejobs.com/company/a/remote-job/j191",
+     "https://dynamitejobs.com/company/a/remote-job/j192",
+     "https://dynamitejobs.com/company/a/remote-job/j193",
+     "https://dynamitejobs.com/company/a/remote-job/j194",
+     "https://dynamitejobs.com/company/a/remote-job/j195",
+     "https://dynamitejobs.com/company/a/remote-job/j196",
+     "https://dynamitejobs.com/company/a/remote-job/j197",
+     "https://dynamitejobs.com/company/a/remote-job/j198",
+     "https://dynamitejobs.com/company/a/remote-job/j199"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 11,
+   "input": "<title>Just a moment...</title><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 12,
+   "input": "<a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a><div class=\"cf-chl-widget\"></div>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 13,
+   "input": "<TITLE> access DENIED</TITLE><a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 14,
+   "input": "",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 15,
+   "input": "<a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\">job</a>ÿ",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "index": 16,
+   "input": "<a href=\"HTTPS://DYNAMITEJOBS.COM/company/a/remote-job/b\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/a/remote-job/b"
+    ],
+    "rejected": 0
+   },
+   "why": "ACCEPTED: scheme and host case name the same job URL (checklist section 3: different spellings, one id)"
+  },
+  {
+   "index": 17,
+   "input": "<a href=\"//dynamitejobs.com/company/a/remote-job/b\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/a/remote-job/b"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 18,
+   "input": "<a href=\"company/a/remote-job/b\">job</a>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/a/remote-job/b"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 19,
+   "input": "<a href=\"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\"/>",
+   "expect": {
+    "urls": [
+     "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer"
+    ],
+    "rejected": 0
+   }
+  },
+  {
+   "index": 20,
+   "input": "<a href=\"https://dynamitejobs.com/company/example/remote-job/AI-agent-engineer\">job</a>",
+   "expect": {
+    "urls": [],
+    "rejected": 1
+   },
+   "why": "SET_ASIDE: upper-case path is not a job path; old refused the batch for one listing; set aside and count (fails the source as one of one)"
+  }
+ ],
+ "article": [
+  {
+   "index": 0,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 1,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer-other\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 2,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 3,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": null, \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 4,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 5,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": \"Worldwide\", \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "external_id": "/company/example/remote-job/ai-agent-engineer",
+    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+    "fields": {
+     "location": null,
+     "taiwan_eligible": null
+    }
+   },
+   "why": "D8_UNKNOWN: location requirements unreadable (old: job dropped); location and Taiwan eligibility unknown"
+  },
+  {
+   "index": 6,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"yesterday\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 7,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": null, \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 8,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": [], \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 9,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": [\"CONTRACTOR\", \"CONTRACTOR\"], \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 10,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": [\"PART_TIME\", \"FULL_TIME\"], \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "FULL_TIME",
+       "PART_TIME"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 11,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": [\"contractor\"], \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "contractor"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 12,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"Contract AI agent engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"FULL_TIME\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "Contract AI agent engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "FULL_TIME"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 13,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": {\"@type\": \"Country\", \"name\": \"United States\"}, \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "United States",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": false,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "United States"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 14,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 15,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 16,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": null, \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "external_id": "/company/example/remote-job/ai-agent-engineer",
+    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+    "fields": {
+     "location": null,
+     "taiwan_eligible": null
+    }
+   },
+   "why": "D8_UNKNOWN: location requirements unreadable (old: job dropped); location and Taiwan eligibility unknown"
+  },
+  {
+   "index": 17,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Place\", \"name\": \"x\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "external_id": "/company/example/remote-job/ai-agent-engineer",
+    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+    "fields": {
+     "location": null,
+     "taiwan_eligible": null
+    }
+   },
+   "why": "D8_UNKNOWN: location requirements unreadable (old: job dropped); location and Taiwan eligibility unknown"
+  },
+  {
+   "index": 18,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "external_id": "/company/example/remote-job/ai-agent-engineer",
+    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+    "fields": {
+     "location": null,
+     "taiwan_eligible": null
+    }
+   },
+   "why": "D8_UNKNOWN: location requirements unreadable (old: job dropped); location and Taiwan eligibility unknown"
+  },
+  {
+   "index": 19,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"<b>Taiwan</b>\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 20,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [\"Taiwan\"], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "external_id": "/company/example/remote-job/ai-agent-engineer",
+    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+    "fields": {
+     "location": null,
+     "taiwan_eligible": null
+    }
+   },
+   "why": "D8_UNKNOWN: location requirements unreadable (old: job dropped); location and Taiwan eligibility unknown"
+  },
+  {
+   "index": 21,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": [\"Country\"], \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "external_id": "/company/example/remote-job/ai-agent-engineer",
+    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+    "fields": {
+     "location": null,
+     "taiwan_eligible": null
+    }
+   },
+   "why": "D8_UNKNOWN: location requirements unreadable (old: job dropped); location and Taiwan eligibility unknown"
+  },
+  {
+   "index": 22,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"AdministrativeArea\", \"name\": \"APAC\"}, {\"@type\": \"Country\", \"name\": \"Japan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "APAC; Japan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "APAC",
+       "Japan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 23,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Germany\"}, {\"@type\": \"Country\", \"name\": \"Canada\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Germany; Canada",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": false,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Germany",
+       "Canada"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 24,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\", \"validThrough\": \"\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 25,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\", \"validThrough\": null}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 26,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\", \"validThrough\": 0}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 27,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\", \"validThrough\": \"bad\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "external_id": "/company/example/remote-job/ai-agent-engineer",
+    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+    "fields": {
+     "deadline": {
+      "kind": "invalid",
+      "text": "bad"
+     }
+    }
+   },
+   "why": "D8_UNKNOWN: validThrough unreadable (old: job dropped); kept as the contract's invalid deadline with the source text"
+  },
+  {
+   "index": 28,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\", \"validThrough\": \"2026-12-01T00:00:00+08:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": {
+      "kind": "instant",
+      "at": "2026-11-30T16:00:00.000Z"
+     },
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 29,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": null, \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": false
+     }
+    }
+   }
+  },
+  {
+   "index": 30,
+   "input": "<html><title>Just a moment</title><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "challenge": true
+   }
+  },
+  {
+   "index": 31,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 32,
+   "input": "<html><script type=\"application/ld+json\">[{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}]</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 33,
+   "input": "<h1>Missing metadata</h1>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+   "expect": {
+    "setAside": true
+   }
+  },
+  {
+   "index": 34,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer?x=1",
+   "expect": {
+    "listing": {
+     "external_id": "/company/example/remote-job/ai-agent-engineer",
+     "title": "AI agent API engineer",
+     "company": null,
+     "description": "Build an AI agent API.",
+     "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "canonical_url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": "2026-09-26T10:00:00.000Z",
+     "deadline": null,
+     "extra": {
+      "employment_types": [
+       "CONTRACTOR"
+      ],
+      "location_evidence": [
+       "Taiwan"
+      ],
+      "remote_evidence": true
+     }
+    }
+   }
+  },
+  {
+   "index": 35,
+   "input": "<html><script type=\"application/ld+json\">{\"@type\": \"JobPosting\", \"title\": \"AI agent API engineer\", \"description\": \"<p>Build an AI agent API.</p>\", \"url\": \"https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer\", \"employmentType\": \"CONTRACTOR\", \"jobLocationType\": \"TELECOMMUTE\", \"applicantLocationRequirements\": [{\"@type\": \"Country\", \"name\": \"Taiwan\"}], \"datePosted\": \"2026-09-26T10:00:00+00:00\"}</script></html>",
+   "url": "https://evil.example/",
+   "expect": {
+    "setAside": true
+   }
+  }
+ ]
+}

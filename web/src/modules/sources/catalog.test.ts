@@ -29,6 +29,7 @@ describe("source catalog", () => {
       remotive: "Remotive", jobicy: "Jobicy", freelancer: "Freelancer", himalayas: "Himalayas", hackernews: "Hacker News", v2ex: "V2EX",
       remoteok: "Remote OK", realworkfromanywhere: "Real Work From Anywhere", weworkremotely: "We Work Remotely", workingnomads: "Working Nomads",
       taiwanjobs: "台灣就業通", arbeitnow: "Arbeitnow", getonboard: "Get on Board", cryptojobslist: "CryptoJobsList",
+      nodesk: "NoDesk", justremote: "JustRemote", dynamitejobs: "Dynamite Jobs", jobbank518: "518 熊班", chickpt: "小雞上工",
     });
     expect(sourceLabel("hackernews")).toBe("Hacker News");
     expect(sourceLabel("constructor")).toBe("constructor");
