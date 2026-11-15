@@ -64,22 +64,21 @@ const REFUSED_PAGE = new Map<number, string>([
   [37, "body not UTF-8: the official API sends UTF-8, Python's json also read UTF-16/32"],
 ]);
 const SET_ASIDE = "SET_ASIDE: old set rows aside (rejected > 0); the new connector does the same";
-const RANGE_ONLY = "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)";
+const CROSS_PAGE_ONLY = "old flagged only cross-page meta and still wrote these listings; the real API's meta is per page and wrong as a range (VM 2026-11-15), so it is no longer compared across pages";
 /**
- * Whether an old inconsistent scan failed only on meta.from/meta.to: every page answers 200 and parses
+ * Whether an old inconsistent scan failed only on cross-page meta (from/to, per_page changing, a short page with a next link): every page answers 200 and parses
  * as an object, and passes the connector's own shape rule (pageShapeOk, one definition). per_page is
  * read from the raw JSON text so that a float like 2.0, which Python's int check refused, does not count.
  */
-function rangeOnly(pages: Record<string, [number, string]>): boolean {
-  let size: number | null = null;
+function crossPageOnly(pages: Record<string, [number, string]>): boolean {
   for (const [status, body] of Object.values(pages)) {
     if (status !== 200) return false;
-    let p: { data?: unknown[]; meta?: { per_page?: unknown }; links?: { next?: unknown } };
+    let p: { data?: unknown[]; meta?: { per_page?: unknown } };
     try { p = JSON.parse(body); } catch { return false; }
-    if (!/"per_page"\s*:\s*\d+\s*[,}]/.test(body)) return false;
+    // meta's own per_page as written: an integer literal, as Python's int check required (a float like 2.0 does not count).
+    if (!/"meta"\s*:\s*\{[^{}]*"per_page"\s*:\s*\d+\s*[,}]/.test(body)) return false;
     const count = Array.isArray(p.data) ? p.data.length : -1;
-    if (count < 0 || !pageShapeOk(p.meta?.per_page, count, p.links?.next != null, size)) return false;
-    size = p.meta!.per_page as number;
+    if (count < 0 || !pageShapeOk(p.meta?.per_page, count)) return false;
   }
   return true;
 }
@@ -131,11 +130,11 @@ const scan = golden.arbeitnow_scan.flatMap((c, i): ScanCase[] => {
   if (ACCEPTED_SCAN.has(i)) return [{ input, expect: { listing: true }, why: ACCEPTED_SCAN.get(i) }];
   if ("error" in c.expect) return [{ input, expect: { error: true } }];
   const [jobs, coverage] = JSON.parse(c.expect.ok) as [{ external_id: string }[], { seen: number; complete_scan: boolean; rejected_count: number; pagination_consistent: boolean; truncated: boolean }];
-  if (!coverage.pagination_consistent && !rangeOnly(input)) return [{ input, expect: { error: true }, why: INCOMPLETE_SCAN }];
+  if (!coverage.pagination_consistent && !crossPageOnly(input)) return [{ input, expect: { error: true }, why: INCOMPLETE_SCAN }];
   const range = !coverage.pagination_consistent;
   if (coverage.truncated) throw new Error(`scan ${i}: truncated old scan, no counterpart at the fixed cap`);
   const rejected = coverage.rejected_count;
-  const why = [rejected > 0 ? SET_ASIDE : null, range ? RANGE_ONLY : null].filter(Boolean).join("; ");
+  const why = [rejected > 0 ? SET_ASIDE : null, range ? CROSS_PAGE_ONLY : null].filter(Boolean).join("; ");
   return [{ input, expect: { seen: coverage.seen, ids: jobs.map((j) => j.external_id), requests: c.calls.map(([u]) => u), ...(rejected > 0 ? { rejected } : {}) }, ...(why ? { why } : {})}];
 });
 const skipped = golden.arbeitnow_scan.length - scan.length;

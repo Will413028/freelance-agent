@@ -153,17 +153,16 @@ export function parsePage(body: Uint8Array, page: number): Page {
 const int = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v);
 
 /**
- * Whether a page's shape agrees with the pages before it (old arbeitnow.ts:161-167 without the range):
- * per_page is the same positive integer up to MAX_PAGE_ENTRIES on every page, a page holds at most
- * per_page listings, and a page with a next link is full. meta.from and meta.to are not checked: the
- * real API reports page 2 as from 101, to 300 with per_page 300 while serving 300 listings none of
- * which page 1 had (VM, 2026-11-15: overlap 0 of 300). Accepted trade-off: a page that repeats
- * earlier listings with the same content, or skips some, is no longer detected (the API's own range
- * cannot tell either); a repeated listing with different content still refuses the run.
+ * Whether one page is sane on its own: per_page is a positive integer up to MAX_PAGE_ENTRIES and the
+ * page holds at most that many listings. Nothing is compared across pages: the real API's meta is
+ * per page and wrong as a range (VM, 2026-11-15: page 2 says from 101, to 300 with 300 listings none
+ * of which page 1 had; page 6 says per_page 224, from 501, to 224 and links a page 7), so equal
+ * per_page, from/to and "a page with a next link is full" (old arbeitnow.ts:161-167) are not checked.
+ * Accepted trade-off: a page that repeats earlier listings unchanged, or skips some, is not detected;
+ * a repeated listing with different content still refuses the run, and the page cap marks truncation.
  */
-export function pageShapeOk(perPage: unknown, count: number, hasNext: boolean, pageSize: number | null): boolean {
-  if (!int(perPage) || perPage <= 0 || perPage > MAX_PAGE_ENTRIES || (pageSize !== null && perPage !== pageSize) || count > perPage) return false;
-  return !hasNext || count === perPage;
+export function pageShapeOk(perPage: unknown, count: number): boolean {
+  return int(perPage) && perPage > 0 && perPage <= MAX_PAGE_ENTRIES && count <= perPage;
 }
 
 /**
@@ -173,15 +172,14 @@ export function pageShapeOk(perPage: unknown, count: number, hasNext: boolean, p
  */
 export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: ListingInput[]; truncated: boolean; rejected: number; examined: number }> {
   const byId = new Map<string, ListingInput>();
-  let url: string | null = ENDPOINT, page = 1, seen = 0, rejected = 0, examined = 0, pageSize: number | null = null;
+  let url: string | null = ENDPOINT, page = 1, seen = 0, rejected = 0, examined = 0;
   while (url && page <= MAX_PAGES) {
     const r = await fetcher.get({
       url, maxBytes: MAX_BYTES, timeoutMs: 25_000,
       headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/json" },
     });
     const p = parsePage(r.body, page);
-    if (!pageShapeOk(p.meta.per_page, p.count, p.next !== null, pageSize)) throw new SourceError(`arbeitnow: inconsistent pagination on page ${page}`);
-    pageSize ??= p.meta.per_page as number;
+    if (!pageShapeOk(p.meta.per_page, p.count)) throw new SourceError(`arbeitnow: invalid page meta on page ${page}`);
     seen += p.count;
     rejected += p.rejected;
     examined += p.examined;
