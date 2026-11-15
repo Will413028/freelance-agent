@@ -4,7 +4,7 @@ import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Freelancer: the public official active-project search, three fixed queries, paginated; never bids
-// (old collection/freelancer.py, web/src/modules/collection/sources/freelancer.ts until step 11).
+// (old collection/freelancer.py, web/src/modules/collection/sources/freelancer.ts at ce1254d).
 //
 // A project the old connector refused (rejected_count, which turned the run partial) is still set
 // aside and counted in `rejected` when the refusal was about identity or about what the source's own
@@ -168,5 +168,5 @@ export async function freelancerConnector(fetcher: Fetcher): Promise<Collected> 
  * needs about 20 s plus the answers.
  */
 export const FREELANCER_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "freelancer", connector: freelancerConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: QUERIES.length * MAX_PAGES, completeRead: false, disabled: null,
+  label: "Freelancer", name: "freelancer", connector: freelancerConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: QUERIES.length * MAX_PAGES, completeRead: false, disabled: null,
 };

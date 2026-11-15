@@ -1,7 +1,6 @@
 "use client";
 
-// A page whose read failed (plan step 11): D1 over HTTP can be rate limited, out of its daily rows or
-// time out, and listPage gives up after one retry when a write keeps landing between its two reads.
+// A page whose read failed: Postgres was unreachable or the query failed.
 // A client component by Next's rule; it imports nothing of the server (tests/structure.test.ts).
 export default function Error({ reset }: { error: Error; reset: () => void }) {
   return <main>

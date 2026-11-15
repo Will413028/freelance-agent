@@ -7,7 +7,7 @@ import { childText, children, parseXml } from "../shared/xml-feed";
 
 // Public community hiring leads: Hacker News "Who is hiring?" and "Freelancer?" threads, and V2EX's
 // outsourcing node (old collection/community_jobs.py, web/src/modules/collection/sources/community-jobs.ts
-// until step 11). No accounts, messaging or employer-link fetching. A response that is not the expected
+// at ce1254d). No accounts, messaging or employer-link fetching. A response that is not the expected
 // shape refuses the whole source run, so a format change is a failed source and never an empty success.
 // A lead without its identity (id, text, its own link, a zoned publication time on V2EX) is set aside
 // and counted in `rejected`; more than half set aside fails the source (services/collect, Will
@@ -32,11 +32,11 @@ const HEADERS = { "User-Agent": "side-income/0.1 personal-job-discovery" };
 const keepAll = () => true;
 
 export const HACKERNEWS_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "hackernews", connector: hackernewsConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + 6 + 2 * 100, completeRead: false, disabled: null,
+  label: "Hacker News", name: "hackernews", connector: hackernewsConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + 6 + 2 * 100, completeRead: false, disabled: null,
 };
 /** Old community-jobs.ts:140: one feed request. */
 export const V2EX_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
+  label: "V2EX", name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };

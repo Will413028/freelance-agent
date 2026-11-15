@@ -17,8 +17,8 @@ import type { SourceSettings } from "./types";
 // (limit/count 200) and taiwanjobs (count=1000) answer a latest-N window, where an open listing can drop out.
 
 export const SOURCES: readonly SourceSettings[] = [
-  { name: "remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
-  { name: "jobicy", order: 60, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
+  { name: "remotive", label: "Remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
+  { name: "jobicy", label: "Jobicy", order: 60, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
   { ...FREELANCER_SETTINGS, order: 50 },
   { ...HIMALAYAS_SETTINGS, order: 80 },
   { ...HACKERNEWS_SETTINGS, order: 90 },
@@ -34,3 +34,6 @@ export function sourceSettings(name: string): SourceSettings {
   if (!s) throw new Error(`unknown source ${name}`);
   return s;
 }
+
+/** The label a page shows for a source name; the name itself for a source not in the catalog. */
+export const sourceLabel = (name: string): string => SOURCES.find((s) => s.name === name)?.label ?? name;

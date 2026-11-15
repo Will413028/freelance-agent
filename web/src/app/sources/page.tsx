@@ -1,7 +1,7 @@
 import { getPgDb } from "@/db/pg/client";
 import { sourcesPage } from "@/services/pages";
 import { Shell, SourcesTable } from "../_lib/views";
-import { withPageLog } from "../_lib/usage";
+import { withPageLog } from "../_lib/page-log";
 
 export const dynamic = "force-dynamic";
 

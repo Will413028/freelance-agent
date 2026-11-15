@@ -1,4 +1,3 @@
-import { withWorkflow } from "workflow/next";
 import type { NextConfig } from "next";
 
 // No response is content-sniffed (plan step 11). Caching is not set here: Next overrides
@@ -9,4 +8,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+export default nextConfig;

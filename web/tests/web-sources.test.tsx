@@ -5,7 +5,7 @@ import type { PgDb } from "@/db/pg/client";
 import { runs, runSources } from "@/db/pg/schema";
 import { sourcesPage } from "@/services/pages";
 import { SourcesTable } from "@/app/_lib/views";
-import { PyError } from "@/platform/py/value";
+import { NotFound } from "@/platform/errors";
 import { freshPg } from "./helpers/pg";
 
 // Plan step 6: /sources reads runs and run_sources on Postgres; the page log.
@@ -52,21 +52,19 @@ describe("sources page", () => {
   });
 });
 
-class KeyErrorLike extends PyError { constructor() { super("KeyError", "missing"); } }
-
 describe("Postgres page log", () => {
   it("logs route, outcome and time, also when the page throws", async () => {
-    const { withPageLog } = await import("@/app/_lib/usage");
+    const { withPageLog } = await import("@/app/_lib/page-log");
     const lines: string[] = [];
     const original = console.info;
     console.info = (line: string) => { lines.push(line); };
     try {
       await withPageLog("/settings", async () => 1);
-      await expect(withPageLog("/jobs/[id]", async () => { throw new KeyErrorLike(); })).rejects.toBeInstanceOf(KeyErrorLike);
+      await expect(withPageLog("/jobs/[id]", async () => { throw new NotFound("missing"); })).rejects.toBeInstanceOf(NotFound);
     } finally {
       console.info = original;
     }
     expect(lines[0]).toMatch(/^page \/settings outcome=ok ms=\d+$/);
-    expect(lines[1]).toMatch(/^page \/jobs\/\[id\] outcome=KeyError ms=\d+$/);
+    expect(lines[1]).toMatch(/^page \/jobs\/\[id\] outcome=NotFound ms=\d+$/);
   });
 });

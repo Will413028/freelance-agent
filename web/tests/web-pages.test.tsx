@@ -13,8 +13,7 @@ import { JobDetail, JobList, SettingsForm } from "@/app/_lib/views";
 import { freshPg } from "./helpers/pg";
 
 // Plan step 3c: the list, detail and settings pages' loaders, the two write routes and the markup, on
-// Postgres (PGlite here, a real server in CI). Each case of the step 11 D1 version has its
-// counterpart here; /sources and the D1 usage log stay on D1 in tests/web-sources.test.tsx.
+// Postgres (PGlite here, a real server in CI). /sources and the page log are in tests/web-sources.test.tsx.
 
 const SOURCE = "jobicy";
 const now = new Date("2026-11-03T02:00:00Z");
@@ -276,6 +275,10 @@ describe("markup", () => {
       expect(html).toContain("<button");
       expect(html).not.toContain('disabled=""');
     }
+  });
+
+  it("shows the source's catalog label, not its name", async () => {
+    expect((await jobDetail(db, now, await key("c000"))).sourceName).toBe("Jobicy");
   });
 
   it("links the listing's own URL as its source", async () => {

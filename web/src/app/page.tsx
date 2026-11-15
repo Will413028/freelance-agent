@@ -1,6 +1,6 @@
 import { getPgDb } from "@/db/pg/client";
 import { listJobs, listQuery } from "@/services/pages";
-import { withPageLog } from "./_lib/usage";
+import { withPageLog } from "./_lib/page-log";
 import { JobList, NoticeLine, Shell } from "./_lib/views";
 
 export const dynamic = "force-dynamic";

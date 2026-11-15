@@ -199,7 +199,7 @@
   - 消費端：`rg -n -l "@/platform/py/|golden|@/db/d1|@/db/client|workflow|vercel|sqliteTable|D1_|oci-a1" . -g '!node_modules'`。
   - 需要人做的事：無。
   - 驗收：`inventory.md` 的路徑先統一成 repo 相對路徑，標「改寫」而舊檔要刪的列補上舊檔路徑；`check-deleted.sh` exit 0（先確認它在刪除前會失敗）；`web/.dependency-cruiser.cjs`（修改）沒有指向已刪目錄的規則；上面的搜尋結果交給 `check_inventory.py --residue`，只剩 `allowed-residue.md` 列的命中；`pnpm check` 綠；映像大小記錄前後。
-- [ ] **12. 收尾**（被擋於：步驟 5c、7b、8、10、11）：完成定義逐來源核對（每個來源一列的核對表放附件）；獨立設計審查（design-review，材料是 `0f38208` 到收尾的 diff）；長期檢查在 CI（兩個方言只剩一個的 schema 漂移檢查、id 規則的 fixture、`deploy/check-compose.mjs`）；延後項附觸發條件搬回主清單；需要人做的事列給 Will；D0–D5 寫成 `docs/adr/` 的新 ADR 並把 2026-10-23 的 ADR 標成被取代；`docs/implementation-plan.md` 改寫。驗收：核對表每個來源每項都有證據連結；`check-deleted.sh` 與殘留檢查 exit 0；CI 綠；審查發現都有處置。
+- [ ] **12. 收尾**（被擋於：步驟 5c、7b、8、10、11）：完成定義逐來源核對（每個來源一列的核對表放附件）；獨立設計審查（design-review，材料是 `0f38208` 到收尾的 diff）；長期檢查在 CI（兩個方言只剩一個的 schema 漂移檢查、id 規則的 fixture、`deploy/check-compose.mjs`）；延後項附觸發條件搬回主清單；需要人做的事列給 Will；D0–D5 寫成 `docs/adr/` 的新 ADR 並把 2026-10-23 的 ADR 標成被取代；`docs/implementation-plan.md` 與 `docs/design.md` 改寫（`design.md` 仍描述舊系統，步驟 11 加入）；`legacy-time.ts` 與 parsedate 的 Python 語意換標準解析器（`inventory.md` 機制表）。驗收：核對表每個來源每項都有證據連結；`check-deleted.sh` 與殘留檢查 exit 0；CI 綠；審查發現都有處置。
 
 ## 決定
 
@@ -261,5 +261,5 @@
 | 8 分層讀取與新平台 | 未開始 | | | |
 | 9 營運 | 完成 | `deploy/test-deploy.mjs` 7 個情境（健康部署、分支名解析成 origin、build／migration 失敗不動、不健康回滾、重建失敗回滾、回滾也不健康、健康狀態卡住逾時）以 stub `docker`／`git`／`flock` 通過並接進 `pnpm check`；mutation 8 個都被擋；`shellcheck` 無警告；`/code-review` 10 項：修 9、接受 1（腳本用目前 checkout 的版本，改 `deploy.sh` 從下一次部署生效，已寫進 `docs/operations.md`）；compose 的 `web`、`daily` 早已只用 `${APP_IMAGE}`（步驟 2），本步不用改 ；VM 演練（2026-11-15 Will 授權）：先以 `deploy.sh` 部署本 PR `28d7d8f`（healthy）；演練 A `/healthz` 故意失敗的 commit `094eb27`：`web unhealthy` → `rolled back to side-income-web:28d7d8f`，exit 1，前後 `APP_IMAGE` 都是 `28d7d8f`、checkout 回 `28d7d8f`、`/healthz` 200；演練 B 先建表再除以零的 migration（`b6b0ce7`）：`division by zero` → `migration failed; side-income-web:28d7d8f keeps serving`，exit 1，`web` 容器 id 前後相同仍 healthy、`drill_probe` 不存在、`__drizzle_migrations` 仍 2 列（整批交易回滾）；演練分支與映像已刪 | `flock` 的互斥沒有在 VM 上實測兩個並行部署 | `28d7d8f`（PR #36）、本 commit |
 | 10 搬移、切換與退役 | 未開始 | | | |
-| 11 刪舊機制 | 未開始 | | | |
+| 11 刪舊機制 | 程式完成待驗收 | 刪 177 檔、約 35.8 萬行（含 33 MB `golden.json`）；新系統還接舊碼的三處改寫：`withPageLog` 搬成 `app/_lib/page-log.ts`、`platform/errors.ts` 改原生類別、來源顯示名稱改成 catalog 每筆的 `label`（D23 只列了第一處；另兩處是 `pages.ts` 的 `REGISTRY` 與錯誤類別繼承 `PyError`）；golden 最後的 parsedate 70 例搬成 `sources/shared/parsedate.fixtures.json`。`pnpm check` 綠（274 過、1 略過）、`pnpm build` 綠（路由不再有 `/api/cron`）；`check-deleted.sh` 在 origin/dev 失敗（red-proof `--rev`）、本分支 53 路徑 21 表 OK；殘留檢查 48 檔全在 `allowed-residue.md`；兩者進 CI。red-proof：label、頁面顯示名稱、錯誤名稱、409 狀態 4 個 mutant 全擋。design-review 5 項（should 2：改 1、記 1；nit 3 駁回）；`/code-review` 9 項全改；第 2 輪 0 缺陷、1 nit 接受 | 映像大小前後：CI 的 `image` job 印出刪除後大小；刪除前的大小要在 VM 上讀 `side-income-web:bcd7510`（動 VM 先問 Will，未量） | 本 PR |
 | 12 收尾 | 未開始 | | | |

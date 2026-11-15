@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getPgDb } from "@/db/pg/client";
 import { NotFound } from "@/platform/errors";
 import { jobDetail } from "@/services/pages";
-import { withPageLog } from "../../_lib/usage";
+import { withPageLog } from "../../_lib/page-log";
 import { JobDetail, NoticeLine, Shell } from "../../_lib/views";
 
 export const dynamic = "force-dynamic";
