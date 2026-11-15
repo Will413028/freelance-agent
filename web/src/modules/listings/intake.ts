@@ -79,11 +79,16 @@ export function listingOfRow(r: ContentRow): Listing {
  * Writes one source's listings in one transaction and says what happened to each. A listing outside
  * the contract refuses the batch (ZodError); a batch with the same external_id twice is refused: which content wins would depend on order.
  */
-export async function intakeListings(db: PgDb, source: string, given: readonly unknown[], mode: IntakeMode, observedAt = new Date()): Promise<IntakeCounts> {
+/**
+ * `refreshOnly`: listings the source read but its rules did not keep. One that is already stored is
+ * updated like any other (the old `exists ||` exception: a tracked listing keeps reflecting the
+ * source); one that is not stored is never inserted. Same transaction as the batch.
+ */
+export async function intakeListings(db: PgDb, source: string, given: readonly unknown[], mode: IntakeMode, observedAt = new Date(), refreshOnly: readonly unknown[] = []): Promise<IntakeCounts> {
   if (!source) throw new Error("source must be non-empty");
-  const items = given.map((value) => {
+  const items = [...given.map((value) => [value, false] as const), ...refreshOnly.map((value) => [value, true] as const)].map(([value, onlyIfStored]) => {
     const input = parseListingInput(storable(value));
-    return { id: listingId(source, input.external_id), externalId: input.external_id, columns: contentColumns(input) };
+    return { id: listingId(source, input.external_id), externalId: input.external_id, columns: contentColumns(input), onlyIfStored };
   });
   const ids = items.map((i) => i.id);
   if (new Set(ids).size !== ids.length) throw new Error(`${source} batch lists the same external_id twice`);
@@ -91,8 +96,9 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
   if (!items.length) return counts;
   await db.transaction(async (tx) => {
     const existing = new Map((await tx.select().from(listings).where(inArray(listings.id, ids)).for("update")).map((r) => [r.id, r]));
-    for (const { id, externalId, columns } of items) {
+    for (const { id, externalId, columns, onlyIfStored } of items) {
       const old = existing.get(id);
+      if (!old && onlyIfStored) continue;
       if (!old) {
         await tx.insert(listings).values({ id, source, externalId, ...columns, firstSeenAt: observedAt, updatedAt: observedAt });
         counts.inserted++;
@@ -115,6 +121,13 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
 }
 
 /** The listing row of (source, external_id), for tests and pages. */
+/** The external ids among `externalIds` that `source` already has stored. */
+export async function storedExternalIds(db: PgDb, source: string, externalIds: readonly string[]): Promise<Set<string>> {
+  if (!externalIds.length) return new Set();
+  const rows = await db.select({ e: listings.externalId }).from(listings).where(and(eq(listings.source, source), inArray(listings.externalId, [...externalIds])));
+  return new Set(rows.map((r) => r.e));
+}
+
 export async function listingBy(db: PgDb, source: string, externalId: string) {
   const [row] = await db.select().from(listings).where(and(eq(listings.source, source), eq(listings.externalId, externalId)));
   return row ?? null;
