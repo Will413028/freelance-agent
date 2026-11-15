@@ -26,7 +26,8 @@ describe("public feeds over the golden entries and feeds", () => {
         return "setAside" in c.expect ? [] : [{ index: c.index, error: (e as Error).message }];
       }
       const e = c.expect;
-      const ok = "listing" in e ? JSON.stringify(got) === JSON.stringify(e.listing) : "unknown" in e ? e.unknown.every((f) => got[f as keyof typeof got] === null) : "accepted" in e;
+      const ok = "setAside" in e ? false : "listing" in e ? JSON.stringify(got) === JSON.stringify(e.listing)
+        : got.external_id === e.external_id && got.url === e.url && ("accepted" in e || e.unknown.every((f) => got[f as keyof typeof got] === null));
       return ok ? [] : [{ index: c.index, expect: e, got }];
     });
     expect(bad).toEqual([]);
@@ -50,11 +51,15 @@ describe("public feeds over the golden entries and feeds", () => {
     expect(bad).toEqual([]);
   });
 
-  it("covers all four feeds, and every listing id the old reader accepted reads back as itself", () => {
+  it("covers all four feeds, and every job URL the old reader accepted names one id, stable when read again", () => {
     expect(new Set([...cases.normalize, ...cases.batch].map((c) => c.source))).toEqual(new Set(Object.keys(FEEDS)));
     const urls = cases.normalize.flatMap((c) => ("listing" in c.expect ? [[c.source, (c.expect.listing as { url: string }).url] as const] : []));
     expect(urls.length).toBeGreaterThan(50);
-    for (const [s, u] of urls) expect(canonicalJobUrl(s as FeedName, u)).toBe(u);
+    for (const [s, u] of urls) {
+      const id = canonicalJobUrl(s as FeedName, u);
+      expect(id).not.toBeNull();
+      expect(canonicalJobUrl(s as FeedName, id)).toBe(id);
+    }
   });
 });
 
@@ -76,9 +81,8 @@ describe("public feed rules", () => {
     const got = parseFeed("remoteok", json(
       job(), job({ id: "2", url: "https://remoteok.com/remote-jobs/2", position: "Full-time engineer", tags: [] }),
       job({ id: "3", url: "https://remoteok.com/remote-jobs/3", date: "2026-06-01T00:00:00Z" }), job({ id: "4", url: "https://remoteok.com/remote-jobs/4", date: "2026-10-02T00:00:00Z" }),
-      job({ id: "5", url: "https://remoteok.com/remote-jobs/5", date: "nonsense" }),
     ), NOW);
-    expect([got.seen, got.listings.map((l) => [l.external_id, got.sourceKept(l)])]).toEqual([5, [["123", true], ["2", false], ["3", false], ["4", false], ["5", false]]]);
+    expect([got.seen, got.listings.map((l) => [l.external_id, got.sourceKept(l)])]).toEqual([4, [["123", true], ["2", false], ["3", false], ["4", false]]]);
     expect(kept({ ...got.listings[0], published_at: "2026-07-03T00:00:00.000Z" }, NOW)).toBe(true);
   });
 
@@ -90,17 +94,19 @@ describe("public feed rules", () => {
     ]).toEqual(["contract", null, null, "contract", "full_time"]);
   });
 
-  it("keeps unknown unknown: unreadable tags, location or date are null, hours, budget and eligibility stay null", () => {
-    const l = normalize("remoteok", job({ tags: "contract", location: 5, date: "2026-09-18T12:00:00" }));
-    expect([l.kind, l.location, l.published_at, l.weekly_hours, l.budget_min, l.taiwan_eligible]).toEqual([null, null, null, null, null, null]);
+  it("keeps unknown unknown: a location that is not text is null, hours, budget and eligibility stay null", () => {
+    const l = normalize("remoteok", job({ location: 5 }));
+    expect([l.location, l.weekly_hours, l.budget_min, l.taiwan_eligible]).toEqual([null, null, null, null]);
     expect(normalize("remoteok", job({ location: "Worldwide" })).taiwan_eligible).toBeNull();
   });
 
   it("names one job by one id across spellings of its URL; a URL off the board is set aside", () => {
+    expect(normalize("weworkremotely", { title: "t", description: "d", url: "https://WeWorkRemotely.com/remote-jobs/caf\u00e9?x=1", date: "2026-09-18T12:00:00Z", tags: [] }))
+      .toMatchObject({ external_id: "https://weworkremotely.com/remote-jobs/caf%C3%A9", url: "https://weworkremotely.com/remote-jobs/caf\u00e9" });
     for (const u of ["https://REMOTEOK.com/remote-jobs/a?ref=x#y", "https://remoteok.com:443/remote-jobs/a", " https://remoteok.com/remote-jobs/a "]) {
       expect(canonicalJobUrl("remoteok", u)).toBe("https://remoteok.com/remote-jobs/a");
     }
-    for (const u of ["http://remoteok.com/remote-jobs/a", "https://evil.example/remote-jobs/a", "https://remoteok.com/remote-jobs/", "https://u:p@remoteok.com/remote-jobs/a", "https://remoteok.com:8443/remote-jobs/a"]) {
+    for (const u of ["https://remoteok.com\\remote-jobs\\a", "https://remoteok.com/remote-\tjobs/a", "http://remoteok.com/remote-jobs/a", "https://evil.example/remote-jobs/a", "https://remoteok.com/remote-jobs/", "https://u:p@remoteok.com/remote-jobs/a", "https://remoteok.com:8443/remote-jobs/a"]) {
       expect(canonicalJobUrl("remoteok", u)).toBeNull();
     }
     expect([canonicalJobUrl("workingnomads", "https://www.workingnomads.com/job/go/12/"), canonicalJobUrl("workingnomads", "https://www.workingnomads.com/job/go/x/")])
@@ -108,7 +114,9 @@ describe("public feed rules", () => {
   });
 
   it("sets aside and counts an entry without its identity, keeping the others", () => {
-    for (const bad of [{ url: "https://evil.example/remote-jobs/x" }, { id: "12a" }, { id: -1 }, { id: 2 ** 53 }, { position: "" }, { description: "<p> </p>" }, { position: "x".repeat(501) }, { url: 5 }]) {
+    for (const bad of [{ url: "https://evil.example/remote-jobs/x" }, { id: "12a" }, { id: -1 }, { id: 2 ** 53 }, { position: "" }, { description: "<p> </p>" }, { position: "x".repeat(501) }, { url: 5 },
+      // The source's rule reads these two, so unreadable means set aside.
+      { tags: "contract" }, { tags: [1] }, { date: "2026-09-18T12:00:00" }, { date: "nonsense" }, { date: null }]) {
       const got = parseItems("remoteok", json(job({ id: "1", url: "https://remoteok.com/remote-jobs/ok" }), job(bad)));
       expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([2, 1, 2, ["1"]]);
     }

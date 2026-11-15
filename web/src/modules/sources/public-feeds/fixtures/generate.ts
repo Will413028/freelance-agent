@@ -7,6 +7,7 @@
 // else. Run once: pnpm exec tsx src/modules/sources/public-feeds/fixtures/generate.ts
 import { writeFileSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseListingInput } from "@/modules/listings/public";
 import { fixture, type Expect, type Tagged } from "../../../../../tests/helpers/golden";
 
@@ -43,7 +44,7 @@ function oldToInput(job: Record<string, unknown>) {
   });
 }
 
-export type NormalizeCase = { index: number; source: string; input: string; expect: { listing: unknown } | { setAside: true } | { unknown: readonly string[] } | { accepted: string }; why?: string };
+export type NormalizeCase = { index: number; source: string; input: string; expect: { listing: unknown } | { setAside: true } | { unknown: readonly string[]; external_id: string; url: string } | { accepted: string; external_id: string; url: string }; why?: string };
 export type BatchCase = {
   index: number; source: string; input: string;
   expect: { error: true } | { seen: number; listings: unknown[]; truncated: boolean; rejected: number } | { seen: number; ids: string[]; unknown: string[]; truncated: boolean; rejected: number };
@@ -52,12 +53,7 @@ export type BatchCase = {
 
 /** D8_UNKNOWN (normalize): old refusals of a field that is not identity; the new connector keeps the listing with those fields unknown. */
 const D8_UNKNOWN = new Map<number, { fields: readonly string[]; why: string }>([
-  ...[34, 36, 97].map((i) => [i, { fields: ["kind"], why: "tags not a list of text (old: entry dropped); the employment type is unknown without them" }] as const),
   ...[54, 56].map((i) => [i, { fields: ["location"], why: "location not text (old: entry dropped)" }] as const),
-  ...[82, 83, 105, 106, 107, 117, 118].map((i) => [i, { fields: ["published_at"], why: "publication time missing or not text (old: entry dropped)" }] as const),
-  ...[84, 85, 88, 121].map((i) => [i, { fields: ["published_at"], why: "publication time without a zone (old: entry dropped)" }] as const),
-  [89, { fields: ["published_at"], why: "publication time unreadable (old: entry dropped)" }],
-  ...[90, 91].map((i) => [i, { fields: ["published_at"], why: "publication time outside years 1-9999 in UTC (old: OverflowError failed the feed)" }] as const),
 ]);
 /** ACCEPTED (normalize): old refusals the new connector accepts for another reason. */
 const ACCEPTED = new Map<number, string>([
@@ -72,9 +68,6 @@ const PATCHED = new Map<number, { why: string; patch: Record<string, unknown> }>
   [40, { why: "employment_type object spelled by String()", patch: evidence("Contract Backend API engineer [object Object]") }],
   [41, { why: "employment_type list spelled by String()", patch: evidence("Contract Backend API engineer part,time") }],
   [43, { why: "employment_type true spelled by String()", patch: evidence("Contract Backend API engineer contract backend true") }],
-  // The standard URL parser (plan D10) percent-encodes a non-ASCII path and resolves dot segments, as a browser sends the link.
-  [76, { why: "non-ASCII path percent-encoded by the URL parser", patch: { url: "https://remoteok.com/remote-jobs/%F0%9F%98%80", canonical_url: "https://remoteok.com/remote-jobs/%F0%9F%98%80" } }],
-  [78, { why: "dot segments resolved by the URL parser", patch: { url: "https://remoteok.com/remote-jobs/y", canonical_url: "https://remoteok.com/remote-jobs/y" } }],
 ]);
 /** REFUSED (normalize): old acceptances the new connector sets aside. */
 const REFUSED = new Map<number, string>([
@@ -85,8 +78,8 @@ const REFUSED = new Map<number, string>([
 ]);
 /** Batch differences, by golden index. */
 const BATCH_PATCHED = new Map<number, { why: string; expect: BatchCase["expect"] }>([
-  [16, { why: "an id listed twice keeps its last entry (connector checklist section 2); its publication time past year 9999 in UTC is unknown (D8; old: OverflowError failed the feed)",
-    expect: { seen: 2, ids: ["123"], unknown: ["published_at"], truncated: false, rejected: 0 } }],
+  [16, { why: "the second entry's publication time is past year 9999 in UTC: set aside and counted, the first kept (old: OverflowError failed the feed)",
+    expect: { seen: 2, ids: ["123"], unknown: [], truncated: false, rejected: 1 } }],
   // Each still fails the source: one entry of one is set aside, more than half (services/collect).
   [21, { why: "an entry that is not an object is set aside, not the feed refused (old: int-to-str limit failed the feed)", expect: { seen: 1, listings: [], truncated: false, rejected: 1 } }],
   // JSON has no NaN and the feeds are UTF-8 (RFC 8259); Python's json.loads accepted NaN and sniffed UTF-16.
@@ -95,14 +88,22 @@ const BATCH_PATCHED = new Map<number, { why: string; expect: BatchCase["expect"]
   [23, { why: "NaN is not JSON", expect: { error: true } }],
 ]);
 
+/** The id and URL a kept golden entry must get: the fixture's job on each board, by golden index where the case changes it. */
+function identity(i: number, source: string) {
+  const url = { remoteok: i === 72 ? "https://remoteok.com/remote-jobs/x" : "https://remoteok.com/remote-jobs/remote-api-123",
+    workingnomads: "https://www.workingnomads.com/job/go/123/", realworkfromanywhere: "https://www.realworkfromanywhere.com/jobs/backend-123" }[source];
+  if (!url) throw new Error(`case ${i}: no identity for ${source}`);
+  return { external_id: source === "remoteok" ? (i === 7 ? "1" : "123") : url, url };
+}
+
 const normalize: NormalizeCase[] = golden.public_feeds_normalize.map((c, i) => {
   const base = { index: i, source: c.source, input: json(c.entry) };
   const d8 = D8_UNKNOWN.get(i), accepted = ACCEPTED.get(i), refused = REFUSED.get(i), patched = PATCHED.get(i);
   if (d8 || accepted) {
     if ("ok" in c.expect) throw new Error(`normalize ${i}: the old reader accepted it`);
   }
-  if (d8) return { ...base, expect: { unknown: d8.fields }, why: `D8_UNKNOWN: ${d8.why}` };
-  if (accepted) return { ...base, expect: { accepted }, why: `ACCEPTED: ${accepted}` };
+  if (d8) return { ...base, expect: { unknown: d8.fields, ...identity(i, c.source) }, why: `D8_UNKNOWN: ${d8.why}` };
+  if (accepted) return { ...base, expect: { accepted, ...identity(i, c.source) }, why: `ACCEPTED: ${accepted}` };
   if (!("ok" in c.expect)) return { ...base, expect: { setAside: true } };
   if (refused) return { ...base, expect: { setAside: true }, why: `REFUSED: ${refused}` };
   const listing = { ...oldToInput(oldJob(c.expect.ok)), ...patched?.patch };
@@ -119,5 +120,8 @@ const batch: BatchCase[] = golden.public_feeds_batch.map((c, i) => {
   return { ...base, expect: { seen: jobs.length + rejected, listings: [...new Map(jobs.map((l) => [l.external_id, l])).values()], truncated: c.expect.ok.truncated, rejected } };
 });
 
-writeFileSync(path.join(import.meta.dirname, "cases.json"), JSON.stringify({ normalize, batch }, null, 1) + "\n");
-console.log(`${normalize.length} normalize, ${batch.length} batch cases`);
+// Only when run as a script: importing this module (its types) never rewrites the ground truth.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  writeFileSync(path.join(import.meta.dirname, "cases.json"), JSON.stringify({ normalize, batch }, null, 1) + "\n");
+  console.log(`${normalize.length} normalize, ${batch.length} batch cases`);
+}

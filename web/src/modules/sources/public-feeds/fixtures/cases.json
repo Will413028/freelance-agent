@@ -119,7 +119,9 @@
    "source": "remoteok",
    "input": "{\"id\":1.0,\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":\"2026-09-18T12:00:00+00:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "accepted": "id 1.0: JSON numbers do not tell 1.0 from 1 in JavaScript, so it is id 1"
+    "accepted": "id 1.0: JSON numbers do not tell 1.0 from 1 in JavaScript, so it is id 1",
+    "external_id": "1",
+    "url": "https://remoteok.com/remote-jobs/remote-api-123"
    },
    "why": "ACCEPTED: id 1.0: JSON numbers do not tell 1.0 from 1 in JavaScript, so it is id 1"
   },
@@ -802,18 +804,17 @@
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":\"contract\",\"date\":\"2026-09-18T12:00:00+00:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "kind"
-    ]
-   },
-   "why": "D8_UNKNOWN: tags not a list of text (old: entry dropped); the employment type is unknown without them"
+    "setAside": true
+   }
   },
   {
    "index": 35,
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":null,\"date\":\"2026-09-18T12:00:00+00:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "accepted": "tags null reads as no tags (old: get(entry, 'tags', []) returned None and dropped the entry)"
+    "accepted": "tags null reads as no tags (old: get(entry, 'tags', []) returned None and dropped the entry)",
+    "external_id": "123",
+    "url": "https://remoteok.com/remote-jobs/remote-api-123"
    },
    "why": "ACCEPTED: tags null reads as no tags (old: get(entry, 'tags', []) returned None and dropped the entry)"
   },
@@ -822,11 +823,8 @@
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[1],\"date\":\"2026-09-18T12:00:00+00:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "kind"
-    ]
-   },
-   "why": "D8_UNKNOWN: tags not a list of text (old: entry dropped); the employment type is unknown without them"
+    "setAside": true
+   }
   },
   {
    "index": 37,
@@ -1467,7 +1465,9 @@
    "expect": {
     "unknown": [
      "location"
-    ]
+    ],
+    "external_id": "123",
+    "url": "https://remoteok.com/remote-jobs/remote-api-123"
    },
    "why": "D8_UNKNOWN: location not text (old: entry dropped)"
   },
@@ -1515,7 +1515,9 @@
    "expect": {
     "unknown": [
      "location"
-    ]
+    ],
+    "external_id": "123",
+    "url": "https://remoteok.com/remote-jobs/remote-api-123"
    },
    "why": "D8_UNKNOWN: location not text (old: entry dropped)"
   },
@@ -1793,7 +1795,9 @@
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteok.com:443/remote-jobs/x\",\"tags\":[\"contract\",\"backend\"],\"date\":\"2026-09-18T12:00:00+00:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "accepted": "a default port names the same job URL (connector checklist section 3: different spellings, one id)"
+    "accepted": "a default port names the same job URL (connector checklist section 3: different spellings, one id)",
+    "external_id": "123",
+    "url": "https://remoteok.com/remote-jobs/x"
    },
    "why": "ACCEPTED: a default port names the same job URL (connector checklist section 3: different spellings, one id)"
   },
@@ -1860,8 +1864,8 @@
      "title": "Contract Backend API engineer",
      "company": null,
      "description": "Build API integrations.",
-     "url": "https://remoteok.com/remote-jobs/%F0%9F%98%80",
-     "canonical_url": "https://remoteok.com/remote-jobs/%F0%9F%98%80",
+     "url": "https://remoteok.com/remote-jobs/😀",
+     "canonical_url": "https://remoteok.com/remote-jobs/😀",
      "location": null,
      "kind": "contract",
      "currency": null,
@@ -1885,8 +1889,7 @@
       }
      }
     }
-   },
-   "why": "PATCHED: non-ASCII path percent-encoded by the URL parser"
+   }
   },
   {
    "index": 77,
@@ -1935,8 +1938,8 @@
      "title": "Contract Backend API engineer",
      "company": null,
      "description": "Build API integrations.",
-     "url": "https://remoteok.com/remote-jobs/y",
-     "canonical_url": "https://remoteok.com/remote-jobs/y",
+     "url": "https://remoteok.com/remote-jobs/x/../y",
+     "canonical_url": "https://remoteok.com/remote-jobs/x/../y",
      "location": null,
      "kind": "contract",
      "currency": null,
@@ -1960,8 +1963,7 @@
       }
      }
     }
-   },
-   "why": "PATCHED: dot segments resolved by the URL parser"
+   }
   },
   {
    "index": 79,
@@ -2050,44 +2052,32 @@
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":null,\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time missing or not text (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 83,
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":5,\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time missing or not text (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 84,
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":\"2026-09-18\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time without a zone (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 85,
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":\"2026-09-18T12:00:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time without a zone (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 86,
@@ -2168,44 +2158,32 @@
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":\"Fri, 18 Sep 2026 12:00:00 -0000\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time without a zone (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 89,
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":\"bad\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time unreadable (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 90,
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":\"0001-01-01T00:00:00+01:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time outside years 1-9999 in UTC (old: OverflowError failed the feed)"
+    "setAside": true
+   }
   },
   {
    "index": 91,
    "source": "remoteok",
    "input": "{\"id\":\"123\",\"position\":\"Contract Backend API engineer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://remoteOK.com/remote-jobs/remote-api-123\",\"tags\":[\"contract\",\"backend\"],\"date\":\"9999-12-31T23:59:59-01:00\",\"location\":\"\",\"salary_min\":0,\"salary_max\":0}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time outside years 1-9999 in UTC (old: OverflowError failed the feed)"
+    "setAside": true
+   }
   },
   {
    "index": 92,
@@ -2397,11 +2375,8 @@
    "source": "workingnomads",
    "input": "{\"url\":\"https://www.workingnomads.com/job/go/123/\",\"title\":\"Contract AI agent engineer\",\"description\":\"<p>Build an AI agent and API.</p>\",\"pub_date\":\"2026-09-18T12:00:00+00:00\",\"tags\":5,\"location\":\"Anywhere\",\"category_name\":\"Development\"}",
    "expect": {
-    "unknown": [
-     "kind"
-    ]
-   },
-   "why": "D8_UNKNOWN: tags not a list of text (old: entry dropped); the employment type is unknown without them"
+    "setAside": true
+   }
   },
   {
    "index": 98,
@@ -2523,33 +2498,24 @@
    "source": "workingnomads",
    "input": "{\"url\":\"https://www.workingnomads.com/job/go/123/\",\"title\":\"Contract AI agent engineer\",\"description\":\"<p>Build an AI agent and API.</p>\",\"pub_date\":null,\"tags\":\"python,agent\",\"location\":\"Anywhere\",\"category_name\":\"Development\"}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time missing or not text (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 106,
    "source": "workingnomads",
    "input": "{\"url\":\"https://www.workingnomads.com/job/go/123/\",\"title\":\"Contract AI agent engineer\",\"description\":\"<p>Build an AI agent and API.</p>\",\"tags\":\"python,agent\",\"location\":\"Anywhere\",\"category_name\":\"Development\"}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time missing or not text (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 107,
    "source": "workingnomads",
    "input": "{\"url\":\"https://www.workingnomads.com/job/go/123/\",\"title\":\"Contract AI agent engineer\",\"description\":\"<p>Build an AI agent and API.</p>\",\"pub_date\":null,\"tags\":\"python,agent\",\"location\":\"Anywhere\",\"category_name\":\"Development\",\"date\":\"2026-09-18T12:00:00+00:00\"}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time missing or not text (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 108,
@@ -2802,22 +2768,16 @@
    "source": "realworkfromanywhere",
    "input": "{\"title\":\"Part-time Backend API developer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://www.realworkfromanywhere.com/jobs/backend-123\",\"date\":null,\"location\":null,\"tags\":[]}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time missing or not text (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 118,
    "source": "realworkfromanywhere",
    "input": "{\"title\":\"Part-time Backend API developer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://www.realworkfromanywhere.com/jobs/backend-123\",\"date\":\"\",\"location\":null,\"tags\":[]}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time missing or not text (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 119,
@@ -2840,11 +2800,8 @@
    "source": "realworkfromanywhere",
    "input": "{\"title\":\"Part-time Backend API developer\",\"description\":\"<p>Build API integrations.</p>\",\"url\":\"https://www.realworkfromanywhere.com/jobs/backend-123\",\"date\":\"Fri, 18 Sep 2026 12:00:00\",\"location\":null,\"tags\":[]}",
    "expect": {
-    "unknown": [
-     "published_at"
-    ]
-   },
-   "why": "D8_UNKNOWN: publication time without a zone (old: entry dropped)"
+    "setAside": true
+   }
   },
   {
    "index": 122,
@@ -21284,13 +21241,11 @@
     "ids": [
      "123"
     ],
-    "unknown": [
-     "published_at"
-    ],
+    "unknown": [],
     "truncated": false,
-    "rejected": 0
+    "rejected": 1
    },
-   "why": "PATCHED: an id listed twice keeps its last entry (connector checklist section 2); its publication time past year 9999 in UTC is unknown (D8; old: OverflowError failed the feed)"
+   "why": "PATCHED: the second entry's publication time is past year 9999 in UTC: set aside and counted, the first kept (old: OverflowError failed the feed)"
   },
   {
    "index": 17,

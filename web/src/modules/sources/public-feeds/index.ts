@@ -15,9 +15,9 @@ import { SourceError, type Collected, type SourceSettings } from "../types";
 // identity (its job URL on the board, Remote OK's numeric id, a title and description with text,
 // a title within 500 characters) is set aside and counted in `rejected`; more than half set aside
 // fails the source (services/collect, Will 2026-11-15). Other fields the connector cannot read are
-// unknown (plan D8): a publication time, tags or a location the old reader refused the entry for.
-// The source's own rule keeps contract or part-time jobs published in the last 90 days; a job with
-// an unknown publication time is not kept, since its age cannot be shown.
+// unknown (plan D8), such as a location that is not text. The source's own rule keeps contract or
+// part-time jobs published in the last 90 days; it reads the tags and the publication time, so an
+// entry where either cannot be read is set aside too.
 
 const MAX_BYTES = 8_000_000;
 const MAX_ITEMS = 200;
@@ -86,11 +86,18 @@ function feedText(name: FeedName, value: unknown, what: string): string {
  */
 export function canonicalJobUrl(name: FeedName, value: unknown): string | null {
   const f = FEEDS[name];
-  if (typeof value !== "string" || !URL.canParse(value)) return null;
+  // The URL parser also reads "\\" as "/" and drops tabs and line breaks inside; the old split refused those, so they are not a job URL here either.
+  if (typeof value !== "string" || /[\\\t\r\n]/.test(value.trim()) || !URL.canParse(value)) return null;
   const u = new URL(value);
   if (u.protocol !== "https:" || u.host !== f.host || u.username || u.password) return null;
   if (!u.pathname.startsWith(f.prefix) || u.pathname.length <= f.prefix.length || (f.path && !f.path.test(u.pathname))) return null;
   return `https://${f.host}${u.pathname}`;
+}
+
+/** The job URL as the board wrote its path (old urlunsplit: host normalized, path kept, query and fragment dropped), for the url fields. */
+function shownUrl(name: FeedName, value: string): string {
+  const path = /^https:\/\/[^/?#]*(\/[^?#]*)/i.exec(value.trim())?.[1];
+  return `https://${FEEDS[name].host}${path ?? ""}`;
 }
 
 /** The entry's tags as text, or null when they are not a list of text (unknown, plan D8). */
@@ -109,6 +116,7 @@ export function normalize(name: FeedName, entry: unknown): ListingInput {
   const body = feedText(name, entry.description, "description");
   const canonical = canonicalJobUrl(name, entry.url);
   if (canonical === null) throw new SourceError(`${name}: invalid job URL`);
+  const shown = shownUrl(name, entry.url as string);
   let id = canonical;
   if (feed.idField) {
     const raw = entry[feed.idField];
@@ -116,24 +124,28 @@ export function normalize(name: FeedName, entry: unknown): ListingInput {
     if (typeof raw === "number" ? !Number.isSafeInteger(raw) || raw < 0 : typeof raw !== "string" || !/^[0-9]+$/.test(raw)) throw new SourceError(`${name}: invalid listing id`);
     id = String(raw);
   }
+  // The source's rule reads the employment type (from the tags) and the publication time, so an entry
+  // where either cannot be read is set aside (types.ts `rejected`), as the old reader dropped it.
   const evidence = entry[feed.dateField];
+  const published = typeof evidence === "string" ? pubDateInstant(evidence) : null;
+  if (published === null) throw new SourceError(`${name}: publication time with a zone required`);
   const tags = tagsOf(feed, entry.tags);
+  if (tags === null) throw new SourceError(`${name}: tags are not a list of text`);
   const employmentType = entry.employment_type;
   // Old public-feeds.ts:79-85: title, tags, the stated employment type and explicit body statements decide.
-  let employment = [title, ...(tags ?? []), truthy(employmentType) ? String(employmentType) : ""].join(" ");
+  let employment = [title, ...tags, truthy(employmentType) ? String(employmentType) : ""].join(" ");
   const explicit = [...[...body.matchAll(EXPLICIT_TYPE)].map((m) => m[1]), ...[...body.matchAll(EXPLICIT_BASIS)].map((m) => m[0])];
   employment = (employment + " " + explicit.join(" ")).replace(SMART_CONTRACT, "");
-  // Tags the connector cannot read leave the employment type unknown rather than judged without them.
-  const kind = tags === null ? null : FULL_TIME.test(employment + "\n" + body) ? "full_time" : CONTRACT.test(employment) ? "contract" : null;
+  const kind = FULL_TIME.test(employment + "\n" + body) ? "full_time" : CONTRACT.test(employment) ? "contract" : null;
   const status = entry.status;
   const closed = entry.closed === true || (typeof status === "string" && ["closed", "expired", "filled"].includes(status)) || CLOSED.test(title + "\n" + body);
   const location = typeof entry.location === "string" ? entry.location || null : null;
   const salary = (k: string) => (truthy(entry[k]) ? entry[k] : null);
   return parseListingInput({
-    external_id: id, title, description: body, url: canonical, canonical_url: canonical, location, kind, listing_closed: closed, complete: false,
-    published_at: typeof evidence === "string" ? pubDateInstant(evidence) : null,
+    external_id: id, title, description: body, url: shown, canonical_url: shown, location, kind, listing_closed: closed, complete: false,
+    published_at: published,
     extra: {
-      publication_evidence: evidence ?? null, employment_evidence: pyStrip(employment),
+      publication_evidence: evidence, employment_evidence: pyStrip(employment),
       salary_evidence: { min: salary("salary_min"), max: salary("salary_max"), period: salary("salary_period") },
     },
   });
@@ -161,7 +173,7 @@ export function entries(name: FeedName, raw: Uint8Array): { entries: unknown[]; 
   if (FEEDS[name].format === "json") {
     let data: unknown;
     try {
-      data = JSON.parse(text.startsWith("﻿") ? text.slice(1) : text);
+      data = JSON.parse(text.startsWith("\ufeff") ? text.slice(1) : text);
     } catch {
       throw new SourceError(`${name}: feed is not JSON`);
     }
@@ -201,7 +213,7 @@ export function parseItems(name: FeedName, raw: Uint8Array): Omit<Collected, "so
 
 /** The source's rule: a contract or part-time job published in the last 90 days, not in the future. */
 export function kept(l: ListingInput, now: Date): boolean {
-  if (l.kind !== "contract" || l.published_at === null) return false;
+  if (l.kind !== "contract" || l.published_at === null) return false; // published_at is never null from normalize
   const at = Date.parse(l.published_at);
   return now.getTime() - FRESH_DAYS * DAY_MS <= at && at <= now.getTime();
 }

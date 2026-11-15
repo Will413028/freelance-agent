@@ -5,7 +5,7 @@ import { pyStrip, visibleLines } from "./text";
 describe("shared text and JSON helpers", () => {
   it("strips Python's whitespace set: U+001C and U+0085 yes, the BOM no", () => {
     expect(pyStrip("\x1c\x85 a b　")).toBe("a b");
-    expect(pyStrip("﻿a")).toBe("﻿a");
+    expect(pyStrip("\ufeffa")).toBe("\ufeffa");
   });
 
   it("keeps lines at block tags and br, drops script, style and blank lines, collapses spaces", () => {

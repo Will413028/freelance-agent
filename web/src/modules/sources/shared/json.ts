@@ -4,7 +4,7 @@
 export type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 
 /** A JSON object (not null, not an array). */
-export const isObject = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
+export const isObject = <V = unknown>(v: unknown): v is Record<string, V> => v !== null && typeof v === "object" && !Array.isArray(v);
 
 /** Python truthiness of a JSON value, as the old readers judged flags such as `deleted` or `alpha2 or name`. */
 export const truthy = (v: unknown) =>
