@@ -133,7 +133,7 @@ export async function jobDetail(db: PgDb, now: Date, text: string): Promise<JobV
 }
 
 /** The page writes (plan step 3c): routes call these, never the module. */
-export const writeFeedback = (db: PgDb, id: string, token: string, state: FeedbackState, now: Date) => setFeedback(db, idOf(id), token, state, now);
+export const writeFeedback = async (db: PgDb, id: string, token: string, state: FeedbackState, now: Date) => setFeedback(db, idOf(id), token, state, now);
 export const writeSettings = (db: PgDb, revision: number, s: Settings) => saveSettings(db, revision, s);
 
 export type SettingsView = {

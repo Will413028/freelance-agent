@@ -9,7 +9,7 @@ import { listingBy } from "@/modules/listings/public";
 import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
 import { CRYPTOJOBSLIST_SETTINGS } from ".";
-import { canonicalJobUrl, cryptojobslistConnector, FEED, parseFeed, parseItems, pubDateInstant } from ".";
+import { canonicalJobUrl, cryptojobslistConnector, FEED, parseFeed, parseItems, pubDateInstant, tags } from ".";
 
 // Plan step 5a: the golden feeds (fixtures/cases.json, written by fixtures/generate.ts (deleted in step 5a2 with legacyToInput, D10; see it and its list of deliberate differences at 9a68d6b) from legacyToInput of
 // the old output) against the native connector, then the connector's own rules.
@@ -63,6 +63,11 @@ const feed = (...items: string[]) => new TextEncoder().encode(`<?xml version="1.
 const tagged = (...t: string[]) => `<p>Tags: ${t.map((x) => `<a href="https://cryptojobslist.com/${x}">${x}</a>`).join(" ")}</p><p>Body</p>`;
 
 describe("cryptojobslist feed", () => {
+  it("reads tag links with the same URL parser as the job link: default port and host case name the board", () => {
+    const html = '<p>Tags: <a href="https://cryptojobslist.com:443/part-time">P</a> <a href="https://CryptoJobsList.com/remote/">R</a> <a href="https://evil.example/full-time">F</a></p>';
+    expect(tags(html)).toEqual(["part-time", "remote"]);
+  });
+
   it("keeps only remote part-time or freelance jobs and counts every item seen", () => {
     const got = parseFeed(feed(
       item(),

@@ -34,7 +34,7 @@
 - 新系統不承接舊資料（D10），`external_id` 不必等於舊值；只要求同一來源的同一筆職缺每次讀取都算出同一個值。主鍵是資料庫產生的代理鍵，`(source, external_id)` 唯一。
 - 網址型 id 用標準 `URL` 解析並組回固定形狀（例如去掉預設埠、只留路徑）；不寫相容函式、不比對 `golden.json` 的舊值。
 - fixture 至少有一個案例證明同一筆職缺的不同寫法（預設埠、前後空白、大小寫不同的主機名）得到同一個 id，以及一個不合格網址被跳過。
-- 網址欄位（`url`、`canonical_url`）保留來源的拼法；`URL` 只拿來驗證與算 id。
+- 網址欄位（`url`、`canonical_url`）照該來源 fixture 的既有形狀：舊 connector 存原文的照存原文（不讓 `URL` 把非 ASCII 路徑轉成百分比編碼），舊 connector 存正規化網址的（例如 cryptojobslist）照存正規化網址。
 
 ## 4. Fixture
 

@@ -7,7 +7,7 @@ import { readSettings } from "@/modules/evaluation/public";
 import { intakeListings, listingBy } from "@/modules/listings/public";
 import { setFeedback } from "@/modules/review/public";
 import { NotFound } from "@/platform/errors";
-import { jobDetail, listJobs, listQuery, PAGE_SIZE, settingsPage } from "@/services/pages";
+import { jobDetail, listJobs, listQuery, PAGE_SIZE, settingsPage, writeFeedback } from "@/services/pages";
 import { handleFeedback, handleSettings, type WriteDeps } from "@/app/_lib/writes";
 import { JobDetail, JobList, SettingsForm } from "@/app/_lib/views";
 import { freshPg } from "./helpers/pg";
@@ -126,6 +126,14 @@ describe("list and detail", () => {
 });
 
 describe("page edges", () => {
+  it("treats an id that is not a positive int4 in plain ASCII digits as not found, before reaching the database", async () => {
+    for (const text of ["0", "01", "-1", "1e3", "0x10", "2147483648", "99999999999", "١", " 1", "1.0"]) {
+      await expect(jobDetail(db, now, text), text).rejects.toBeInstanceOf(NotFound);
+      await expect(writeFeedback(db, text, "0", "interested", now), text).rejects.toBeInstanceOf(NotFound);
+    }
+    expect((await jobDetail(db, now, await key("c000"))).job.title).toBe("Backend API contractor");
+  });
+
   it("says where the difference is when no shown field differs", async () => {
     await intakeListings(db, "mail_src", [job("m2", { published_at: "2026-11-01T00:00:00Z" })], "mail", now);
     await intakeListings(db, "mail_src", [job("m2")], "mail", now);

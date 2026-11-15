@@ -7,7 +7,7 @@ import { pubDateInstant } from "../shared/time";
 
 export { pubDateInstant };
 import { SourceError, type Collected, type SourceSettings } from "../types";
-import { childText, children, parseXml, splitUrl, type XmlElement } from "../shared/xml-feed";
+import { childText, children, parseXml, type XmlElement } from "../shared/xml-feed";
 
 // CryptoJobsList: the official advertised RSS feed, without API keys or account access (old
 // collection/cryptojobslist.py, web/src/modules/collection/sources/cryptojobslist.ts until step 11).
@@ -62,8 +62,8 @@ export function tags(html: string): string[] {
       } else if (n.type === "tag") {
         if (n.name === "h2" || n.name === "h3") return void (stop = true);
         if (n.name === "a" && label && n.attribs?.href !== undefined) {
-          const u = splitUrl(n.attribs.href);
-          if (u.scheme === "https" && u.netloc === "cryptojobslist.com") found.add(u.path.replace(/^\/+|\/+$/g, ""));
+          const u = URL.canParse(n.attribs.href) ? new URL(n.attribs.href) : null;
+          if (u?.protocol === "https:" && u.host === "cryptojobslist.com") found.add(u.pathname.replace(/^\/+|\/+$/g, ""));
         }
         walk(n);
       }
@@ -87,10 +87,11 @@ function feedText(value: string | null): string | null {
 
 /** One RSS item in the contract; throws SourceError when its identity is missing (`setAside` sets that one listing aside). */
 export function normalizeItem(item: XmlElement): ListingInput {
-  const url = canonicalJobUrl(childText(item, "link"));
-  if (url === null) throw new SourceError("cryptojobslist: invalid job URL");
+  const link = childText(item, "link");
+  const id = canonicalJobUrl(link);
+  if (id === null) throw new SourceError("cryptojobslist: invalid job URL");
   const advertised = childText(item, MEDIA + "canonical");
-  if (advertised && canonicalJobUrl(advertised) !== url) throw new SourceError("cryptojobslist: canonical URL disagrees with the link");
+  if (advertised && canonicalJobUrl(advertised) !== id) throw new SourceError("cryptojobslist: canonical URL disagrees with the link");
   const title = feedText(childText(item, "title"));
   const html = childText(item, "description");
   const description = feedText(html);
@@ -102,7 +103,8 @@ export function normalizeItem(item: XmlElement): ListingInput {
   const location = (childText(item, MEDIA + "location") ?? "").trim() || null;
   const publication = childText(item, "pubDate");
   return parseListingInput({
-    external_id: url, title, description, url, canonical_url: url, location, kind,
+    // The shown URLs are the job's canonical URL too, as the old connector stored them (fixture cases 34, 41).
+    external_id: id, title, description, url: id, canonical_url: id, location, kind,
     taiwan_eligible: REGIONAL.test(location ?? "") ? false : null, complete: false,
     published_at: publication ? pubDateInstant(publication) : null,
     extra: { employment_tags: tagList, remote_evidence: tagList.includes("remote") || REMOTE.test(location ?? "") },

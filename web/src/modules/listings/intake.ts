@@ -90,12 +90,12 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
     const input = parseListingInput(storable(value));
     return { externalId: input.external_id, columns: contentColumns(input), onlyIfStored };
   });
-  const ids = items.map((i) => i.externalId);
-  if (new Set(ids).size !== ids.length) throw new Error(`${source} batch lists the same external_id twice`);
+  const externalIds = items.map((i) => i.externalId);
+  if (new Set(externalIds).size !== externalIds.length) throw new Error(`${source} batch lists the same external_id twice`);
   const counts: IntakeCounts = { inserted: 0, updated: 0, unchanged: 0, versioned: 0 };
   if (!items.length) return counts;
   await db.transaction(async (tx) => {
-    const existing = new Map((await tx.select().from(listings).where(and(eq(listings.source, source), inArray(listings.externalId, ids))).for("update")).map((r) => [r.externalId, r]));
+    const existing = new Map((await tx.select().from(listings).where(and(eq(listings.source, source), inArray(listings.externalId, externalIds))).for("update")).map((r) => [r.externalId, r]));
     for (const { externalId, columns, onlyIfStored } of items) {
       const old = existing.get(externalId);
       if (!old && onlyIfStored) continue;
@@ -120,7 +120,6 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
   return counts;
 }
 
-/** The listing row of (source, external_id), for tests and pages. */
 /** The external ids among `externalIds` that `source` already has stored. */
 export async function storedExternalIds(db: PgDb, source: string, externalIds: readonly string[]): Promise<Set<string>> {
   if (!externalIds.length) return new Set();
@@ -128,6 +127,7 @@ export async function storedExternalIds(db: PgDb, source: string, externalIds: r
   return new Set(rows.map((r) => r.e));
 }
 
+/** The listing row of (source, external_id), or null: how tests and pages find a surrogate id. */
 export async function listingBy(db: PgDb, source: string, externalId: string) {
   const [row] = await db.select().from(listings).where(and(eq(listings.source, source), eq(listings.externalId, externalId)));
   return row ?? null;
