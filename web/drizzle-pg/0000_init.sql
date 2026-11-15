@@ -36,7 +36,10 @@ CREATE TABLE "listing_versions" (
 	"timezone_compatible" boolean,
 	"complete" boolean,
 	"listing_closed" boolean,
+	"compensation_evidence" text,
 	"published_at" timestamp with time zone,
+	"deadline_kind" text,
+	"deadline_text" text,
 	"deadline_at" timestamp with time zone,
 	"category" text NOT NULL,
 	"category_score" smallint NOT NULL,
@@ -46,6 +49,9 @@ CREATE TABLE "listing_versions" (
 	"observed_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "listing_versions_listing_id_fingerprint_pk" PRIMARY KEY("listing_id","fingerprint"),
 	CONSTRAINT "listing_versions_kind" CHECK ("listing_versions"."kind" in ('fixed', 'hourly', 'contract', 'full_time')),
+	CONSTRAINT "listing_versions_deadline_kind" CHECK ("listing_versions"."deadline_kind" in ('date', 'instant', 'no_timezone', 'invalid')),
+	CONSTRAINT "listing_versions_deadline_at" CHECK (("listing_versions"."deadline_at" is not null) = coalesce("listing_versions"."deadline_kind" in ('date', 'instant'), false)),
+	CONSTRAINT "listing_versions_deadline_text" CHECK (("listing_versions"."deadline_text" is not null) = ("listing_versions"."deadline_kind" is not null)),
 	CONSTRAINT "listing_versions_confirmed_base" CHECK ("listing_versions"."confirmed_base" between 0 and 3)
 );
 --> statement-breakpoint
@@ -70,7 +76,10 @@ CREATE TABLE "listings" (
 	"timezone_compatible" boolean,
 	"complete" boolean,
 	"listing_closed" boolean,
+	"compensation_evidence" text,
 	"published_at" timestamp with time zone,
+	"deadline_kind" text,
+	"deadline_text" text,
 	"deadline_at" timestamp with time zone,
 	"category" text NOT NULL,
 	"category_score" smallint NOT NULL,
@@ -80,6 +89,9 @@ CREATE TABLE "listings" (
 	"first_seen_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "listings_kind" CHECK ("listings"."kind" in ('fixed', 'hourly', 'contract', 'full_time')),
+	CONSTRAINT "listings_deadline_kind" CHECK ("listings"."deadline_kind" in ('date', 'instant', 'no_timezone', 'invalid')),
+	CONSTRAINT "listings_deadline_at" CHECK (("listings"."deadline_at" is not null) = coalesce("listings"."deadline_kind" in ('date', 'instant'), false)),
+	CONSTRAINT "listings_deadline_text" CHECK (("listings"."deadline_text" is not null) = ("listings"."deadline_kind" is not null)),
 	CONSTRAINT "listings_confirmed_base" CHECK ("listings"."confirmed_base" between 0 and 3)
 );
 --> statement-breakpoint

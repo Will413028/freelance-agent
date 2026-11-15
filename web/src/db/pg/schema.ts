@@ -11,6 +11,8 @@ const at = (name: string) => timestamp(name, { withTimezone: true });
 
 /** Closed value lists, shared by the column types, the CHECK constraints and the modules. */
 export const KINDS = ["fixed", "hourly", "contract", "full_time"] as const;
+/** How a deadline was given (plan D8): a date, an instant, a local time without a zone, or text that is not a date. */
+export const DEADLINE_KINDS = ["date", "instant", "no_timezone", "invalid"] as const;
 export const FEEDBACK_STATES = ["neutral", "interested", "skipped"] as const;
 export const CATEGORIES = ["AI agent", "AI 整合／自動化", "後端／API", "全端 MVP"] as const;
 
@@ -40,7 +42,11 @@ const content = () => ({
   timezoneCompatible: boolean("timezone_compatible"),
   complete: boolean("complete"),
   listingClosed: boolean("listing_closed"),
+  compensationEvidence: text("compensation_evidence"),
   publishedAt: at("published_at"),
+  /** Null when no deadline was given; deadline_text is what the source said, deadline_at the expiry when usable. */
+  deadlineKind: text("deadline_kind", { enum: DEADLINE_KINDS }),
+  deadlineText: text("deadline_text"),
   deadlineAt: at("deadline_at"),
   category: text("category").notNull(),
   categoryScore: smallint("category_score").notNull(),
@@ -50,6 +56,12 @@ const content = () => ({
 });
 
 const kindCheck = (name: string, kind: unknown) => check(name, oneOf(kind, KINDS));
+/** deadline_at exists exactly for a usable deadline, and deadline_text exactly for a given one. */
+const deadlineChecks = (prefix: string, t: { deadlineKind: unknown; deadlineText: unknown; deadlineAt: unknown }) => [
+  check(`${prefix}_deadline_kind`, oneOf(t.deadlineKind, DEADLINE_KINDS)),
+  check(`${prefix}_deadline_at`, sql`(${t.deadlineAt} is not null) = coalesce(${t.deadlineKind} in ('date', 'instant'), false)`),
+  check(`${prefix}_deadline_text`, sql`(${t.deadlineText} is not null) = (${t.deadlineKind} is not null)`),
+];
 
 export const listings = pgTable("listings", {
   id: text("id").primaryKey(),
@@ -62,6 +74,7 @@ export const listings = pgTable("listings", {
 }, (t) => [
   uniqueIndex("listings_source_external_id").on(t.source, t.externalId),
   kindCheck("listings_kind", t.kind),
+  ...deadlineChecks("listings", t),
   check("listings_confirmed_base", sql`${t.confirmedBase} between 0 and 3`),
 ]);
 
@@ -73,6 +86,7 @@ export const listingVersions = pgTable("listing_versions", {
 }, (t) => [
   primaryKey({ columns: [t.listingId, t.fingerprint] }),
   kindCheck("listing_versions_kind", t.kind),
+  ...deadlineChecks("listing_versions", t),
   check("listing_versions_confirmed_base", sql`${t.confirmedBase} between 0 and 3`),
 ]);
 

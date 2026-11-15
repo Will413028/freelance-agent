@@ -1,5 +1,5 @@
 {
-  "id": "aa4b00bc-772e-411e-b073-82b892336c9f",
+  "id": "74bb1bfc-fdc1-4717-ae90-77cc781990fd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -277,9 +277,27 @@
           "primaryKey": false,
           "notNull": false
         },
+        "compensation_evidence": {
+          "name": "compensation_evidence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "published_at": {
           "name": "published_at",
           "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deadline_kind": {
+          "name": "deadline_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deadline_text": {
+          "name": "deadline_text",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -358,6 +376,18 @@
         "listing_versions_kind": {
           "name": "listing_versions_kind",
           "value": "\"listing_versions\".\"kind\" in ('fixed', 'hourly', 'contract', 'full_time')"
+        },
+        "listing_versions_deadline_kind": {
+          "name": "listing_versions_deadline_kind",
+          "value": "\"listing_versions\".\"deadline_kind\" in ('date', 'instant', 'no_timezone', 'invalid')"
+        },
+        "listing_versions_deadline_at": {
+          "name": "listing_versions_deadline_at",
+          "value": "(\"listing_versions\".\"deadline_at\" is not null) = coalesce(\"listing_versions\".\"deadline_kind\" in ('date', 'instant'), false)"
+        },
+        "listing_versions_deadline_text": {
+          "name": "listing_versions_deadline_text",
+          "value": "(\"listing_versions\".\"deadline_text\" is not null) = (\"listing_versions\".\"deadline_kind\" is not null)"
         },
         "listing_versions_confirmed_base": {
           "name": "listing_versions_confirmed_base",
@@ -490,9 +520,27 @@
           "primaryKey": false,
           "notNull": false
         },
+        "compensation_evidence": {
+          "name": "compensation_evidence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "published_at": {
           "name": "published_at",
           "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deadline_kind": {
+          "name": "deadline_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deadline_text": {
+          "name": "deadline_text",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -578,6 +626,18 @@
         "listings_kind": {
           "name": "listings_kind",
           "value": "\"listings\".\"kind\" in ('fixed', 'hourly', 'contract', 'full_time')"
+        },
+        "listings_deadline_kind": {
+          "name": "listings_deadline_kind",
+          "value": "\"listings\".\"deadline_kind\" in ('date', 'instant', 'no_timezone', 'invalid')"
+        },
+        "listings_deadline_at": {
+          "name": "listings_deadline_at",
+          "value": "(\"listings\".\"deadline_at\" is not null) = coalesce(\"listings\".\"deadline_kind\" in ('date', 'instant'), false)"
+        },
+        "listings_deadline_text": {
+          "name": "listings_deadline_text",
+          "value": "(\"listings\".\"deadline_text\" is not null) = (\"listings\".\"deadline_kind\" is not null)"
         },
         "listings_confirmed_base": {
           "name": "listings_confirmed_base",

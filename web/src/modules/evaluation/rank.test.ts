@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { intakeListings, listingBy } from "@/modules/listings/public";
+import { intakeListings, listingBy, listingOf, parseListingInput } from "@/modules/listings/public";
 import { freshPg } from "../../../tests/helpers/pg";
 import { recommend, rankFactsOf } from "./evaluate";
 import { DEFAULT_SETTINGS, rankedPage, readRankables, readSettings } from "./list";
@@ -12,15 +12,17 @@ import { byRank, excluded, rank, type RankFacts, type Settings } from "./rank";
 
 const now = new Date("2026-11-15T01:00:00Z");
 const job = (externalId: string, extra: Record<string, unknown> = {}) => ({
-  source: "jobicy", external_id: externalId, title: "AI agent workflow", description: "Build an agent with tool calling",
+  external_id: externalId, title: "AI agent workflow", description: "Build an agent with tool calling",
   url: `https://example.com/jobs/${externalId}`, kind: "contract", taiwan_eligible: true, timezone_compatible: true, weekly_hours: 10,
   complete: true, published_at: "2026-11-14T12:00:00Z", ...extra,
 });
-const facts = (fingerprint: string, extra: Record<string, unknown> = {}): RankFacts => rankFactsOf("jobicy", fingerprint, job("1", extra));
+const typed = (extra: Record<string, unknown> = {}) => listingOf(parseListingInput(job("1", extra)));
+const date = (d: string) => ({ deadline: { kind: "date", date: d } });
+const facts = (fingerprint: string, extra: Record<string, unknown> = {}): RankFacts => rankFactsOf(fingerprint, typed(extra));
 
 describe("B1: a date-only deadline expires at the Asia/Taipei day boundary", () => {
   it("excludes deadline D at D+1 00:30 Taipei (UTC D 16:30), which the old UTC boundary did not", () => {
-    const f = facts("a", { deadline: "2026-12-01" });
+    const f = facts("a", date("2026-12-01"));
     expect(excluded(f, DEFAULT_SETTINGS, new Date("2026-12-01T15:59:59Z"))).toBe(false);
     expect(excluded(f, DEFAULT_SETTINGS, new Date("2026-12-01T16:30:00Z"))).toBe(true);
   });
@@ -40,7 +42,7 @@ describe("rank", () => {
     const strong = { ...base, listing: facts("a"), feedback: "interested" as const };
     expect(rank(strong, DEFAULT_SETTINGS, now)).toMatchObject({ scoreTenths: 965, candidate: true });
     const s: Settings = { ...DEFAULT_SETTINGS };
-    const capped = rankFactsOf("jobicy", "a", job("1"));
+    const capped = rankFactsOf("a", typed());
     expect(rank({ ...strong, listing: { ...capped, categoryScore: 140 } }, s, now).scoreTenths).toBe(1000);
     expect(rank({ ...base, listing: facts("a"), feedback: "skipped" }, DEFAULT_SETTINGS, now).candidate).toBe(false);
   });
@@ -51,7 +53,7 @@ describe("rank", () => {
     const stronger = facts("c");
     const r = rank({ ...base, listing, versions: [listing, weaker, stronger] }, DEFAULT_SETTINGS, now);
     expect(r).toMatchObject({ candidate: true, basis: "c", scoreTenths: rank({ ...base, listing: stronger }, DEFAULT_SETTINGS, now).scoreTenths });
-    const expiredStronger = facts("d", { deadline: "2026-11-01" });
+    const expiredStronger = facts("d", date("2026-11-01"));
     expect(rank({ ...base, listing, versions: [listing, weaker, expiredStronger] }, DEFAULT_SETTINGS, now).basis).toBe("b");
     const leftOut = facts("e"); // AI agent, outside a settings choice of 後端／API only
     expect(rank({ ...base, listing: weaker, versions: [weaker, leftOut] }, { ...DEFAULT_SETTINGS, categories: ["後端／API"] }, now)).toMatchObject({ candidate: false, basis: "b" });
@@ -71,9 +73,9 @@ describe("rank", () => {
   });
 
   it("matches recommend's score and basis for a listing with versions", () => {
-    const contents = [{ fingerprint: "a", job: job("1", { weekly_hours: 50 }) }, { fingerprint: "b", job: job("1", { taiwan_eligible: null }) }, { fingerprint: "c", job: job("1") }];
-    const r = recommend("jobicy", contents[0], contents, "interested", DEFAULT_SETTINGS, now);
-    const ranked = rank({ id: "x", feedback: "interested", listing: rankFactsOf("jobicy", "a", contents[0].job), versions: contents.map((c) => rankFactsOf("jobicy", c.fingerprint, c.job)) }, DEFAULT_SETTINGS, now);
+    const contents = [{ fingerprint: "a", listing: typed({ weekly_hours: 50 }) }, { fingerprint: "b", listing: typed({ taiwan_eligible: null }) }, { fingerprint: "c", listing: typed() }];
+    const r = recommend(contents[0], contents, "interested", DEFAULT_SETTINGS, now);
+    const ranked = rank({ id: "x", feedback: "interested", listing: rankFactsOf("a", contents[0].listing), versions: contents.map((c) => rankFactsOf(c.fingerprint, c.listing)) }, DEFAULT_SETTINGS, now);
     expect({ score: r.score * 10, basis: r.basis }).toEqual({ score: ranked.scoreTenths, basis: ranked.basis });
     expect(r.reasons.at(-1)).toBe("通知內容有差異；依可能符合的一份排序，需核對原文");
   });
@@ -85,9 +87,9 @@ describe("rank", () => {
   });
 
   it("counts a fixed TWD budget as complete against the settings floor", () => {
-    const fixed = { fingerprint: "a", job: job("1", { kind: "fixed", currency: "TWD", budget_min: 5000, budget_max: 20000, deadline: "2099-01-01" }) };
-    expect(recommend("jobicy", fixed, [], "neutral", DEFAULT_SETTINGS, now).completeness).toBe(100);
-    expect(recommend("jobicy", fixed, [], "neutral", { ...DEFAULT_SETTINGS, minFixedTwd: 10000 }, now).completeness).toBe(83);
+    const fixed = { fingerprint: "a", listing: typed({ kind: "fixed", currency: "TWD", budget_min: 5000, budget_max: 20000, ...date("2099-01-01") }) };
+    expect(recommend(fixed, [], "neutral", DEFAULT_SETTINGS, now).completeness).toBe(100);
+    expect(recommend(fixed, [], "neutral", { ...DEFAULT_SETTINGS, minFixedTwd: 10000 }, now).completeness).toBe(83);
   });
 });
 
@@ -108,8 +110,8 @@ describe("ranked read on Postgres", () => {
 
   it("ranks listings with their versions and feedback, and pages each view", async () => {
     await intakeListings(db, "jobicy", [job("1"), job("2", { taiwan_eligible: null }), job("3", { weekly_hours: 50 })], "page", now);
-    await intakeListings(db, "tasker", [job("m", { source: "tasker", weekly_hours: 50 })], "mail", now);
-    await intakeListings(db, "tasker", [job("m", { source: "tasker" })], "mail", now);
+    await intakeListings(db, "tasker", [job("m", { weekly_hours: 50 })], "mail", now);
+    await intakeListings(db, "tasker", [job("m")], "mail", now);
     const [one, two, mail] = await Promise.all([listingBy(db, "jobicy", "1"), listingBy(db, "jobicy", "2"), listingBy(db, "tasker", "m")]);
     await db.execute(sql`insert into listing_feedback (listing_id, state, revision) values (${two!.id}, 'interested', 1), (${one!.id}, 'skipped', 1)`);
     const rankables = await readRankables(db);

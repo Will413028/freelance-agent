@@ -18,7 +18,7 @@ const job = (i: number, extra: Record<string, unknown> = {}) => ({
   description: `Build something ${i}`, url: `https://example.com/jobs/${i}`, kind: ["fixed", "hourly", "contract", "full_time"][i % 4],
   currency: i % 3 ? "TWD" : "USD", budget_min: 1000 + (i % 7) * 500, budget_max: 2000 + (i % 11) * 1000, weekly_hours: i % 6 ? (i % 50) : null,
   taiwan_eligible: [true, null, false][i % 3], timezone_compatible: i % 4 ? true : null, complete: i % 2 === 0,
-  published_at: new Date(now.getTime() - (i % 10) * 86_400_000).toISOString(), deadline: i % 9 ? null : `2026-11-${10 + (i % 10)}`, ...extra,
+  published_at: new Date(now.getTime() - (i % 10) * 86_400_000).toISOString(), deadline: i % 9 ? null : { kind: "date", date: `2026-11-${10 + (i % 10)}` }, ...extra,
 });
 
 beforeAll(async () => {
