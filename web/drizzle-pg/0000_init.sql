@@ -13,7 +13,8 @@ CREATE TABLE "listing_feedback_events" (
 	"revision" integer NOT NULL,
 	"state" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "listing_feedback_events_state" CHECK ("listing_feedback_events"."state" in ('neutral', 'interested', 'skipped'))
+	CONSTRAINT "listing_feedback_events_state" CHECK ("listing_feedback_events"."state" in ('neutral', 'interested', 'skipped')),
+	CONSTRAINT "listing_feedback_events_revision" CHECK ("listing_feedback_events"."revision" > 0)
 );
 --> statement-breakpoint
 CREATE TABLE "listing_versions" (

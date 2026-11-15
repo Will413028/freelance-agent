@@ -23,7 +23,7 @@ const OBSERVATION_FIELDS = new Set(["received_at", "receipt_id", "evidence_ref",
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value !== null && typeof value === "object") {
-    const keys = Object.keys(value).sort();
+    const keys = Object.keys(value).filter((k) => (value as Record<string, unknown>)[k] !== undefined).sort();
     return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`).join(",")}}`;
   }
   return JSON.stringify(value) ?? "null";

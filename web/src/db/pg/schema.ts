@@ -9,6 +9,14 @@ import {
 
 const at = (name: string) => timestamp(name, { withTimezone: true });
 
+/** Closed value lists, shared by the column types, the CHECK constraints and the modules. */
+export const KINDS = ["fixed", "hourly", "contract", "full_time"] as const;
+export const FEEDBACK_STATES = ["neutral", "interested", "skipped"] as const;
+export const CATEGORIES = ["AI agent", "AI 整合／自動化", "後端／API", "全端 MVP"] as const;
+
+/** `col in ('a', 'b')` for a CHECK; the values are this file's literals, never input. */
+const oneOf = (col: unknown, values: readonly string[]) => sql`${col} in (${sql.raw(values.map((v) => `'${v}'`).join(", "))})`;
+
 /**
  * A listing's shown content and the evaluation facts that depend on neither the settings nor the
  * time (written by modules/listings; modules/evaluation computes them). listings and
@@ -23,7 +31,7 @@ const content = () => ({
   url: text("url"),
   canonicalUrl: text("canonical_url"),
   location: text("location"),
-  kind: text("kind", { enum: ["fixed", "hourly", "contract", "full_time"] }),
+  kind: text("kind", { enum: KINDS }),
   currency: text("currency"),
   budgetMin: doublePrecision("budget_min"),
   budgetMax: doublePrecision("budget_max"),
@@ -41,7 +49,7 @@ const content = () => ({
   fixedTwdMax: doublePrecision("fixed_twd_max"),
 });
 
-const kindCheck = (name: string, kind: unknown) => check(name, sql`${kind} in ('fixed', 'hourly', 'contract', 'full_time')`);
+const kindCheck = (name: string, kind: unknown) => check(name, oneOf(kind, KINDS));
 
 export const listings = pgTable("listings", {
   id: text("id").primaryKey(),
@@ -68,16 +76,14 @@ export const listingVersions = pgTable("listing_versions", {
   check("listing_versions_confirmed_base", sql`${t.confirmedBase} between 0 and 3`),
 ]);
 
-const FEEDBACK = ["neutral", "interested", "skipped"] as const;
-
 /** Save/skip state; no row means neutral at revision 0. */
 export const listingFeedback = pgTable("listing_feedback", {
   listingId: text("listing_id").primaryKey().references(() => listings.id, { onDelete: "cascade" }),
-  state: text("state", { enum: FEEDBACK }).notNull(),
+  state: text("state", { enum: FEEDBACK_STATES }).notNull(),
   revision: integer("revision").notNull(),
   updatedAt: at("updated_at").notNull().defaultNow(),
 }, (t) => [
-  check("listing_feedback_state", sql`${t.state} in ('neutral', 'interested', 'skipped')`),
+  check("listing_feedback_state", oneOf(t.state, FEEDBACK_STATES)),
   check("listing_feedback_revision", sql`${t.revision} > 0`),
 ]);
 
@@ -85,12 +91,13 @@ export const listingFeedbackEvents = pgTable("listing_feedback_events", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   listingId: text("listing_id").notNull(),
   revision: integer("revision").notNull(),
-  state: text("state", { enum: FEEDBACK }).notNull(),
+  state: text("state", { enum: FEEDBACK_STATES }).notNull(),
   createdAt: at("created_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ columns: [t.listingId], foreignColumns: [listings.id] }).onDelete("cascade"),
   uniqueIndex("listing_feedback_events_listing_revision").on(t.listingId, t.revision),
-  check("listing_feedback_events_state", sql`${t.state} in ('neutral', 'interested', 'skipped')`),
+  check("listing_feedback_events_state", oneOf(t.state, FEEDBACK_STATES)),
+  check("listing_feedback_events_revision", sql`${t.revision} > 0`),
 ]);
 
 /** The one settings row; absent means the defaults at revision 0. */
@@ -105,7 +112,7 @@ export const settings = pgTable("settings", {
   check("settings_revision", sql`${t.revision} > 0`),
   check("settings_max_weekly_hours", sql`${t.maxWeeklyHours} between 1 and 168`),
   check("settings_min_fixed_twd", sql`${t.minFixedTwd} between 0 and 10000000`),
-  check("settings_categories", sql`cardinality(${t.categories}) > 0 and ${t.categories} <@ array['AI agent', 'AI 整合／自動化', '後端／API', '全端 MVP']::text[]`),
+  check("settings_categories", sql`cardinality(${t.categories}) > 0 and ${t.categories} <@ array[${sql.raw(CATEGORIES.map((c) => `'${c}'`).join(", "))}]::text[]`),
 ]);
 
 /** Every mail message a mail source looked at, once (step 7 fills reason codes and dispositions). */

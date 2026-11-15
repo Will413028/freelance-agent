@@ -1,5 +1,5 @@
 {
-  "id": "2d20c1a9-e4e6-46fe-8e67-536be1122c12",
+  "id": "aa4b00bc-772e-411e-b073-82b892336c9f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -157,6 +157,10 @@
         "listing_feedback_events_state": {
           "name": "listing_feedback_events_state",
           "value": "\"listing_feedback_events\".\"state\" in ('neutral', 'interested', 'skipped')"
+        },
+        "listing_feedback_events_revision": {
+          "name": "listing_feedback_events_revision",
+          "value": "\"listing_feedback_events\".\"revision\" > 0"
         }
       },
       "isRLSEnabled": false

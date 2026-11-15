@@ -35,6 +35,12 @@ describe("evaluation facts", () => {
     expect(factsOf("x", job("1", { deadline: "2026-12-01T10:00:00Z" })).deadlineAt!.toISOString()).toBe("2026-12-01T10:00:00.000Z");
     expect(factsOf("x", job("1", { deadline: "2026-12-01T10:00:00" })).deadlineAt).toBeNull();
     expect(factsOf("x", job("1", { deadline: "2026-02-30" })).deadlineAt).toBeNull();
+    // The other calendar forms fromisoformat accepts: hour-only offsets and times, basic format.
+    expect(factsOf("x", job("1", { deadline: "2026-12-01T18:00:00+08" })).deadlineAt!.toISOString()).toBe("2026-12-01T10:00:00.000Z");
+    expect(factsOf("x", job("1", { deadline: "2026-12-01T10Z" })).deadlineAt!.toISOString()).toBe("2026-12-01T10:00:00.000Z");
+    expect(factsOf("x", job("1", { deadline: "20261201T100000+0800" })).deadlineAt!.toISOString()).toBe("2026-12-01T02:00:00.000Z");
+    expect(factsOf("x", job("1", { deadline: "20261201" })).deadlineAt!.toISOString()).toBe("2026-12-01T16:00:00.000Z");
+    expect(factsOf("x", job("1", { deadline: "2026-1201" })).deadlineAt).toBeNull();
   });
 
   it("reads publication per source rules", () => {

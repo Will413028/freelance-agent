@@ -1,3 +1,4 @@
+import { CATEGORIES as CATEGORY_NAMES, KINDS } from "@/db/pg/schema";
 import { parseIsoTime, taipeiDayAfter } from "./time";
 
 // The evaluation facts that depend on neither the settings nor the time, computed once when a
@@ -7,17 +8,16 @@ import { parseIsoTime, taipeiDayAfter } from "./time";
 /** A listing as a source gives it: JSON, every field optional, unknown kept as absent or null. */
 export type Job = Readonly<Record<string, unknown>>;
 
-export type Category = "AI agent" | "AI 整合／自動化" | "後端／API" | "全端 MVP" | "其他";
+export type Category = (typeof CATEGORY_NAMES)[number] | "其他";
 
-const CATEGORIES: readonly (readonly [Exclude<Category, "其他">, number, readonly string[]])[] = [
+const CATEGORIES: readonly (readonly [(typeof CATEGORY_NAMES)[number], number, readonly string[]])[] = [
   ["AI agent", 95, ["ai agent", "agentic", "tool calling", "智能代理", "智慧代理"]],
   ["AI 整合／自動化", 85, ["rag", "llm", "automation", "自動化", "自动化", "聊天機器人", "聊天机器人", "ai 整合"]],
   ["全端 MVP", 70, ["fullstack", "full-stack", "mvp", "website", "全端", "全栈", "網站", "网站", "會員"]],
   ["後端／API", 75, ["backend", "api", "後端", "后端", "串接"]],
 ];
 
-export type Kind = "fixed" | "hourly" | "contract" | "full_time";
-const KINDS: readonly string[] = ["fixed", "hourly", "contract", "full_time"];
+export type Kind = (typeof KINDS)[number];
 
 export type Facts = {
   category: Category;
@@ -32,9 +32,9 @@ export type Facts = {
   deadlineAt: Date | null;
 };
 
-const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
-const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
-const bool = (v: unknown): boolean | null => (typeof v === "boolean" ? v : null);
+export const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
+export const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+export const bool = (v: unknown): boolean | null => (typeof v === "boolean" ? v : null);
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const isAscii = (s: string) => /^[\x00-\x7f]*$/.test(s);
@@ -48,7 +48,7 @@ export function categorize(job: Job): { category: Category; categoryScore: numbe
   return best ? { category: best[0], categoryScore: best[1] } : { category: "其他", categoryScore: 0 };
 }
 
-export const kindOf = (job: Job): Kind | null => (typeof job.kind === "string" && KINDS.includes(job.kind) ? (job.kind as Kind) : null);
+export const kindOf = (job: Job): Kind | null => (typeof job.kind === "string" && (KINDS as readonly string[]).includes(job.kind) ? (job.kind as Kind) : null);
 
 export function fixedTwdMax(job: Job): number | null {
   if (job.kind !== "fixed" || job.currency !== "TWD") return null;

@@ -62,15 +62,33 @@ describe("intake", () => {
     const row = (await listingBy(db, "tasker", "m1"))!;
     expect(row.title).toBe("Newer content");
     expect(await versionCount(db, row.id)).toBe(2);
-    // The same contradicting mail again adds nothing.
-    await intakeListings(db, "tasker", [mail("Older content", "2026-11-02T00:00:00Z")], "mail");
+    // The same contradicting mail again adds nothing and is counted unchanged.
+    expect(await intakeListings(db, "tasker", [mail("Older content", "2026-11-02T00:00:00Z")], "mail")).toMatchObject({ versioned: 0, unchanged: 1 });
     expect(await versionCount(db, row.id)).toBe(2);
+    // The first content's version keeps when it was seen and the row's fingerprint.
+    const versions = await db.execute(sql`select fingerprint, observed_at from listing_versions where listing_id = ${row.id} order by observed_at`) as unknown as { rows: { fingerprint: string; observed_at: Date | string }[] };
+    expect(versions.rows[0].fingerprint).toBe(row.fingerprint);
+    expect(new Date(versions.rows[0].observed_at)).toEqual(row.updatedAt);
   });
 
   it("refuses a batch naming one external_id twice, and writes nothing of a failing batch", async () => {
     await expect(intakeListings(db, "jobicy", [job("1"), job("1")], "page")).rejects.toThrow(/twice/);
     await expect(intakeListings(db, "jobicy", [job("2"), job("3", { title: "" })], "page")).rejects.toThrow(/title/);
     expect(await listingBy(db, "jobicy", "2")).toBeNull();
+  });
+
+  it("stores text Postgres refuses (NUL, lone surrogates) cleaned, and undefined keys do not change the fingerprint", async () => {
+    await intakeListings(db, "jobicy", [job("1", { title: "a\u0000b", description: "x\ud800y", company: undefined })], "page");
+    const row = (await listingBy(db, "jobicy", "1"))!;
+    expect(row).toMatchObject({ title: "ab", description: "x\ufffdy" });
+    expect(await intakeListings(db, "jobicy", [job("1", { title: "a\u0000b", description: "x\ud800y" })], "page")).toMatchObject({ unchanged: 1 });
+    expect(fingerprint(row.raw as Record<string, unknown>)).toBe(row.fingerprint);
+  });
+
+  it("first_seen_at and updated_at both come from the observation time", async () => {
+    const t = new Date("2026-11-01T00:00:00Z");
+    await intakeListings(db, "jobicy", [job("1")], "page", t);
+    expect(await listingBy(db, "jobicy", "1")).toMatchObject({ firstSeenAt: t, updatedAt: t });
   });
 
   it("the database allows one row per (source, external_id)", async () => {
