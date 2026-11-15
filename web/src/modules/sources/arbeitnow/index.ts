@@ -152,17 +152,25 @@ export function parsePage(body: Uint8Array, page: number): Page {
 
 const int = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v);
 
-/** Whether a page's meta agrees with the pages before it (old arbeitnow.ts:161-167). */
-function consistent(p: Page, page: number, pageSize: number | null): boolean {
-  const size = p.meta.per_page, from = p.meta.from, to = p.meta.to;
-  if (!int(size) || size <= 0 || size > MAX_PAGE_ENTRIES || (pageSize !== null && size !== pageSize) || p.count > size) return false;
-  const expectedFrom = (page - 1) * size + 1;
-  const range = p.count === 0 ? from === null && to === null : from === expectedFrom && to === expectedFrom + p.count - 1;
-  return range && (p.next === null || p.count === size);
+/**
+ * Whether a page's shape agrees with the pages before it (old arbeitnow.ts:161-167 without the range):
+ * per_page is the same positive integer up to MAX_PAGE_ENTRIES on every page, a page holds at most
+ * per_page listings, and a page with a next link is full. meta.from and meta.to are not checked: the
+ * real API reports page 2 as from 101, to 300 with per_page 300 while serving 300 listings none of
+ * which page 1 had (VM, 2026-11-15: overlap 0 of 300). Accepted trade-off: a page that repeats
+ * earlier listings with the same content, or skips some, is no longer detected (the API's own range
+ * cannot tell either); a repeated listing with different content still refuses the run.
+ */
+export function pageShapeOk(perPage: unknown, count: number, hasNext: boolean, pageSize: number | null): boolean {
+  if (!int(perPage) || perPage <= 0 || perPage > MAX_PAGE_ENTRIES || (pageSize !== null && perPage !== pageSize) || count > perPage) return false;
+  return !hasNext || count === perPage;
 }
 
-/** Every page of the API: the listings seen (a job listed twice with the same content kept once, as its last entry). */
-/** Every page of the API up to the page cap; `truncated` when a next page remained (old: partial, what was read still written). */
+/**
+ * Every page of the API up to the page cap: the listings seen (a job listed twice with the same
+ * content kept once, as its last entry); `truncated` when a next page remained (old: partial, what
+ * was read still written).
+ */
 export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: ListingInput[]; truncated: boolean; rejected: number; examined: number }> {
   const byId = new Map<string, ListingInput>();
   let url: string | null = ENDPOINT, page = 1, seen = 0, rejected = 0, examined = 0, pageSize: number | null = null;
@@ -172,7 +180,7 @@ export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: 
       headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/json" },
     });
     const p = parsePage(r.body, page);
-    if (!consistent(p, page, pageSize)) throw new SourceError(`arbeitnow: inconsistent pagination on page ${page}`);
+    if (!pageShapeOk(p.meta.per_page, p.count, p.next !== null, pageSize)) throw new SourceError(`arbeitnow: inconsistent pagination on page ${page}`);
     pageSize ??= p.meta.per_page as number;
     seen += p.count;
     rejected += p.rejected;

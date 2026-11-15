@@ -6,6 +6,7 @@
 // - scan: the golden responses per URL, expected the old seen count, ids and requested URLs.
 // Deliberate differences are listed here, each with its reason, and nowhere else.
 // Run once: pnpm exec tsx src/modules/sources/arbeitnow/fixtures/generate.ts
+import { pageShapeOk } from "..";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { legacyToInput } from "@/modules/listings/public";
@@ -63,6 +64,25 @@ const REFUSED_PAGE = new Map<number, string>([
   [37, "body not UTF-8: the official API sends UTF-8, Python's json also read UTF-16/32"],
 ]);
 const SET_ASIDE = "SET_ASIDE: old set rows aside (rejected > 0); the new connector does the same";
+const RANGE_ONLY = "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)";
+/**
+ * Whether an old inconsistent scan failed only on meta.from/meta.to: every page answers 200 and parses
+ * as an object, and passes the connector's own shape rule (pageShapeOk, one definition). per_page is
+ * read from the raw JSON text so that a float like 2.0, which Python's int check refused, does not count.
+ */
+function rangeOnly(pages: Record<string, [number, string]>): boolean {
+  let size: number | null = null;
+  for (const [status, body] of Object.values(pages)) {
+    if (status !== 200) return false;
+    let p: { data?: unknown[]; meta?: { per_page?: unknown }; links?: { next?: unknown } };
+    try { p = JSON.parse(body); } catch { return false; }
+    if (!/"per_page"\s*:\s*\d+\s*[,}]/.test(body)) return false;
+    const count = Array.isArray(p.data) ? p.data.length : -1;
+    if (count < 0 || !pageShapeOk(p.meta?.per_page, count, p.links?.next != null, size)) return false;
+    size = p.meta!.per_page as number;
+  }
+  return true;
+}
 const INCOMPLETE_SCAN = "old scan had inconsistent pagination and marked the run failed; new fails the run";
 /** Old scan cases that exercise the old scan options (max_pages, max_seconds, the monotonic clock), which the new connector has no counterpart for: the Fetcher bounds each request, the page cap is fixed. */
 const NOT_APPLICABLE = "old scan options or time budget, replaced by the Fetcher's per-request timeout and the fixed page cap";
@@ -111,10 +131,12 @@ const scan = golden.arbeitnow_scan.flatMap((c, i): ScanCase[] => {
   if (ACCEPTED_SCAN.has(i)) return [{ input, expect: { listing: true }, why: ACCEPTED_SCAN.get(i) }];
   if ("error" in c.expect) return [{ input, expect: { error: true } }];
   const [jobs, coverage] = JSON.parse(c.expect.ok) as [{ external_id: string }[], { seen: number; complete_scan: boolean; rejected_count: number; pagination_consistent: boolean; truncated: boolean }];
-  if (!coverage.pagination_consistent) return [{ input, expect: { error: true }, why: INCOMPLETE_SCAN }];
+  if (!coverage.pagination_consistent && !rangeOnly(input)) return [{ input, expect: { error: true }, why: INCOMPLETE_SCAN }];
+  const range = !coverage.pagination_consistent;
   if (coverage.truncated) throw new Error(`scan ${i}: truncated old scan, no counterpart at the fixed cap`);
   const rejected = coverage.rejected_count;
-  return [{ input, expect: { seen: coverage.seen, ids: jobs.map((j) => j.external_id), requests: c.calls.map(([u]) => u), ...(rejected > 0 ? { rejected } : {}) }, ...(rejected > 0 ? { why: SET_ASIDE } : {})}];
+  const why = [rejected > 0 ? SET_ASIDE : null, range ? RANGE_ONLY : null].filter(Boolean).join("; ");
+  return [{ input, expect: { seen: coverage.seen, ids: jobs.map((j) => j.external_id), requests: c.calls.map(([u]) => u), ...(rejected > 0 ? { rejected } : {}) }, ...(why ? { why } : {})}];
 });
 const skipped = golden.arbeitnow_scan.length - scan.length;
 
