@@ -2784,9 +2784,15 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ]
    },
-   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
+   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
   },
   {
    "input": {
@@ -2808,9 +2814,15 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ]
    },
-   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
+   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
   },
   {
    "input": {
@@ -2820,9 +2832,15 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ]
    },
-   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
+   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
   },
   {
    "input": {
@@ -2897,9 +2915,15 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ]
    },
-   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
+   "why": "old flagged only meta.from/meta.to and still wrote these listings; from/to are no longer checked (the real API misreports them, VM 2026-11-15)"
   },
   {
    "input": {

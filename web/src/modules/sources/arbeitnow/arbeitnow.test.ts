@@ -125,6 +125,18 @@ describe("arbeitnow connector", () => {
     await expect(scan(changed)).rejects.toThrow(/changed during pagination/);
     const short = site({ [ENDPOINT]: [200, JSON.stringify(pageOf([job()], 1, two))] });
     await expect(scan(short)).rejects.toThrow(/inconsistent pagination/);
+    // The real API misreports meta.from/to (page 2 of 2-per-page as from 2, to 2); distinct listings are still read.
+    const misnumbered = site({
+      [ENDPOINT]: [200, JSON.stringify(pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })], 1, two))],
+      [two]: [200, JSON.stringify({ ...pageOf([job({ slug: "c", url: "https://www.arbeitnow.com/jobs/companies/acme/c" })], 2), meta: { current_page: 2, per_page: 2, from: 2, to: 2 } })],
+    });
+    expect((await scan(misnumbered)).listings.map((l) => l.external_id)).toEqual(["ai-agent-123", "b", "c"]);
+    // Accepted trade-off (index.ts pageShapeOk): a page repeating an earlier listing unchanged is merged, not detected.
+    const overlapping = site({
+      [ENDPOINT]: [200, JSON.stringify(pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })], 1, two))],
+      [two]: [200, JSON.stringify(pageOf([job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b" })], 2))],
+    });
+    expect(await scan(overlapping)).toMatchObject({ truncated: false, listings: [{ external_id: "ai-agent-123" }, { external_id: "b" }] });
     const endless: Record<string, [number, string]> = {};
     for (let n = 1; n <= MAX_PAGES + 1; n++) {
       const slugs = [`a${n}`, `b${n}`];
