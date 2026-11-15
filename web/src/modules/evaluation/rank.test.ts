@@ -29,7 +29,7 @@ describe("B1: a date-only deadline expires at the Asia/Taipei day boundary", () 
 });
 
 describe("rank", () => {
-  const base = { id: 1, feedback: "neutral" as const, versions: [] };
+  const base = { id: 1, firstSeenAt: new Date(0), feedback: "neutral" as const, versions: [] };
 
   it("scores category × 0.7, 2.5 per confirmed condition and freshness, in tenths", () => {
     // AI agent 95 × 7 + 25 × (3 confirmed + hours within 30) + published within two days.
@@ -64,26 +64,31 @@ describe("rank", () => {
     expect(rank({ ...base, listing, versions: [listing, other] }, DEFAULT_SETTINGS, now)).toMatchObject({ candidate: false, basis: "a" });
   });
 
-  it("orders candidates first, then the higher score, then the id", () => {
+  it("orders candidates first, then the higher score, then the newer first_seen_at, then the higher id", () => {
+    const at = (iso: string) => new Date(iso);
     const items = [
-      { id: 10, candidate: true, scoreTenths: 500, basis: "" }, { id: 9, candidate: true, scoreTenths: 500, basis: "" },
-      { id: 2, candidate: false, scoreTenths: 900, basis: "" }, { id: 4, candidate: true, scoreTenths: 700, basis: "" },
+      { id: 1, firstSeenAt: at("2026-11-01T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
+      { id: 2, firstSeenAt: at("2026-11-03T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
+      { id: 9, firstSeenAt: at("2026-11-02T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
+      { id: 10, firstSeenAt: at("2026-11-02T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
+      { id: 3, firstSeenAt: at("2026-11-04T00:00:00Z"), candidate: false, scoreTenths: 900, basis: "" },
+      { id: 4, firstSeenAt: at("2026-10-01T00:00:00Z"), candidate: true, scoreTenths: 700, basis: "" },
     ];
-    // Numeric id order (10 after 9), not text order.
-    expect([...items].sort(byRank).map((i) => i.id)).toEqual([4, 9, 10, 2]);
+    // Same score: newest first (2), then same first_seen_at by numeric id, higher first (10 before 9), then oldest (1).
+    expect([...items].sort(byRank).map((i) => i.id)).toEqual([4, 2, 10, 9, 1, 3]);
   });
 
   it("matches recommend's score and basis for a listing with versions", () => {
     const contents = [{ fingerprint: "a", listing: typed({ weekly_hours: 50 }) }, { fingerprint: "b", listing: typed({ taiwan_eligible: null }) }, { fingerprint: "c", listing: typed() }];
     const r = recommend(contents[0], contents, "interested", DEFAULT_SETTINGS, now);
-    const ranked = rank({ id: 1, feedback: "interested", listing: rankFactsOf("a", contents[0].listing), versions: contents.map((c) => rankFactsOf(c.fingerprint, c.listing)) }, DEFAULT_SETTINGS, now);
+    const ranked = rank({ id: 1, firstSeenAt: new Date(0), feedback: "interested", listing: rankFactsOf("a", contents[0].listing), versions: contents.map((c) => rankFactsOf(c.fingerprint, c.listing)) }, DEFAULT_SETTINGS, now);
     expect({ score: r.score * 10, basis: r.basis }).toEqual({ score: ranked.scoreTenths, basis: ranked.basis });
     expect(r.reasons.at(-1)).toBe("通知內容有差異；依可能符合的一份排序，需核對原文");
   });
 
   it("never reaches the 100-point cap with the current categories, so comparing before or after it picks the same content", () => {
     // AI agent 95 × 0.7 + 4 confirmed × 2.5 + recent 10 + saved 10 = 96.5 points.
-    const top = rank({ id: 1, feedback: "interested", listing: facts("a"), versions: [] }, { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now);
+    const top = rank({ id: 1, firstSeenAt: new Date(0), feedback: "interested", listing: facts("a"), versions: [] }, { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now);
     expect(top.scoreTenths).toBe(965);
   });
 

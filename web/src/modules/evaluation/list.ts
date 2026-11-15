@@ -26,7 +26,7 @@ const factColumns = <T extends typeof listings | typeof listingVersions>(t: T) =
 /** Every listing with its versions and feedback, as ranking reads them. */
 export async function readRankables(db: PgDb): Promise<Rankable[]> {
   const [rows, versions] = await Promise.all([
-    db.select({ id: listings.id, feedback: listingFeedback.state, ...factColumns(listings) })
+    db.select({ id: listings.id, firstSeenAt: listings.firstSeenAt, feedback: listingFeedback.state, ...factColumns(listings) })
       .from(listings).leftJoin(listingFeedback, eq(listingFeedback.listingId, listings.id)),
     db.select({ listingId: listingVersions.listingId, ...factColumns(listingVersions) }).from(listingVersions),
   ]);
@@ -36,7 +36,7 @@ export async function readRankables(db: PgDb): Promise<Rankable[]> {
     if (list) list.push(v as RankFacts);
     else byListing.set(listingId, [v as RankFacts]);
   }
-  return rows.map(({ id, feedback, ...f }) => ({ id, feedback: feedback ?? "neutral", listing: f as RankFacts, versions: byListing.get(id) ?? [] }));
+  return rows.map(({ id, firstSeenAt, feedback, ...f }) => ({ id, firstSeenAt, feedback: feedback ?? "neutral", listing: f as RankFacts, versions: byListing.get(id) ?? [] }));
 }
 
 /** Which listings a page shows: the candidates, the saved, the skipped or all of them. */
