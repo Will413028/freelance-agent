@@ -8,6 +8,7 @@
    - 取代：舊的 `discovery_items`／`discovery_versions` 投影表，以及存設定時重寫整張表、每列帶 `settings_revision`、讀到舊 revision 就拒讀的機制（`web/src/modules/discovery/projection.ts`）。
    - 必要條件：清單頁要在 SQL 裡排序分頁（3,500 筆、≤ 500 ms），不能每次在 TS 算完全部再排；存的欄位只要與設定、時間無關，就不會因存設定而過期，所以不需要投影表與 revision 欄。
    - 這個必要條件還沒量過（審查第 1 輪）：3b 第一件事是量「讀 3,500 列加 TS 全量排序」的伺服器端時間（PGlite 與 VM 各一次）。在 500 ms 預算的一半內，就只留 TS 一份實作，SQL 只撈列，上面的評估欄位只留顯示與篩選要用的；超過才採用下面的 SQL 算式。結論寫回本節。
+   - **3b 量測結論（2026-11-15）：只留 TS。** PGlite 上 3,500 筆（500 筆信件職缺、100 筆有兩個版本、300 筆有回饋）讀全部事實欄位加 TS 排序，20 次中位數 38.4 ms、最大 75.2 ms（`web/tests/rank-scale.test.ts`；審查者另跑一次 41.6／50.4 ms）。SQL 只撈列（`modules/evaluation/list.ts`），排序在 `rank.ts`；下面「清單查詢」段的算式改由 `rank.ts` 實作，不寫成 SQL，也就沒有 TS／SQL 一致測試。存的評估欄位仍全部需要（排序要讀）。VM 那一次併入 3d（3d 本來就在 VM 量清單頁；VM 上起任何東西都要 Will 授權）：3d 的清單頁中位數若超過 250 ms，且主要花在這段讀取與排序，就回到 SQL 算式。CI 的守門門檻是 500 ms（250 ms 在共用 CI 機器上會偶發失敗），所以 250–500 ms 之間的退化 CI 抓不到，要看測試印出的中位數。
    - 若採用 SQL 算式，兩份實作（TS 的 `evaluate`／排序與 SQL 查詢）的一致性：用測試守（同一批 fixture 跑 TS 與 PGlite 上的 SQL，排序與分數要相同），不在每次讀取時比對（舊的 `ProjectionMismatch` 執行期檢查與重試刪除）。頁面上的理由、待確認問題文字仍在 TS 對當頁 50 筆算。
 2. **`source_receipts` 不留。** 同一筆不重收靠 `listings (source, external_id)` 唯一鍵 upsert，加上 `fingerprint` 比對決定是否記新內容。信件的投遞身分（哪封信處理過）放 `mail_messages (source, recipient, message_id)`。舊的 `receipt_collision`（同一封信的收據被兩筆職缺搶）在沒有收據後不存在，`mail_messages.status` 不留 `conflict`；正式庫 `mail_ingestion` 2026-11-15 唯讀計數 `conflict` 0 列（processed 381、rejected 77），所以不另加批內檢查；步驟 7 的 parser 若出現同一封信解析出重複 `external_id`，在那裡加批內唯一檢查。
    - 收據原本還擋兩件事（審查第 1 輪指出）：
@@ -92,8 +93,9 @@
 - **3a 資料模型與收案核心**：schema 與 migration；`modules/listings/`（id 函式、fingerprint、`upsertListing` 一個交易內寫職缺／版本、評估欄位的寫入端計算）；`id.fixtures.json`。驗收：`pnpm check`；`id.fixtures.json` 全過；信件職缺先新後舊兩封：職缺列不變、版本多一列；一般來源 A→B→A 最後是 A（D6）；mutation（id 分隔字元、拿掉唯一鍵、信件第二封改成覆寫職缺列）各有測試失敗。
   - 實作紀錄（2026-11-15）：`web/drizzle-pg/` 重新產生成單一 `0000_init.sql`（切換前可重建，計畫全域約束）；VM 上步驟 2 的庫有舊 `0000` 的紀錄，3d 部署時要整個重建 db volume，不是跑 migration。walking skeleton 的 `/skeleton` 頁、`seed-skeleton.ts` 與 `services/skeleton.ts` 提前在 3a 刪除（新 `listings` 欄位讓 skeleton 的寫入不成立）；它唯一的測試案例（seed 兩次仍一列並顯示在頁面）由 `listings.test.ts`「inserts, then leaves the same content unchanged」取代，其餘案例留在 `tests/pg-base.test.ts`。評估事實放 `web/src/modules/evaluation/facts.ts`（3b 在同一模組加評估與排序）。
 - **3b 評估與排序**：`modules/evaluation/`（原生型別的 evaluate、排序、清單查詢）；golden 的 `evaluate` 492 例與 `recommendation` 198 例轉成原生 fixture（拿掉 `portfolio_ids` 與群組欄）；先量「讀 3,500 列加 TS 全量排序」（核心選擇 1），依結果二選一：≤ 250 ms 只留 TS 排序、SQL 只撈列；否則採 SQL 算式並加 TS 與 SQL 同 fixture 一致的測試。截止日改台北日界線（D7），受影響的 fixture 預期逐筆記下。驗收：量測數字寫回核心選擇 1；fixture 全過；B1 回歸測試；mutation：把版本取最高分或候選條件改掉要有測試失敗。
+  - 實作紀錄（2026-11-15）：`modules/evaluation/` 加 `rank.ts`（以事實欄位算排除、分數十分位、候選、排序）、`evaluate.ts`（帶文字的 evaluate 與 recommend，給頁面的 50 筆用，排除與分數都由 `rank.ts` 判，fixture 測兩者一致）、`list.ts`（讀設定、讀全部事實、分頁四種檢視）。fixture：evaluate 492 例帶 480、recommendation 198 例帶 192、fromisoformat 61 例全帶（其中 11 例 native 刻意拒絕）；捨棄 18 例（Python 拋例外 12、輸入是 NaN 6），每例原因寫在 fixture 的 `dropped`；刻意改變 12 例寫在 `step-3b/changes.json` 並標在案例的 `change`（基本格式日期 `20991231` 改當日期、ISO 週日期改問有效截止日）。D7 的台北日界線在 golden 的 now（台北 09:00）下影響 0 例。轉換腳本在 `step-3b/`。golden 的 recommendation 沒有任何內容版本案例，版本行為由 `rank.test.ts` 手寫案例守。完成度的固定案預算欄位改用設定的底價（舊碼寫死 3000，設定可改後會誤導）。
 - **3c 頁面與寫入路由**：四個頁面、回饋與設定路由改讀寫新表；刪 `app/skeleton/`、`seed-skeleton.ts`；`web-pages`、`web-guard` 測試改對 PGlite（每個原案例都有對應，D1 專屬的用量記錄與儲存訊號兩案例刪除並記下）。驗收：`pnpm check`；mutation：過期 revision 檢查、同站來源檢查各拿掉要有測試失敗。
-- **3d VM 驗收**（部署點，要 Will 授權）：灌 3,500 筆合成職缺，清單頁伺服器端 20 次中位數 ≤ 500 ms；經 Tailscale Serve 送一次回饋與一次設定儲存都成功。
+- **3d VM 驗收**（部署點，要 Will 授權）：灌 3,500 筆合成職缺，清單頁伺服器端 20 次中位數 ≤ 500 ms，其中讀取加排序（`rankedPage`）另記；超過 250 ms 照核心選擇 1 回到 SQL 算式；經 Tailscale Serve 送一次回饋與一次設定儲存都成功。
 
 ## 決定題（交 Will）
 
