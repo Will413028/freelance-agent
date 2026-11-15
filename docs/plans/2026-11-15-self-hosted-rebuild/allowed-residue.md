@@ -35,6 +35,11 @@ web/src/modules/sources/free-jobs/free-jobs.test.ts
 web/src/modules/sources/freelancer/freelancer.test.ts
 web/src/modules/sources/getonboard/getonboard.test.ts
 web/src/modules/sources/public-feeds/public-feeds.test.ts
+web/src/modules/sources/nodesk/nodesk.test.ts
+web/src/modules/sources/justremote/justremote.test.ts
+web/src/modules/sources/dynamitejobs/dynamitejobs.test.ts
+web/src/modules/sources/jobbank518/jobbank518.test.ts
+web/src/modules/sources/chickpt/chickpt.test.ts
 web/src/modules/sources/himalayas/himalayas.test.ts
 web/src/modules/sources/shared/html.test.ts
 web/src/modules/sources/taiwanjobs/taiwanjobs.test.ts
