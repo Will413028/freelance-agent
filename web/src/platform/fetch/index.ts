@@ -4,10 +4,11 @@
 // One daily run per Taipei day (runs table), so the per-run cap is the daily cap for scheduled runs; a
 // manual run-source.ts adds at most one more run's worth, by hand.
 
-export type Tier = 1;
+/** The reading tier, named as run_sources.tier stores it; step 8 adds "browser_like" and "browser". */
+export type Tier = "plain";
 
 export type FetchPolicy = {
-  /** The highest tier this source may use; step 8 adds 2 and 3. */
+  /** The highest tier this source may use. */
   maxTier: Tier;
   /** Minimum time between the starts of two requests of this source. */
   minIntervalMs: number;
@@ -19,7 +20,7 @@ export type FetchRequest = { url: string; headers?: Record<string, string>; maxB
 export type FetchResponse = { status: number; body: Uint8Array; tier: Tier };
 
 /** Why a read failed; step 6 retries the transient kinds (network, timeout, HTTP 429 and 5xx). */
-export type FetchErrorKind = "network" | "timeout" | "http_status" | "too_large" | "request_limit";
+export type FetchErrorKind = "invalid_url" | "network" | "timeout" | "http_status" | "too_large" | "request_limit";
 
 export class FetchError extends Error {
   constructor(readonly kind: FetchErrorKind, message: string, readonly status: number | null = null) {
@@ -60,39 +61,47 @@ async function readCapped(response: Response, maxBytes: number): Promise<Uint8Ar
   return body;
 }
 
-/** A Fetcher for one source and one run. Any status but 200 is an http_status error; redirects are not followed. */
+const failure = (e: unknown, host: string) => {
+  if (e instanceof FetchError) return e;
+  const name = (e as Error).name;
+  return new FetchError(name === "TimeoutError" || name === "AbortError" ? "timeout" : "network", `${name} reading ${host}`);
+};
+
+/**
+ * A Fetcher for one source and one run. Any status but 200 is an http_status error; redirects are not
+ * followed. Calls are served one at a time in call order, so concurrent calls keep the interval and the cap.
+ */
 export function createFetcher(policy: FetchPolicy, clock: Clock = realClock, transport: typeof fetch = fetch): Fetcher {
-  let requests = 0, lastStart: number | null = null;
+  let requests = 0, lastStart: number | null = null, queue: Promise<unknown> = Promise.resolve();
+  async function one({ url, headers = {}, maxBytes, timeoutMs }: FetchRequest): Promise<FetchResponse> {
+    if (!URL.canParse(url) || !/^https?:$/.test(new URL(url).protocol)) throw new FetchError("invalid_url", "not an http(s) URL");
+    const host = new URL(url).host;
+    if (requests >= policy.maxRequestsPerRun) throw new FetchError("request_limit", `over ${policy.maxRequestsPerRun} requests this run`);
+    if (lastStart !== null) {
+      const wait = lastStart + policy.minIntervalMs - clock.now();
+      if (wait > 0) await clock.sleep(wait);
+    }
+    requests++;
+    lastStart = clock.now();
+    try {
+      const response = await transport(url, { headers, redirect: "manual", signal: AbortSignal.timeout(timeoutMs) });
+      if (response.status !== 200) {
+        await response.body?.cancel();
+        throw new FetchError("http_status", `HTTP ${response.status} from ${host}`, response.status);
+      }
+      return { status: response.status, body: await readCapped(response, maxBytes), tier: "plain" };
+    } catch (e) {
+      throw failure(e, host);
+    }
+  }
   return {
     get requests() {
       return requests;
     },
-    async get({ url, headers = {}, maxBytes, timeoutMs }) {
-      if (requests >= policy.maxRequestsPerRun) throw new FetchError("request_limit", `over ${policy.maxRequestsPerRun} requests this run`);
-      if (lastStart !== null) {
-        const wait = lastStart + policy.minIntervalMs - clock.now();
-        if (wait > 0) await clock.sleep(wait);
-      }
-      requests++;
-      lastStart = clock.now();
-      let response: Response;
-      try {
-        response = await transport(url, { headers, redirect: "manual", signal: AbortSignal.timeout(timeoutMs) });
-      } catch (e) {
-        const name = (e as Error).name;
-        throw new FetchError(name === "TimeoutError" || name === "AbortError" ? "timeout" : "network", `${name} reading ${new URL(url).host}`);
-      }
-      if (response.status !== 200) {
-        await response.body?.cancel();
-        throw new FetchError("http_status", `HTTP ${response.status} from ${new URL(url).host}`, response.status);
-      }
-      try {
-        return { status: response.status, body: await readCapped(response, maxBytes), tier: 1 };
-      } catch (e) {
-        if (e instanceof FetchError) throw e;
-        const name = (e as Error).name;
-        throw new FetchError(name === "TimeoutError" || name === "AbortError" ? "timeout" : "network", `${name} reading ${new URL(url).host}`);
-      }
+    get(req) {
+      const run = queue.then(() => one(req));
+      queue = run.catch(() => undefined);
+      return run;
     },
   };
 }

@@ -20,7 +20,7 @@ const rem = (changes: Record<string, unknown> = {}) => ({
   description: "<p>Build an API</p>", job_type: "part_time", publication_date: "2026-09-18T12:00:00",
   candidate_required_location: "Worldwide", ...changes,
 });
-const serving = (jobs: unknown[]): Fetcher => ({ requests: 1, get: async () => ({ status: 200, tier: 1, body: new TextEncoder().encode(JSON.stringify({ jobs })) }) });
+const serving = (jobs: unknown[]): Fetcher => ({ requests: 1, get: async () => ({ status: 200, tier: "plain", body: new TextEncoder().encode(JSON.stringify({ jobs })) }) });
 const remotive = SOURCES.find((s) => s.name === "remotive")!;
 
 describe("collectSource", () => {

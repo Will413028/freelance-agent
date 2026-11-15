@@ -348,9 +348,8 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
-   "unknown": "kind"
-  },
-  "why": "D8: employment type not text"
+   "error": true
+  }
  },
  {
   "source": "remotive",
@@ -2345,9 +2344,8 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
-   "unknown": "kind"
-  },
-  "why": "D8: employment types not a list of text"
+   "error": true
+  }
  },
  {
   "source": "jobicy",
@@ -2365,9 +2363,8 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
-   "unknown": "kind"
-  },
-  "why": "D8: employment types not a list of text"
+   "error": true
+  }
  },
  {
   "source": "jobicy",
@@ -2422,9 +2419,8 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
-   "unknown": "kind"
-  },
-  "why": "D8: employment types not a list of text"
+   "error": true
+  }
  },
  {
   "source": "jobicy",

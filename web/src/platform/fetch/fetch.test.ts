@@ -5,7 +5,7 @@ import { createFetcher, FetchError, type FetchPolicy } from ".";
 
 // Plan step 4: tier 1 reading against a local server.
 
-const policy: FetchPolicy = { maxTier: 1, minIntervalMs: 0, maxRequestsPerRun: 10 };
+const policy: FetchPolicy = { maxTier: "plain", minIntervalMs: 0, maxRequestsPerRun: 10 };
 let server: Server, base = "";
 beforeAll(async () => {
   server = createServer((req, res) => {
@@ -34,7 +34,7 @@ const failure = async (p: Promise<unknown>) => {
 describe("tier 1 fetcher", () => {
   it("returns a 200 body with its tier", async () => {
     const r = await createFetcher(policy).get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 });
-    expect([r.status, new TextDecoder().decode(r.body), r.tier]).toEqual([200, '{"jobs": []}', 1]);
+    expect([r.status, new TextDecoder().decode(r.body), r.tier]).toEqual([200, '{"jobs": []}', "plain"]);
   });
 
   it("does not follow redirects and reports any other status as http_status", async () => {
@@ -62,11 +62,27 @@ describe("tier 1 fetcher", () => {
     expect([t.kind, t.transient, n.kind, n.transient]).toEqual(["timeout", true, "network", true]);
   });
 
+  it("serves concurrent calls one at a time, keeping the interval and the cap", async () => {
+    let now = 0;
+    const waits: number[] = [];
+    const clock = { now: () => now, sleep: async (ms: number) => void (waits.push(ms), (now += ms)) };
+    const f = createFetcher({ maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 2 }, clock);
+    const got = await Promise.allSettled([1, 2, 3].map(() => f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 })));
+    expect([got.map((g) => g.status), waits, f.requests]).toEqual([["fulfilled", "fulfilled", "rejected"], [3_000], 2]);
+  });
+
+  it("refuses a URL it cannot read as invalid_url, not transient", async () => {
+    for (const url of ["not a url", "ftp://example.com/"]) {
+      const e = await failure(createFetcher(policy).get({ url, maxBytes: 100, timeoutMs: 2000 }));
+      expect([e.kind, e.transient]).toEqual(["invalid_url", false]);
+    }
+  });
+
   it("waits the source's interval between requests and stops at its per-run cap", async () => {
     let now = 1_000;
     const waits: number[] = [];
     const clock = { now: () => now, sleep: async (ms: number) => void (waits.push(ms), (now += ms)) };
-    const f = createFetcher({ maxTier: 1, minIntervalMs: 3_000, maxRequestsPerRun: 2 }, clock);
+    const f = createFetcher({ maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 2 }, clock);
     await f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 });
     now += 1_000;
     await f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 });

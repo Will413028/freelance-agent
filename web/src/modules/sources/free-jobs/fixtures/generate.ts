@@ -24,8 +24,6 @@ const key = (p: unknown) => JSON.stringify(p);
  * exact payload, each checked by hand.
  */
 const D8_UNKNOWN = new Map<string, { field: string; why: string }>([
-  ...[null].map((v) => [key({ ...base, job_type: v }), { field: "kind", why: "employment type not text" }] as const),
-  ...["contract", [1], null].map((v) => [key({ ...jobicy, jobType: v }), { field: "kind", why: "employment types not a list of text" }] as const),
   ...[5, true].map((v) => [key({ ...base, candidate_required_location: v }), { field: "location", why: "geography not text" }] as const),
   ...["bad", null, "ZZ", 20260918].map((v) => [key({ ...base, publication_date: v }), { field: "published_at", why: "publication time unreadable" }] as const),
 ]);

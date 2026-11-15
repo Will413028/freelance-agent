@@ -44,6 +44,15 @@ describe("free-jobs feed", () => {
     expect([got.seen, got.listings.map((l) => l.external_id)]).toEqual([4, ["1", "3"]]);
   });
 
+  it("keeps a job listed twice once, as its last entry", () => {
+    const got = parseFeed("remotive", enc({ jobs: [rem({ title: "First" }), rem({ title: "Second" })] }));
+    expect([got.seen, got.listings.map((l) => l.title)]).toEqual([2, ["Second"]]);
+  });
+
+  it("refuses a feed whose employment types change format instead of keeping nothing", () => {
+    expect(() => parseFeed("remotive", enc({ jobs: [rem({ job_type: ["contract"] })] }))).toThrow(/employment type/);
+  });
+
   it("refuses a feed that is not JSON, has no jobs list, lists over 200, or holds one listing without identity", () => {
     for (const body of [enc("<html>"), enc({ items: [] }), enc({ jobs: Array.from({ length: 201 }, (_, i) => rem({ id: i + 1 })) }), enc({ jobs: [rem(), rem({ id: 2, description: null })] }), new Uint8Array([0x7b, 0xff, 0x7d])]) {
       expect(() => parseFeed("remotive", body)).toThrow(/remotive/);

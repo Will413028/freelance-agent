@@ -8,8 +8,8 @@ describe("source catalog", () => {
     expect(new Set(SOURCES.map((s) => s.order)).size).toBe(SOURCES.length);
   });
 
-  it("gives every source an interval of at least a second, a per-run cap and tier 1 until step 8", () => {
-    const bad = SOURCES.filter((s) => !(s.minIntervalMs >= 1_000 && Number.isInteger(s.maxRequestsPerRun) && s.maxRequestsPerRun >= 1 && s.maxTier === 1));
+  it("gives every source an interval of at least a second, a per-run cap and the plain tier until step 8", () => {
+    const bad = SOURCES.filter((s) => !(s.minIntervalMs >= 1_000 && Number.isInteger(s.maxRequestsPerRun) && s.maxRequestsPerRun >= 1 && s.maxTier === "plain"));
     expect(bad.map((s) => s.name)).toEqual([]);
   });
 

@@ -5,15 +5,17 @@
 ## 1. 位置與設定
 
 - 程式放 `web/src/modules/sources/<來源或來源族>/`，`index.ts` 匯出 connector（`(fetcher, now) => Promise<{ seen, listings }>`）。共用的解析放 `sources/shared/`，來源之間不互相 import。
-- `web/src/modules/sources/catalog.ts` 加一筆：`name`、`order`、`maxTier`（步驟 8 之前都是 1）、`minIntervalMs`（≥ 1000）、`maxRequestsPerRun`（這個來源一次執行最多送幾個請求）、`disabled`（長期被擋時寫原因，否則 `null`）。`catalog.test.ts` 會擋缺項。
+- `web/src/modules/sources/catalog.ts` 加一筆：`name`、`order`、`maxTier`（步驟 8 之前都是 `"plain"`，名稱與 `run_sources.tier` 相同）、`minIntervalMs`（≥ 1000）、`maxRequestsPerRun`（這個來源一次執行最多送幾個請求）、`disabled`（長期被擋時寫原因，否則 `null`）。`catalog.test.ts` 會擋缺項。
 - 一天只有一次每日執行（`runs` 以台北日期 claim），所以「每次執行上限」就是排程的每日上限；手動 `run-source.ts` 最多再多一次執行的量。
-- 讀取只經 `createFetcher(設定)` 拿到的 `Fetcher`，不直接呼叫 `fetch`：間隔、上限、逾時、大小上限、不跟隨轉址、錯誤種類（`network`、`timeout`、`http_status`、`too_large`、`request_limit`）都在那裡。
+- 讀取只經 `createFetcher(設定)` 拿到的 `Fetcher`，不直接呼叫 `fetch`：間隔、上限、逾時、大小上限、不跟隨轉址、錯誤種類（`invalid_url`、`network`、`timeout`、`http_status`、`too_large`、`request_limit`）都在那裡。
 - 不 import `@/platform/py/`（`pnpm boundaries` 的 `sources-are-native` 規則擋；`fixtures/` 底下的產生器例外，因為要讀 `golden.json`）。HTML 轉文字用 `shared/html.ts`（cheerio，照 HTML 標準解析）；時間用 `shared/time.ts`。
 
 ## 2. 輸出：D8 契約
 
 - 每筆職缺經 `parseListingInput` 產出 `ListingInput`。
-- 身分欄位（id、標題、內文、來源自己的網址）缺或格式不對：丟 `SourceError`，整批失敗，不寫任何一筆。格式變了要變成「來源失敗」，不是「成功但 0 筆」。
+- 身分欄位（id、標題、內文、來源自己的網址）缺或格式不對：丟 `SourceError`，整批失敗，不寫任何一筆。來源自己的篩選規則要讀的欄位（例：工作類型）也算：它讀不到時會整批篩光，變成「成功但 0 筆」。格式變了要變成「來源失敗」。
+- 同一個 id 在一次回應裡出現兩次：留最後一筆（收案核心拒收重複的批次）。
+- `Fetcher` 依呼叫順序一次服務一個請求，connector 可以並行呼叫，間隔與上限仍成立。
 - 其他欄位轉不了：寫 `null`（未知），不猜、不拒收（D8）。三態欄位只在來源明說時寫 `true`／`false`；remote、worldwide 不等於台灣可接。
 - 時間：有時區的照轉；沒時區的，照來源的規則決定（例：jobicy、remotive 以 UTC 發布，`utcInstant`），規則寫在 connector 的註解裡。截止日照契約的四種形狀。
 - 來源自己的篩選規則（例：只收合約類）放在 connector；與設定無關的資格初篩是共用的，在 `web/src/services/collect.ts` 的 `screen`，connector 不重做。
@@ -29,12 +31,12 @@
 
 - `fixtures/generate.ts` 從 `golden.json` 產生 `fixtures/cases.json`：輸入是 golden 的 payload（JSON），預期輸出是舊系統的結果經 `legacyToInput`（步驟 10 的轉換函式）轉成契約，跟新 connector 無關，所以是獨立的對照。只跑一次；之後 golden 在步驟 11 刪除，`cases.json` 留著。
 - 新 connector 與舊結果不同的案例，一律在產生器裡逐案列出並寫理由，不手改 `cases.json`。分四類（`free-jobs` 的數量供參考）：
-  - `D8_UNKNOWN`：舊的拒收，D8 改成「該欄位未知、職缺照收」（10 例：工作類型、地區、發布時間的型別不對或讀不出來）。
+  - `D8_UNKNOWN`：舊的拒收，D8 改成「該欄位未知、職缺照收」（6 例：地區、發布時間的型別不對或讀不出來）。
   - `ACCEPTED`：舊的拒收，新的因語言差異照收（1 例：JSON 數字在 JavaScript 不分整數與浮點數，id `1.0` 就是 1）。
   - `PATCHED`：舊結果的某欄位刻意改變（1 例：Python 與 V8 的 Unicode 小寫版本不同，只影響不認得的工作類型字串）。
   - `REFUSED`：舊的照收，新的拒收（1 例：超過 2^53 的 id，JavaScript 的數字存不準，拒收才能保住 `external_id`）。
 - connector 新增的欄位（例：`location` 改填來源的地區文字）也在產生器裡寫明。
-- HTML 轉文字與舊的 html.parser 移植版在 98 個片段中有 15 個不同，全是舊版錯（結尾未完的文字被丟掉、顯示瀏覽器不會顯示的內容）；新預期寫在 `shared/html.test.ts`。
+- HTML 轉文字與舊的 html.parser 移植版在 98 個片段中有 15 個不同，全是舊版錯（結尾未完的文字被丟掉、顯示瀏覽器不會顯示的內容）；落單的區塊結束標籤（`</p>`、`</br>`）照舊當斷字。空白字元用 JavaScript 的 `\s`，與 Python `str.split()` 在 NEL、U+001C–U+001F、BOM 上不同（已接受，步驟 4 審查）。新預期寫在 `shared/html.test.ts`。時間一律經 `shared/time.ts`，它用 `listings` 的同一個 ISO 解析器，不另寫。
 
 ## 5. 測試與 mutation
 

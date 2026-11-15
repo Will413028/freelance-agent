@@ -6,8 +6,8 @@ import type { SourceSettings } from "./types";
 // their whole latest list in one request.
 
 export const SOURCES: readonly SourceSettings[] = [
-  { name: "remotive", order: 10, connector: freeJobsConnector("remotive"), maxTier: 1, minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null },
-  { name: "jobicy", order: 20, connector: freeJobsConnector("jobicy"), maxTier: 1, minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null },
+  { name: "remotive", order: 10, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null },
+  { name: "jobicy", order: 20, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null },
 ];
 
 export function sourceSettings(name: string): SourceSettings {

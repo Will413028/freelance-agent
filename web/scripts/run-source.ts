@@ -1,8 +1,9 @@
 // One source, once, against DATABASE_URL (plan step 4): reads the source, writes its listings and
 // prints counts. It writes no run_sources row (the daily run of step 6 does). With --expect <file>
 // (one external_id per line, e.g. the production ids of this source) it also prints which ids this
-// run kept that the file lacks, with each listing's published_at, and how many of the file's ids it
-// did not see. It prints ids, counts and times only, never listing text.
+// run kept that the file lacks, with each listing's published_at (each must be newer than production's
+// last run, or the id changed spelling). expectedNotKept, the file's ids this run did not keep, is
+// informational: with a source's whole production history as the file it is mostly old listings. It prints ids, counts and times only, never listing text.
 //   DATABASE_URL=… pnpm tsx scripts/run-source.ts <source> [--expect <file>]
 import { readFileSync } from "node:fs";
 import { inArray, and, eq } from "drizzle-orm";

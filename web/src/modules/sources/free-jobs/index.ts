@@ -7,7 +7,8 @@ import { SourceError, type Collected } from "../types";
 
 // jobicy and remotive: public JSON APIs with the latest listings (old collection/free_jobs.py,
 // web/src/modules/collection/sources/free-jobs.ts until step 11). A listing without its identity
-// (id, title, description, the board's own URL) refuses the whole batch, so a format change is a
+// (id, title, description, the board's own URL) or with employment types that are not a list of text
+// (the source's own rule reads them: unreadable types would keep nothing) refuses the whole batch, so a format change is a
 // failed source and never an empty success; any other field the connector cannot read is unknown
 // (plan D8). The source's own rule keeps only contract, part-time and freelance listings.
 
@@ -37,8 +38,7 @@ function employmentTypes(source: FreeJobSource, raw: unknown): string[] | null {
   return [...new Set((list as string[]).map((t) => t.toLowerCase().replaceAll("-", "_").replaceAll(" ", "_")))].sort();
 }
 
-function kindOf(types: string[] | null): ListingInput["kind"] {
-  if (types === null) return null;
+function kindOf(types: string[]): ListingInput["kind"] {
   if (types.includes("full_time")) return "full_time";
   return ["contract", "part_time", "freelance"].some((t) => types.includes(t)) ? "contract" : null;
 }
@@ -53,11 +53,11 @@ export function normalize(source: FreeJobSource, item: unknown): ListingInput {
   if (typeof rawDescription !== "string" || codePoints(rawDescription) < 1 || codePoints(rawDescription) > 100_000) throw new SourceError(`${source}: full description required`);
   const description = htmlText(rawDescription);
   if (!description) throw new SourceError(`${source}: empty description`);
-  // The board's own origin, as both URL parsers read it (outer controls and spaces trimmed, tabs and
-  // newlines removed, scheme in any case), but spelled exactly: no port, user, other host case or
+  // The board's own origin, as both URL parsers read it (leading controls and spaces trimmed, as
+  // urlsplit does; tabs and newlines removed; scheme in any case), but spelled exactly: no port, user, other host case or
   // subdomain. The link keeps the board's spelling without query and fragment (WHATWG URL would
   // percent-encode its path).
-  const raw = typeof p.url === "string" ? p.url.replace(/^[\x00-\x20]+|[\x00-\x20]+$/g, "").replace(/[\t\n\r]/g, "") : "";
+  const raw = typeof p.url === "string" ? p.url.replace(/^[\x00-\x20]+/, "").replace(/[\t\n\r]/g, "") : "";
   const rest = raw.slice("https://".length);
   if (raw.slice(0, "https://".length).toLowerCase() !== "https://" || !rest.startsWith(`${source}.com${f.path}`)) {
     throw new SourceError(`${source}: invalid job URL`);
@@ -65,6 +65,7 @@ export function normalize(source: FreeJobSource, item: unknown): ListingInput {
   const link = `https://${rest.split(/[?#]/, 1)[0]}`;
   if (!URL.canParse(link)) throw new SourceError(`${source}: invalid job URL`);
   const types = employmentTypes(source, p[f.types]);
+  if (types === null) throw new SourceError(`${source}: invalid employment type`);
   const geo = typeof p[f.geo] === "string" ? (p[f.geo] as string) : null;
   const published = p[f.published];
   return parseListingInput({
@@ -89,7 +90,9 @@ export function parseFeed(source: FreeJobSource, body: Uint8Array): Collected {
   const feed = feedSchema.safeParse(data);
   if (!feed.success) throw new SourceError(`${source}: feed has no list of at most 200 jobs`);
   const all = feed.data.jobs.map((item) => normalize(source, item));
-  return { seen: all.length, listings: all.filter((l) => l.kind === "contract") };
+  // A board listing a job twice: the last entry wins, as the old per-item intake left it.
+  const byId = new Map(all.map((l) => [l.external_id, l]));
+  return { seen: all.length, listings: [...byId.values()].filter((l) => l.kind === "contract") };
 }
 
 export function freeJobsConnector(source: FreeJobSource) {
