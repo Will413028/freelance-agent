@@ -2,14 +2,17 @@ import { z } from "zod";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
+import { setAside } from "../shared/set-aside";
 import { utcInstant } from "../shared/time";
 import { SourceError, type Collected } from "../types";
 
 // jobicy and remotive: public JSON APIs with the latest listings (old collection/free_jobs.py,
 // web/src/modules/collection/sources/free-jobs.ts until step 11). A listing without its identity
 // (id, title, description, the board's own URL) or with employment types that are not a list of text
-// (the source's own rule reads them: unreadable types would keep nothing) refuses the whole batch, so a format change is a
-// failed source and never an empty success; any other field the connector cannot read is unknown
+// (the source's own rule reads them: unreadable types would keep nothing) is set aside and counted in
+// `rejected`; more than half set aside fails the source (services/collect, Will 2026-11-15; the old
+// reader refused the batch for one listing). A feed that is not JSON or has no list refuses the batch.
+// Any other field the connector cannot read is unknown
 // (plan D8). The source's own rule keeps only contract, part-time and freelance listings.
 
 export const FREE_JOB_SOURCES = ["remotive", "jobicy"] as const;
@@ -43,7 +46,7 @@ function kindOf(types: string[]): ListingInput["kind"] {
   return ["contract", "part_time", "freelance"].some((t) => types.includes(t)) ? "contract" : null;
 }
 
-/** One listing of the feed in the contract; throws SourceError when its identity is missing. */
+/** One listing of the feed in the contract; throws SourceError when its identity is missing (`setAside` sets that one listing aside). */
 export function normalize(source: FreeJobSource, item: unknown): ListingInput {
   if (item === null || typeof item !== "object" || Array.isArray(item)) throw new SourceError(`${source}: a listing is not an object`);
   const p = item as Record<string, unknown>, f = FIELDS[source];
@@ -89,10 +92,11 @@ export function parseFeed(source: FreeJobSource, body: Uint8Array): Collected {
   }
   const feed = feedSchema.safeParse(data);
   if (!feed.success) throw new SourceError(`${source}: feed has no list of at most 200 jobs`);
-  const all = feed.data.jobs.map((item) => normalize(source, item));
+  const { listings: all, rejected, examined } = setAside(feed.data.jobs, (item) => normalize(source, item));
   // A board listing a job twice: the last entry wins, as the old per-item intake left it.
   const byId = new Map(all.map((l) => [l.external_id, l]));
-  return { seen: all.length, listings: [...byId.values()].filter((l) => l.kind === "contract") };
+  // seen: every job the feed listed (old: all.length, each one normalized or the batch refused).
+  return { seen: feed.data.jobs.length, listings: [...byId.values()].filter((l) => l.kind === "contract"), rejected, examined };
 }
 
 export function freeJobsConnector(source: FreeJobSource) {

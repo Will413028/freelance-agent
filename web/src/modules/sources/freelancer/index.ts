@@ -1,14 +1,15 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
+import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Freelancer: the public official active-project search, three fixed queries, paginated; never bids
 // (old collection/freelancer.py, web/src/modules/collection/sources/freelancer.ts until step 11).
 //
-// A project the old connector refused (rejected_count, which turned the run partial) now refuses the
-// whole batch when the refusal was about identity or about what the source's own rules read: id,
-// status/deleted/nonpublic (the endpoint lists only active public projects, so anything else is a
-// format change), title, description, the project's own URL. A refusal about any other field is
+// A project the old connector refused (rejected_count, which turned the run partial) is still set
+// aside and counted in `rejected` when the refusal was about identity or about what the source's own
+// rules read: id, status/deleted/nonpublic, title, description, the project's own URL (Will
+// 2026-11-15; more than half set aside fails the source). A refusal about any other field is
 // unknown now (plan D8): update time, project type, currency and budget become null. The source's
 // own rule keeps titles that name the work this tool looks for and drops out-of-scope titles; the
 // shared intake screen (services/collect.ts) drops the rest.
@@ -43,7 +44,7 @@ function updatedAt(v: unknown): string | null {
   return Number.isFinite(d.getTime()) && d.getUTCFullYear() <= 9999 ? d.toISOString() : null;
 }
 
-/** One project in the contract; throws SourceError when its identity or status is missing or not active and public. */
+/** One project in the contract; throws SourceError when its identity or status is missing or not active and public (`setAside` sets that one listing aside). */
 export function normalize(item: unknown): ListingInput {
   if (!isRecord(item)) throw new SourceError("freelancer: a project is not an object");
   const p = item;
@@ -99,17 +100,21 @@ const timeOf = (l: ListingInput) => (l.extra.time_updated as string | null) ?? n
  * page that brings no new project. A project listed twice keeps its latest update; two different
  * versions with the same update time refuse the batch.
  */
-export async function searchQuery(fetcher: Fetcher, query: string, limit = PAGE_LIMIT, maxPages = MAX_PAGES): Promise<{ listings: ListingInput[]; limited: boolean }> {
+export async function searchQuery(fetcher: Fetcher, query: string, limit = PAGE_LIMIT, maxPages = MAX_PAGES): Promise<{ listings: ListingInput[]; limited: boolean; rejected: number; examined: number }> {
   const jobs = new Map<string, ListingInput>();
   // Old `limited` (freelancer.ts:126-131): true unless the offset reached the reported total with as many distinct projects.
-  let limited = true;
+  let limited = true, rejected = 0, examined = 0;
   for (let n = 0, offset = 0; n < maxPages; n++) {
     const r = await fetcher.get({
       url: pageUrl(query, limit, offset), maxBytes: MAX_BYTES, timeoutMs: 20_000,
       headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/json" },
     });
     const { projects, total } = page(r.body, limit);
-    const listings = projects.map(normalize);
+    // Old freelancer.ts:106-114: a project that fails to normalize is set aside and counted.
+    const page_ = setAside(projects, (p) => normalize(p));
+    const listings = page_.listings;
+    rejected += page_.rejected;
+    examined += page_.examined;
     let newIds = 0;
     for (const job of listings) {
       const prior = jobs.get(job.external_id);
@@ -122,9 +127,10 @@ export async function searchQuery(fetcher: Fetcher, query: string, limit = PAGE_
       limited = jobs.size < total;
       break;
     }
-    if (!projects.length || !newIds) break;
+    // Old :132: a page whose projects were all set aside does not stop the query.
+    if (!projects.length || (listings.length && !newIds)) break;
   }
-  return { listings: [...jobs.values()], limited };
+  return { listings: [...jobs.values()], limited, rejected, examined };
 }
 
 // Python's re.IGNORECASE also lets U+0130 and U+0131 (dotted capital and dotless small i) match "i";
@@ -139,16 +145,19 @@ export const kept = (l: ListingInput) => titleKept(l.title);
 
 export async function freelancerConnector(fetcher: Fetcher): Promise<Collected> {
   const jobs = new Map<string, ListingInput>();
-  let truncated = false;
+  let truncated = false, rejected = 0, examined = 0;
   for (const query of QUERIES) {
     const result = await searchQuery(fetcher, query);
     truncated ||= result.limited;
+    rejected += result.rejected;
+    examined += result.examined;
     for (const job of result.listings) {
       const prior = jobs.get(job.external_id);
       if (prior === undefined || (timeOf(job) ?? "") > (timeOf(prior) ?? "")) jobs.set(job.external_id, job);
     }
   }
-  return { seen: jobs.size, listings: [...jobs.values()].filter(kept), truncated };
+  // seen: the distinct projects read (old freelancer.ts seen); examined: every project entry checked, per page per query, like rejected.
+  return { seen: jobs.size, listings: [...jobs.values()].filter(kept), truncated, rejected, examined };
 }
 
 /**

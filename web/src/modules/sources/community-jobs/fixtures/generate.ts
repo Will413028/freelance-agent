@@ -25,6 +25,12 @@ const golden = fixture<{
 type Old = "error" | "skip" | "ok";
 type Override = { old: Old; expect: Record<string, unknown>; why: string };
 
+// Old refused the batch for one listing; Will 2026-11-15 set aside and count: the expected result is
+// the other leads (none: each of these feeds or threads holds that one lead, so seen, the leads picked, is 0)
+// plus the rejected count.
+const SET_ASIDE_WHY = "old refused the batch for one listing; Will 2026-11-15 set aside and count";
+const setAside = (why: string): Override => ({ old: "error", expect: { seen: 0, listings: [], rejected: 1 }, why: `${SET_ASIDE_WHY} (${why})` });
+
 /** Deliberate differences, by golden key and index (category: reason). */
 const OVERRIDES: Record<"hn_job" | "hn_fetch" | "v2ex_jobs", Map<number, Override>> = {
   hn_job: new Map<number, Override>([
@@ -36,8 +42,15 @@ const OVERRIDES: Record<"hn_job" | "hn_fetch" | "v2ex_jobs", Map<number, Overrid
   hn_fetch: new Map<number, Override>([
     // ACCEPTED: Python told the float 11.0 from the int 11; a JSON number in JavaScript cannot, and 11.0 names comment 11.
     [29, { old: "error", expect: { listing: true }, why: "ACCEPTED: JSON has one number type: id 11.0 is comment 11" }],
+    [18, setAside("the thread's one comment is null, not a comment object")],
   ]),
-  v2ex_jobs: new Map(),
+  v2ex_jobs: new Map<number, Override>([
+    // Each feed holds one entry the rule picks, without one canonical alternate link or with a link that is no V2EX topic.
+    ...[13, 14, 15, 16, 18, 19, 20, 22, 25, 28, 38, 46].map((i) => [i, setAside("entry without one canonical V2EX topic link")] as const),
+    // Each feed holds one entry without a publication time with zone (missing, empty, naive, not a time).
+    ...[29, 30, 31, 36].map((i) => [i, setAside("entry without a publication time with zone")] as const),
+    [44, setAside("entry whose description is over 100,000 code points")],
+  ]),
 };
 
 const EXTRA: Record<string, string[]> = { hackernews: ["thread_id"], v2ex: ["body_available"] };
@@ -46,10 +59,10 @@ const listing = (source: string, json: string) => {
   // New: extra keeps only what the connector read and the contract has no field for (not receipt ids, constant evidence or language).
   return { ...legacyToInput(source, job), extra: Object.fromEntries(EXTRA[source].map((k) => [k, job[k]])) };
 };
-/** A list of old jobs as the connector returns it: every lead counted, a lead listed twice kept once as its last entry. */
+/** A list of old jobs as the connector returns it: every lead counted, a lead listed twice kept once as its last entry, none set aside. */
 const collected = (source: string, jobs: string[]) => {
   const all = jobs.map((j) => listing(source, j));
-  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()] };
+  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], rejected: 0 };
 };
 
 function apply<T>(key: keyof typeof OVERRIDES, i: number, old: Old, base: T, normal: Record<string, unknown>) {

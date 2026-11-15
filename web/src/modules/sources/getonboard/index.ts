@@ -1,14 +1,15 @@
 import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
+import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Get on Board: the official public API (old collection/getonboard.py,
 // web/src/modules/collection/sources/getonboard.ts until step 11): the modality taxonomy, then the
 // remote job search, up to 10 pages of 120. A listing without its identity (id, title, description,
 // the board's own job URL) or without what the source's own rule reads (a known modality, a
-// publication time) refuses the whole batch, where the old connector skipped the listing and marked
-// the run partial; any other field the connector cannot read is unknown (plan D8). The source's own
+// publication time) is set aside and counted in `rejected`, as the old connector skipped it and marked
+// the run partial (Will 2026-11-15; more than half set aside fails the source); any other field the connector cannot read is unknown (plan D8). The source's own
 // rule keeps remote part-time and freelance listings in tech categories published in the last 90 days.
 
 export const ROOT = "https://www.getonbrd.com/api/v0/";
@@ -53,7 +54,7 @@ function jobUrl(value: unknown, id: string): string {
 /** Modality id to its locale key, from the taxonomy. */
 export type Modalities = Map<string, unknown>;
 
-/** One listing in the contract; throws SourceError when its identity, modality or publication time is missing. */
+/** One listing in the contract; throws SourceError when its identity, modality or publication time is missing (`setAside` sets that one listing aside). */
 export function normalize(item: unknown, modalities: Modalities): ListingInput {
   if (!isObject(item)) throw new SourceError("getonboard: a listing is not an object");
   const id = item.id, attrs = item.attributes;
@@ -63,7 +64,7 @@ export function normalize(item: unknown, modalities: Modalities): ListingInput {
   let description = fieldText(attrs.description, "description");
   for (const field of ["projects", "functions", "desirable", "benefits"]) if (truthy(attrs[field])) description += "\n" + fieldText(attrs[field], field);
   if (codePoints(title) > 500 || codePoints(description) > 100_000) throw new SourceError("getonboard: oversize listing");
-  // Epoch seconds; the source's own freshness rule reads it, so an unreadable time refuses the batch.
+  // Epoch seconds; the source's own freshness rule reads it, so a listing with an unreadable time is set aside.
   const stamp = attrs.published_at;
   const published = typeof stamp === "number" && Number.isSafeInteger(stamp) && stamp > 0 && stamp <= 253_402_300_799 ? new Date(stamp * 1000).toISOString() : null;
   if (published === null) throw new SourceError("getonboard: invalid publication time");
@@ -108,7 +109,7 @@ export function parseModalities(body: Uint8Array): Modalities {
   return modalities;
 }
 
-export type Read = { seen: number; listings: ListingInput[]; pages: number; truncated: boolean };
+export type Read = { seen: number; listings: ListingInput[]; pages: number; truncated: boolean; rejected: number; examined: number };
 
 /** The taxonomy and every search page: each listing once by id (the last entry wins). */
 export async function readAll(fetcher: Fetcher, clock: () => number = () => performance.now()): Promise<Read> {
@@ -125,21 +126,22 @@ export async function readAll(fetcher: Fetcher, clock: () => number = () => perf
   };
   const modalities = parseModalities(await get("modalities", { per_page: "120", page: "1" }));
   const byId = new Map<string, ListingInput>();
-  let seen = 0, page = 1, totalPages = 1;
+  let seen = 0, rejected = 0, examined = 0, page = 1, totalPages = 1;
   for (; page <= MAX_PAGES; page++) {
     const { data, meta } = envelope(await get("search/jobs", { remote: "true", per_page: "120", page: String(page) }));
     const m = isObject(meta) ? meta : {};
     if (m.page !== page || typeof m.total_pages !== "number" || !Number.isSafeInteger(m.total_pages) || m.total_pages < 0) throw new SourceError("getonboard: invalid pagination");
     totalPages = m.total_pages;
     seen += data.length;
-    for (const entry of data) {
-      const l = normalize(entry, modalities);
-      byId.set(l.external_id, l);
-    }
+    // Old getonboard.ts:97-105: a listing that fails to normalize is skipped and counted.
+    const got = setAside(data, (entry) => normalize(entry, modalities));
+    rejected += got.rejected;
+    examined += got.examined;
+    for (const l of got.listings) byId.set(l.external_id, l);
     if (page >= totalPages) break;
   }
   page = Math.min(page, MAX_PAGES);
-  return { seen, listings: [...byId.values()], pages: page, truncated: page < totalPages };
+  return { seen, listings: [...byId.values()], pages: page, truncated: page < totalPages, rejected, examined };
 }
 
 /** The source's own rule: remote, part-time or freelance, a tech category, published in the 90 days up to now. */
@@ -158,7 +160,7 @@ export async function getonboardConnector(fetcher: Fetcher, now: Date): Promise<
   const read = await readAll(fetcher);
   // Old: a scan stopped by the page cap was partial (truncated); stored listings were refreshed whatever the rule said (:131 `exists ||`).
   const kept = read.listings.filter((l) => keeps(l, now));
-  return { seen: read.seen, listings: kept, others: read.listings.filter((l) => !kept.includes(l)), truncated: read.truncated };
+  return { seen: read.seen, listings: kept, others: read.listings.filter((l) => !kept.includes(l)), truncated: read.truncated, rejected: read.rejected, examined: read.examined };
 }
 
 export const GETONBOARD_SETTINGS: Omit<SourceSettings, "order"> = {

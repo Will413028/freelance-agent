@@ -49,12 +49,18 @@ describe("free-jobs feed", () => {
     expect([got.seen, got.listings.map((l) => l.title)]).toEqual([2, ["Second"]]);
   });
 
-  it("refuses a feed whose employment types change format instead of keeping nothing", () => {
-    expect(() => parseFeed("remotive", enc({ jobs: [rem({ job_type: ["contract"] })] }))).toThrow(/employment type/);
+  it("sets aside a listing whose employment types change format or that lacks its identity, and keeps the others (Will 2026-11-15)", () => {
+    expect(() => normalize("remotive", rem({ job_type: ["contract"] }))).toThrow(/employment type/);
+    for (const bad of [rem({ id: 2, job_type: ["contract"] }), rem({ id: 2, description: null }), rem({ id: "2" }), "x"]) {
+      const got = parseFeed("remotive", enc({ jobs: [rem(), bad, rem({ id: 3 })] }));
+      expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([3, 1, ["1", "3"]]);
+    }
+    const j = parseFeed("jobicy", enc({ jobs: [{ id: 2, url: "https://jobicy.com/jobs/2-python", jobTitle: "Python API", jobDescription: "<p>API</p>", jobType: ["contract"] }, { id: 3 }] }));
+    expect([j.seen, j.rejected, j.listings.map((l) => l.external_id)]).toEqual([2, 1, ["2"]]);
   });
 
-  it("refuses a feed that is not JSON, has no jobs list, lists over 200, or holds one listing without identity", () => {
-    for (const body of [enc("<html>"), enc({ items: [] }), enc({ jobs: Array.from({ length: 201 }, (_, i) => rem({ id: i + 1 })) }), enc({ jobs: [rem(), rem({ id: 2, description: null })] }), new Uint8Array([0x7b, 0xff, 0x7d])]) {
+  it("refuses a feed that is not JSON, has no jobs list or lists over 200", () => {
+    for (const body of [enc("<html>"), enc({ items: [] }), enc({ jobs: Array.from({ length: 201 }, (_, i) => rem({ id: i + 1 })) }), new Uint8Array([0x7b, 0xff, 0x7d])]) {
       expect(() => parseFeed("remotive", body)).toThrow(/remotive/);
     }
   });

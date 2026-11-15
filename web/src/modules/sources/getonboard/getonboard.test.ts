@@ -12,7 +12,7 @@ import { freshPg } from "../../../../tests/helpers/pg";
 // legacyToInput of the old output) against the native connector.
 
 type Expected = Record<string, unknown> | { error: true } | { unknown: string } | { listing: true };
-type FetchExpect = { error: true } | { seen: number; ids: string[]; pages: number; truncated: boolean };
+type FetchExpect = { error: true } | { seen: number; ids: string[]; pages: number; truncated: boolean; rejected?: number };
 const cases: {
   modalities: Record<string, unknown>;
   normalize: { item: unknown; expect: Expected; why?: string }[];
@@ -66,7 +66,7 @@ describe("getonboard connector over the golden cases", () => {
       let got: unknown;
       try {
         const r = await readAll(serving(c.pages));
-        got = { seen: r.seen, ids: r.listings.map((l) => l.external_id), pages: r.pages, truncated: r.truncated };
+        got = { seen: r.seen, ids: r.listings.map((l) => l.external_id), pages: r.pages, truncated: r.truncated, ...(r.rejected ? { rejected: r.rejected } : {}) };
       } catch {
         got = { error: true };
       }
@@ -113,14 +113,18 @@ describe("getonboard search", () => {
     expect([got.seen, got.listings.map((l) => l.title)]).toEqual([2, ["Second"]]);
   });
 
-  it("refuses the batch on a page that is not JSON, a broken envelope or pagination, an unknown modality, or one listing without identity", async () => {
+  it("sets aside and counts a listing without identity, an unknown modality or an unreadable publication time, keeping the others", async () => {
+    for (const bad of [{ modality: { data: { id: 99 } } }, { description: null }, { published_at: 0 }, { title: null }]) {
+      const got = await getonboardConnector(serving(site([[job(), job("b", bad)]])), NOW);
+      expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([2, 1, ["acme-ai-agent"]]);
+    }
+  });
+
+  it("refuses the batch on a page that is not JSON, a broken envelope or pagination, or a category the rule cannot read", async () => {
     const pages = [
       { ...site([[job()]]), [searchUrl(1)]: [200, "<html>"] as [number, string] },
       { ...site([[job()]]), [searchUrl(1)]: [200, JSON.stringify({ data: Array.from({ length: 121 }, (_, i) => job(`j${i}`)), meta: { page: 1, total_pages: 1 } })] as [number, string] },
       { ...site([[job()]]), [searchUrl(1)]: [200, JSON.stringify({ data: [job()], meta: { page: 2, total_pages: 1 } })] as [number, string] },
-      site([[job(), job("b", { modality: { data: { id: 99 } } })]]),
-      site([[job(), job("b", { description: null })]]),
-      site([[job(), job("b", { published_at: 0 })]]),
       site([[job("b", { category_name: ["Programming"] })]]),
       { ...site([[job()]]), [`${ROOT}modalities?per_page=120&page=1`]: [200, JSON.stringify({ data: [], meta: { total_pages: 2 } })] as [number, string] },
     ];
@@ -157,7 +161,7 @@ describe("getonboard into intake", () => {
     expect(await listingBy(db, "getonboard", "full")).toBeNull();
     expect(await collect(pages)).toEqual({ inserted: 0, updated: 0, unchanged: 1, versioned: 0 });
     await db.execute(sql`truncate listings cascade`);
-    await expect(collect(site([[job(), job("b", { title: null })]]))).rejects.toThrow(/title/);
+    await expect(collect({ ...site([[job()]]), [searchUrl(1)]: [200, "<html>"] })).rejects.toThrow(/getonboard/);
     expect(await listingBy(db, "getonboard", "acme-ai-agent")).toBeNull();
   });
 });

@@ -65,6 +65,16 @@ function rowRefusal(fields: Map<string, string>): "identity" | "deadline" | null
   return fields.has("WK_TYPE") ? null : "identity";
 }
 
+/** EMPLOYER_ID:HIRE_ID of a row, as the old id. */
+const idOf = (fields: Map<string, string>) => {
+  try {
+    const q = new URLSearchParams(urlsplit(fields.get("URL_QUERY") ?? "").query);
+    return `${q.get("EMPLOYER_ID")}:${q.get("HIRE_ID")}`;
+  } catch {
+    return null;
+  }
+};
+
 /** The rows of a response the old parser read (null when the envelope itself was refused). */
 function rows(latin1: string): Map<string, string>[] | null {
   try {
@@ -106,15 +116,24 @@ const batch = (strict: boolean) => (c: Case) => {
     if (strict && rs && kinds.some((k) => k === "deadline") && kinds.every((k) => k !== "identity")) {
       return { input: c.input, expect: { seen: rs.length }, why: "D8_UNKNOWN: deadline that is no date" };
     }
+    // Strict parse (old taiwanjobs.ts:139, not the daily path, which used the lenient one at :153) refused
+    // the response for a bad row; the new connector sets such rows aside as the daily path did.
+    const bad = kinds.filter((k) => k === "identity").length;
+    if (strict && rs && bad && rs.every((r) => [...r.keys()].every((k) => Object.hasOwn(LABELS, k)))) return { input: c.input, expect: { seen: rs.length, rejected: bad }, why: "SET_ASIDE: old strict parse refused the response for a bad row; the daily path set it aside" };
     return { input: c.input, expect: { error: true } };
   }
   const out = JSON.parse(c.expect.ok) as { jobs: Record<string, unknown>[]; rejected_count: number; seen: number } | Record<string, unknown>[];
   const jobs = Array.isArray(out) ? out : out.jobs, seen = Array.isArray(out) ? jobs.length : out.seen;
-  if (kinds.some((k) => k === "identity")) {
-    const why = kinds.some((k, i) => k === "identity" && !rs![i].has("WK_TYPE") && jobs.length)
-      ? "REFUSED: a row without WK_TYPE (the source's own rule reads it) fails the batch"
-      : "REFUSED: a refused row fails the batch (old: rejected_count, partial run)";
-    return { input: c.input, expect: { error: true }, why };
+  const rejected = kinds.filter((k) => k === "identity").length;
+  if (rejected) {
+    // Set aside and counted, as the old did (Will 2026-11-15). A row without WK_TYPE the old kept is set
+    // aside too now: the source's own rule reads it.
+    const noType = new Set(jobs.filter((j) => { const r = rs!.find((x) => idOf(x) === j.external_id); return r && !r.has("WK_TYPE"); }).map((j) => j.external_id as string));
+    const why = noType.size
+      ? "SET_ASIDE: a row without WK_TYPE (the source's own rule reads it) is set aside; old kept it"
+      : "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)";
+    if (kinds.some((k) => k === "deadline")) return { input: c.input, expect: { seen, rejected }, why: `${why}; D8_UNKNOWN: deadline that is no date` };
+    return { input: c.input, expect: { seen, listings: jobs.filter((j) => !noType.has(j.external_id as string)).map(expected), rejected }, why };
   }
   if (kinds.some((k) => k === "deadline")) return { input: c.input, expect: { seen }, why: "D8_UNKNOWN: deadline that is no date" };
   return { input: c.input, expect: { seen, listings: jobs.map(expected) } };

@@ -2,12 +2,15 @@ import { z } from "zod";
 import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
+import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Himalayas: the public search API, 4 fixed queries x 2 employment types, first page each (old
 // collection/himalayas.py, web/src/modules/collection/sources/himalayas.ts until step 11). A listing
 // without its identity (guid, title, description, the board's own job URL) or without a text
-// employment type (the source's own rule reads it) refuses the whole batch; any other field the
+// employment type (the source's own rule reads it) is set aside and counted in `rejected`; more than
+// half set aside fails the source (services/collect, Will 2026-11-15; the old reader refused the batch
+// for one listing). A page that is not JSON or has no list refuses the batch. Any other field the
 // connector cannot read is unknown (plan D8). The source's own rule keeps Contractor and Part Time.
 
 export const QUERIES = ["AI agent", "automation", "backend", "full stack"] as const;
@@ -107,7 +110,7 @@ function kindOf(employment: string): ListingInput["kind"] {
   return employment === "Full Time" ? "full_time" : null;
 }
 
-/** One listing in the contract; throws SourceError when its identity or employment type is missing. */
+/** One listing in the contract; throws SourceError when its identity or employment type is missing (`setAside` sets that one listing aside). */
 export function normalize(item: unknown): ListingInput {
   if (!isObject(item)) throw new SourceError("himalayas: a listing is not an object");
   const { title, description: body, guid } = item;
@@ -130,7 +133,7 @@ export function normalize(item: unknown): ListingInput {
 
 const pageSchema = z.object({ jobs: z.array(z.unknown()).max(20) });
 
-/** One search page's raw listings; every listing needs a text guid. */
+/** One search page's raw listings (each checked by `normalize`, which sets aside one without a text guid). */
 export function parsePage(body: Uint8Array): unknown[] {
   let data: unknown;
   try {
@@ -140,28 +143,41 @@ export function parsePage(body: Uint8Array): unknown[] {
   }
   const page = pageSchema.safeParse(data);
   if (!page.success) throw new SourceError("himalayas: search page has no list of at most 20 jobs");
-  for (const job of page.data.jobs) if (!isObject(job) || typeof job.guid !== "string") throw new SourceError("himalayas: identifier required");
   return page.data.jobs;
 }
 
-/** All 8 searches: every listing once by guid (the last entry wins), in the contract. */
-export async function readAll(fetcher: Fetcher): Promise<ListingInput[]> {
-  const jobs = new Map<string, unknown>();
+/**
+ * All 8 searches: every listing once by guid (the last entry wins, also when the last entry is set
+ * aside), in the contract. Every entry of every page is checked, so `rejected` and `examined` count at
+ * the page-entry level: a listing on several searches counts once per search in both.
+ */
+export async function readAll(fetcher: Fetcher): Promise<{ listings: ListingInput[]; rejected: number; examined: number }> {
+  const jobs = new Map<string, ListingInput | null>();
+  let rejected = 0, examined = 0;
   for (const q of QUERIES) {
     for (const employment of EMPLOYMENT) {
       const r = await fetcher.get({
         url: searchUrl(q, employment), maxBytes: MAX_BYTES, timeoutMs: 25_000,
         headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/json" },
       });
-      for (const job of parsePage(r.body)) jobs.set((job as { guid: string }).guid, job);
+      const page = setAside(parsePage(r.body), (job) => {
+        // A later entry replaces an earlier one in place (first position kept, as the old map did), even when it is set aside.
+        if (isObject(job) && typeof job.guid === "string") jobs.set(job.guid, null);
+        const l = normalize(job);
+        jobs.set(l.external_id, l);
+        return l;
+      });
+      rejected += page.rejected;
+      examined += page.examined;
     }
   }
-  return [...jobs.values()].map(normalize);
+  return { listings: [...jobs.values()].filter((l): l is ListingInput => l !== null), rejected, examined };
 }
 
 export async function himalayasConnector(fetcher: Fetcher): Promise<Collected> {
-  const all = await readAll(fetcher);
-  return { seen: all.length, listings: all.filter((l) => l.kind === "contract") };
+  const { listings: all, rejected, examined } = await readAll(fetcher);
+  // seen: the distinct listings read (old himalayas.ts `seen: all.length`).
+  return { seen: all.length, listings: all.filter((l) => l.kind === "contract"), rejected, examined };
 }
 
 export const HIMALAYAS_SETTINGS: Omit<SourceSettings, "order"> = {

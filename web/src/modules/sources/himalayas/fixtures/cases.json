@@ -3752,8 +3752,10 @@
     ]
    },
    "expect": {
-    "error": true
-   }
+    "ids": [],
+    "rejected": 1
+   },
+   "why": "old refused the batch for one listing; Will 2026-11-15 set aside and count (listing without a guid)"
   },
   {
    "pages": {
@@ -3791,8 +3793,10 @@
     ]
    },
    "expect": {
-    "error": true
-   }
+    "ids": [],
+    "rejected": 1
+   },
+   "why": "old refused the batch for one listing; Will 2026-11-15 set aside and count (listing whose guid is not text)"
   },
   {
    "pages": {
@@ -3830,8 +3834,10 @@
     ]
    },
    "expect": {
-    "error": true
-   }
+    "ids": [],
+    "rejected": 1
+   },
+   "why": "old refused the batch for one listing; Will 2026-11-15 set aside and count (listing that is not an object)"
   },
   {
    "pages": {
@@ -3987,8 +3993,10 @@
     ]
    },
    "expect": {
-    "error": true
-   }
+    "ids": [],
+    "rejected": 1
+   },
+   "why": "old refused the batch for one listing; Will 2026-11-15 set aside and count (listing without a description)"
   },
   {
    "pages": {

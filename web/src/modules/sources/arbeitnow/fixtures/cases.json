@@ -2577,9 +2577,14 @@
     "page": 1
    },
    "expect": {
-    "error": true
+    "count": 2,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": null,
+    "rejected": 1
    },
-   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+   "why": "SET_ASIDE: old set rows aside (rejected > 0); the new connector does the same"
   },
   {
    "input": {
@@ -2596,9 +2601,12 @@
     "page": 1
    },
    "expect": {
-    "error": true
+    "count": 3,
+    "ids": [],
+    "next": null,
+    "rejected": 3
    },
-   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+   "why": "SET_ASIDE: old set rows aside (rejected > 0); the new connector does the same"
   },
   {
    "input": {
@@ -2606,9 +2614,12 @@
     "page": 1
    },
    "expect": {
-    "error": true
+    "count": 1,
+    "ids": [],
+    "next": null,
+    "rejected": 1
    },
-   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+   "why": "SET_ASIDE: old set rows aside (rejected > 0); the new connector does the same"
   },
   {
    "input": {
@@ -2616,9 +2627,12 @@
     "page": 1
    },
    "expect": {
-    "error": true
+    "count": 1,
+    "ids": [],
+    "next": null,
+    "rejected": 1
    },
-   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+   "why": "SET_ASIDE: old set rows aside (rejected > 0); the new connector does the same"
   },
   {
    "input": {
@@ -2686,7 +2700,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2772,7 +2786,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2784,7 +2798,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2796,7 +2810,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2808,7 +2822,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2820,7 +2834,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2832,7 +2846,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2885,7 +2899,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2901,7 +2915,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2917,7 +2931,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2933,7 +2947,7 @@
    "expect": {
     "error": true
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "old scan had inconsistent pagination and marked the run failed; new fails the run"
   },
   {
    "input": {
@@ -2958,9 +2972,16 @@
     ]
    },
    "expect": {
-    "error": true
+    "seen": 2,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ],
+    "rejected": 1
    },
-   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+   "why": "SET_ASIDE: old set rows aside (rejected > 0); the new connector does the same"
   }
  ],
  "skipped_scan": {

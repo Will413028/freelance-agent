@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { listingBy, parseListingInput } from "@/modules/listings/public";
-import { SOURCES, type Collected, type SourceSettings } from "@/modules/sources/public";
+import { SOURCES, SourceError, type Collected, type SourceSettings } from "@/modules/sources/public";
 import type { Fetcher } from "@/platform/fetch";
 import { collectSource } from "./collect";
 import { freshPg } from "../../tests/helpers/pg";
@@ -32,8 +32,14 @@ describe("collectSource", () => {
     expect(await listingBy(db, "remotive", "3")).toBeNull();
   });
 
-  it("writes nothing when one listing lacks its identity", async () => {
-    await expect(collectSource(db, "remotive", NOW, serving([rem(), rem({ id: 2, description: null })]))).rejects.toThrow(/description/);
+  it("writes the others when one listing lacks its identity, and reports it rejected (Will 2026-11-15)", async () => {
+    const got = await collectSource(db, "remotive", NOW, serving([rem(), rem({ id: 2, description: null })]));
+    expect([got.externalIds, got.seen, got.rejected]).toEqual([["1"], 2, 1]);
+    expect(await listingBy(db, "remotive", "2")).toBeNull();
+  });
+
+  it("writes nothing when more than half of the feed's listings lack their identity", async () => {
+    await expect(collectSource(db, "remotive", NOW, serving([rem(), rem({ id: 2, description: null }), rem({ id: 3, title: "" })]))).rejects.toThrow(/2 of 3 listings refused/);
     expect(await listingBy(db, "remotive", "1")).toBeNull();
   });
 
@@ -83,5 +89,24 @@ describe("collectSource for a source that refreshes stored listings (old `exists
   it("reports a truncated read", async () => {
     expect((await collectSource(db, source(() => ({ seen: 0, listings: [], truncated: true })), NOW, none)).truncated).toBe(true);
     expect((await collectSource(db, source(() => ({ seen: 0, listings: [] })), NOW, none)).truncated).toBe(false);
+  });
+
+  it("refuses a run whose rejected listings are more than half of the entries examined, writing nothing, whatever seen says", async () => {
+    // seen is large (each source's own reporting meaning); the threshold reads examined only.
+    const got = () => ({ seen: 100, examined: 3, listings: [parseListingInput(listing("a", "contract"))], rejected: 2 });
+    await expect(collectSource(db, source(got), NOW, none)).rejects.toThrow(/remotive: 2 of 3 listings refused/);
+    expect(await listingBy(db, "remotive", "a")).toBeNull();
+  });
+
+  it("writes the kept listings when exactly half of the entries examined were rejected, whatever seen says", async () => {
+    const run = await collectSource(db, source(() => ({ seen: 1, examined: 2, listings: [parseListingInput(listing("a", "contract"))], rejected: 1 })), NOW, none);
+    expect([run.externalIds, run.rejected, run.examined]).toEqual([["a"], 1, 2]);
+    expect((await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none)).rejected).toBe(0);
+  });
+
+  it("treats rejected without examined as a connector bug, not a payload refusal", async () => {
+    const got = () => ({ seen: 10, listings: [parseListingInput(listing("a", "contract"))], rejected: 1 });
+    const e = await collectSource(db, source(got), NOW, none).catch((x: unknown) => x);
+    expect([e instanceof SourceError, (e as Error).message]).toEqual([false, "remotive: rejected reported without examined"]);
   });
 });

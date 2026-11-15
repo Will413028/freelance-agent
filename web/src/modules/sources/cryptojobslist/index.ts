@@ -2,6 +2,7 @@ import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
+import { setAside } from "../shared/set-aside";
 import { pubDateInstant } from "../shared/time";
 
 export { pubDateInstant };
@@ -11,9 +12,10 @@ import { childText, children, parseXml, splitUrl, type XmlElement } from "../sha
 // CryptoJobsList: the official advertised RSS feed, without API keys or account access (old
 // collection/cryptojobslist.py, web/src/modules/collection/sources/cryptojobslist.ts until step 11).
 // One request per run. A feed that is empty, oversize, declares a DTD, is not well-formed or is not
-// RSS with 1–2000 items is refused; so is any item without its identity (its job URL on the board, a
-// media:canonical that disagrees with it, a title, a description, or one over the size caps), so a
-// format change is a failed source and never a partial success. A publication date the connector
+// RSS with 1–2000 items is refused. An item without its identity (its job URL on the board, a
+// media:canonical that disagrees with it, a title, a description, or one over the size caps) is set
+// aside and counted in `rejected`, as the old reader did; more than half set aside fails the source
+// (services/collect, Will 2026-11-15). A publication date the connector
 // cannot read is unknown (plan D8). The source's own rule keeps remote part-time or freelance jobs.
 
 export const FEED = "https://api.cryptojobslist.com/jobs.rss";
@@ -83,7 +85,7 @@ function feedText(value: string | null): string | null {
   return htmlText(value) || null;
 }
 
-/** One RSS item in the contract; throws SourceError when its identity is missing. */
+/** One RSS item in the contract; throws SourceError when its identity is missing (`setAside` sets that one listing aside). */
 export function normalizeItem(item: XmlElement): ListingInput {
   const url = canonicalJobUrl(childText(item, "link"));
   if (url === null) throw new SourceError("cryptojobslist: invalid job URL");
@@ -121,8 +123,10 @@ export function parseItems(body: Uint8Array): Collected {
   if (!channels.length) throw new SourceError("cryptojobslist: expected an RSS channel");
   const items = channels.flatMap((c) => children(c, "item"));
   if (!items.length || items.length > 2000) throw new SourceError("cryptojobslist: feed has no list of 1-2000 items");
-  const byId = new Map(items.map((i) => normalizeItem(i)).map((l) => [l.external_id, l]));
-  return { seen: items.length, listings: [...byId.values()] };
+  // Old cryptojobslist.ts:99-107: an item that fails to normalize is set aside and counted, the rest kept.
+  const { listings, rejected, examined } = setAside(items, (i) => normalizeItem(i));
+  const byId = new Map(listings.map((l) => [l.external_id, l]));
+  return { seen: items.length, listings: [...byId.values()], rejected, examined };
 }
 
 /** The feed's items and the ones the source's rule keeps: remote, part-time or freelance. */
@@ -130,7 +134,7 @@ export function parseFeed(body: Uint8Array): Collected {
   const all = parseItems(body);
   // Old cryptojobslist.ts:131 `exists ||`: stored listings are refreshed whatever the rule says.
   const kept = all.listings.filter((l) => l.extra.remote_evidence === true && l.kind === "contract");
-  return { seen: all.seen, listings: kept, others: all.listings.filter((l) => !kept.includes(l)) };
+  return { seen: all.seen, listings: kept, others: all.listings.filter((l) => !kept.includes(l)), rejected: all.rejected, examined: all.examined };
 }
 
 export async function cryptojobslistConnector(fetcher: Fetcher): Promise<Collected> {

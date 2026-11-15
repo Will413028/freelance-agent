@@ -87,8 +87,8 @@ const unused = [...D8_UNKNOWN.keys(), ...ACCEPTED.keys(), ...REFUSED.keys(), ...
 if (unused.length) throw new Error(`differences that match no golden case: ${unused.join("\n")}`);
 
 // Fetch scenarios: the pages served and what the old fetch read (seen, pages, truncated, the ids
-// kept), or a failure. REFUSED: where the old fetch skipped listings it could not read (rejected_count
-// > 0, the run marked partial), the new connector fails the batch (connector checklist section 2).
+// kept, and the rejected count), or a failure. Where the old fetch skipped listings it could not read
+// (rejected_count > 0, the run marked partial), the new one does the same (Will 2026-11-15).
 const MODALITIES_URL = "https://www.getonbrd.com/api/v0/modalities?per_page=120&page=1";
 const SEARCH_1 = "https://www.getonbrd.com/api/v0/search/jobs?remote=true&per_page=120&page=1";
 /** Fetch scenarios whose old result the new connector deliberately changes, by the exact page body. */
@@ -99,6 +99,13 @@ const FETCH_DIFFERENCES: { url: string; body: string; expect: Record<string, unk
   // Python told the float 1.0 from the int 1; a JSON number in JavaScript cannot, and 1.0 pages is one page.
   { url: SEARCH_1, body: '{"data": [], "meta": {"page": 1, "total_pages": 1.0}}', expect: { seen: 0, ids: [], pages: 1, truncated: false },
     why: "ACCEPTED: JSON has one number type: total_pages 1.0 is 1" },
+  // Python's fromtimestamp raised OSError (outside the per-listing catch) on a time past year 9999, failing the
+  // whole fetch; it is one listing's unreadable publication time, set aside (Will 2026-11-15). One of one set
+  // aside still fails the run in services/collect.
+  { url: SEARCH_1, body: JSON.stringify({ data: [{ id: "acme-ai-agent", attributes: { title: "Part time AI agent backend engineer", description: "<p>Build an AI agent and API.</p>",
+    modality: { data: { id: 42 } }, remote: true, remote_modality: "fully_remote", countries: ["Remote"], published_at: 100000000000000000, category_name: "Programming",
+    lang: "en", min_salary: 1000, max_salary: 2000 }, links: { public_url: "https://www.getonbrd.com/jobs/acme-ai-agent" } }], meta: { page: 1, total_pages: 1 } }, null, 0).replaceAll('":', '": ').replaceAll(',"', ', "'),
+    expect: { seen: 1, ids: [], pages: 1, truncated: false, rejected: 1 }, why: "SET_ASIDE: a publication time past year 9999 is one listing's unreadable time" },
 ];
 const usedFetch = new Set<number>();
 const fetchCases = golden.getonboard_fetch.map((c) => {
@@ -106,9 +113,8 @@ const fetchCases = golden.getonboard_fetch.map((c) => {
   if (i >= 0) return usedFetch.add(i), { pages: c.pages, expect: FETCH_DIFFERENCES[i].expect, why: FETCH_DIFFERENCES[i].why };
   if ("error" in c.expect) return { pages: c.pages, expect: { error: true } };
   const r = JSON.parse(c.expect.ok.result) as { seen: number; rejected_count: number; pages: number; truncated: boolean };
-  if (r.rejected_count > 0) return { pages: c.pages, expect: { error: true }, why: `REFUSED: the old fetch skipped ${r.rejected_count} unreadable listing(s)` };
   const ids = c.expect.ok.jobs.map((j) => (JSON.parse(j) as { external_id: string }).external_id);
-  return { pages: c.pages, expect: { seen: r.seen, ids, pages: r.pages, truncated: r.truncated } };
+  return { pages: c.pages, expect: { seen: r.seen, ids, pages: r.pages, truncated: r.truncated, ...(r.rejected_count > 0 ? { rejected: r.rejected_count } : {}) } };
 });
 
 if (usedFetch.size !== FETCH_DIFFERENCES.length) throw new Error("a fetch difference matches no golden scenario");

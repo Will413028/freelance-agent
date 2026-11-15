@@ -3404,9 +3404,14 @@
     ]
    },
    "expect": {
-    "error": true
-   },
-   "why": "REFUSED: the old fetch skipped 1 unreadable listing(s)"
+    "seen": 2,
+    "ids": [
+     "acme-ai-agent"
+    ],
+    "pages": 1,
+    "truncated": false,
+    "rejected": 1
+   }
   },
   {
    "pages": {
@@ -3459,9 +3464,12 @@
     ]
    },
    "expect": {
-    "error": true
-   },
-   "why": "REFUSED: the old fetch skipped 1 unreadable listing(s)"
+    "seen": 1,
+    "ids": [],
+    "pages": 1,
+    "truncated": false,
+    "rejected": 1
+   }
   },
   {
    "pages": {
@@ -3788,8 +3796,13 @@
     ]
    },
    "expect": {
-    "error": true
-   }
+    "seen": 1,
+    "ids": [],
+    "pages": 1,
+    "truncated": false,
+    "rejected": 1
+   },
+   "why": "SET_ASIDE: a publication time past year 9999 is one listing's unreadable time"
   },
   {
    "pages": {
@@ -3803,9 +3816,12 @@
     ]
    },
    "expect": {
-    "error": true
-   },
-   "why": "REFUSED: the old fetch skipped 1 unreadable listing(s)"
+    "seen": 1,
+    "ids": [],
+    "pages": 1,
+    "truncated": false,
+    "rejected": 1
+   }
   },
   {
    "pages": {
@@ -3879,9 +3895,14 @@
     ]
    },
    "expect": {
-    "error": true
-   },
-   "why": "REFUSED: the old fetch skipped 3 unreadable listing(s)"
+    "seen": 4,
+    "ids": [
+     "acme-ai-agent"
+    ],
+    "pages": 1,
+    "truncated": false,
+    "rejected": 3
+   }
   },
   {
    "pages": {

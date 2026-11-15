@@ -6,6 +6,7 @@ import type { PgDb } from "@/db/pg/client";
 import { intakeListings, listingBy } from "@/modules/listings/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
 import { HIMALAYAS_SETTINGS, himalayasConnector, normalize, readAll, searchUrl } from ".";
+import { collectSource } from "@/services/collect";
 import { freshPg } from "../../../../tests/helpers/pg";
 
 // Plan step 5: golden's payloads and fetch scenarios (fixtures/cases.json, written by generate.ts
@@ -59,7 +60,8 @@ describe("himalayas connector over the golden cases", () => {
     for (const c of cases.fetch) {
       let got: unknown;
       try {
-        got = { ids: (await readAll(serving(c.pages))).map((l) => l.external_id) };
+        const r = await readAll(serving(c.pages));
+        got = { ids: r.listings.map((l) => l.external_id), ...(r.rejected ? { rejected: r.rejected } : {}) };
       } catch {
         got = { error: true };
       }
@@ -98,11 +100,32 @@ describe("himalayas searches", () => {
     expect([got.seen, got.listings.map((l) => l.title)]).toEqual([1, ["Second"]]);
   });
 
-  it("refuses a search that is not JSON, has no jobs list, lists over 20, or holds one listing without identity or employment type", async () => {
-    for (const body of ["<html>", JSON.stringify({ items: [] }), JSON.stringify({ jobs: Array.from({ length: 21 }, (_, i) => job({ guid: String(i) })) }),
-      JSON.stringify({ jobs: [job(), job({ guid: "x", description: null })] }), JSON.stringify({ jobs: [job({ guid: 5 })] }), JSON.stringify({ jobs: [job({ employmentType: null })] })]) {
+  it("refuses a search that is not JSON, has no jobs list, or lists over 20", async () => {
+    for (const body of ["<html>", JSON.stringify({ items: [] }), JSON.stringify({ jobs: Array.from({ length: 21 }, (_, i) => job({ guid: String(i) })) })]) {
       await expect(himalayasConnector(serving(searches({ [first]: body })))).rejects.toThrow(/himalayas/);
     }
+  });
+
+  it("sets aside one listing without identity or employment type and keeps the others (Will 2026-11-15)", async () => {
+    for (const bad of [job({ guid: "x", description: null }), job({ guid: 5 }), job({ guid: "y", employmentType: null }), "x"]) {
+      const got = await himalayasConnector(serving(searches({ [first]: JSON.stringify({ jobs: [job(), bad, job({ guid: "c" })] }) })));
+      // seen: distinct listings read; examined: page entries checked, like rejected.
+      expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([2, 1, 3, [job().guid, "c"]]);
+    }
+  });
+
+  it("counts a guid-less listing on all 8 searches once per search in both rejected and examined, and keeps the 5 good ones", async () => {
+    const jobs = [...["a", "b", "c", "d", "e"].map((guid) => job({ guid })), Object.fromEntries(Object.entries(job()).filter(([k]) => k !== "guid"))];
+    const pages = searches();
+    for (const url of Object.keys(pages)) pages[url] = [200, JSON.stringify({ jobs })];
+    const got = await himalayasConnector(serving(pages));
+    expect([got.seen, got.rejected, got.examined, got.listings.length]).toEqual([5, 8, 48, 5]);
+  });
+
+  it("keeps a listing's first position but its last entry, which may be set aside", async () => {
+    const f = serving(searches({ [first]: JSON.stringify({ jobs: [job(), job({ guid: "c" })] }), [searchUrl("backend", "Part Time")]: JSON.stringify({ jobs: [job({ description: "" })] }) }));
+    const got = await himalayasConnector(f);
+    expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([1, 1, 3, ["c"]]);
   });
 
   it("fails when a search fails", async () => {
@@ -139,7 +162,15 @@ describe("himalayas into intake", () => {
     expect(await listingBy(db, "himalayas", "full")).toBeNull();
     expect(await collect(pages)).toEqual({ inserted: 0, updated: 0, unchanged: 1, versioned: 0 });
     await db.execute(sql`truncate listings cascade`);
-    await expect(collect(searches({ [first]: JSON.stringify({ jobs: [job(), job({ guid: "x", title: "" })] }) }))).rejects.toThrow(/title/);
+    await expect(collect(searches({ [first]: "<html>" }))).rejects.toThrow(/not JSON/);
     expect(await listingBy(db, "himalayas", job().guid)).toBeNull();
+  });
+
+  it("writes the good listings when one guid-less listing comes back from all 8 searches", async () => {
+    const jobs = [...["a", "b", "c", "d", "e"].map((guid) => job({ guid })), Object.fromEntries(Object.entries(job()).filter(([k]) => k !== "guid"))];
+    const pages = searches();
+    for (const url of Object.keys(pages)) pages[url] = [200, JSON.stringify({ jobs })];
+    const run = await collectSource(db, { ...HIMALAYAS_SETTINGS, order: 0 }, NOW, serving(pages));
+    expect([run.rejected, run.examined, run.externalIds.length]).toEqual([8, 48, 5]);
   });
 });

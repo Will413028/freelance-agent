@@ -1,14 +1,17 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
+import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 import { parseXml } from "./xml";
 
 // TaiwanJobs: the official open-data XML of the latest 1000 updated listings; no login, no
 // application (old collection/taiwanjobs.py, web/src/modules/collection/sources/taiwanjobs.ts until
-// step 11). Every envelope refusal of the old connector stays a refusal. A row the old connector
-// refused (rejected_count, which turned the run partial) now refuses the whole batch: title, body
-// length, the listing's own URL and its EMPLOYER_ID/HIRE_ID identity, and what the source's own
-// rules read: the update date (freshness) and the presence of WK_TYPE (contract type). An unreadable deadline is unknown (plan D8). The source's own
+// step 11). Every envelope refusal of the old connector stays a refusal of the batch, and so do a
+// malformed record or field and a listing named twice. A row the old connector refused
+// (rejected_count, which turned the run partial) is set aside and counted in `rejected`, as the old
+// did (Will 2026-11-15; more than half set aside fails the source): title, body length, the listing's
+// own URL and its EMPLOYER_ID/HIRE_ID identity, and what the source's own rules read: the update date
+// (freshness) and the presence of WK_TYPE (contract type; the old kept such a row, now set aside). An unreadable deadline is unknown (plan D8). The source's own
 // rules keep contract-type rows (兼職、部分工時、接案、承攬, and not 全職) updated in the last 90 days.
 
 export const ENDPOINT = "https://free.taiwanjobs.gov.tw/webservice_taipei/Webservice.ashx?count=1000";
@@ -77,7 +80,7 @@ function split(raw: string) {
 
 const PATHS = new Set(["/internet/jobwanted/jobdetail.aspx", "/internet/index/jobdetail.aspx"]);
 
-/** One row in the contract; throws SourceError when its identity or update date is missing or wrong. */
+/** One row in the contract; throws SourceError when its identity or update date is missing or wrong (`setAside` sets that one listing aside). */
 export function normalize(fields: Map<string, string>, now: Date): ListingInput {
   const field = (k: string) => fields.get(k) ?? "";
   const title = field("OCCU_DESC"), body = field("JOB_DETAIL");
@@ -122,8 +125,8 @@ function declares(text: string): boolean {
   return false;
 }
 
-/** Every row of the response in the contract, and how many rows it held; throws SourceError on any refusal. */
-export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings: ListingInput[] } {
+/** Every row of the response in the contract, how many rows it held and how many were set aside; throws SourceError on a batch-level refusal. */
+export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings: ListingInput[]; rejected: number; examined: number } {
   if (raw.length > MAX_BYTES) throw new SourceError("taiwanjobs: response limit");
   let text: string;
   try {
@@ -148,7 +151,7 @@ export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings
     throw new SourceError("taiwanjobs: unsupported XML format");
   }
   if (root.tag !== "DataList" || root.children.length > MAX_ROWS || strip(root.text ?? "")) throw new SourceError("taiwanjobs: unsupported data list");
-  const listings: ListingInput[] = [], ids = new Set<string>();
+  const records: Map<string, string>[] = [];
   for (const record of root.children) {
     if (record.tag !== "Data" || record.attrib.size) throw new SourceError("taiwanjobs: invalid record");
     const fields = new Map<string, string>();
@@ -156,13 +159,17 @@ export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings
       if (!Object.hasOwn(LABELS, child.tag) || fields.has(child.tag) || child.children.length || child.attrib.size) throw new SourceError("taiwanjobs: unsupported field");
       fields.set(child.tag, strip(child.text ?? ""));
     }
-    const job = normalize(fields, now);
-    // The old connector refused a response naming one listing twice; that refusal stays.
+    records.push(fields);
+  }
+  // Old taiwanjobs.ts:122-129: a row that fails to normalize is set aside and counted.
+  const { listings, rejected, examined } = setAside(records, (fields) => normalize(fields, now));
+  // The old connector refused a response naming one listing twice (:130); that refusal stays.
+  const ids = new Set<string>();
+  for (const job of listings) {
     if (ids.has(job.external_id)) throw new SourceError("taiwanjobs: duplicate identity");
     ids.add(job.external_id);
-    listings.push(job);
   }
-  return { seen: root.children.length, listings };
+  return { seen: root.children.length, listings, rejected, examined };
 }
 
 /** The source's own rules: contract rows updated in the last 90 days (old sync, taiwanjobs.ts:174). */
@@ -177,7 +184,7 @@ export async function taiwanjobsConnector(fetcher: Fetcher, now: Date): Promise<
   const batch = parseBatch(r.body, now);
   // Old taiwanjobs.ts:172 `if (exists) return true`: stored listings are refreshed whatever the rule says.
   const keep = batch.listings.filter((l) => kept(l, now));
-  return { seen: batch.seen, listings: keep, others: batch.listings.filter((l) => !keep.includes(l)) };
+  return { seen: batch.seen, listings: keep, others: batch.listings.filter((l) => !keep.includes(l)), rejected: batch.rejected, examined: batch.examined };
 }
 
 /** One request per run (old taiwanjobs.ts:150, a single GET of ENDPOINT). */

@@ -13,14 +13,18 @@
 ## 2. 輸出：D8 契約
 
 - 每筆職缺經 `parseListingInput` 產出 `ListingInput`。
-- 身分欄位（id、標題、內文、來源自己的網址）缺或格式不對：丟 `SourceError`，整批失敗，不寫任何一筆。來源自己的篩選規則要讀的欄位（例：工作類型）也算：它讀不到時會整批篩光，變成「成功但 0 筆」。格式變了要變成「來源失敗」。
+- 單筆擱置、太多才失敗（Will 2026-11-15，步驟 5a 在 VM 實跑：taiwanjobs 1000 筆裡 2 筆標題空白、freelancer 第 1 頁 100 筆裡 2 筆 `seo_url` 沒有斜線，照舊規則兩個來源天天整批失敗、一筆都收不到）：
+  - 正規化**一筆**職缺時丟出的拒收（身分欄位 id、標題、內文、來源自己的網址缺或格式不對；來源自己的篩選規則要讀的欄位讀不到，例：工作類型）：這一筆擱置、計入 `Collected.rejected`，其他照收。拒收規則本身不變，只是範圍從整批改成單筆。共用的 `shared/set-aside.ts` 只接 `SourceError` 與清單契約（`parseListingInput`）丟的 `ZodError`，其他錯誤照樣往外丟；它回傳 `{ listings, rejected, examined }`，`examined` 是它跑過正規化的筆數（收下、被來源規則略過、擱置都算）。
+  - 整批層級的問題仍丟 `SourceError`、整批失敗、不寫任何一筆：內文解不了碼或不是 JSON／XML、外層或清單不在、超量、分頁不一致、分頁途中職缺變了、同一個 id 有互相衝突的版本、舊程式整批拒收的重複 id、請求失敗。
+  - 這條適用每一個來源，沒有個別例外：舊程式為了一筆壞資料整批拒收的來源（himalayas、hackernews、v2ex、jobicy、remotive）也改成單筆擱置，這是刻意的改變（Will 2026-11-15）；fixture 產生器把這類案例的預期改成「其他筆照收加上 `rejected`」，理由寫「old refused the batch for one listing; Will 2026-11-15 set aside and count」。
+  - 門檻的分母是 `Collected.examined`：把每次 `setAside` 回傳的 `examined` 加總，和 `rejected` 同一層級計數（同一筆在好幾頁或好幾個查詢出現，兩邊都各算一次）。`seen` 維持各來源原本的回報意義，不為門檻加上擱置數。擱置的超過一半（`rejected * 2 > examined`）時 `collectSource` 在寫入前丟 `SourceError`（`<來源>: <n> of <examined> listings refused`），所以格式真的變了仍是「來源失敗」；剛好一半照寫。`rejected > 0` 卻沒給 `examined` 是 connector 的程式錯誤，丟一般 `Error`。`SourceRun.rejected` 回報擱置數，步驟 6 把 `truncated || rejected > 0` 記成 partial。
 - 同一個 id 在一次回應裡出現兩次：留最後一筆（收案核心拒收重複的批次）。
 - `Fetcher` 依呼叫順序一次服務一個請求，connector 可以並行呼叫，間隔與上限仍成立。
 - 其他欄位轉不了：寫 `null`（未知），不猜、不拒收（D8）。三態欄位只在來源明說時寫 `true`／`false`；remote、worldwide 不等於台灣可接。
 - 時間：有時區的照轉；沒時區的，照來源的規則決定（例：jobicy、remotive 以 UTC 發布，`utcInstant`），規則寫在 connector 的註解裡。截止日照契約的四種形狀。
 - 來源自己的篩選規則（例：只收合約類）放在 connector；與設定無關的資格初篩是共用的，在 `web/src/services/collect.ts` 的 `screen`，connector 不重做。舊程式的 `qualifyForIntake(...).score > 0` 也是 `screen` 的事：`evaluate` 對類別分數 0 加排除理由「不在目前接案專長範圍」（`web/src/modules/evaluation/evaluate.ts`），connector 不另寫（步驟 5a）。
 - 舊程式有 `exists ||`（已存在的職缺不套篩選、照樣更新）的來源：connector 把讀到但自己的規則沒留下的職缺放進 `Collected.others`；`collectSource` 只拿它們和被 `screen` 擋下的職缺去更新已存在的列，從不新增（Will 2026-11-15，步驟 5a）。舊程式沒有這條的來源不設 `others`。
-- 讀到來源自己的讀取上限（頁數）還沒讀完：已讀的照寫，`Collected.truncated = true`（舊的 partial），`collectSource` 回報在 `SourceRun.truncated`，步驟 6 記到執行列。單筆身分壞掉、分頁不一致仍是整批失敗。
+- 讀到來源自己的讀取上限（頁數）還沒讀完：已讀的照寫，`Collected.truncated = true`（舊的 partial），`collectSource` 回報在 `SourceRun.truncated`，步驟 6 記到執行列。分頁不一致仍是整批失敗；單筆身分壞掉照上面的擱置規則。
 - 舊程式為了 serverless 時限設的整個來源的時間預算不搬：讀取範圍由請求上限界定；`Fetcher` 一次一個請求、間隔至少 1 秒，舊的預算在這裡只會讓執行失敗（步驟 5a：hackernews、freelancer）。
 - `extra` 只放 connector 讀到、契約沒有欄位、之後稽核用得到的東西（例：原始的工作類型、原始的發布時間字串）。不放全文副本。
 
@@ -44,8 +48,9 @@
 ## 5. 測試與 mutation
 
 - 每個來源目錄要有自己的 `*.test.ts`（`web/tests/structure.test.ts` 擋）。
-- 至少要有：fixture 全過；整批失敗（非 JSON、清單不在、超量、一筆缺身分）；未知保持未知；來源自己的篩選；`services/collect.test.ts` 型的收案案例（只寫通過篩選的、失敗時一筆都不寫、重跑同一份不變）。
-- mutation（用複本跑，不在工作目錄改了再還原）至少：`external_id` 改一個字元、拿掉一條拒收規則、拿掉來源自己的篩選，各要有測試失敗；有相容 id 函式的再加上面那條。
+- 至少要有：fixture 全過；整批失敗（非 JSON、清單不在、超量）；一筆缺身分夾在好的之間：好的照收、`rejected: 1`（Will 2026-11-15，步驟 5a VM 實跑）；未知保持未知；來源自己的篩選；`services/collect.test.ts` 型的收案案例（只寫通過篩選的、失敗時一筆都不寫、擱置超過 `examined` 一半時拒收且一筆都不寫、剛好一半照寫、重跑同一份不變）；多頁或多查詢的來源，要有「同一筆壞資料在每一頁／每個查詢都出現、好的也一樣」不被拒收的案例。
+- fixture 產生器裡，舊程式單筆擱置（`rejected_count`）的案例，預期值就是舊結果加上擱置數（標 `SET_ASIDE`），不再列為 `REFUSED`。
+- mutation（用複本跑，不在工作目錄改了再還原）至少：`external_id` 改一個字元、拿掉一條拒收規則、拿掉來源自己的篩選、拿掉單筆擱置（改回整批失敗），各要有測試失敗；有相容 id 函式的再加上面那條。
 - 舊 connector 與它的測試不在這一步刪：舊的每日執行在步驟 6 之前還用它們，步驟 11 一起刪。
 
 ## 6. VM 上的驗收（部署點，先取得 Will 授權）
