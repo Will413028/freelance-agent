@@ -1,4 +1,4 @@
-# 操作手冊：Vercel 與 Cloudflare D1
+# 操作手冊：自建 VM、Vercel 與 Cloudflare D1
 
 正式系統是 `web/` 這個 Next.js 專案：跑在 Vercel（區域 `iad1`），資料在 Cloudflare D1 資料庫 `freelance-agent-prod`。本頁只寫能從程式或遷移計畫對到的程序；引用計畫的地方標了段落。「計畫」指 [`docs/plans/2026-10-23-nextjs-vercel-migration.md`](plans/2026-10-23-nextjs-vercel-migration.md)。
 
@@ -11,6 +11,41 @@
 - VM 上的新系統只寫自己的資料庫；在 VM 起容器、裝排程或設定 Tailscale Serve 都要先取得 Will 授權。
 
 沒有回滾到舊系統的路徑：舊的 Python 系統已從 repo 刪除，回滾窗口已結束。出問題只能往前修。
+
+## 自建 VM（新系統）
+
+切換（計畫步驟 10）前，VM 上只有影子資料；切換後這一節是正式系統的操作，下面 Vercel 的章節在步驟 10 退役後刪除。VM 的檔案位置、env 檔與 Tailscale Serve 設定見 [`deploy/README.md`](../deploy/README.md)。每次在 VM 部署都要先取得 Will 授權。
+
+### 部署
+
+以 root 執行 `/opt/side-income/deploy/deploy.sh <sha 或 origin 的分支名>`（commit 先在 CI 綠燈；分支名一律解析成剛 fetch 的 `origin/<分支>`）。同時只能有一個部署（`flock` 鎖 env 檔旁的 `.lock`）。腳本用的是**目前** checkout 裡的版本：改 `deploy.sh` 本身的 commit，從下一次部署才生效。它依序：
+
+1. 把 checkout 切到該 commit（detached），建映像 `side-income-web:<短 sha>`。
+2. 用**新**映像跑 `migrate-pg`。失敗就停：env 檔的 `APP_IMAGE` 和正在跑的 `web` 都沒動，checkout 切回原本的 commit。drizzle 把所有待套的 migration 放在同一個交易裡，失敗時結構維持原樣。
+3. 把 `APP_IMAGE` 改成新 tag、重建 `web`，等 compose 的健康檢查（`/healthz`，最多 180 秒）。
+4. 重建失敗或不健康就把 `APP_IMAGE` 和 checkout 改回前一個、重建 `web`，以 exit 1 結束。`web` 與 `daily` 讀同一個 `APP_IMAGE`，所以回滾兩者一起回去。
+
+輸出最後一行是 `deployed …`、`rolled back to …` 或 `ROLLBACK UNHEALTHY`（前一版也起不來，要人看 `compose ps` 與 log）。回滾不會撤銷已套用的 migration，所以下一條規則才是讓回滾安全的前提。
+
+### Migration 規則
+
+SQL 在 `web/drizzle-pg/`，由 `migrate-pg`（`web/scripts/migrate-pg.ts`）套用；套過的記在 `drizzle.__drizzle_migrations`，重跑是 no-op。
+
+- 切換前：新庫只有影子資料，可以整個重建，migration 可以就地重新產生（步驟 10 前壓成一個起始 migration；操作見 `deploy/README.md`）。
+- **切換完成起：每個 migration 都要讓前一版映像能在新結構上繼續跑。** 先加後刪：新增欄位要可為 null 或有預設值；改名或改型別拆成「加新欄、程式改用新欄」與「下一次部署再刪舊欄」兩次；刪欄、刪表、加 NOT NULL 只在已經沒有任何上線版本讀寫它之後的那次部署做。
+
+### 沒有備份（D1）
+
+計畫 D1 決定不做備份。資料庫 volume（`pgdata`）遺失時：
+
+| 資料 | 會不會回來 |
+|---|---|
+| 來源上仍然公開的職缺 | 會：下一次每日執行重新收進來，但 id 是新的，`first_seen_at` 從那天算 |
+| 已經從來源下架的職缺、職缺的歷史版本 | 不會 |
+| 回饋（儲存／略過）、設定 | 不會，要重新操作 |
+| 每日執行與來源明細的紀錄 | 不會 |
+| 信件來源的信 | 只有 Resend Receiving 還保有的那些會再收到（Resend 的保留期未查證） |
+
 
 ## 資源
 

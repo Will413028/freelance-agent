@@ -175,7 +175,7 @@
   - 停止條件：某平台在 D4 選的工具下過不去，列入延後，不加代理。
   - 需要人做的事：授權部署（部署點）。
   - 完成後的狀態：這一步不擋切換；可以排在步驟 10 之前或之後，但要在步驟 12 之前完成。
-- [ ] **9. 營運：部署流程與文件**（被擋於：步驟 2）
+- [x] **9. 營運：部署流程與文件**（被擋於：步驟 2）
   - 範圍：`deploy/deploy.sh`（新增）：checkout 指定 commit、建映像並打上 commit 的 tag、跑 `migrate-pg`、`up -d`、健康檢查；健康檢查失敗就把 `APP_IMAGE` 改回前一個 tag 並重啟（`web` 與 `daily` 一起回去）。`deploy/compose.yaml`（修改：映像一律用 `${APP_IMAGE}`）。migration 規則（從步驟 10 切換完成起適用，見全域約束）：每個 migration 都要讓前一版映像能在新結構上繼續跑（先加後刪，刪除放到下一次部署）。`docs/operations.md`（修改）：新增 VM 版的章節，寫明沒有備份（D1）以及資料遺失時哪些會由每日執行重新收到、哪些不會；Vercel 版的章節留到步驟 10 退役後才刪。`README.md`、`docs/design.md`（修改）跟上。
   - 消費端：文件連結 `rg -n "operations.md" .`。
   - 驗收：在 VM 上對一個故意讓健康檢查失敗的 commit 跑 `deploy.sh`，服務回到前一個 tag（貼出前後的映像 tag 與健康檢查結果）；對一個故意失敗的 migration，新版不啟動、舊版繼續服務（同樣實際做一次）。
@@ -246,7 +246,7 @@
 | 6 每日執行 | 程式完成待驗收（分支 `step-6`，待開 PR；VM 部署、timer 安裝與連 3 天量測要 Will 授權） | 本機 `pnpm check` 綠（64 檔 657 過、7 跳過）、`pnpm build` 綠；mutation 14 個全擋（跳過已完成來源、不重試、全部重試、失敗即停、保留期限不篩來源 ×2、succeeded 再跑、失敗來源算完成、延遲上限、最早時刻、前日 `running` 不收、寫入失敗不收尾、存錯誤訊息，加第二批重跑跳過已完成來源）；`/code-review`（medium）發現 9（blocking 0）：改 5（當天無人接續：加 16:00 觸發與前日 `interrupted`；`Persistent` 補跑撞正式站：`EARLIEST_HOUR`；寫入失敗留 `running`：收尾成 `failed`；`error` 可能存頁面內容：只存代碼；保留期限兩處視窗：同一常數）、記 3、駁回 1（截斷的讀取不算健康：5a2-3 選 `last_seen_at` 就是因為 arbeitnow 每次截斷，篩掉截斷會讓它永遠不刪）；diff 審查第 1 輪發現 3（blocking 0）：改 2（`error` 寫進職缺參數，同上；舊測試對應寫在本步「舊測試的對應」）、記 1（hackernews 整體時限） | CI 的真 Postgres 重跑（push 後）；VM：連 3 天自然觸發各一列 `runs`、每次 ≤ 15 分鐘、`docker stats` ≤ 2 GB（要授權）。記下的審查發現：(1) `TimeoutStartSec` 只殺 compose 客戶端，容器是否跟著停要在 VM 裝 timer 時實測（`systemctl stop` 後看 `docker ps`）；(2) 重試固定等 30／120 秒、不看 `Retry-After`，且每次重試新建 fetcher，請求上限重算，最多 3 倍：步驟 8 分層讀取時改成跨重試共用請求預算；(3) 每個來源沒有整體時限，hackernews 最壞約 30 分鐘（推算，未量）：VM 連 3 天量測若總時間超過 15 分鐘，再加來源層的 AbortSignal 時限（逾時後放棄的 promise 不能再寫入，所以要從 fetcher 取消，不是 `Promise.race`） | 本 PR |
 | 7 信件來源 | 未開始 | | | |
 | 8 分層讀取與新平台 | 未開始 | | | |
-| 9 營運 | 未開始 | | | |
+| 9 營運 | 完成 | `deploy/test-deploy.mjs` 7 個情境（健康部署、分支名解析成 origin、build／migration 失敗不動、不健康回滾、重建失敗回滾、回滾也不健康、健康狀態卡住逾時）以 stub `docker`／`git`／`flock` 通過並接進 `pnpm check`；mutation 8 個都被擋；`shellcheck` 無警告；`/code-review` 10 項：修 9、接受 1（腳本用目前 checkout 的版本，改 `deploy.sh` 從下一次部署生效，已寫進 `docs/operations.md`）；compose 的 `web`、`daily` 早已只用 `${APP_IMAGE}`（步驟 2），本步不用改 ；VM 演練（2026-11-15 Will 授權）：先以 `deploy.sh` 部署本 PR `28d7d8f`（healthy）；演練 A `/healthz` 故意失敗的 commit `094eb27`：`web unhealthy` → `rolled back to side-income-web:28d7d8f`，exit 1，前後 `APP_IMAGE` 都是 `28d7d8f`、checkout 回 `28d7d8f`、`/healthz` 200；演練 B 先建表再除以零的 migration（`b6b0ce7`）：`division by zero` → `migration failed; side-income-web:28d7d8f keeps serving`，exit 1，`web` 容器 id 前後相同仍 healthy、`drill_probe` 不存在、`__drizzle_migrations` 仍 2 列（整批交易回滾）；演練分支與映像已刪 | `flock` 的互斥沒有在 VM 上實測兩個並行部署 | `28d7d8f`（PR #36）、本 commit |
 | 10 搬移、切換與退役 | 未開始 | | | |
 | 11 刪舊機制 | 未開始 | | | |
 | 12 收尾 | 未開始 | | | |
