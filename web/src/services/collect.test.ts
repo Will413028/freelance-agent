@@ -89,6 +89,9 @@ describe("collectSource with a scripted connector", () => {
     await collectSource(db, source(read(["a"], true), true), t1, none);
     await collectSource(db, source(read(["a"])), t1, none);
     expect((await listingBy(db, "remotive", "b"))?.goneAt).toBeNull();
+    // A partial read (one listing set aside) is not complete either.
+    await collectSource(db, source(() => ({ ...read(["a"])(), rejected: 1, examined: 2 }), true), t1, none);
+    expect((await listingBy(db, "remotive", "b"))?.goneAt).toBeNull();
     await collectSource(db, source(read(["a"]), true), t1, none);
     expect((await listingBy(db, "remotive", "b"))?.goneAt).toEqual(t1);
   });
