@@ -25,7 +25,7 @@ export async function pruneListings(db: PgDb, now = new Date(), days = RETENTION
   const doomed = db.select({ id: listings.id }).from(listings).where(and(
     lt(listings.lastSeenAt, cutoff),
     notExists(db.select({ one: sql`1` }).from(listingFeedback).where(eq(listingFeedback.listingId, listings.id))),
-  )).for("update", { skipLocked: true });
+  )).for("update");
   const gone = await db.delete(listings).where(inArray(listings.id, doomed)).returning({ id: listings.id });
   return gone.length;
 }
