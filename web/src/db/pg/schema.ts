@@ -87,8 +87,8 @@ export const listings = pgTable("listings", {
 }, (t) => [
   uniqueIndex("listings_source_external_id").on(t.source, t.externalId),
   /**
-   * The first branch of the listing query's filter (modules/evaluation/list.ts shownWhere). While that filter ORs in the
-   * version and feedback branches Postgres may not use it; 5a2-3 measures the VM page and keeps, reshapes or drops it.
+   * The first branch of the listing query's filter (modules/evaluation/list.ts shownWhere), read as an index-only
+   * scan because that filter is a UNION of ids (plan step 5a2-3 measured the OR form scanning the table instead).
    */
   index("listings_shown").on(t.id).where(sql`${t.sourceKept} and not ${t.hardExcluded}`),
   kindCheck("listings_kind", t.kind),

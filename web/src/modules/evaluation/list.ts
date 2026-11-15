@@ -1,4 +1,5 @@
-import { and, eq, exists, inArray, not, or, sql } from "drizzle-orm";
+import { and, eq, inArray, not } from "drizzle-orm";
+import { union } from "drizzle-orm/pg-core";
 import type { PgDb } from "@/db/pg/client";
 import { CATEGORIES, listingFeedback, listings, listingVersions, settings } from "@/db/pg/schema";
 import { byRank, rank, type Rankable, type RankFacts, type Ranked, type Settings } from "./rank";
@@ -25,15 +26,17 @@ const factColumns = <T extends typeof listings | typeof listingVersions>(t: T) =
 
 /**
  * Which stored listings the page considers (plan D9: intake stores every listing read, the query picks):
- * the ones the source's own rule keeps and no hard reason excludes (the partial index listings_shown),
- * a mail listing with a version no hard reason excludes, and any saved or skipped listing, so it
- * stays in its view after its content changes (neutral is a stored state too and keeps nothing in).
+ * the ones the source's own rule keeps and no hard reason excludes, a mail listing with a version no hard
+ * reason excludes, and any saved or skipped listing, so it stays in its view after its content changes
+ * (neutral is a stored state too and keeps nothing in). Written as a UNION of ids, not an OR: measured on
+ * the VM (plan step 5a2-3) at 210,300 rows, the OR scans the table (106 ms) while the UNION reads the
+ * first branch from the partial index listings_shown (38 ms for the whole query).
  */
-export const shownWhere = (db: PgDb) => or(
-  and(listings.sourceKept, not(listings.hardExcluded)),
-  exists(db.select({ one: sql`1` }).from(listingVersions).where(and(eq(listingVersions.listingId, listings.id), not(listingVersions.hardExcluded)))),
-  inArray(listingFeedback.state, ["interested", "skipped"]),
-);
+export const shownWhere = (db: PgDb) => inArray(listings.id, union(
+  db.select({ id: listings.id }).from(listings).where(and(listings.sourceKept, not(listings.hardExcluded))),
+  db.select({ id: listingVersions.listingId }).from(listingVersions).where(not(listingVersions.hardExcluded)),
+  db.select({ id: listingFeedback.listingId }).from(listingFeedback).where(inArray(listingFeedback.state, ["interested", "skipped"])),
+));
 
 /** The listings the page considers, with their versions and feedback, as ranking reads them. */
 export async function readRankables(db: PgDb): Promise<Rankable[]> {

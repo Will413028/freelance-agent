@@ -36,8 +36,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # typecheck, boundaries, db:check (both dialects: schema and migrations agree), test (PGlite), compose port check.
       - run: pnpm check
-      # The Postgres tests again, on a real Postgres 18.
-      - run: pnpm exec vitest run tests/pg-
+      # Every test again on a real Postgres 18: each one using tests/helpers/pg.ts freshPg switches to it,
+      # the rest are unaffected. Running the whole suite means no Postgres test can be left out by its file name.
+      # Test files run one at a time (vitest.config.ts fileParallelism), so freshPg's schema reset never races.
+      - run: pnpm exec vitest run
         env:
           TEST_PG_URL: postgres://postgres:test@localhost:5432/side_income_test
       - run: pnpm build
