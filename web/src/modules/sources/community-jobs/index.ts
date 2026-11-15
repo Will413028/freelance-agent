@@ -1,17 +1,21 @@
 import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
+import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 import { childText, children, parseXml, splitUrl } from "../shared/xml-feed";
 
 // Public community hiring leads: Hacker News "Who is hiring?" and "Freelancer?" threads, and V2EX's
 // outsourcing node (old collection/community_jobs.py, web/src/modules/collection/sources/community-jobs.ts
 // until step 11). No accounts, messaging or employer-link fetching. A response that is not the expected
-// shape, or a lead without its identity (id, text, its own link), refuses the whole source run, so a
-// format change is a failed source and never an empty success; other fields the connector cannot read
+// shape refuses the whole source run, so a format change is a failed source and never an empty success.
+// A lead without its identity (id, text, its own link, a zoned publication time on V2EX) is set aside
+// and counted in `rejected`; more than half set aside fails the source (services/collect, Will
+// 2026-11-15; the old reader refused the run for one lead). Other fields the connector cannot read
 // are unknown (plan D8). Each source's own rules pick the leads: contract or part-time HN comments in
 // the two latest recent hiring threads, V2EX posts asking for help from the last 90 days.
-// seen counts the leads the source's rules picked, as the old daily run reported it.
+// seen counts the leads the source's rules picked, as the old daily run reported it; examined counts
+// every entry checked (picked, skipped by the rules or set aside), the threshold's denominator.
 
 const LIMIT = 2_000_000;
 const DAY_MS = 86_400_000;
@@ -54,7 +58,7 @@ const NO_CONTRACT = re(String.raw`\b(no contractors?|no freelance|full[ -]?time 
 const CONTRACT = re(String.raw`\b(part[ -]?time|contract(?:or|ing)?|freelance|fractional)\b`);
 const RESTRICTED = re(String.raw`\b(?:USA?|UK|EU|Europe|Canada|Australia)\s+only\b|REMOTE\s*\((?:EU|US|USA|UK|Europe)\)|\b(?:Poland|Romania|Romanian)(?: or (?:Poland|Romania|Romanian))? residents only`);
 
-/** One HN comment as a lead, or null when the source's rules skip it; throws SourceError when it is not a comment object or lacks its identity. */
+/** One HN comment as a lead, or null when the source's rules skip it; throws SourceError when it is not a comment object or lacks its identity (`setAside` sets that one listing aside). */
 export function hnListing(p: unknown, parent: Json): ListingInput | null {
   if (!isObject(p)) throw new SourceError("hackernews: a comment is not an object");
   if (truthy(p.deleted) || truthy(p.dead)) return null;
@@ -107,18 +111,20 @@ export async function hackernewsConnector(fetcher: Fetcher, now: Date): Promise<
   const selected = threads.filter((t) => hiringThread(t, cutoff)).slice(0, 2);
   if (!selected.length) throw new SourceError("hackernews: no recent hiring thread");
   const all: ListingInput[] = [];
+  let rejected = 0, examined = 0;
   for (const thread of selected) {
     const kids = "kids" in thread ? thread.kids : [];
     if (!Array.isArray(kids)) throw new SourceError("hackernews: comments are not a list");
     const comments: Json[] = [];
     for (const id of kids.slice(0, 100)) comments.push(await item(fetcher, id));
-    for (const p of comments) {
-      if (!("id" in thread)) throw new SourceError("hackernews: thread without id");
-      const l = hnListing(p, thread.id);
-      if (l) all.push(l);
-    }
+    if (comments.length && !("id" in thread)) throw new SourceError("hackernews: thread without id");
+    // One comment without its identity is set aside (Will 2026-11-15); the old run refused the source.
+    const kept = setAside(comments, (p) => hnListing(p, thread.id));
+    for (const l of kept.listings) if (l) all.push(l);
+    rejected += kept.rejected;
+    examined += kept.examined;
   }
-  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()] };
+  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], rejected, examined };
 }
 
 // V2EX: the outsourcing node's Atom feed.
@@ -155,26 +161,27 @@ export function parseV2ex(raw: Uint8Array, now: Date): Collected {
   const entries = children(root, ATOM + "entry");
   if (entries.length > 100) throw new SourceError("v2ex: over 100 entries");
   const cutoff = now.getTime() - 90 * DAY_MS;
-  const all: ListingInput[] = [];
-  for (const e of entries) {
+  // One entry without its identity is set aside (Will 2026-11-15); the old run refused the source.
+  const picked = setAside(entries, (e): ListingInput | null => {
     const title = childText(e, ATOM + "title") || "";
-    if (SKIP.test(title) || !WANTED.test(title)) continue;
+    if (SKIP.test(title) || !WANTED.test(title)) return null;
     const links = children(e, ATOM + "link").filter((x) => x.attrs.get("rel") === "alternate").map((x) => x.attrs.get("href"));
     if (links.length !== 1 || links[0] === undefined) throw new SourceError("v2ex: entry without one canonical link");
     const id = v2exTopicId(links[0]);
     if (id === null) throw new SourceError("v2ex: invalid canonical link");
-    // The age rule reads the publication time, so an entry without a time zone refuses the run.
+    // The age rule reads the publication time, so an entry without a time zone is set aside.
     const published = parseLegacyIsoTime((childText(e, ATOM + "published") || "").replaceAll("Z", "+00:00"));
     if (published?.kind !== "aware") throw new SourceError("v2ex: entry without a publication time with zone");
-    if (published.instant.getTime() < cutoff) continue;
+    if (published.instant.getTime() < cutoff) return null;
     const body = htmlText(childText(e, ATOM + "content") || "");
     const url = `https://www.v2ex.com/t/${id}`;
-    all.push(parseListingInput({
+    return parseListingInput({
       external_id: id, title: checked("v2ex", title, body || title), description: body || title, url, canonical_url: url,
       kind: "contract", complete: false, published_at: rfc3339(published.instant), extra: { body_available: Boolean(body) },
-    }));
-  }
-  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()] };
+    });
+  });
+  const all = picked.listings.filter((l): l is ListingInput => l !== null);
+  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], rejected: picked.rejected, examined: picked.examined };
 }
 
 export async function v2exConnector(fetcher: Fetcher, now: Date): Promise<Collected> {

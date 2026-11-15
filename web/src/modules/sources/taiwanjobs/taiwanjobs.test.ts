@@ -12,7 +12,7 @@ import { parseBatch, sourceDate, TAIWANJOBS_SETTINGS, taiwanjobsConnector } from
 // Plan step 5a: the golden responses (fixtures/cases.json, written by generate.ts from legacyToInput
 // of the old output) against the native connector, then the connector's own rules and intake.
 
-type BatchCase = { input: string; expect: { error: true } | { seen: number; listings?: unknown[] }; why?: string };
+type BatchCase = { input: string; expect: { error: true } | { seen: number; listings?: unknown[]; rejected?: number }; why?: string };
 const cases: { now: string; date: { input: string; expect: string | null }[]; batch: BatchCase[]; strict: BatchCase[] } =
   JSON.parse(readFileSync(path.join(import.meta.dirname, "fixtures/cases.json"), "utf8"));
 const GOLDEN_NOW = new Date(cases.now);
@@ -28,8 +28,9 @@ function wrong(c: BatchCase) {
   const e = c.expect;
   const bad = "error" in e ? !("error" in got)
     : "error" in got ? true
-    : e.listings ? JSON.stringify(got) !== JSON.stringify({ seen: e.seen, listings: e.listings })
-    : got.seen !== e.seen || got.listings.length !== e.seen;
+    : (got.rejected || 0) !== (e.rejected ?? 0) ? true
+    : e.listings ? JSON.stringify({ seen: got.seen, listings: got.listings }) !== JSON.stringify({ seen: e.seen, listings: e.listings })
+    : got.seen !== e.seen || got.listings.length !== e.seen - (e.rejected ?? 0);
   return bad ? { input: c.input.slice(0, 300), why: c.why, expect: e, got } : null;
 }
 
@@ -70,16 +71,21 @@ describe("taiwanjobs connector", () => {
     expect(got.others?.map((l) => l.external_id)).toEqual(["12:35", "12:36", "12:37"]);
   });
 
-  it("refuses the batch for a bad envelope, a row without identity, a future or unreadable update date, a duplicate or a missing WK_TYPE", () => {
+  it("refuses the batch for a bad envelope or a listing named twice", () => {
     const bodies = [
       new TextEncoder().encode("<html>"), new TextEncoder().encode('<!DOCTYPE x><DataList/>'), new Uint8Array([0x3c, 0xff]),
-      new TextEncoder().encode("<Other/>"), new TextEncoder().encode(`<DataList>${"<Data/>".repeat(1001)}</DataList>`),
-      xml([row(), row({ OCCU_DESC: "" }, 35)]), xml([row({ URL_QUERY: "https://job.taiwanjobs.gov.tw:443/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34" })]),
-      xml([row({ URL_QUERY: "https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34&HIRE_ID=35" })]),
-      xml([row({ TRANDATE: "20261001" })]), xml([row({ TRANDATE: "20260231" })]), xml([row(), row()]), xml([row({ WK_TYPE: null })]),
-      xml([row({ JOB_DETAIL: "x".repeat(100_001) })]),
+      new TextEncoder().encode("<Other/>"), new TextEncoder().encode(`<DataList>${"<Data/>".repeat(1001)}</DataList>`), xml([row(), row()]),
     ];
     for (const b of bodies) expect(() => parseBatch(b, NOW)).toThrow(/taiwanjobs/);
+  });
+
+  it("sets aside and counts a row without identity, with a future or unreadable update date or without WK_TYPE, keeping the others", () => {
+    for (const bad of [{ OCCU_DESC: "" }, { URL_QUERY: "https://job.taiwanjobs.gov.tw:443/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=35" },
+      { URL_QUERY: "https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=35&HIRE_ID=36" },
+      { TRANDATE: "20261001" }, { TRANDATE: "20260231" }, { WK_TYPE: null }, { JOB_DETAIL: "x".repeat(100_001) }]) {
+      const got = parseBatch(xml([row(), row(bad, 35)]), NOW);
+      expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([2, 1, ["12:34"]]);
+    }
   });
 
   it("keeps unknown fields unknown: a deadline that is no date, an empty detail; eligibility and hours are never guessed", () => {
@@ -108,8 +114,11 @@ describe("taiwanjobs intake", () => {
     expect(await listingBy(db, "taiwanjobs", "12:35")).toBeNull();
   });
 
-  it("writes nothing when one row lacks its identity", async () => {
-    await expect(collectSource(db, settings, NOW, serving([row(), row({ URL_QUERY: "https://example.com/x" }, 35)]))).rejects.toThrow(/URL/);
+  it("writes the others when one row lacks its identity, and nothing when most do", async () => {
+    const run = await collectSource(db, settings, NOW, serving([row(), row({ URL_QUERY: "https://example.com/x" }, 35)]));
+    expect([run.seen, run.rejected, run.externalIds]).toEqual([2, 1, ["12:34"]]);
+    await db.execute(sql`truncate listings cascade`);
+    await expect(collectSource(db, settings, NOW, serving([row(), row({ URL_QUERY: "https://example.com/x" }, 35), row({ OCCU_DESC: "" }, 36)]))).rejects.toThrow(/2 of 3 listings refused/);
     expect(await listingBy(db, "taiwanjobs", "12:34")).toBeNull();
   });
 

@@ -13,6 +13,24 @@ export type Collected = {
   others?: ListingInput[];
   /** The read stopped at the source's read cap before the source's end (old `partial`): what was read is written, the run records it. */
   truncated?: boolean;
+  /**
+   * Listings set aside (Will 2026-11-15, step 5a VM run: set aside and count, fail only when too many).
+   * A refusal raised while normalizing ONE listing (its own identity or format is bad, including a field the
+   * source's own rule reads being unreadable) skips that listing and counts it here; the rest are kept.
+   * Batch-level problems still throw `SourceError`: body not decodable, envelope or list missing, too many
+   * entries, inconsistent pagination, a listing changing during pagination, conflicting versions of one id,
+   * duplicate ids where the old connector refused them, request failures. Counted at the same level as
+   * `examined`; when `rejected * 2 > examined` the run fails (services/collect).
+   */
+  rejected?: number;
+  /**
+   * The entries checked at the per-listing level (every entry `setAside` ran its normalizer on, kept,
+   * skipped by the source's own rule or set aside), summed over every `setAside` call at one consistent
+   * level per source: an entry a source shows on several pages or queries counts each time, in both
+   * `examined` and `rejected`. The denominator of the set-aside threshold; required whenever `rejected > 0`.
+   * Unlike `seen`, which keeps each source's own reporting meaning.
+   */
+  examined?: number;
 };
 
 export type Connector = (fetcher: Fetcher, now: Date) => Promise<Collected>;

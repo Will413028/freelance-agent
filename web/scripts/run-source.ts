@@ -21,7 +21,7 @@ const pool = new Pool({ connectionString: url, max: 1 });
 try {
   const db = drizzle(pool, { schema });
   const run = await collectSource(db, source);
-  const report: Record<string, unknown> = { source: run.source, seen: run.seen, jobs: run.jobs, requests: run.requests, intake: run.intake };
+  const report: Record<string, unknown> = { source: run.source, seen: run.seen, examined: run.examined, rejected: run.rejected, truncated: run.truncated, jobs: run.jobs, requests: run.requests, intake: run.intake };
   if (file) {
     const expected = new Set(readFileSync(file, "utf8").split("\n").map((l) => l.trim()).filter(Boolean));
     const newOnly = run.externalIds.filter((id) => !expected.has(id));

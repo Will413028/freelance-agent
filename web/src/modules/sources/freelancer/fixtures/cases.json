@@ -2606,9 +2606,36 @@
     "https://www.freelancer.com/api/projects/0.1/projects/active/?query=AI+agent&limit=2&offset=0&full_description=true"
    ],
    "expect": {
-    "error": true
+    "listings": [
+     {
+      "external_id": "1",
+      "title": "AI agent backend",
+      "company": null,
+      "description": "Build an API",
+      "url": "https://www.freelancer.com/projects/python/AI-agent",
+      "canonical_url": "https://www.freelancer.com/projects/python/AI-agent",
+      "location": null,
+      "kind": "fixed",
+      "currency": "USD",
+      "budget_min": 100,
+      "budget_max": 500,
+      "weekly_hours": null,
+      "taiwan_eligible": null,
+      "timezone_compatible": null,
+      "complete": false,
+      "listing_closed": null,
+      "compensation_evidence": null,
+      "published_at": null,
+      "deadline": null,
+      "extra": {
+       "time_updated": "2026-09-18T14:36:08.000Z",
+       "project_type": "fixed"
+      }
+     }
+    ],
+    "rejected": 1
    },
-   "why": "REFUSED: a project without identity fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a project without identity is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "query": "AI agent",
@@ -2954,9 +2981,61 @@
     "https://www.freelancer.com/api/projects/0.1/projects/active/?query=AI+agent&limit=1&offset=2&full_description=true"
    ],
    "expect": {
-    "error": true
+    "listings": [
+     {
+      "external_id": "1",
+      "title": "AI agent backend",
+      "company": null,
+      "description": "Build an API",
+      "url": "https://www.freelancer.com/projects/python/AI-agent",
+      "canonical_url": "https://www.freelancer.com/projects/python/AI-agent",
+      "location": null,
+      "kind": "fixed",
+      "currency": "USD",
+      "budget_min": 100,
+      "budget_max": 500,
+      "weekly_hours": null,
+      "taiwan_eligible": null,
+      "timezone_compatible": null,
+      "complete": false,
+      "listing_closed": null,
+      "compensation_evidence": null,
+      "published_at": null,
+      "deadline": null,
+      "extra": {
+       "time_updated": "2026-09-18T14:36:08.000Z",
+       "project_type": "fixed"
+      }
+     },
+     {
+      "external_id": "3",
+      "title": "AI agent backend",
+      "company": null,
+      "description": "Build an API",
+      "url": "https://www.freelancer.com/projects/python/AI-agent",
+      "canonical_url": "https://www.freelancer.com/projects/python/AI-agent",
+      "location": null,
+      "kind": "fixed",
+      "currency": "USD",
+      "budget_min": 100,
+      "budget_max": 500,
+      "weekly_hours": null,
+      "taiwan_eligible": null,
+      "timezone_compatible": null,
+      "complete": false,
+      "listing_closed": null,
+      "compensation_evidence": null,
+      "published_at": null,
+      "deadline": null,
+      "extra": {
+       "time_updated": "2026-09-18T14:36:08.000Z",
+       "project_type": "fixed"
+      }
+     }
+    ],
+    "rejected": 1
    },
-   "why": "REFUSED: a project without identity fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a project without identity is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "query": "AI agent",

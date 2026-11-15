@@ -61,7 +61,7 @@ describe("arbeitnow over the golden payloads", () => {
     const bad = cases.page.map((c) => {
       const got = attempt(() => {
         const p = parsePage(enc(c.input.body), c.input.page);
-        return { count: p.count, ids: p.listings.map((l) => l.external_id), next: p.next };
+        return { count: p.count, ids: p.listings.map((l) => l.external_id), next: p.next, ...(p.rejected ? { rejected: p.rejected } : {}) };
       }) as Record<string, unknown>;
       const ok = "error" in c.expect ? "error" in got : "listing" in c.expect ? !("error" in got) : JSON.stringify(got) === JSON.stringify(c.expect);
       return { body: c.input.body.slice(0, 200), expect: c.expect, got, ok };
@@ -76,7 +76,7 @@ describe("arbeitnow over the golden payloads", () => {
       let got: Record<string, unknown>;
       try {
         const r = await scan(fetcher);
-        got = { seen: r.seen, ids: r.listings.map((l) => l.external_id), requests: fetcher.urls };
+        got = { seen: r.seen, ids: r.listings.map((l) => l.external_id), requests: fetcher.urls, ...(r.rejected ? { rejected: r.rejected } : {}) };
       } catch (e) {
         got = { error: true, message: (e as Error).message };
       }
@@ -136,11 +136,18 @@ describe("arbeitnow connector", () => {
     expect((await scan(site({ [ENDPOINT]: [200, JSON.stringify(pageOf([job()], 1, null, 1))] }))).truncated).toBe(false);
   });
 
-  it("refuses a page that is not JSON, has no data list, lists too many, or holds one listing without identity", () => {
-    for (const body of [enc("<html>"), enc(""), new Uint8Array([0x7b, 0xff, 0x7d]), enc({ data: {} }), enc({ ...pageOf([]), data: Array.from({ length: 10_001 }, () => ({})) }),
-      enc(pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b", description: null })]))]) {
+  it("refuses a page that is not JSON, has no data list or lists too many", () => {
+    for (const body of [enc("<html>"), enc(""), new Uint8Array([0x7b, 0xff, 0x7d]), enc({ data: {} }), enc({ ...pageOf([]), data: Array.from({ length: 10_001 }, () => ({})) })]) {
       expect(() => parsePage(body, 1)).toThrow(/arbeitnow/);
     }
+  });
+
+  it("sets aside and counts one listing without identity, keeping the others", async () => {
+    const body = JSON.stringify(pageOf([job(), job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b", description: null })]));
+    const p = parsePage(enc(body), 1);
+    expect([p.count, p.rejected, p.listings.map((l) => l.external_id)]).toEqual([2, 1, ["ai-agent-123"]]);
+    const got = await arbeitnowConnector(site({ [ENDPOINT]: [200, body] }), NOW);
+    expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([2, 1, ["ai-agent-123"]]);
   });
 
   it("refuses a listing whose fields the source's rule reads change format instead of keeping nothing", () => {
@@ -196,8 +203,12 @@ describe("arbeitnow into intake (collectSource)", () => {
     expect((await collectSource(db, settings, NOW, pages(job(), other))).externalIds).toEqual(["ai-agent-123"]);
   });
 
-  it("writes nothing when one listing lacks its identity", async () => {
-    await expect(collectSource(db, settings, NOW, pages(job(), job({ slug: "c", url: "https://www.arbeitnow.com/jobs/companies/acme/c", title: "" })))).rejects.toThrow(/arbeitnow/);
+  it("writes the others when one listing lacks its identity, and nothing when most do", async () => {
+    const run = await collectSource(db, settings, NOW, pages(job(), job({ slug: "c", url: "https://www.arbeitnow.com/jobs/companies/acme/c", title: "" })));
+    expect([run.seen, run.rejected, run.externalIds]).toEqual([2, 1, ["ai-agent-123"]]);
+    await db.execute(sql`truncate listings cascade`);
+    await expect(collectSource(db, settings, NOW, pages(job(), job({ slug: "c", url: "https://www.arbeitnow.com/jobs/companies/acme/c", title: "" }),
+      job({ slug: "d", url: "https://www.arbeitnow.com/jobs/companies/acme/d", title: "" })))).rejects.toThrow(/2 of 3 listings refused/);
     expect(await listingBy(db, "arbeitnow", "ai-agent-123")).toBeNull();
   });
 

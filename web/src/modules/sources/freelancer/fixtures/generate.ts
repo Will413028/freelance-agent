@@ -22,8 +22,9 @@ const truthy = (v: PyValue | undefined) => !(v === undefined || v === null || v 
 const len = (s: string) => [...s].length;
 
 /**
- * The old checks (collection/sources/freelancer.ts:30-48) that stay refusals of the whole batch:
- * identity, active public status, title, description, the project's own URL. JSON has one number
+ * The old checks (collection/sources/freelancer.ts:30-48) that stay refusals of the project (set aside
+ * and counted, as the old did; Will 2026-11-15): identity, active public status, title, description,
+ * the project's own URL. JSON has one number
  * type, so an id the old code refused only for being a float with an integral value is a valid id now
  * (ACCEPTED below); a non-integral or past-2^53 id stays refused.
  */
@@ -107,7 +108,7 @@ const search = golden.freelancer_search.flatMap((c): SearchCase[] => {
   if (skip) return [];
   const limit = kw.has("limit") ? Number(kw.at("limit")) : 20, maxPages = kw.has("max_pages") ? Number(kw.at("max_pages")) : 20;
   const base = { query: c.query, limit, maxPages, pages: c.pages, urls: c.calls.map(([u]) => u) };
-  const projects = new Map<string, Plain[]>(), refused: PyValue[] = [];
+  const projects = new Map<string, Plain[]>(), refused: PyValue[] = [], readable = new Set<string>();
   let floatTotal = false;
   for (const url of c.calls.map(([u]) => u)) {
     const [, body] = c.pages[url] ?? [0, ""];
@@ -122,6 +123,7 @@ const search = golden.freelancer_search.flatMap((c): SearchCase[] => {
     for (const raw of Array.isArray(list) ? list : []) {
       const id = String(plain(at(raw, "id") ?? null));
       projects.set(id, [...(projects.get(id) ?? []), plain(raw)]);
+      if (identityRefusal(raw) === null) readable.add(id);
       if (identityRefusal(raw) !== null || (isDict(raw) && typeof at(raw, "id") !== "bigint")) refused.push(raw);
     }
   }
@@ -136,13 +138,15 @@ const search = golden.freelancer_search.flatMap((c): SearchCase[] => {
     projects.get(j.external_id as string)!.find((p) => extraOf(p).time_updated === new Date(j.received_at as string).toISOString())!;
   const listings = out.jobs.map((j) => expected(j, versionOf(j)));
   if (out.rejected_count === 0) return [{ ...base, expect: { listings } }];
-  // Old per-project refusals made the run partial. A refusal of identity fails the batch now
-  // (checklist section 2); a refusal of another field only makes that field unknown (plan D8), so the
-  // project is kept: the expected ids are the old ones plus those projects.
-  if (refused.some((r) => identityRefusal(r) !== null)) return [{ ...base, expect: { error: true }, why: "REFUSED: a project without identity fails the batch (old: rejected_count, partial run)" }];
+  // Old per-project refusals made the run partial. A refusal of identity sets the project aside and
+  // counts it, as the old did (Will 2026-11-15); a refusal of another field only makes that field unknown
+  // (plan D8), so the project is kept: the expected ids are the old ones plus those projects.
+  const identity = refused.filter((r) => identityRefusal(r) !== null);
+  if (identity.length === out.rejected_count) return [{ ...base, expect: { listings, rejected: identity.length }, why: "SET_ASIDE: a project without identity is set aside and counted (old: rejected_count, partial run)" }];
   const kept = new Set(out.jobs.map((j) => j.external_id as string));
-  for (const [id] of projects) kept.add(id);
-  return [{ ...base, expect: { ids: [...kept].sort() }, why: "D8_UNKNOWN: the old refused project is kept with its unreadable fields unknown" }];
+  for (const id of readable) kept.add(id);
+  return [{ ...base, expect: { ids: [...kept].sort(), ...(identity.length ? { rejected: identity.length } : {}) },
+    why: `D8_UNKNOWN: the old refused project is kept with its unreadable fields unknown${identity.length ? "; one without identity is set aside" : ""}` }];
 });
 
 const PATTERNS = ["TITLE_SIGNAL", "OUT_OF_SCOPE"] as const;

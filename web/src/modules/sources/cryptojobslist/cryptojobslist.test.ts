@@ -16,7 +16,7 @@ import { canonicalJobUrl, cryptojobslistConnector, FEED, parseFeed, parseItems, 
 
 type Expected =
   | { error: true }
-  | { seen: number; listings: Record<string, unknown>[] }
+  | { seen: number; listings: Record<string, unknown>[]; rejected?: number }
   | { seen: number; unknown: { external_id: string; field: string } }
   | { seen: number; ids: string[] };
 type Case = { index: number; input: string; latin1?: boolean; expect: Expected; why?: string };
@@ -36,6 +36,7 @@ describe("cryptojobslist connector over the golden feeds", () => {
       if ("error" in e) return !("error" in got);
       if ("error" in got) return true;
       if (got.seen !== e.seen) return true;
+      if ("listings" in e && (got.rejected ?? 0) !== (e.rejected ?? 0)) return true;
       if ("listings" in e) return JSON.stringify(got.listings) !== JSON.stringify(e.listings);
       if ("ids" in e) return JSON.stringify(got.listings.map((l) => l.external_id)) !== JSON.stringify(e.ids);
       const l = got.listings.find((x) => x.external_id === e.unknown.external_id) as Record<string, unknown> | undefined;
@@ -80,10 +81,11 @@ describe("cryptojobslist feed", () => {
     expect([got.seen, got.listings.map((l) => [l.external_id, l.title])]).toEqual([2, [["https://cryptojobslist.com/jobs/backend-1", "Second"]]]);
   });
 
-  it("refuses the whole feed when one item lacks its identity", () => {
+  it("sets aside and counts an item that lacks its identity, keeping the others", () => {
     for (const bad of [{ link: "" }, { link: "https://cryptojobslist.com:443/jobs/x" }, { link: "https://CRYPTOJOBSLIST.com/jobs/x" }, { link: "https://cryptojobslist.com/jobs/x " },
       { title: "" }, { description: "<p></p>" }, { title: "x".repeat(501) }, { canonical: "https://cryptojobslist.com/jobs/other" }]) {
-      expect(() => parseItems(feed(item({ link: "https://cryptojobslist.com/jobs/ok" }), item(bad)))).toThrow(/cryptojobslist/);
+      const got = parseItems(feed(item({ link: "https://cryptojobslist.com/jobs/ok" }), item(bad)));
+      expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([2, 1, ["https://cryptojobslist.com/jobs/ok"]]);
     }
   });
 
@@ -133,9 +135,9 @@ describe("cryptojobslist intake", () => {
     expect(b).toEqual(a);
   });
 
-  it("gives nothing when the feed fails or one item is broken", async () => {
+  it("gives nothing when the feed fails; a broken item is counted in rejected", async () => {
     await expect(cryptojobslistConnector(fakeFetcher({}))).rejects.toThrow();
-    await expect(cryptojobslistConnector(fakeFetcher({ [FEED]: feed(item(), item({ link: "" })) }))).rejects.toThrow(/cryptojobslist/);
+    expect((await cryptojobslistConnector(fakeFetcher({ [FEED]: feed(item(), item({ link: "" })) }))).rejected).toBe(1);
   });
 });
 
@@ -153,8 +155,11 @@ describe("cryptojobslist into intake (collectSource)", () => {
     expect(await listingBy(db, "cryptojobslist", "https://cryptojobslist.com/jobs/ft")).toBeNull();
   });
 
-  it("writes nothing when one item lacks its identity", async () => {
-    await expect(collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: feed(item(), item({ link: "" })) }))).rejects.toThrow(/cryptojobslist/);
+  it("writes the good items when one lacks its identity, and nothing when most do", async () => {
+    const run = await collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: feed(item(), item({ link: "" })) }));
+    expect([run.seen, run.rejected, run.externalIds]).toEqual([2, 1, ["https://cryptojobslist.com/jobs/backend-1"]]);
+    await db.execute(sql`truncate listings cascade`);
+    await expect(collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: feed(item(), item({ link: "" }), item({ title: "" })) }))).rejects.toThrow(/2 of 3 listings refused/);
     expect(await listingBy(db, "cryptojobslist", "https://cryptojobslist.com/jobs/backend-1")).toBeNull();
   });
 

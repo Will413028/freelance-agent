@@ -82,14 +82,37 @@ if (unused.length) throw new Error(`differences that match no golden case: ${unu
 // ACCEPTED: Python refuses an int literal of over 4300 digits (its int-to-string limit); JSON.parse
 // reads it as a number, and it sits in a field the connector never reads.
 const hugeInt = (c: Golden["himalayas_fetch"][number]) => Object.values(c.pages).some(([, body]) => /\d{4301,}/.test(body));
+// Old refused the batch for one listing; Will 2026-11-15 set aside and count. By the one page that
+// differs from an empty search (each checked by hand: a single listing without a text guid, not an
+// object, or without a description), the expected result is the other listings (none) plus rejected.
+const job = { ...base } as Record<string, unknown>;
+const SET_ASIDE = new Map<string, { rejected: number; why: string }>([
+  [JSON.stringify({ jobs: [Object.fromEntries(Object.entries(job).filter(([k]) => k !== "guid"))] }), { rejected: 1, why: "listing without a guid" }],
+  [JSON.stringify({ jobs: [{ ...job, guid: 5 }] }), { rejected: 1, why: "listing whose guid is not text" }],
+  [JSON.stringify({ jobs: ["x"] }), { rejected: 1, why: "listing that is not an object" }],
+  [JSON.stringify({ jobs: [{ ...job, description: "" }] }), { rejected: 1, why: "listing without a description" }],
+]);
+const pyJson = (body: string) => { try { return JSON.stringify(JSON.parse(body)); } catch { return null; } };
+const setAsideOf = (c: Golden["himalayas_fetch"][number]) => {
+  const odd = Object.values(c.pages).filter(([, body]) => pyJson(body) !== JSON.stringify({ jobs: [] }));
+  return odd.length === 1 && odd[0][0] === 200 ? SET_ASIDE.get(pyJson(odd[0][1]) ?? "") : undefined;
+};
+const usedSetAside = new Set<string>();
 const fetchCases = golden.himalayas_fetch.map((c) => {
+  const aside = setAsideOf(c);
+  if (aside) {
+    if (!("error" in c.expect)) throw new Error("a set-aside scenario no longer fails in golden");
+    usedSetAside.add(aside.why);
+    return { pages: c.pages, expect: { ids: [], rejected: aside.rejected }, why: `old refused the batch for one listing; Will 2026-11-15 set aside and count (${aside.why})` };
+  }
   if (hugeInt(c)) {
     if (!("error" in c.expect)) throw new Error("the huge-int scenario no longer fails in golden");
     return { pages: c.pages, expect: { ids: [] }, why: "ACCEPTED: an int past Python's 4300-digit limit in an unread field" };
   }
   return { pages: c.pages, expect: "error" in c.expect ? { error: true } : { ids: c.expect.ok.map((j) => (JSON.parse(j) as { external_id: string }).external_id) } };
 });
-if (fetchCases.filter((c) => "why" in c).length !== 1) throw new Error("expected exactly one huge-int scenario");
+if (fetchCases.filter((c) => "why" in c && c.why?.startsWith("ACCEPTED")).length !== 1) throw new Error("expected exactly one huge-int scenario");
+if (usedSetAside.size !== SET_ASIDE.size) throw new Error("a set-aside difference matches no golden case");
 
 writeFileSync(path.join(import.meta.dirname, "cases.json"), JSON.stringify({ normalize: normalizeCases, fetch: fetchCases }, null, 1) + "\n");
 console.log(`${normalizeCases.length} normalize cases, ${fetchCases.length} fetch cases`);

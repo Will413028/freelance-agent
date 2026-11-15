@@ -15,11 +15,11 @@ const golden = fixture<{ cryptojobslist_parse: Golden[] }>("golden.json").crypto
 const ACME = "https://cryptojobslist.com/jobs/backend-engineer-acme";
 
 /**
- * REFUSED: the old reader dropped one item and kept the run as partial; the new one refuses the whole
- * feed because the item lacks its identity (connector-checklist section 2: a format change is a
- * failed source). By golden index, with the old per-item error.
+ * SET_ASIDE: the old reader dropped one item for lacking its identity and kept the run as partial; the
+ * new one does the same (Will 2026-11-15: set aside and count), so the expectation is the old result
+ * with its rejected count. By golden index, with the old per-item error; each asserts the old outcome.
  */
-const REFUSED = new Map<number, string>([
+const SET_ASIDE = new Map<number, string>([
   ...[17].map((i) => [i, "title or description shows no text"] as const),
   ...[18, 19, 22, 23, 25, 26, 88].map((i) => [i, "title or description missing or blank"] as const),
   ...[20, 21, 24].map((i) => [i, "title over 500 or description over 100,000 characters"] as const),
@@ -53,15 +53,14 @@ const collapse = (s: unknown) => (typeof s === "string" ? s.split(/\s+/u).filter
 
 const cases = golden.map((c, i) => {
   const base = { index: i, input: c.input, ...(c.latin1 ? { latin1: true } : {}) };
-  const refused = REFUSED.get(i), d8 = D8_UNKNOWN.get(i), accepted = ACCEPTED.get(i);
+  const setAside = SET_ASIDE.get(i), d8 = D8_UNKNOWN.get(i), accepted = ACCEPTED.get(i);
   const old = "ok" in c.expect ? { result: JSON.parse(c.expect.ok.result) as { seen: number; rejected_count: number }, jobs: c.expect.ok.jobs.map((j) => JSON.parse(j) as Record<string, unknown>) } : null;
-  const overridden = refused ?? d8 ?? accepted;
+  const overridden = setAside ?? d8 ?? accepted;
   if (overridden && (d8 && i === 84 ? old !== null : old?.result.rejected_count !== 1)) throw new Error(`case ${i}: old outcome is not the one overridden`);
-  if (refused) return { ...base, expect: { error: true }, why: `REFUSED: ${refused}` };
   if (d8) return { ...base, expect: { seen: 1, unknown: { external_id: ACME, field: d8.field } }, why: `D8_UNKNOWN: ${d8.why}` };
   if (accepted) return { ...base, expect: { seen: 1, ids: [ACME] }, why: `ACCEPTED: ${accepted}` };
   if (!old) return { ...base, expect: { error: true } };
-  if (old.result.rejected_count) throw new Error(`case ${i}: unclassified old rejection`);
+  if (old.result.rejected_count && !setAside) throw new Error(`case ${i}: unclassified old rejection`);
   return {
     ...base,
     expect: {
@@ -76,8 +75,9 @@ const cases = golden.map((c, i) => {
         extra: { employment_tags: job.employment_tags, remote_evidence: job.remote_evidence },
         ...PATCHED.get(i)?.patch,
       })),
+      ...(setAside ? { rejected: old.result.rejected_count } : {}),
     },
-    ...(PATCHED.has(i) ? { why: `PATCHED: ${PATCHED.get(i)!.why}` } : {}),
+    ...(PATCHED.has(i) ? { why: `PATCHED: ${PATCHED.get(i)!.why}` } : setAside ? { why: `SET_ASIDE: ${setAside}` } : {}),
   };
 });
 writeFileSync(path.join(import.meta.dirname, "cases.json"), JSON.stringify(cases, null, 1) + "\n");

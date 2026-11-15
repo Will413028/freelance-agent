@@ -306,23 +306,29 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://evil.invalid/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20269999]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34&HIRE_ID=56]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -520,9 +526,47 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=35]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 2,
+    "listings": [
+     {
+      "external_id": "12:34",
+      "title": "AI agent 後端 API 工程師",
+      "company": null,
+      "description": "遠端開發 AI agent 與後端 API",
+      "url": "https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34",
+      "canonical_url": "https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34",
+      "location": null,
+      "kind": "contract",
+      "currency": null,
+      "budget_min": null,
+      "budget_max": null,
+      "weekly_hours": null,
+      "taiwan_eligible": null,
+      "timezone_compatible": null,
+      "complete": true,
+      "listing_closed": null,
+      "compensation_evidence": null,
+      "published_at": null,
+      "deadline": {
+       "kind": "date",
+       "date": "2026-12-31"
+      },
+      "extra": {
+       "source_updated_at": "2026-09-17T16:00:00.000Z",
+       "deadline_evidence": "20261231",
+       "employment_type_evidence": "兼職",
+       "schedule_evidence": "日班",
+       "salary_evidence": {
+        "period": "時薪",
+        "low": "500",
+        "high": "1000"
+       }
+      }
+     }
+    ],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -570,9 +614,11 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -706,23 +752,29 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/other.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[http://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw:443/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?HIRE_ID=34&x=1&EMPLOYER_ID=12#frag]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -770,23 +822,29 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=0&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=012&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=122222222222222222222&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12222222222222222222&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -834,9 +892,11 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=Ù¡Ù¢&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=%31%32&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -884,58 +944,74 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12+&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34&HIRE_ID=]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34&HIRE_ID]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://[::1/x]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260929]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -983,23 +1059,29 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260930]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[ï¼ï¼ï¼ï¼ï¼ï¼ï¼ï¼]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[é¨åå·¥æ]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -1556,9 +1638,11 @@
   {
    "input": "<DataList><Data/><Data/></DataList>",
    "expect": {
-    "error": true
+    "seen": 2,
+    "listings": [],
+    "rejected": 2
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<DataList>x<Data/></DataList>",
@@ -1569,9 +1653,11 @@
   {
    "input": "<DataList>  \n<Data/></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a refused row fails the batch (old: rejected_count, partial run)"
+   "why": "SET_ASIDE: a refused row is set aside and counted (old: rejected_count, partial run)"
   },
   {
    "input": "<DataList><Data a=\"1\"/></DataList>",
@@ -1722,9 +1808,11 @@
   {
    "input": "<DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼>AI agent</OCCU_DESCï¼è·ååç¨±ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼>https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&amp;HIRE_ID=34</URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATE>20260918</TRANDATE></Data></DataList>",
    "expect": {
-    "error": true
+    "seen": 1,
+    "listings": [],
+    "rejected": 1
    },
-   "why": "REFUSED: a row without WK_TYPE (the source's own rule reads it) fails the batch"
+   "why": "SET_ASIDE: a row without WK_TYPE (the source's own rule reads it) is set aside; old kept it"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data>\n  <OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
@@ -1980,20 +2068,26 @@
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://evil.invalid/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
-   }
+    "seen": 1,
+    "rejected": 1
+   },
+   "why": "SET_ASIDE: old strict parse refused the response for a bad row; the daily path set it aside"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20269999]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
-   }
+    "seen": 1,
+    "rejected": 1
+   },
+   "why": "SET_ASIDE: old strict parse refused the response for a bad row; the daily path set it aside"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34&HIRE_ID=56]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",
    "expect": {
-    "error": true
-   }
+    "seen": 1,
+    "rejected": 1
+   },
+   "why": "SET_ASIDE: old strict parse refused the response for a bad row; the daily path set it aside"
   },
   {
    "input": "<?xml version=\"1.0\"?><DataList><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data><Data><OCCU_DESCï¼è·ååç¨±ï¼><![CDATA[AI agent å¾ç«¯ API å·¥ç¨å¸«]]></OCCU_DESCï¼è·ååç¨±ï¼><WK_TYPEï¼è·åæ§è³ªï¼><![CDATA[å¼è·]]></WK_TYPEï¼è·åæ§è³ªï¼><JOB_DETAILï¼å·¥ä½å§å®¹ï¼><![CDATA[é ç«¯éç¼ AI agent èå¾ç«¯ API]]></JOB_DETAILï¼å·¥ä½å§å®¹ï¼><URL_QUERYï¼è·ç¼ºè³æURLï¼><![CDATA[https://job.taiwanjobs.gov.tw/Internet/jobwanted/JobDetail.aspx?EMPLOYER_ID=12&HIRE_ID=34]]></URL_QUERYï¼è·ç¼ºè³æURLï¼><TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><![CDATA[20260918]]></TRANDATEï¼è·ç¼ºæ´æ°æ¥æï¼><STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><![CDATA[20261231]]></STOP_DATEï¼æå¾µæªæ­¢æ¥æï¼><WKTIMEï¼å·¥ä½æéï¼><![CDATA[æ¥ç­]]></WKTIMEï¼å·¥ä½æéï¼><SALARYCDï¼æ ¸èªæ¹å¼ï¼><![CDATA[æèª]]></SALARYCDï¼æ ¸èªæ¹å¼ï¼><NT_Lï¼èªè³ç¯åä¸éï¼><![CDATA[500]]></NT_Lï¼èªè³ç¯åä¸éï¼><NT_Uï¼èªè³ç¯åä¸éï¼><![CDATA[1000]]></NT_Uï¼èªè³ç¯åä¸éï¼></Data></DataList>",

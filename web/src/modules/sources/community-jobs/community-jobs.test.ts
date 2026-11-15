@@ -55,7 +55,8 @@ const wrong = (e: Expected, got: Record<string, unknown>) =>
   "error" in e ? !("error" in got)
   : "unknown" in e ? "error" in got || "skip" in got || got[e.unknown as string] !== null
   : "listing" in e ? "error" in got || "skip" in got
-  : JSON.stringify(got) !== JSON.stringify(e);
+  // examined (entries checked) is not in the old output, so the oracle cannot carry it; unit tests below check it.
+  : JSON.stringify({ ...got, examined: undefined }) !== JSON.stringify(e);
 
 describe("community-jobs connectors over the golden cases", () => {
   it(`hn_job: ${cases.hn_job.length} comments`, async () => {
@@ -122,11 +123,28 @@ describe("hackernews", () => {
     expect(await hackernewsConnector(fakeFetcher(hnPages(threads, comments)), NOW)).toEqual(got);
   });
 
-  it("fails the run with nothing kept on an old thread only, a broken comment or a failed request", async () => {
+  it("fails the run with nothing kept on an old thread only or a failed request", async () => {
     await expect(hackernewsConnector(fakeFetcher(hnPages([thread(1, [11], { time: 1700000000 })], [comment()])), NOW)).rejects.toThrow(/no recent/);
-    await expect(hackernewsConnector(fakeFetcher(hnPages([thread(1, [11, 12])], [comment(), comment({ id: 12, text: null })])), NOW)).rejects.toThrow(/hackernews/);
     await expect(hackernewsConnector(fakeFetcher(hnPages([thread(1, [11, 12])], [comment()])), NOW)).rejects.toThrow(FetchError);
     await expect(hackernewsConnector(fakeFetcher({ [HN + "user/whoishiring.json"]: [200, "<html>"] }), NOW)).rejects.toThrow(/not JSON/);
+  });
+
+  it("sets aside one comment without its identity and keeps the others (Will 2026-11-15)", async () => {
+    for (const bad of [comment({ id: 12, text: null }), comment({ id: 12 })]) {
+      const pages = hnPages([thread(1, [11, 13, 12])], [comment(), comment({ id: 13 }), bad]);
+      // The second variant: comment 12 answers with an id that is no whole number.
+      if (bad.text !== null) pages[HN + "item/12.json"] = json({ ...bad, id: 12.5 });
+      const got = await hackernewsConnector(fakeFetcher(pages), NOW);
+      // seen: the leads picked; examined: every comment checked, the threshold's denominator.
+      expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([2, 1, 3, ["11", "13"]]);
+    }
+  });
+
+  it("counts every comment checked, picked or not, as examined, so a few set aside among many skipped do not refuse the source", async () => {
+    const kids = Array.from({ length: 100 }, (_, i) => 1000 + i);
+    const comments = kids.map((id, i) => comment({ id, ...(i < 4 ? {} : i < 9 ? { text: null } : { text: "<p>Acme | Full-time | Onsite</p>" }) }));
+    const got = await hackernewsConnector(fakeFetcher(hnPages([thread(1, kids)], comments)), NOW);
+    expect([got.seen, got.rejected, got.examined, got.listings.length]).toEqual([4, 5, 100, 4]);
   });
 });
 
@@ -143,10 +161,14 @@ describe("v2ex", () => {
     expect([got.seen, got.listings.map((l) => [l.external_id, l.url, l.description, l.published_at])]).toEqual([1, [["123456", "https://www.v2ex.com/t/123456", "需要 API 開發", "2026-09-27T12:00:00.000Z"]]]);
   });
 
-  it("refuses the feed for a lead without one canonical link, a bad link or a time without zone", () => {
+  it("sets aside a lead without one canonical link, a bad link or a time without zone, and keeps the others (Will 2026-11-15)", () => {
     for (const e of [entry({ href: null }), entry({ href: "https://v2ex.com/t/1" }), entry({ href: "https://www.v2ex.com/t/abc" }), entry({ published: "2026-09-27T12:00:00" }), entry({ published: "" })]) {
-      expect(() => parseV2ex(atom(entry({ href: "https://www.v2ex.com/t/9" }), e), NOW)).toThrow(/v2ex/);
+      const got = parseV2ex(atom(entry({ href: "https://www.v2ex.com/t/9" }), e, entry({ href: "https://www.v2ex.com/t/8" })), NOW);
+      expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([2, 1, 3, ["9", "8"]]);
     }
+  });
+
+  it("refuses a feed that declares a DTD, is not Atom, is not well-formed or holds over 100 entries", () => {
     for (const body of [new TextEncoder().encode("<!doctype feed><feed/>"), new TextEncoder().encode("<rss/>"), new TextEncoder().encode("<feed"), atom(...Array.from({ length: 101 }, () => "<entry/>"))]) {
       expect(() => parseV2ex(body, NOW)).toThrow(/v2ex/);
     }
@@ -187,11 +209,18 @@ describe("hackernews and v2ex into intake (collectSource)", () => {
     expect(await listingBy(db, "v2ex", "2")).toBeNull();
   });
 
-  it("writes nothing when one lead lacks its identity", async () => {
-    await expect(collectSource(db, hn, NOW, fakeFetcher(hnPages([thread(1, [11, 12])], [comment(), comment({ id: 12, text: null })])))).rejects.toThrow(/hackernews/);
-    expect(await listingBy(db, "hackernews", "11")).toBeNull();
-    await expect(collectSource(db, v2, NOW, fakeFetcher(v2exPages(entry(), entry({ href: "https://www.v2ex.com/t/x" }))))).rejects.toThrow(/v2ex/);
+  it("writes the others when one lead lacks its identity, and nothing when more than half do (Will 2026-11-15)", async () => {
+    const one = await collectSource(db, hn, NOW, fakeFetcher(hnPages([thread(1, [11, 12])], [comment(), comment({ id: 12, text: null })])));
+    expect([one.externalIds, one.rejected]).toEqual([["11"], 1]);
+    await expect(collectSource(db, v2, NOW, fakeFetcher(v2exPages(entry(), entry({ href: "https://www.v2ex.com/t/x" }), entry({ href: "https://www.v2ex.com/t/y" }))))).rejects.toThrow(/2 of 3 listings refused/);
     expect(await listingBy(db, "v2ex", "123456")).toBeNull();
+  });
+
+  it("writes the 4 picked leads when 5 of 100 comments lack text and 91 are skipped by the rules", async () => {
+    const kids = Array.from({ length: 100 }, (_, i) => 1000 + i);
+    const comments = kids.map((id, i) => comment({ id, ...(i < 4 ? {} : i < 9 ? { text: null } : { text: "<p>Acme | Full-time | Onsite</p>" }) }));
+    const run = await collectSource(db, hn, NOW, fakeFetcher(hnPages([thread(1, kids)], comments)));
+    expect([run.seen, run.rejected, run.examined, run.externalIds.length]).toEqual([4, 5, 100, 4]);
   });
 
   it("a second run of the same responses changes nothing", async () => {

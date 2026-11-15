@@ -15,7 +15,7 @@ import { FREELANCER_SETTINGS, freelancerConnector, normalize, outOfScope, pageUr
 type Expected = Record<string, unknown> | { error: true } | { unknown: string } | { listing: true };
 type Cases = {
   normalize: { payload: unknown; expect: Expected; why?: string }[];
-  search: { query: string; limit: number; maxPages: number; pages: Record<string, [number, string]>; urls: string[]; expect: { error: true } | { listings: unknown[] } | { ids: string[] }; why?: string }[];
+  search: { query: string; limit: number; maxPages: number; pages: Record<string, [number, string]>; urls: string[]; expect: { error: true } | { listings: unknown[]; rejected?: number } | { ids: string[]; rejected?: number }; why?: string }[];
   regex: { pattern: "TITLE_SIGNAL" | "OUT_OF_SCOPE"; input: string; match: boolean }[];
 };
 const cases: Cases = JSON.parse(readFileSync(path.join(import.meta.dirname, "fixtures/cases.json"), "utf8"));
@@ -62,12 +62,14 @@ describe("freelancer connector over the golden payloads", () => {
       const { urls, fetcher } = site(c.pages);
       let got: unknown;
       try {
-        got = { listings: (await searchQuery(fetcher, c.query, c.limit, c.maxPages)).listings };
+        const r = await searchQuery(fetcher, c.query, c.limit, c.maxPages);
+        got = { listings: r.listings, ...(r.rejected ? { rejected: r.rejected } : {}) };
       } catch (e) {
         got = { error: true, message: (e as Error).message };
       }
       const ok = "error" in c.expect ? "error" in (got as object)
         : "ids" in c.expect ? !("error" in (got as object)) && JSON.stringify((got as { listings: { external_id: string }[] }).listings.map((l) => l.external_id).sort()) === JSON.stringify(c.expect.ids)
+          && ((got as { rejected?: number }).rejected ?? 0) === (c.expect.rejected ?? 0)
         : JSON.stringify(got) === JSON.stringify(c.expect);
       // A refused batch may stop before the requests the old search went on to make.
       if (!ok || ("listings" in c.expect && JSON.stringify(urls) !== JSON.stringify(c.urls))) bad.push({ query: c.query, why: c.why, expect: c.expect, got, urls, oldUrls: c.urls });
@@ -120,16 +122,26 @@ describe("freelancer connector", () => {
     expect((await freelancerConnector(serving({ "AI agent": [project()] }).fetcher)).truncated).toBe(false);
   });
 
-  it("refuses the batch for a response that is not a success, not JSON, over the page size, or holds a project without identity", async () => {
-    const bodies = [
-      JSON.stringify({ status: "error" }), "<html>", body([project(), project({ id: 2 })], 2),
-      body([project(), project({ id: 2, description: "" })]), body([project({ status: "closed" })]), body([project({ seo_url: "../x" })]),
-      body([project({ id: 2 ** 53 })]),
-    ];
-    for (const b of bodies) {
+  it("refuses the batch for a response that is not a success, not JSON, or over the page size", async () => {
+    for (const b of [JSON.stringify({ status: "error" }), "<html>", body([project(), project({ id: 2 })], 2)]) {
       const { fetcher } = site({ [pageUrl("AI agent", 1, 0)]: [200, b] });
       await expect(searchQuery(fetcher, "AI agent", 1)).rejects.toThrow(/freelancer/);
     }
+  });
+
+  it("sets aside and counts a project without identity, keeping the others", async () => {
+    for (const bad of [{ description: "" }, { status: "closed" }, { seo_url: "../x" }, { seo_url: "no-slash" }, { id: 2 ** 53 }]) {
+      const { fetcher } = serving({ "AI agent": [project(), project({ id: 2, ...bad })] });
+      const got = await freelancerConnector(fetcher);
+      // seen: distinct projects read; examined: project entries checked, like rejected.
+      expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([1, 1, 2, ["42"]]);
+    }
+  });
+
+  it("counts a broken project returned by every query once per query in both rejected and examined", async () => {
+    const all = [project(), project({ id: 45, title: "Stripe API integration" }), project({ id: 2, description: "" })];
+    const got = await freelancerConnector(serving({ "AI agent": all, "API integration": all, "MVP web development": all }).fetcher);
+    expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([2, 3, 9, ["42", "45"]]);
   });
 
   it("refuses two different versions of a project with the same update time", async () => {
@@ -168,10 +180,19 @@ describe("freelancer intake", () => {
     expect((await collectSource(db, settings, NOW, fetcher)).externalIds).toEqual(["42"]);
   });
 
-  it("writes nothing when one project lacks its identity", async () => {
-    const { fetcher } = serving({ "AI agent": [project(), project({ id: 43, title: "" })] });
-    await expect(collectSource(db, settings, NOW, fetcher)).rejects.toThrow(/title/);
+  it("writes the others when one project lacks its identity, and nothing when most do", async () => {
+    const run = await collectSource(db, settings, NOW, serving({ "AI agent": [project(), project({ id: 43, title: "" })] }).fetcher);
+    expect([run.seen, run.rejected, run.examined, run.externalIds]).toEqual([1, 1, 2, ["42"]]);
+    await db.execute(sql`truncate listings cascade`);
+    const most = serving({ "AI agent": [project(), project({ id: 43, title: "" }), project({ id: 44, seo_url: "x" })] }).fetcher;
+    await expect(collectSource(db, settings, NOW, most)).rejects.toThrow(/2 of 3 listings refused/);
     expect(await listingBy(db, "freelancer", "42")).toBeNull();
+  });
+
+  it("writes the 2 good projects when one broken project comes back from all 3 queries", async () => {
+    const all = [project(), project({ id: 45, title: "Stripe API integration" }), project({ id: 2, description: "" })];
+    const run = await collectSource(db, settings, NOW, serving({ "AI agent": all, "API integration": all, "MVP web development": all }).fetcher);
+    expect([run.rejected, run.examined, run.externalIds]).toEqual([3, 9, ["42", "45"]]);
   });
 
   it("a second run of the same responses changes nothing", async () => {

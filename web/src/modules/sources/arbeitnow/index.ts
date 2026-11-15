@@ -1,14 +1,16 @@
 import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
+import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type SourceSettings } from "../types";
 
 // Arbeitnow: the official free job-board API, read page by page (old collection/arbeitnow.py,
 // web/src/modules/collection/sources/arbeitnow.ts until step 11). A listing without its identity
 // (slug, title, description, the board's own job URL) or without the fields the source's own rule
-// reads (job types, publication time) refuses the whole run, and so does a page whose envelope or
-// pagination evidence does not hold, or a scan cut short by the page cap: the old connector marked
-// each of those runs failed. Any other field the connector cannot read is unknown (plan D8). The
+// reads (job types, publication time) is set aside and counted in `rejected`, as the old connector
+// did (Will 2026-11-15; more than half set aside fails the source). A page whose envelope or
+// pagination evidence does not hold refuses the whole run; a scan cut short by the page cap is
+// written and marked truncated. Any other field the connector cannot read is unknown (plan D8). The
 // source's own rule keeps remote contract listings published in the last 90 days.
 
 export const ENDPOINT = "https://www.arbeitnow.com/api/job-board-api";
@@ -94,14 +96,14 @@ function kindOf(types: string[]): ListingInput["kind"] {
   return ["part time", "parttime", "freelance", "contract"].some((t) => types.includes(t)) ? "contract" : null;
 }
 
-/** One API entry in the contract; throws SourceError when its identity or a field the source's rule reads is missing. */
+/** One API entry in the contract; throws SourceError when its identity or a field the source's rule reads is missing (`setAside` sets that one listing aside). */
 export function normalize(entry: unknown): ListingInput {
   if (!isObject(entry)) throw new SourceError("arbeitnow: a listing is not an object");
   const slug = entry.slug;
   if (typeof slug !== "string" || !/^[A-Za-z0-9_-]{1,200}$/.test(slug)) throw new SourceError("arbeitnow: invalid slug");
   const link = canonicalJobUrl(entry.url, slug);
   if (link === null) throw new SourceError("arbeitnow: invalid canonical URL");
-  // A Unix time in seconds; the freshness rule reads it, so an unreadable one refuses the run.
+  // A Unix time in seconds; the freshness rule reads it, so a listing with an unreadable one is set aside.
   const stamp = entry.created_at;
   if (typeof stamp !== "number" || !Number.isSafeInteger(stamp) || stamp <= 0 || stamp > LAST_SECOND) throw new SourceError("arbeitnow: invalid publication time");
   const types = employmentTypes(entry.job_types);
@@ -117,7 +119,7 @@ export function normalize(entry: unknown): ListingInput {
   });
 }
 
-export type Page = { listings: ListingInput[]; count: number; next: string | null; meta: Record<string, unknown> };
+export type Page = { listings: ListingInput[]; rejected: number; examined: number; count: number; next: string | null; meta: Record<string, unknown> };
 
 /** One API page (`page` counts from 1): its listings and the pinned URL of the next page, or null. */
 export function parsePage(body: Uint8Array, page: number): Page {
@@ -131,7 +133,8 @@ export function parsePage(body: Uint8Array, page: number): Page {
   if (!isObject(data) || !Array.isArray(data.data) || data.data.length > MAX_PAGE_ENTRIES) throw new SourceError("arbeitnow: invalid API envelope");
   const meta = data.meta, entries = data.data as unknown[];
   if (!isObject(meta) || meta.current_page !== page) throw new SourceError("arbeitnow: unexpected pagination");
-  const listings = entries.map(normalize);
+  // Old arbeitnow.ts:108-115: a listing that fails to normalize is set aside and counted.
+  const { listings, rejected, examined } = setAside(entries, (e) => normalize(e));
   const links = data.links;
   if (!isObject(links) || !("next" in links)) throw new SourceError("arbeitnow: missing pagination evidence");
   let next: string | null = null;
@@ -144,7 +147,7 @@ export function parsePage(body: Uint8Array, page: number): Page {
     // The API may answer with a regional alias; requests stay pinned to the endpoint.
     next = `${ENDPOINT}?page=${page + 1}`;
   }
-  return { listings, count: entries.length, next, meta };
+  return { listings, rejected, examined, count: entries.length, next, meta };
 }
 
 const int = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v);
@@ -160,9 +163,9 @@ function consistent(p: Page, page: number, pageSize: number | null): boolean {
 
 /** Every page of the API: the listings seen (a job listed twice with the same content kept once, as its last entry). */
 /** Every page of the API up to the page cap; `truncated` when a next page remained (old: partial, what was read still written). */
-export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: ListingInput[]; truncated: boolean }> {
+export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: ListingInput[]; truncated: boolean; rejected: number; examined: number }> {
   const byId = new Map<string, ListingInput>();
-  let url: string | null = ENDPOINT, page = 1, seen = 0, pageSize: number | null = null;
+  let url: string | null = ENDPOINT, page = 1, seen = 0, rejected = 0, examined = 0, pageSize: number | null = null;
   while (url && page <= MAX_PAGES) {
     const r = await fetcher.get({
       url, maxBytes: MAX_BYTES, timeoutMs: 25_000,
@@ -172,6 +175,8 @@ export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: 
     if (!consistent(p, page, pageSize)) throw new SourceError(`arbeitnow: inconsistent pagination on page ${page}`);
     pageSize ??= p.meta.per_page as number;
     seen += p.count;
+    rejected += p.rejected;
+    examined += p.examined;
     for (const l of p.listings) {
       const previous = byId.get(l.external_id);
       if (previous && JSON.stringify(previous) !== JSON.stringify(l)) throw new SourceError("arbeitnow: listing changed during pagination");
@@ -180,7 +185,7 @@ export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: 
     url = p.next;
     page++;
   }
-  return { seen, listings: [...byId.values()], truncated: url !== null };
+  return { seen, listings: [...byId.values()], truncated: url !== null, rejected, examined };
 }
 
 /**
@@ -193,10 +198,10 @@ export function keep(l: ListingInput, now: Date): boolean {
 }
 
 export async function arbeitnowConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
-  const { seen, listings, truncated } = await scan(fetcher);
+  const { seen, listings, truncated, rejected, examined } = await scan(fetcher);
   // Old arbeitnow.ts:200 `exists ||`: stored listings are refreshed whatever the rule says.
   const kept = listings.filter((l) => keep(l, now));
-  return { seen, listings: kept, others: listings.filter((l) => !kept.includes(l)), truncated };
+  return { seen, listings: kept, others: listings.filter((l) => !kept.includes(l)), truncated, rejected, examined };
 }
 
 /** Catalog entry without its order (the orchestrator wires it): up to 20 pages, 3 s apart (old arbeitnow.ts:146,155). */
