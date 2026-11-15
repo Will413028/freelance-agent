@@ -14,7 +14,7 @@ export type FeedbackState = (typeof FEEDBACK_STATES)[number];
 export type RankFacts = Pick<Facts, "category" | "categoryScore" | "hardExcluded" | "confirmedBase" | "fixedTwdMax" | "publishedAt" | "deadlineAt">
   & { fingerprint: string; weeklyHours: number | null };
 
-export type Rankable = { id: number; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
+export type Rankable = { id: number; firstSeenAt: Date; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
 
 const DAY_MS = 86_400_000;
 export const RECENT_MS = 2 * DAY_MS;
@@ -47,7 +47,7 @@ export function freshTenths(publishedAt: Date | null, now: Date): 0 | 60 | 100 {
 export const optionTenths = (f: RankFacts, s: Settings, now: Date) =>
   f.categoryScore * 7 + 25 * (f.confirmedBase + (hoursOk(f, s) ? 1 : 0)) + freshTenths(f.publishedAt, now);
 
-export type Ranked = { id: number; candidate: boolean; scoreTenths: number; basis: string };
+export type Ranked = { id: number; firstSeenAt: Date; candidate: boolean; scoreTenths: number; basis: string };
 
 /**
  * The best still-possible content (the listing or one of its differing versions) gives the score; when
@@ -64,12 +64,13 @@ export function rank(r: Rankable, s: Settings, now: Date): Ranked {
   }
   return {
     id: r.id,
+    firstSeenAt: r.firstSeenAt,
     candidate: possible.length > 0 && r.feedback !== "skipped",
     scoreTenths: Math.min(1000, bestTenths + (r.feedback === "interested" ? 100 : 0)),
     basis: best.fingerprint,
   };
 }
 
-/** Rank order: candidates first, then the higher score, then the id. */
+/** Rank order: candidates first, then the higher score, then the newer listing (first_seen_at, Will 2026-11-15), then the higher id. */
 export const byRank = (a: Ranked, b: Ranked) =>
-  Number(b.candidate) - Number(a.candidate) || b.scoreTenths - a.scoreTenths || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  Number(b.candidate) - Number(a.candidate) || b.scoreTenths - a.scoreTenths || b.firstSeenAt.getTime() - a.firstSeenAt.getTime() || b.id - a.id;

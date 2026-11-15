@@ -41,7 +41,7 @@ describe("recommendation", () => {
 
   it("scores as ranking over the stored facts scores", () => {
     const disagree = recommendationFixtures.cases.filter((c) => {
-      const r = rank({ id: 1, feedback: c.feedback as FeedbackState, listing: rankFactsOf(c.listing.fingerprint, listing(c.listing.input)), versions: [] }, c.settings as Settings, now);
+      const r = rank({ id: 1, firstSeenAt: new Date(0), feedback: c.feedback as FeedbackState, listing: rankFactsOf(c.listing.fingerprint, listing(c.listing.input)), versions: [] }, c.settings as Settings, now);
       return r.scoreTenths !== Math.round(c.expect.score * 10);
     });
     expect(disagree.map((c) => c.index)).toEqual([]);
