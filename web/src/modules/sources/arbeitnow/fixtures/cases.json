@@ -2722,8 +2722,9 @@
     ]
    },
    "expect": {
-    "error": true
-   }
+    "listing": true
+   },
+   "why": "a listing changed during pagination is kept as last read (Will 2026-11-15)"
   },
   {
    "input": {
