@@ -42,6 +42,8 @@ export type Connector = (fetcher: Fetcher, now: Date) => Promise<Collected>;
 /** A source as configured (plan step 4, inventory: one entry per source). */
 export type SourceSettings = FetchPolicy & {
   name: string;
+  /** What a page shows for the source. */
+  label: string;
   /** Order in the daily run. */
   order: number;
   connector: Connector;

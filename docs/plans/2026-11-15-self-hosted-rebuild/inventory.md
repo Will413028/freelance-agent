@@ -1,6 +1,6 @@
 # 盤點：現行系統（`web/`，快照 `0f38208`）每一項的去向
 
-檢查：`python3 docs/plans/2026-10-23-nextjs-vercel-migration/check_inventory.py --files docs/plans/2026-11-15-self-hosted-rebuild/inventory.md`（每列去向以一個標籤開頭；「改寫」「只搬資料」要寫步驟）。
+檢查：`python3 docs/plans/2026-11-15-self-hosted-rebuild/check_inventory.py`（每列去向以一個標籤開頭；「改寫」「只搬資料」要寫步驟）。
 
 「延後」指主計畫的「範圍 → 延後」段。列數來源：2026-11-15 對正式 D1 唯讀計數（`cf d1 query <正式庫 id> --sql "select count(*) …"`，每 5 張表一批）。
 
@@ -90,7 +90,8 @@
 | 回饋與設定的舊寫入 | `web/src/modules/preferences/` | 取代：步驟 3 的 `web/src/modules/review/` |
 | 每日一次的 claim | `web/src/modules/notifications/` | 改寫：步驟 6（唯一鍵加交易；`web/src/modules/runs/`）。舊檔：`web/src/modules/notifications/` |
 | 網頁寫入守門（同站來源、格式、大小） | `web/src/app/_lib/guard.ts` | 改寫：步驟 3 原樣搬，測試照留（檔案保留） |
-| 舊來源 connector、來源目錄、信件同步與 Resend Receiving client（只送 GET） | `web/src/modules/collection/` | 改寫：步驟 4、5、7 逐來源搬到 `web/src/modules/sources/`，來源顯示名稱在步驟 11 搬到 `web/src/modules/sources/names.ts`；還沒搬的來源（5b、5c、7、8）照 `connector-checklist.md` 從 `git show ce1254d:<路徑>` 改寫，限制不變。舊檔：`web/src/modules/collection/` |
+| 舊來源 connector、來源目錄、信件同步與 Resend Receiving client（只送 GET） | `web/src/modules/collection/` | 改寫：步驟 4、5、7 逐來源搬到 `web/src/modules/sources/`，來源顯示名稱在步驟 11 搬成 `web/src/modules/sources/catalog.ts` 每筆的 `label`；還沒搬的來源（5b、5c、7、8）照 `connector-checklist.md` 從 `git show ce1254d:<路徑>` 改寫，限制不變。舊檔：`web/src/modules/collection/` |
+| Python 時間解析語意（`fromisoformat`、`parsedate_to_datetime` 的邊角形式） | `web/src/modules/listings/legacy-time.ts`、`web/src/modules/sources/shared/time.ts`、`web/src/modules/sources/shared/parsedate.fixtures.json` | 改寫：步驟 12 換成標準解析器、fixture 只留各來源實際送出的格式；golden 已刪（步驟 11），「與 Python 一致」不再有比對對象，留著只為延續性（步驟 11 design-review 發現）。觸發：步驟 12 收尾，或任一來源因邊角形式解析錯誤時先做 |
 | Vercel Workflow 的建置外掛與相依套件 | `web/next.config.ts` 的 `withWorkflow`；`web/package.json` 的 `workflow`、`@vercel/functions`、`test:d1` | 改寫：步驟 11 拿掉（檔案保留） |
 
 ## 環境變數與外部資源

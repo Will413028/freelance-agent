@@ -187,5 +187,5 @@ export async function taiwanjobsConnector(fetcher: Fetcher, now: Date): Promise<
 
 /** One request per run (old taiwanjobs.ts:150, a single GET of ENDPOINT). */
 export const TAIWANJOBS_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "taiwanjobs", connector: taiwanjobsConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
+  label: "台灣就業通", name: "taiwanjobs", connector: taiwanjobsConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

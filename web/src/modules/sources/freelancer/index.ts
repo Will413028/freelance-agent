@@ -168,5 +168,5 @@ export async function freelancerConnector(fetcher: Fetcher): Promise<Collected> 
  * needs about 20 s plus the answers.
  */
 export const FREELANCER_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "freelancer", connector: freelancerConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: QUERIES.length * MAX_PAGES, completeRead: false, disabled: null,
+  label: "Freelancer", name: "freelancer", connector: freelancerConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: QUERIES.length * MAX_PAGES, completeRead: false, disabled: null,
 };

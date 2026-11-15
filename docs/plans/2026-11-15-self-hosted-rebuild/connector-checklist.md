@@ -5,7 +5,7 @@
 ## 1. 位置與設定
 
 - 程式放 `web/src/modules/sources/<來源或來源族>/`，`index.ts` 匯出 connector（`(fetcher, now) => Promise<{ seen, listings }>`）。共用的解析放 `sources/shared/`，來源之間不互相 import。
-- `web/src/modules/sources/catalog.ts` 加一筆：`name`、`order`、`maxTier`（步驟 8 之前都是 `"plain"`，名稱與 `run_sources.tier` 相同）、`minIntervalMs`（≥ 1000）、`maxRequestsPerRun`（這個來源一次執行最多送幾個請求）、`disabled`（長期被擋時寫原因，否則 `null`）。`catalog.test.ts` 會擋缺項。
+- `web/src/modules/sources/catalog.ts` 加一筆：`name`、`label`（頁面顯示的名稱，舊名稱用 `git show ce1254d:web/src/modules/collection/source-catalog.ts` 查）、`order`、`maxTier`（步驟 8 之前都是 `"plain"`，名稱與 `run_sources.tier` 相同）、`minIntervalMs`（≥ 1000）、`maxRequestsPerRun`（這個來源一次執行最多送幾個請求）、`disabled`（長期被擋時寫原因，否則 `null`）。`catalog.test.ts` 會擋缺項。
 - 一天只有一次每日執行（`runs` 以台北日期 claim），所以「每次執行上限」就是排程的每日上限；手動 `run-source.ts` 最多再多一次執行的量。
 - 讀取只經 `createFetcher(設定)` 拿到的 `Fetcher`，不直接呼叫 `fetch`：間隔、上限、逾時、大小上限、不跟隨轉址、錯誤種類（`invalid_url`、`network`、`timeout`、`http_status`、`too_large`、`request_limit`）都在那裡。
 - 不 import `@/platform/py/`（`pnpm boundaries` 的 `sources-are-native` 規則擋；`fixtures/` 底下的產生器例外，因為要讀 `golden.json`）。HTML 轉文字用 `shared/html.ts`（cheerio，照 HTML 標準解析）；時間用 `shared/time.ts`。

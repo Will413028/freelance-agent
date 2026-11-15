@@ -3,8 +3,7 @@ import { SaxesParser } from "saxes";
 // A strict XML 1.0 + namespaces element tree, the parts ElementTree.fromstring(str) gave the old
 // connector: tag ('{uri}local' with a namespace), text before the first child, attributes without
 // xmlns declarations, children. Callers refuse DOCTYPE and ENTITY before parsing; a DTD is never read.
-// Native counterpart of platform/py/xml.ts's string path (same saxes options), which sources may not
-// import. It and shared/xml-feed.ts are two shapes over the same saxes options; step 5b merges them
+// It and shared/xml-feed.ts are two shapes over the same saxes options; step 5b merges them
 // into shared/ (plan step 5 progress row).
 
 export type XmlElement = { tag: string; text: string | null; attrib: Map<string, string>; children: XmlElement[] };

@@ -32,11 +32,11 @@ const HEADERS = { "User-Agent": "side-income/0.1 personal-job-discovery" };
 const keepAll = () => true;
 
 export const HACKERNEWS_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "hackernews", connector: hackernewsConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + 6 + 2 * 100, completeRead: false, disabled: null,
+  label: "Hacker News", name: "hackernews", connector: hackernewsConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + 6 + 2 * 100, completeRead: false, disabled: null,
 };
 /** Old community-jobs.ts:140: one feed request. */
 export const V2EX_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
+  label: "V2EX", name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };

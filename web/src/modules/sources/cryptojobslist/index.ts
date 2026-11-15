@@ -24,7 +24,7 @@ const MEDIA = "{http://search.yahoo.com/mrss/}";
 
 /** Old cryptojobslist.ts:117 sends one GET per run. */
 export const CRYPTOJOBSLIST_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "cryptojobslist", connector: cryptojobslistConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
+  label: "CryptoJobsList", name: "cryptojobslist", connector: cryptojobslistConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 
 /**

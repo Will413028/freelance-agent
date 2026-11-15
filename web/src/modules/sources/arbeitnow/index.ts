@@ -209,5 +209,5 @@ export async function arbeitnowConnector(fetcher: Fetcher, now: Date): Promise<C
 
 /** Catalog entry without its order (the orchestrator wires it): up to 20 pages, 3 s apart (old arbeitnow.ts:146,155). */
 export const ARBEITNOW_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "arbeitnow", connector: arbeitnowConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: MAX_PAGES, completeRead: true, disabled: null,
+  label: "Arbeitnow", name: "arbeitnow", connector: arbeitnowConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: MAX_PAGES, completeRead: true, disabled: null,
 };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SOURCE_LABELS, SOURCES, sourceLabel, sourceSettings } from "./public";
+import { SOURCES, sourceLabel, sourceSettings } from "./public";
 
 // Plan step 4, global done-definition: every source has a request interval and a per-run cap.
 describe("source catalog", () => {
@@ -23,8 +23,12 @@ describe("source catalog", () => {
   });
 
   it("gives every source a page label, and falls back to the name", () => {
-    expect(SOURCES.filter((s) => !Object.hasOwn(SOURCE_LABELS, s.name)).map((s) => s.name)).toEqual([]);
-    expect(sourceLabel("jobbank104")).toBe("104 人力銀行");
+    // The old catalog's names (ce1254d web/src/modules/collection/source-catalog.ts).
+    expect(Object.fromEntries(SOURCES.map((s) => [s.name, s.label]))).toEqual({
+      remotive: "Remotive", jobicy: "Jobicy", freelancer: "Freelancer", himalayas: "Himalayas", hackernews: "Hacker News", v2ex: "V2EX",
+      taiwanjobs: "台灣就業通", arbeitnow: "Arbeitnow", getonboard: "Get on Board", cryptojobslist: "CryptoJobsList",
+    });
+    expect(sourceLabel("hackernews")).toBe("Hacker News");
     expect(sourceLabel("constructor")).toBe("constructor");
   });
 });

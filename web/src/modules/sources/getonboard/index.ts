@@ -165,7 +165,7 @@ export async function getonboardConnector(fetcher: Fetcher, now: Date): Promise<
 }
 
 export const GETONBOARD_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "getonboard", connector: getonboardConnector, maxTier: "plain",
+  label: "Get on Board", name: "getonboard", connector: getonboardConnector, maxTier: "plain",
   // Old: 600 ms before each search page (collection/sources/getonboard.ts:90), raised to the 1 s floor.
   minIntervalMs: 1000,
   // Old: the modality taxonomy plus up to 10 search pages (collection/sources/getonboard.ts:83, 89).

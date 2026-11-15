@@ -153,7 +153,7 @@ def check_residue(path, errors):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('--files', nargs='+', type=Path, help='inventory files to check (default: both inventories)')
+    ap.add_argument('--files', nargs='+', type=Path, help='inventory files to check (default: inventory.md)')
     ap.add_argument('--residue', type=Path, help='file holding `rg -n -l` output to check against allowed-residue.md')
     args = ap.parse_args()
     errors = []
@@ -162,7 +162,7 @@ def main():
         counts = check_tables(f, errors)
         summary = ', '.join(f'{t} {counts[t]}' for t in TAGS)
         print(f'{f.name}: {sum(counts.values())} rows — {summary}')
-        if f.name.startswith('inventory-surface'):
+        if DEFECT_HEADING in f.read_text(encoding='utf-8'):
             print(f'{f.name}: {check_defects(f, errors)} defects')
     if args.residue:
         check_residue(args.residue, errors)
