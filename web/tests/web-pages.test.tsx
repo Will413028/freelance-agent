@@ -1,32 +1,42 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ingestSource, opportunityId, type Listing } from "@/modules/collection/public";
-import { readSettings } from "@/modules/discovery/public";
+import { eq, sql } from "drizzle-orm";
+import type { PgDb } from "@/db/pg/client";
+import { listingFeedback, listingFeedbackEvents } from "@/db/pg/schema";
+import { readSettings } from "@/modules/evaluation/public";
+import { intakeListings, listingId } from "@/modules/listings/public";
+import { setFeedback } from "@/modules/review/public";
 import { NotFound } from "@/platform/errors";
-import { PyDateTime } from "@/platform/py/datetime";
-import { track } from "@/services/discovery";
-import { jobDetail, listJobs, listQuery, PAGE_SIZE, settingsPage, sourcesPage } from "@/services/pages";
+import { jobDetail, listJobs, listQuery, PAGE_SIZE, settingsPage } from "@/services/pages";
 import { handleFeedback, handleSettings, type WriteDeps } from "@/app/_lib/writes";
-import { JobDetail, JobList, SettingsForm, SourcesTable } from "@/app/_lib/views";
-import { db, leased, query, resetSchema } from "./helpers/db";
-import { job } from "./helpers/jobs";
+import { JobDetail, JobList, SettingsForm } from "@/app/_lib/views";
+import { freshPg } from "./helpers/pg";
 
-// Plan step 11: the pages' loaders, the two write routes and the markup, on the D1 stand-in.
+// Plan step 3c: the list, detail and settings pages' loaders, the two write routes and the markup, on
+// Postgres (PGlite here, a real server in CI). Each case of the step 11 D1 version has its
+// counterpart here; /sources and the D1 usage log stay on D1 in tests/web-sources.test.tsx.
 
-const now = new PyDateTime(2026, 11, 3, 2, 0, 0, 0, 0n);
-const key = (externalId: string) => opportunityId("tasker", externalId);
-const listing = (externalId: string, changes: Record<string, unknown> = {}): Listing =>
-  [job({ source: "tasker", external_id: externalId, ...changes }), null];
-
-beforeEach(async () => {
-  await resetSchema();
-  const many = Array.from({ length: PAGE_SIZE + 5 }, (_, i) => listing(`c${String(i).padStart(3, "0")}`));
-  await ingestSource(db, "tasker", now, [...many, listing("liked"), listing("skipped"), listing("design", { title: "Logo design", description: "Brand refresh" })], () => true, "ok");
-  await track(db, key("liked"), 0n, { feedback: "interested" }, now);
-  await track(db, key("skipped"), 0n, { feedback: "skipped" }, now);
+const SOURCE = "jobicy";
+const now = new Date("2026-11-03T02:00:00Z");
+const key = (externalId: string) => listingId(SOURCE, externalId);
+const job = (externalId: string, changes: Record<string, unknown> = {}) => ({
+  external_id: externalId, title: "Backend API contractor", description: "Build an LLM automation backend",
+  url: `https://example.com/jobs/${externalId}`, kind: "contract", published_at: "2026-11-02T00:00:00Z", ...changes,
 });
 
-const deps = (): WriteDeps => ({ db, now: () => now });
+let db: PgDb, close: () => Promise<void>;
+beforeAll(async () => ({ db, close } = await freshPg()));
+afterAll(async () => close());
+
+beforeEach(async () => {
+  await db.execute(sql`truncate listings, settings cascade`);
+  const many = Array.from({ length: PAGE_SIZE + 5 }, (_, i) => job(`c${String(i).padStart(3, "0")}`));
+  await intakeListings(db, SOURCE, [...many, job("liked"), job("skipped"), job("design", { title: "Logo design", description: "Brand refresh" })], "page", now);
+  await setFeedback(db, key("liked"), "0", "interested", now);
+  await setFeedback(db, key("skipped"), "0", "skipped", now);
+});
+
+const deps = (): WriteDeps => ({ db: () => db, now: () => now });
 const form = (path: string, fields: [string, string][], headers: Record<string, string> = {}) =>
   new Request(`https://fa.example${path}`, {
     method: "POST",
@@ -35,7 +45,7 @@ const form = (path: string, fields: [string, string][], headers: Record<string, 
   });
 const feedbackForm = (id: string, token: string, value: string, headers: Record<string, string> = {}) =>
   form(`/jobs/${id}/feedback`, [["token", token], ["value", value], ["back", `/jobs/${id}`]], headers);
-const trackingOf = async (id: string) => (await query("select state from opportunity_tracking where opportunity_id = ?1", [id]))[0]?.state ?? null;
+const feedbackOf = async (id: string) => (await db.select().from(listingFeedback).where(eq(listingFeedback.listingId, id)))[0]?.state ?? null;
 const settingsFields = (revision: string, hours = "20"): [string, string][] =>
   [["revision", revision], ["max_weekly_hours", hours], ["min_fixed_twd", "3000"], ["categories", "AI agent"], ["categories", "後端／API"], ["back", "/settings"]];
 
@@ -60,6 +70,16 @@ describe("list and detail", () => {
     expect(all.at(-1)!.candidate).toBe(false);
   });
 
+  it("re-ranks after a settings save: a category left out leaves the candidates", async () => {
+    expect((await listJobs(db, now, "candidates", 1)).jobs.length).toBe(PAGE_SIZE);
+    const s = await readSettings(db);
+    const category = (await jobDetail(db, now, key("c000"))).category;
+    const save = await handleSettings(form("/settings/save", [["revision", String(s.revision)], ["max_weekly_hours", "30"], ["min_fixed_twd", "3000"],
+      ...s.settings.categories.filter((c) => c !== category).map((c): [string, string] => ["categories", c])]), deps());
+    expect(save.status).toBe(303);
+    expect((await listJobs(db, now, "candidates", 1)).jobs).toHaveLength(0);
+  });
+
   it("reads the query: unknown views and bad pages fall back to the first page of the candidates", () => {
     expect(listQuery({ view: "saved", page: "2" })).toEqual({ view: "saved", page: 2 });
     expect(listQuery({ view: "evil", page: "0" })).toEqual({ view: "candidates", page: 1 });
@@ -69,8 +89,58 @@ describe("list and detail", () => {
   it("shows one listing with its token, and a missing one is NotFound", async () => {
     const detail = await jobDetail(db, now, key("liked"));
     expect(detail.feedback).toBe("interested");
-    expect(detail.token).toMatch(/:1$/);
+    expect(detail.token).toBe("1");
+    expect((await jobDetail(db, now, key("c000"))).token).toBe("0");
     await expect(jobDetail(db, now, "missing")).rejects.toBeInstanceOf(NotFound);
+  });
+
+  it("keeps unknown as unknown: no hours, no budget and no deadline are open questions, not exclusions", async () => {
+    const detail = await jobDetail(db, now, key("c000"));
+    expect(detail.status).toBe("needs_info");
+    expect(detail.questions).toEqual(expect.arrayContaining(["確認每週工時，需包含溝通與修改", "確認台灣接案資格", "確認申請截止時間與交付時程"]));
+    const html = renderToStaticMarkup(<JobDetail job={detail} />);
+    expect(html).toContain("<dd>待確認</dd>");
+    expect(html).toContain("報酬待確認");
+  });
+
+  it("shows a mail listing's differing contents, the stored one first, and ranks by the possible one", async () => {
+    await intakeListings(db, "mail_src", [job("m1", { weekly_hours: 50 })], "mail", now);
+    await intakeListings(db, "mail_src", [job("m1", { weekly_hours: 10 })], "mail", new Date(now.getTime() + 1000));
+    const detail = await jobDetail(db, now, listingId("mail_src", "m1"));
+    expect(detail.job.weekly_hours).toBe(50);
+    expect(detail.status).toBe("excluded");
+    expect(detail.conflict!.changedFields).toEqual(["weekly_hours"]);
+    expect(detail.conflict!.versions.map((v) => [v.original, v.job.weekly_hours, v.status])).toEqual([[true, 50, "excluded"], [false, 10, "needs_info"]]);
+    expect(detail.rankReasons).toContain("通知內容有差異；依可能符合的一份排序，需核對原文");
+    const html = renderToStaticMarkup(<JobDetail job={detail} />);
+    expect(html).toContain("差異欄位：每週工時");
+    expect(html).toContain("現有紀錄");
+    expect(detail.rankedOn).toBe(detail.conflict!.versions[1].fingerprint);
+    expect(html).toContain("推薦分依另一份通知內容計算");
+    expect((await jobDetail(db, now, key("c000"))).rankedOn).toBeNull();
+    const listed = (await listJobs(db, now, "candidates", 1)).jobs.find((j) => j.id === listingId("mail_src", "m1"));
+    expect(listed?.candidate).toBe(true);
+  });
+});
+
+describe("page edges", () => {
+  it("says where the difference is when no shown field differs", async () => {
+    await intakeListings(db, "mail_src", [job("m2", { published_at: "2026-11-01T00:00:00Z" })], "mail", now);
+    await intakeListings(db, "mail_src", [job("m2")], "mail", now);
+    const detail = await jobDetail(db, now, listingId("mail_src", "m2"));
+    expect(detail.conflict!.changedFields).toEqual([]);
+    expect(renderToStaticMarkup(<JobDetail job={detail} />)).toContain("差異在這裡未列出的欄位");
+  });
+
+  it("answers the 500 page when the database cannot be reached", async () => {
+    const errors = console.error;
+    console.error = () => {};
+    try {
+      const response = await handleFeedback(feedbackForm(key("c000"), "0", "interested"), key("c000"), { db: () => { throw new Error("DATABASE_URL must be set"); }, now: () => now });
+      expect(response.status).toBe(500);
+    } finally {
+      console.error = errors;
+    }
   });
 });
 
@@ -84,6 +154,16 @@ describe("feedback route", () => {
     const stale = await handleFeedback(feedbackForm(key("c000"), detail.token, "skipped"), key("c000"), deps());
     expect(stale.status).toBe(409);
     expect((await jobDetail(db, now, key("c000"))).feedback).toBe("interested");
+    // Every accepted write is one event, at its revision.
+    const events = await db.select().from(listingFeedbackEvents).where(eq(listingFeedbackEvents.listingId, key("c000")));
+    expect(events.map((e) => [e.revision, e.state])).toEqual([[1, "interested"]]);
+  });
+
+  it("refuses a token ahead of the stored revision and a malformed one", async () => {
+    for (const token of ["1", "01", "-1", "x", ""]) {
+      expect((await handleFeedback(feedbackForm(key("c000"), token, "interested"), key("c000"), deps())).status, token).toBe(409);
+    }
+    expect(await feedbackOf(key("c000"))).toBeNull();
   });
 
   it("restores a skipped listing to the candidates", async () => {
@@ -97,11 +177,11 @@ describe("feedback route", () => {
   it("answers 400 to an unknown value, 404 to a missing listing, 403 to another origin and 413 past the limit", async () => {
     const detail = await jobDetail(db, now, key("c000"));
     expect((await handleFeedback(feedbackForm(key("c000"), detail.token, "applied"), key("c000"), deps())).status).toBe(400);
-    expect((await handleFeedback(feedbackForm("missing", "x", "interested"), "missing", deps())).status).toBe(404);
+    expect((await handleFeedback(feedbackForm("missing", "0", "interested"), "missing", deps())).status).toBe(404);
     expect((await handleFeedback(feedbackForm(key("c000"), detail.token, "interested", { origin: "https://evil.example" }), key("c000"), deps())).status).toBe(403);
     const big = form(`/jobs/${key("c000")}/feedback`, [["token", detail.token], ["value", "interested"], ["pad", "x".repeat(20_000)]]);
     expect((await handleFeedback(big, key("c000"), deps())).status).toBe(413);
-    expect(await trackingOf(key("c000"))).toBeNull();
+    expect(await feedbackOf(key("c000"))).toBeNull();
   });
 
   it("un-saving says so, not 'restored'", async () => {
@@ -118,12 +198,19 @@ describe("feedback route", () => {
     }
   });
 
-  it("answers 500 with 'result unknown', not 400, when stored data is corrupt", async () => {
-    const detail = await jobDetail(db, now, key("liked"));
-    await leased("update opportunity_tracking set state = '{bad' where opportunity_id = ?1", [key("liked")]);
-    const response = await handleFeedback(feedbackForm(key("liked"), detail.token, "unsave"), key("liked"), deps());
-    expect(response.status).toBe(500);
-    expect(await response.text()).toContain("結果未知");
+  it("answers 500 with 'result unknown', not 400, when stored data is inconsistent", async () => {
+    // An event at revision 1 without its feedback row: the write's own event collides with it.
+    await db.insert(listingFeedbackEvents).values({ listingId: key("c000"), revision: 1, state: "skipped" });
+    const errors = console.error;
+    console.error = () => {};
+    try {
+      const response = await handleFeedback(feedbackForm(key("c000"), "0", "interested"), key("c000"), deps());
+      expect(response.status).toBe(500);
+      expect(await response.text()).toContain("結果未知");
+    } finally {
+      console.error = errors;
+    }
+    expect(await feedbackOf(key("c000"))).toBeNull();
   });
 
   it("sends the person back only within the site", async () => {
@@ -143,14 +230,24 @@ describe("settings route", () => {
     expect(after).toMatchObject({ revision: 1, maxWeeklyHours: 20, minFixedTwd: 3000, categories: ["AI agent", "後端／API"] });
     expect((await handleSettings(form("/settings/save", settingsFields(String(before.revision), "30")), deps())).status).toBe(409);
     expect((await settingsPage(db)).maxWeeklyHours).toBe(20);
+    // A revision ahead of the stored one is refused too, and so is a first save once one exists.
+    expect((await handleSettings(form("/settings/save", settingsFields("5", "30")), deps())).status).toBe(409);
+    expect((await settingsPage(db)).revision).toBe(1);
   });
 
-  it("leaves the ranges to preferences(): out of range and not an integer are both 400", async () => {
+  it("refuses a revision other than 0 before the first save", async () => {
+    expect((await handleSettings(form("/settings/save", settingsFields("1")), deps())).status).toBe(409);
+    expect((await readSettings(db)).revision).toBe(0);
+  });
+
+  it("leaves the ranges to validSettings(): out of range and not an integer are both 400", async () => {
     expect((await handleSettings(form("/settings/save", settingsFields("0", "200")), deps())).status).toBe(400);
     expect((await handleSettings(form("/settings/save", settingsFields("0", "2.5")), deps())).status).toBe(400);
     const none = form("/settings/save", [["revision", "0"], ["max_weekly_hours", ""], ["min_fixed_twd", "3000"]]);
     expect((await handleSettings(none, deps())).status).toBe(400);
-    expect((await readSettings(db)).revision).toBe(0n);
+    const unknown = form("/settings/save", [["revision", "0"], ["max_weekly_hours", ""], ["min_fixed_twd", "3000"], ["categories", "設計"]]);
+    expect((await handleSettings(unknown, deps())).status).toBe(400);
+    expect((await readSettings(db)).revision).toBe(0);
   });
 
   it("an empty hours field means no limit", async () => {
@@ -169,23 +266,14 @@ describe("markup", () => {
     }
   });
 
-  it("links the record's own URL and every content version's source", async () => {
+  it("links the listing's own URL as its source", async () => {
     const detail = await jobDetail(db, now, key("c000"));
-    const html = renderToStaticMarkup(<JobDetail job={{ ...detail, job: { ...detail.job, url: "https://other.example/v2" } }} />);
-    expect(html).toContain('href="https://www.freelancer.com/projects/example-c000"');
-  });
-
-  it("shows a long location list as its first entries and its size", async () => {
-    const detail = await jobDetail(db, now, key("c000"));
-    const countries = Array.from({ length: 30 }, (_, i) => `C${i}`);
-    const html = renderToStaticMarkup(<JobDetail job={{ ...detail, job: { ...detail.job, location_evidence: countries } }} />);
-    expect(html).toContain("C0、C1");
-    expect(html).toContain("等 30 項");
-    expect(html).not.toContain("C29");
+    const html = renderToStaticMarkup(<JobDetail job={detail} />);
+    expect(html).toContain('href="https://example.com/jobs/c000"');
   });
 
   it("escapes listing text and links only https listing URLs", async () => {
-    await ingestSource(db, "tasker", now, [listing("x", { title: "<script>alert(1)</script>", url: "javascript:alert(1)" })], () => true, "ok");
+    await intakeListings(db, SOURCE, [job("x", { title: "<script>alert(1)</script>", url: "javascript:alert(1)" })], "page", now);
     const html = renderToStaticMarkup(<JobDetail job={await jobDetail(db, now, key("x"))} />);
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
@@ -193,60 +281,5 @@ describe("markup", () => {
     const list = renderToStaticMarkup(<JobList data={await listJobs(db, now, "candidates", 1)} />);
     expect(list).toContain(`href="/jobs/${key("liked")}"`);
     expect(list).toContain('href="/?view=candidates&amp;page=2"');
-  });
-
-  it("shows the latest daily run and each source's daily details", async () => {
-    await leased("insert into daily_runs values ('2026-11-03', 'running', '2026-11-03T01:00:00+00:00', null, null)");
-    await leased("insert into daily_runs values ('2026-11-02', 'failed', '2026-11-02T01:00:00+00:00', '2026-11-02T01:05:00+00:00', ?1)",
-      [JSON.stringify({ status: "source_failed", source_reason: "one_or_more_sources_failed", source_details: { status: "failed", reason: "x", tasker: { status: "ok", seen: 12, jobs: 3 }, freelancer: { status: "partial", seen: 4 }, arbeitnow: { status: "failed", reason: "arbeitnow_source_unavailable_or_unsupported", error: "http_429" } } })]);
-    const running = await sourcesPage(db);
-    expect(running.lastRun).toMatchObject({ localDate: "2026-11-03", status: "running" });
-    expect(renderToStaticMarkup(<SourcesTable data={running} />)).toContain("執行中，需核對是否中斷");
-    await leased("delete from daily_runs where local_date = '2026-11-03'");
-    const html = renderToStaticMarkup(<SourcesTable data={await sourcesPage(db)} />);
-    expect(html).toContain("讀取 12 筆 · 初篩 3 筆");
-    expect(html).toContain("one_or_more_sources_failed");
-    expect(html).toContain("部分資料取得 · 讀取 4 筆");
-    expect(html).toContain("錯誤種類 http_429 · 原因 arbeitnow_source_unavailable_or_unsupported");
-  });
-
-  // Plan step 14: nothing runs check-storage-triggers daily any more, so the page shows the last week's signals.
-  it("shows the storage signals of the runs in the week up to the latest one, and says when there are none", async () => {
-    const run = (date: string, usage: object) => leased("insert into daily_runs values (?1, 'complete', ?2, ?2, ?3)",
-      [date, `${date}T01:00:00+00:00`, JSON.stringify({ status: "collected", d1_requests: 80, lease_wait_ms: 0, lease_timeouts: 0, lease_lost: 0, d1_errors: {}, lost_steps: 0, ...usage })]);
-    await run("2026-11-10", {});
-    await run("2026-11-09", { lost_steps: 1 });
-    const quiet = await sourcesPage(db);
-    expect(quiet.signals).toEqual({ runs: 2, reopened: [] });
-    expect(renderToStaticMarkup(<SourcesTable data={quiet} />)).toContain("近 7 天 2 次執行沒有訊號");
-    await run("2026-11-03", { lease_timeouts: 5 });
-    await run("2026-11-04", { d1_requests: 601 });
-    await run("2026-11-08", { cross_source_title_pairs: 3 });
-    const loud = await sourcesPage(db);
-    expect(loud.signals.runs).toBe(4);
-    expect(loud.signals.reopened.map((s) => [s.localDate, s.decision, s.signal, s.value])).toEqual([
-      ["2026-11-04", "D21", "requests_over_limit", 601], ["2026-11-08", "D18", "cross_source_title_pairs", 3]]);
-    const html = renderToStaticMarkup(<SourcesTable data={loud} />);
-    expect(html).toContain("2026-11-04 · 單次執行的 D1 請求數超過 600：601");
-    expect(html).toContain("2026-11-08 · 跨來源同職稱達 3 組：3");
-    expect(html).not.toContain("沒有訊號");
-  });
-});
-
-describe("page usage log", () => {
-  it("logs each page request's D1 usage, also when it throws", async () => {
-    const { withPageDb } = await import("@/app/_lib/usage");
-    const lines: string[] = [];
-    const original = console.info;
-    console.info = (line: string) => { lines.push(line); };
-    try {
-      await withPageDb("/settings", settingsPage, db);
-      await expect(withPageDb("/jobs/[id]", (d) => jobDetail(d, now, "missing"), db)).rejects.toBeInstanceOf(NotFound);
-    } finally {
-      console.info = original;
-    }
-    // The test database's client is shared, so its counters include earlier tests; a page gets a fresh one.
-    expect(lines[0]).toMatch(/^page usage \/settings outcome=ok ms=\d+ d1_requests=[1-9]\d* rows_read=\d+ rows_written=\d+ read_retries=\d+ lease_wait_ms=\d+$/);
-    expect(lines[1]).toMatch(/^page usage \/jobs\/\[id\] outcome=KeyError /);
   });
 });

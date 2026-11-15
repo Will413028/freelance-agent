@@ -1,4 +1,4 @@
-import type { View } from "@/modules/discovery/public";
+import type { View } from "@/modules/evaluation/public";
 import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView } from "@/services/pages";
 import { NOTICES, type Notice } from "./writes";
 
@@ -8,12 +8,11 @@ import { NOTICES, type Notice } from "./writes";
 const KINDS: Record<string, string> = { fixed: "固定專案", hourly: "時薪", contract: "兼職／合約", full_time: "全職" };
 const FIELD_NAMES: Record<string, string> = {
   title: "職稱", company: "公司", description: "工作內容", kind: "合作型態", currency: "幣別", budget_min: "預算下限", budget_max: "預算上限",
-  weekly_hours: "每週工時", location: "地點", location_evidence: "地點依據", taiwan_eligible: "台灣資格", timezone_compatible: "時區適用",
+  weekly_hours: "每週工時", location: "地點", taiwan_eligible: "台灣資格", timezone_compatible: "時區適用",
   deadline: "截止時間", listing_closed: "是否結案", url: "來源連結",
 };
 const FRESHNESS: Record<string, string> = { recent: "近兩日發布", week: "近七日發布", older: "發布超過七日", unknown: "發布時間未確認" };
 const VIEW_LABELS: [View, string][] = [["candidates", "待看"], ["saved", "收藏"], ["skipped", "已略過"], ["all", "全部"]];
-const LIST_SHOWN = 12;
 
 /** An https link without credentials, or undefined: listing URLs are untrusted data. */
 export function safeUrl(value: Plain | undefined): string | undefined {
@@ -26,7 +25,7 @@ export function safeUrl(value: Plain | undefined): string | undefined {
   }
 }
 
-const text = (job: JobFields, field: string) => (typeof job[field] === "string" && job[field] ? job[field] as string : null);
+const text = (job: JobFields, field: keyof JobFields) => (typeof job[field] === "string" && job[field] ? job[field] as string : null);
 
 function compensation(job: JobFields) {
   const max = job.budget_max, min = job.budget_min;
@@ -34,20 +33,15 @@ function compensation(job: JobFields) {
   return `${job.currency} ${typeof min === "number" ? min.toLocaleString() : "?"}–${max.toLocaleString()}${job.kind === "hourly" ? "／時" : ""}`;
 }
 
-function fieldValue(job: JobFields, field: string) {
+function fieldValue(job: JobFields, field: keyof JobFields) {
   const value = job[field];
-  if (value === null || value === undefined || value === "") return "未提供";
+  if (value === null || value === "") return "未提供";
   if (typeof value === "boolean") return value ? "是" : "否";
-  // A list (location evidence can name 200 countries) reads as a short list with its size.
-  if (Array.isArray(value)) {
-    const items = value.map((v) => (typeof v === "string" ? v : JSON.stringify(v)));
-    return items.length > LIST_SHOWN ? `${items.slice(0, LIST_SHOWN).join("、")} 等 ${items.length} 項` : items.join("、");
-  }
-  return typeof value === "object" ? JSON.stringify(value) : String(value);
+  return String(value);
 }
 
 const statusLabel = (job: JobView) =>
-  job.conflicts.length ? "通知內容有差異" : job.status === "excluded" ? "條件不符" : job.status === "needs_info" ? "條件待確認" : "條件吻合";
+  job.conflict ? "通知內容有差異" : job.status === "excluded" ? "條件不符" : job.status === "needs_info" ? "條件待確認" : "條件吻合";
 const kindLabel = (job: JobFields) => KINDS[text(job, "kind") ?? ""] ?? "合作型態待確認";
 
 export function Shell({ active, children }: { active: "jobs" | "settings" | "sources"; children: React.ReactNode }) {
@@ -79,7 +73,7 @@ export function JobList({ data }: { data: ListView }) {
       <div className="section-heading"><h2>機會清單</h2><span>第 {data.page} 頁</span></div>
       {!data.jobs.length && <p className="empty">目前沒有符合這個檢視的職缺。</p>}
       {data.jobs.map((job) => <a className="job-card" key={job.id} href={`/jobs/${encodeURIComponent(job.id)}`}>
-        <div className="card-top"><span className="platform">{job.sourceName}</span><span className={"badge " + (job.conflicts.length ? "needs_info" : job.status)}>{statusLabel(job)}</span></div>
+        <div className="card-top"><span className="platform">{job.sourceName}</span><span className={"badge " + (job.conflict ? "needs_info" : job.status)}>{statusLabel(job)}</span></div>
         <h3>{text(job.job, "title") ?? "（無職稱）"}</h3>
         <p>{text(job.job, "company") ?? "公司未提供"} · {kindLabel(job.job)}</p>
         <p>{text(job.job, "description") ?? ""}</p>
@@ -106,11 +100,11 @@ function FeedbackButton({ job, value, label, primary, back }: { job: JobView; va
 
 export function JobDetail({ job }: { job: JobView }) {
   const back = `/jobs/${encodeURIComponent(job.id)}`;
-  const url = safeUrl(job.memberUrl);
+  const url = safeUrl(job.job.url);
   return <section className="detail" aria-label="職缺詳情">
     <p className="eyebrow">OPPORTUNITY</p><h2>{text(job.job, "title") ?? "（無職稱）"}</h2>
     <p>{text(job.job, "company") ?? "公司未提供"} · {kindLabel(job.job)}</p>
-    {job.displayBasis && <p className="hint">主卡依 {job.displayBasis.sourceName} 的{job.displayBasis.label}顯示（版本識別 {job.displayBasis.fingerprint.slice(0, 12)}）；這不代表它較新或已核實。</p>}
+    {job.rankedOn && <p className="hint">推薦分依另一份通知內容計算（版本識別 {job.rankedOn.slice(0, 12)}）；這裡顯示的是最早收到的內容。</p>}
     <div className="actions discovery-actions">
       <FeedbackButton job={job} value={job.feedback === "interested" ? "unsave" : "interested"} label={job.feedback === "interested" ? "取消收藏" : "收藏職缺"} primary back={back} />
       <FeedbackButton job={job} value={job.skipped ? "restore" : "skipped"} label={job.skipped ? "恢復待看" : "略過"} primary={false} back={back} />
@@ -118,7 +112,7 @@ export function JobDetail({ job }: { job: JobView }) {
     <dl className="job-facts">
       <div><dt>報酬</dt><dd>{compensation(job.job)}</dd></div>
       <div><dt>每週工時</dt><dd>{typeof job.job.weekly_hours === "number" ? `${job.job.weekly_hours} 小時` : "待確認"}</dd></div>
-      <div><dt>地點</dt><dd>{job.job.location_evidence ? fieldValue(job.job, "location_evidence") : text(job.job, "location") ?? "待確認"}</dd></div>
+      <div><dt>地點</dt><dd>{text(job.job, "location") ?? "待確認"}</dd></div>
       <div><dt>台灣資格</dt><dd>{job.job.taiwan_eligible === true ? "有來源依據" : job.job.taiwan_eligible === false ? "不符合" : "待確認"}</dd></div>
       <div><dt>推薦分</dt><dd>{job.score}（資訊完整度 {job.completeness}%）</dd></div>
       <div><dt>新鮮度</dt><dd>{FRESHNESS[job.freshness] ?? job.freshness}</dd></div>
@@ -127,18 +121,16 @@ export function JobDetail({ job }: { job: JobView }) {
     {job.reasons.length > 0 && <ul className="reasons">{job.reasons.map((r) => <li key={r}>{r}</li>)}</ul>}
     <h3>排序依據</h3><ul className="reasons">{job.rankReasons.map((r) => <li key={r}>{r}</li>)}</ul>
     <h3>工作內容</h3><p className="detail-desc">{text(job.job, "description") ?? ""}</p>
-    {job.conflicts.length > 0 && <section className="content-conflicts" aria-label="通知內容差異">
+    {job.conflict && <section className="content-conflicts" aria-label="通知內容差異">
       <h3>同職缺通知內容有差異</h3><p className="hint">各份內容都保留；轉寄時間無法判斷來源版本的新舊。請對照原始職缺確認。</p>
-      {job.conflicts.map((conflict, i) => <div key={i}>
-        <p className="conflict-fields">差異欄位：{conflict.changedFields.map((f) => FIELD_NAMES[f] ?? f).join("、")}</p>
-        <div className="content-versions">{conflict.versions.map((version, index) => <article key={version.fingerprint}>
-          <h4>{version.original ? "現有紀錄" : `另一份通知內容 ${index}`} · 版本識別 {version.fingerprint.slice(0, 12)}</h4>
-          <p>條件{version.status === "excluded" ? "不符" : version.status === "qualified" ? "吻合" : "待確認"}</p>
-          <dl>{conflict.changedFields.map((field) => <div key={field}><dt>{FIELD_NAMES[field] ?? field}</dt>
-            <dd>{field === "url" && safeUrl(version.job.url) ? <a href={safeUrl(version.job.url)} target="_blank" rel="noreferrer">{String(version.job.url)}</a> : fieldValue(version.job, field)}</dd></div>)}</dl>
-          {safeUrl(version.job.url) && <a href={safeUrl(version.job.url)} target="_blank" rel="noreferrer">查看這份內容的來源 ↗</a>}
-        </article>)}</div>
-      </div>)}
+      <p className="conflict-fields">{job.conflict.changedFields.length ? `差異欄位：${job.conflict.changedFields.map((f) => FIELD_NAMES[f] ?? f).join("、")}` : "差異在這裡未列出的欄位（例如發布時間或原文），請對照原始職缺"}</p>
+      <div className="content-versions">{job.conflict.versions.map((version, index) => <article key={version.fingerprint}>
+        <h4>{version.original ? "現有紀錄" : `另一份通知內容 ${index}`} · 版本識別 {version.fingerprint.slice(0, 12)}</h4>
+        <p>條件{version.status === "excluded" ? "不符" : version.status === "qualified" ? "吻合" : "待確認"}</p>
+        <dl>{job.conflict!.changedFields.map((field) => <div key={field}><dt>{FIELD_NAMES[field] ?? field}</dt>
+          <dd>{field === "url" && safeUrl(version.job.url) ? <a href={safeUrl(version.job.url)} target="_blank" rel="noreferrer">{String(version.job.url)}</a> : fieldValue(version.job, field as keyof JobFields)}</dd></div>)}</dl>
+        {safeUrl(version.job.url) && <a href={safeUrl(version.job.url)} target="_blank" rel="noreferrer">查看這份內容的來源 ↗</a>}
+      </article>)}</div>
     </section>}
     <h3>原始職缺</h3>
     <ul className="source-links"><li>{url ? <a href={url} target="_blank" rel="noreferrer">{job.sourceName} ↗</a> : job.sourceName}</li></ul>
