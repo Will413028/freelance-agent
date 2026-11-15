@@ -27,12 +27,16 @@ const HEADERS = { "User-Agent": "side-income/0.1 personal-job-discovery" };
  * Fetcher serves one request at a time at least a second apart, so the full read takes up to about 207 s and a 90 s
  * budget would fail every run. The request cap bounds what is read exactly as before.
  */
+
+/** Neither board has a per-listing rule of its own: every listing read passes it. */
+const keepAll = () => true;
+
 export const HACKERNEWS_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "hackernews", connector: hackernewsConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + 6 + 2 * 100, disabled: null,
+  name: "hackernews", connector: hackernewsConnector, maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + 6 + 2 * 100, completeRead: false, disabled: null,
 };
 /** Old community-jobs.ts:140: one feed request. */
 export const V2EX_SETTINGS: Omit<SourceSettings, "order"> = {
-  name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null,
+  name: "v2ex", connector: v2exConnector, maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
@@ -124,7 +128,7 @@ export async function hackernewsConnector(fetcher: Fetcher, now: Date): Promise<
     rejected += kept.rejected;
     examined += kept.examined;
   }
-  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], rejected, examined };
+  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], sourceKept: keepAll, rejected, examined };
 }
 
 // V2EX: the outsourcing node's Atom feed.
@@ -181,7 +185,7 @@ export function parseV2ex(raw: Uint8Array, now: Date): Collected {
     });
   });
   const all = picked.listings.filter((l): l is ListingInput => l !== null);
-  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], rejected: picked.rejected, examined: picked.examined };
+  return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], sourceKept: keepAll, rejected: picked.rejected, examined: picked.examined };
 }
 
 export async function v2exConnector(fetcher: Fetcher, now: Date): Promise<Collected> {

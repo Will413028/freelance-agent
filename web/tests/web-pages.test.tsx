@@ -67,7 +67,9 @@ describe("list and detail", () => {
     expect((await listJobs(db, now, "saved", 1)).jobs.map((j) => String(j.id))).toEqual([await key("liked")]);
     expect((await listJobs(db, now, "skipped", 1)).jobs.map((j) => String(j.id))).toEqual([await key("skipped")]);
     const all = [...(await listJobs(db, now, "all", 1)).jobs, ...(await listJobs(db, now, "all", 2)).jobs];
-    expect(all).toHaveLength(PAGE_SIZE + 5 + 3);
+    // The design listing is stored but hard-excluded (category score 0) and has no feedback: no view shows it (plan D9).
+    expect(all).toHaveLength(PAGE_SIZE + 5 + 2);
+    expect(all.map((j) => String(j.id))).not.toContain(await key("design"));
     expect(all.at(-1)!.candidate).toBe(false);
   });
 

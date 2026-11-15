@@ -1,4 +1,4 @@
-import { and, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { listings, listingVersions } from "@/db/pg/schema";
 import { factsOf, type Listing } from "@/modules/evaluation/public";
@@ -76,33 +76,42 @@ export function listingOfRow(r: ContentRow): Listing {
 }
 
 /**
+ * How a batch was read. `sourceKept`: the source's own rule per listing (plan D9), stored as
+ * listings.source_kept; absent, every listing passes (mail has no source rule). `complete`: the batch is
+ * a complete read of the source (catalog flag, read not truncated, run not failed): every stored
+ * listing of the source it does not show gets gone_at.
+ */
+export type IntakeOptions = { sourceKept?: (externalId: string) => boolean; complete?: boolean };
+
+/**
  * Writes one source's listings in one transaction and says what happened to each. A listing outside
  * the contract refuses the batch (ZodError); a batch with the same external_id twice is refused: which content wins would depend on order.
+ * Every listing read is stored (plan D9); each sighting writes last_seen_at and clears gone_at, while
+ * updated_at moves only when the content changes.
  */
-/**
- * `refreshOnly`: listings the source read but its rules did not keep. One that is already stored is
- * updated like any other (the old `exists ||` exception: a tracked listing keeps reflecting the
- * source); one that is not stored is never inserted. Same transaction as the batch.
- */
-export async function intakeListings(db: PgDb, source: string, given: readonly unknown[], mode: IntakeMode, observedAt = new Date(), refreshOnly: readonly unknown[] = []): Promise<IntakeCounts> {
+export async function intakeListings(db: PgDb, source: string, given: readonly unknown[], mode: IntakeMode, observedAt = new Date(), options: IntakeOptions = {}): Promise<IntakeCounts> {
   if (!source) throw new Error("source must be non-empty");
-  const items = [...given.map((value) => [value, false] as const), ...refreshOnly.map((value) => [value, true] as const)].map(([value, onlyIfStored]) => {
+  const items = given.map((value) => {
     const input = parseListingInput(storable(value));
-    return { externalId: input.external_id, columns: contentColumns(input), onlyIfStored };
+    return { externalId: input.external_id, columns: contentColumns(input), sourceKept: options.sourceKept?.(input.external_id) ?? true };
   });
   const externalIds = items.map((i) => i.externalId);
   if (new Set(externalIds).size !== externalIds.length) throw new Error(`${source} batch lists the same external_id twice`);
   const counts: IntakeCounts = { inserted: 0, updated: 0, unchanged: 0, versioned: 0 };
+  // An empty read is never taken as complete: nothing is marked gone.
   if (!items.length) return counts;
+  const seen = { lastSeenAt: observedAt, goneAt: null };
   await db.transaction(async (tx) => {
     const existing = new Map((await tx.select().from(listings).where(and(eq(listings.source, source), inArray(listings.externalId, externalIds))).for("update")).map((r) => [r.externalId, r]));
-    for (const { externalId, columns, onlyIfStored } of items) {
+    const sighted = { kept: [] as number[], out: [] as number[] };
+    for (const { externalId, columns, sourceKept } of items) {
       const old = existing.get(externalId);
-      if (!old && onlyIfStored) continue;
       if (!old) {
-        await tx.insert(listings).values({ source, externalId, ...columns, firstSeenAt: observedAt, updatedAt: observedAt });
+        await tx.insert(listings).values({ source, externalId, ...columns, sourceKept, firstSeenAt: observedAt, updatedAt: observedAt, ...seen });
         counts.inserted++;
-      } else if (old.fingerprint === columns.fingerprint) {
+        continue;
+      }
+      if (old.fingerprint === columns.fingerprint) {
         counts.unchanged++;
       } else if (mode === "page") {
         await tx.update(listings).set({ ...columns, updatedAt: observedAt }).where(eq(listings.id, old.id));
@@ -115,16 +124,18 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
         if (added.some((r) => r.fingerprint === columns.fingerprint)) counts.versioned++;
         else counts.unchanged++;
       }
+      (sourceKept ? sighted.kept : sighted.out).push(old.id);
+    }
+    // Every sighting of a stored row, whatever happened to its content; the rule is re-read each time (it may depend on the date).
+    if (sighted.kept.length) await tx.update(listings).set({ sourceKept: true, ...seen }).where(inArray(listings.id, sighted.kept));
+    if (sighted.out.length) await tx.update(listings).set({ sourceKept: false, ...seen }).where(inArray(listings.id, sighted.out));
+    // A complete read that no longer shows a stored listing: it left the source.
+    if (options.complete) {
+      await tx.update(listings).set({ goneAt: observedAt })
+        .where(and(eq(listings.source, source), isNull(listings.goneAt), notInArray(listings.externalId, externalIds)));
     }
   });
   return counts;
-}
-
-/** The external ids among `externalIds` that `source` already has stored. */
-export async function storedExternalIds(db: PgDb, source: string, externalIds: readonly string[]): Promise<Set<string>> {
-  if (!externalIds.length) return new Set();
-  const rows = await db.select({ e: listings.externalId }).from(listings).where(and(eq(listings.source, source), inArray(listings.externalId, [...externalIds])));
-  return new Set(rows.map((r) => r.e));
 }
 
 /** The listing row of (source, external_id), or null: how tests and pages find a surrogate id. */

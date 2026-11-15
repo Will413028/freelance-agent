@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
-  boolean, check, date, doublePrecision, foreignKey, integer, jsonb, pgTable, primaryKey, smallint, text, timestamp, uniqueIndex,
+  boolean, check, date, doublePrecision, foreignKey, index, integer, jsonb, pgTable, primaryKey, smallint, text, timestamp, uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // The Postgres schema of the self-hosted rebuild (docs/plans/2026-11-15-self-hosted-rebuild.md),
@@ -69,10 +69,25 @@ export const listings = pgTable("listings", {
   source: text("source").notNull(),
   externalId: text("external_id").notNull(),
   ...content(),
+  /**
+   * The source's own per-listing rule on the current content (plan D9): intake stores every listing read,
+   * the listing query keeps the ones with source_kept. Mail listings have no source rule and store true.
+   */
+  sourceKept: boolean("source_kept").notNull(),
   firstSeenAt: at("first_seen_at").notNull().defaultNow(),
+  /** When content last changed (a sighting with the same content leaves it). */
   updatedAt: at("updated_at").notNull().defaultNow(),
+  /** When a read last showed the listing, whatever its content (plan D9). */
+  lastSeenAt: at("last_seen_at").notNull().defaultNow(),
+  /**
+   * Set when a complete read of a source marked complete in the catalog no longer showed the listing;
+   * cleared when a read shows it again. Null for sources whose reads are never complete (plan D9).
+   */
+  goneAt: at("gone_at"),
 }, (t) => [
   uniqueIndex("listings_source_external_id").on(t.source, t.externalId),
+  /** The listing query's filter (modules/evaluation/list.ts shown()): the rows the source keeps and no hard reason excludes. */
+  index("listings_shown").on(t.id).where(sql`${t.sourceKept} and not ${t.hardExcluded}`),
   kindCheck("listings_kind", t.kind),
   ...deadlineChecks("listings", t),
   check("listings_confirmed_base", sql`${t.confirmedBase} between 0 and 3`),

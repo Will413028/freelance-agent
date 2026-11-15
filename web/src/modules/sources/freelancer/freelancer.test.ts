@@ -95,13 +95,13 @@ const serving = (byQuery: Partial<Record<(typeof QUERIES)[number], unknown[]>>) 
   site(Object.fromEntries(QUERIES.map((q) => [pageUrl(q, 100, 0), [200, body(byQuery[q] ?? [])] as [number, string]])));
 
 describe("freelancer connector", () => {
-  it("keeps titles that name the work and drops out-of-scope ones; counts every distinct project seen", async () => {
+  it("marks titles that name the work kept and out-of-scope ones not; counts every distinct project seen", async () => {
     const { fetcher, urls } = serving({
       "AI agent": [project(), project({ id: 43, title: "Logo design for AI startup" }), project({ id: 44, title: "Bookkeeping help" })],
       "API integration": [project({ id: 42 }), project({ id: 45, title: "Stripe API integration" })],
     });
     const got = await freelancerConnector(fetcher);
-    expect([got.seen, got.listings.map((l) => l.external_id), urls.length]).toEqual([4, ["42", "45"], 3]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id), urls.length]).toEqual([4, ["42", "45"], 3]);
   });
 
   it("follows pages to the reported total, the offset advancing by the requested page", async () => {
@@ -134,14 +134,14 @@ describe("freelancer connector", () => {
       const { fetcher } = serving({ "AI agent": [project(), project({ id: 2, ...bad })] });
       const got = await freelancerConnector(fetcher);
       // seen: distinct projects read; examined: project entries checked, like rejected.
-      expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([1, 1, 2, ["42"]]);
+      expect([got.seen, got.rejected, got.examined, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([1, 1, 2, ["42"]]);
     }
   });
 
   it("counts a broken project returned by every query once per query in both rejected and examined", async () => {
     const all = [project(), project({ id: 45, title: "Stripe API integration" }), project({ id: 2, description: "" })];
     const got = await freelancerConnector(serving({ "AI agent": all, "API integration": all, "MVP web development": all }).fetcher);
-    expect([got.seen, got.rejected, got.examined, got.listings.map((l) => l.external_id)]).toEqual([2, 3, 9, ["42", "45"]]);
+    expect([got.seen, got.rejected, got.examined, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([2, 3, 9, ["42", "45"]]);
   });
 
   it("refuses two different versions of a project with the same update time", async () => {
@@ -168,16 +168,17 @@ describe("freelancer intake", () => {
   beforeEach(async () => db.execute(sql`truncate listings cascade`));
   const settings = { ...FREELANCER_SETTINGS, order: 0 };
 
-  it("writes only listings the source's rule and screening keep", async () => {
+  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
     const { fetcher } = serving({ "AI agent": [project(), project({ id: 43, title: "SEO for AI agency" })] });
     const run = await collectSource(db, settings, NOW, fetcher);
-    expect([run.seen, run.externalIds]).toEqual([2, ["42"]]);
-    expect(await listingBy(db, "freelancer", "43")).toBeNull();
+    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["42", "43"]]);
+    expect([(await listingBy(db, "freelancer", "42"))?.sourceKept, (await listingBy(db, "freelancer", "43"))?.sourceKept]).toEqual([true, false]);
   });
 
-  it("screening drops a project that matches no work category (old score > 0)", async () => {
+  it("screening marks a project that matches no work category hard-excluded (old score > 0)", async () => {
     const { fetcher } = serving({ "AI agent": [project(), project({ id: 46, title: "Telegram bot for my club", description: "Small job." })] });
-    expect((await collectSource(db, settings, NOW, fetcher)).externalIds).toEqual(["42"]);
+    expect((await collectSource(db, settings, NOW, fetcher)).jobs).toBe(1);
+    expect((await listingBy(db, "freelancer", "46"))?.hardExcluded).toBe(true);
   });
 
   it("writes the others when one project lacks its identity, and nothing when most do", async () => {

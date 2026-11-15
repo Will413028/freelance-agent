@@ -23,8 +23,9 @@
 - `Fetcher` 依呼叫順序一次服務一個請求，connector 可以並行呼叫，間隔與上限仍成立。
 - 其他欄位轉不了：寫 `null`（未知），不猜、不拒收（D8）。三態欄位只在來源明說時寫 `true`／`false`；remote、worldwide 不等於台灣可接。
 - 時間：有時區的照轉；沒時區的，照來源的規則決定（例：jobicy、remotive 以 UTC 發布，`utcInstant`），規則寫在 connector 的註解裡。截止日照契約的四種形狀。
-- 來源自己的篩選規則（例：只收合約類）放在 connector；與設定無關的資格初篩是共用的，在 `web/src/services/collect.ts` 的 `screen`，connector 不重做。舊程式的 `qualifyForIntake(...).score > 0` 也是 `screen` 的事：`evaluate` 對類別分數 0 加排除理由「不在目前接案專長範圍」（`web/src/modules/evaluation/evaluate.ts`），connector 不另寫（步驟 5a）。
-- 舊程式有 `exists ||`（已存在的職缺不套篩選、照樣更新）的來源：connector 把讀到但自己的規則沒留下的職缺放進 `Collected.others`；`collectSource` 只拿它們和被 `screen` 擋下的職缺去更新已存在的列，從不新增（Will 2026-11-15，步驟 5a）。舊程式沒有這條的來源不設 `others`。
+- 收案存全部（D9，步驟 5a2-2）：`Collected.listings` 是讀到、通過單筆契約的**每一筆**，connector 不篩。來源自己的規則（例：只收合約類、90 天內）寫成必填的 `Collected.sourceKept(listing)`，沒有自己規則的來源回傳一律 `true` 的函式；`collectSource` 在寫入前對每筆跑一次，存成 `listings.source_kept`（每次讀到都重算，規則可能跟日期有關）。規則讀的欄位格式變了可以丟 `SourceError`，整批失敗、什麼都不寫；要在 connector 裡就失敗的（例：getonboard 的類別），在 connector 內先算好再回傳查表函式。
+- 與設定無關的硬性排除不在收案擋：`hard_excluded` 是存下的欄位，清單查詢 `modules/evaluation/list.ts` 的 `shownWhere` 只讀 `source_kept and not hard_excluded`（部分索引 `listings_shown`），另加有回饋的列與有未被硬性排除的信件版本的列。`collectSource` 的 `screen` 只用來算 `SourceRun.jobs`（舊的 jobs 意義，和正式庫比對用）；舊程式的 `qualifyForIntake(...).score > 0` 是 `evaluate` 對類別分數 0 的排除理由，connector 不另寫（步驟 5a）。舊的 `exists ||` 與 `Collected.others` 隨 D9 刪除。
+- `listings.last_seen_at` 每次讀到就寫；`updated_at` 只在內容（fingerprint）變時寫。catalog 的 `completeRead` 只給「一次讀取會翻完整個來源」的來源（目前 arbeitnow、getonboard；最新 N 筆的 feed、搜尋、選定討論串都不是）：這種來源一次成功、未截斷、非空的讀取沒再出現的列寫 `gone_at`，再讀到時清掉。新來源接進來時照這條判斷，拿不準就填 `false`（只影響 5a2-3 的保留期限刪除）。
 - 讀到來源自己的讀取上限（頁數）還沒讀完：已讀的照寫，`Collected.truncated = true`（舊的 partial），`collectSource` 回報在 `SourceRun.truncated`，步驟 6 記到執行列。分頁不一致仍是整批失敗；單筆身分壞掉照上面的擱置規則。
 - 舊程式為了 serverless 時限設的整個來源的時間預算不搬：讀取範圍由請求上限界定；`Fetcher` 一次一個請求、間隔至少 1 秒，舊的預算在這裡只會讓執行失敗（步驟 5a：hackernews、freelancer）。
 - `extra` 只放 connector 讀到、契約沒有欄位、之後稽核用得到的東西（例：原始的工作類型、原始的發布時間字串）。不放全文副本。

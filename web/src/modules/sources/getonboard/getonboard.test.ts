@@ -93,12 +93,12 @@ const site = (pages: unknown[][], totalPages = pages.length): Record<string, [nu
 });
 
 describe("getonboard search", () => {
-  it("keeps only fresh remote part-time or freelance listings in tech categories, and counts every listing seen", async () => {
+  it("marks kept only fresh remote part-time or freelance listings in tech categories, and counts every listing seen", async () => {
     const jobs = [job(), job("full", { modality: { data: { id: 43 } } }), job("free", { modality: { data: { id: 44 } } }), job("office", { remote: false }),
       job("design", { category_name: "Design / UX" }), job("old", { published_at: Date.parse("2026-06-01T00:00:00Z") / 1000 }),
       job("future", { published_at: Date.parse("2026-09-21T00:00:00Z") / 1000 })];
     const got = await getonboardConnector(serving(site([jobs])), NOW);
-    expect([got.seen, got.listings.map((l) => l.external_id)]).toEqual([7, ["acme-ai-agent", "free"]]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([7, ["acme-ai-agent", "free"]]);
   });
 
   it("reads at most the 11 requests its settings allow and stops at 10 pages", async () => {
@@ -110,13 +110,13 @@ describe("getonboard search", () => {
 
   it("keeps a job listed twice once, as its last entry", async () => {
     const got = await getonboardConnector(serving(site([[job("a", { title: "First" })], [job("a", { title: "Second" })]])), NOW);
-    expect([got.seen, got.listings.map((l) => l.title)]).toEqual([2, ["Second"]]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.title)]).toEqual([2, ["Second"]]);
   });
 
   it("sets aside and counts a listing without identity, an unknown modality or an unreadable publication time, keeping the others", async () => {
     for (const bad of [{ modality: { data: { id: 99 } } }, { description: null }, { published_at: 0 }, { title: null }]) {
       const got = await getonboardConnector(serving(site([[job(), job("b", bad)]])), NOW);
-      expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([2, 1, ["acme-ai-agent"]]);
+      expect([got.seen, got.rejected, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([2, 1, ["acme-ai-agent"]]);
     }
   });
 
@@ -152,7 +152,7 @@ describe("getonboard into intake", () => {
   beforeEach(async () => db.execute(sql`truncate listings cascade`));
   const collect = async (pages: Record<string, [number, string]>) => {
     const got = await getonboardConnector(serving(pages), NOW);
-    return intakeListings(db, "getonboard", got.listings, "page", NOW);
+    return intakeListings(db, "getonboard", got.listings.filter(got.sourceKept), "page", NOW);
   };
 
   it("writes only what the source keeps, writes nothing when the batch fails, and a rerun changes nothing", async () => {

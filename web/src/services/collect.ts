@@ -1,16 +1,17 @@
 import type { PgDb } from "@/db/pg/client";
 import { CATEGORIES } from "@/db/pg/schema";
 import { evaluate, type Settings } from "@/modules/evaluation/public";
-import { intakeListings, listingOf, storedExternalIds, type IntakeCounts, type ListingInput } from "@/modules/listings/public";
+import { intakeListings, listingOf, type IntakeCounts, type ListingInput } from "@/modules/listings/public";
 import { SourceError, sourceSettings, type SourceSettings } from "@/modules/sources/public";
 import { createFetcher, type Fetcher } from "@/platform/fetch";
 
-// One source, once: read through its fetcher, keep what intake screening allows, write the listings
-// (plan step 4; the daily run of step 6 calls this per source and records run_sources).
+// One source, once: read through its fetcher and write every listing read, each marked with the source's
+// own rule (plan D9; the listing query picks). The daily run of step 6 calls this per source and records run_sources.
 
 /**
  * Intake screening with no personal limits (old qualifyForIntake): only a reason that no setting can
- * undo drops a listing; hours, budget floor and categories belong to the saved view (inventory B2).
+ * undo. Since plan D9 it drops nothing from storage; it gives SourceRun.jobs the old meaning, for the
+ * comparisons with production, while the listing query reads the stored hard_excluded.
  */
 export const INTAKE_SETTINGS: Settings = { maxWeeklyHours: null, minFixedTwd: 0, categories: CATEGORIES };
 
@@ -19,10 +20,11 @@ export const screen = (listings: readonly ListingInput[], now: Date) =>
 
 /**
  * `truncated`: the source stopped at its read cap (old partial); `rejected`: listings the connector set aside,
- * out of `examined` entries checked.
- * Step 6 records both (a run is partial when `truncated || rejected > 0`).
+ * out of `examined` entries checked. Step 6 records both (a run is partial when `truncated || rejected > 0`).
+ * `stored`: every listing written (plan D9: all of them); `jobs`: the ones the source's rule keeps and intake
+ * screening allows, the old count the step 4/5 comparisons with production use. `externalIds`: the stored ones; `jobIds`: the ones counted in `jobs`.
  */
-export type SourceRun = { source: string; seen: number; jobs: number; requests: number; intake: IntakeCounts; externalIds: string[]; truncated: boolean; rejected: number; examined: number };
+export type SourceRun = { source: string; seen: number; stored: number; jobs: number; jobIds: string[]; requests: number; intake: IntakeCounts; externalIds: string[]; truncated: boolean; rejected: number; examined: number };
 
 export async function collectSource(db: PgDb, source: string | SourceSettings, now = new Date(), fetcher?: Fetcher): Promise<SourceRun> {
   const s = typeof source === "string" ? sourceSettings(source) : source;
@@ -35,13 +37,11 @@ export async function collectSource(db: PgDb, source: string | SourceSettings, n
   // aside without reporting it is a programming error, not a payload problem, so no fallback to `seen`.
   if (rejected > 0 && collected.examined === undefined) throw new Error(`${s.name}: rejected reported without examined`);
   if (rejected * 2 > (collected.examined ?? 0)) throw new SourceError(`${s.name}: ${rejected} of ${collected.examined} listings refused`);
-  const kept = screen(collected.listings, now);
-  // Sources with the old `exists ||` exception: a stored listing is refreshed even when the rules drop it now.
-  const keptIds = new Set(kept.map((l) => l.external_id));
-  const dropped = collected.others ? [...collected.others, ...collected.listings.filter((l) => !keptIds.has(l.external_id))] : [];
-  const stored = await storedExternalIds(db, s.name, dropped.map((l) => l.external_id));
-  const refreshed = dropped.filter((l) => stored.has(l.external_id));
-  const intake = await intakeListings(db, s.name, kept, "page", now, refreshed);
-  const written = [...kept, ...refreshed];
-  return { source: s.name, seen: collected.seen, jobs: written.length, requests: f.requests, intake, externalIds: written.map((l) => l.external_id), truncated: collected.truncated === true, rejected, examined: collected.examined ?? 0 };
+  // The rule runs here, before anything is written: a rule that refuses (SourceError) fails the run with nothing stored.
+  const kept = new Set(collected.listings.filter(collected.sourceKept).map((l) => l.external_id));
+  // A read is complete when the catalog says one read shows the whole source and this one was not cut short.
+  const complete = s.completeRead && collected.truncated !== true;
+  const intake = await intakeListings(db, s.name, collected.listings, "page", now, { sourceKept: (id) => kept.has(id), complete });
+  const jobIds = screen(collected.listings.filter((l) => kept.has(l.external_id)), now).map((l) => l.external_id);
+  return { source: s.name, seen: collected.seen, stored: collected.listings.length, jobs: jobIds.length, jobIds, requests: f.requests, intake, externalIds: collected.listings.map((l) => l.external_id), truncated: collected.truncated === true, rejected, examined: collected.examined ?? 0 };
 }

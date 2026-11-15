@@ -1,16 +1,20 @@
 import type { ListingInput } from "@/modules/listings/public";
 import type { FetchErrorKind, Fetcher, FetchPolicy } from "@/platform/fetch";
 
-/** What one run of a connector read: how many listings the source showed and the ones its own rules keep. */
+/**
+ * What one run of a connector read: how many listings the source showed, every listing read that passed
+ * the per-listing contract, and the source's own rule as a mark on each (plan D9: intake stores all, the
+ * listing query picks).
+ */
 export type Collected = {
   seen: number;
   listings: ListingInput[];
   /**
-   * Set only by sources whose old connector updated stored listings whatever their rules said (`exists ||`):
-   * the listings read but not kept by the source's own rule. Intake refreshes the stored ones among
-   * these and among the screened-out listings, and never inserts them (Will 2026-11-15, step 5a).
+   * The source's own rule for one listing (stored as listings.source_kept). Required, so a connector cannot
+   * leave its rule out by omission; a source with no rule of its own passes every listing. May throw
+   * `SourceError` when a field the rule reads changed format (a failed source, checklist §2).
    */
-  others?: ListingInput[];
+  sourceKept: (l: ListingInput) => boolean;
   /** The read stopped at the source's read cap before the source's end (old `partial`): what was read is written, the run records it. */
   truncated?: boolean;
   /**
@@ -41,6 +45,12 @@ export type SourceSettings = FetchPolicy & {
   /** Order in the daily run. */
   order: number;
   connector: Connector;
+  /**
+   * One successful, untruncated read shows every listing the source has (plan D9): a stored listing such
+   * a read no longer shows gets gone_at. False for sources read through searches, latest-N feeds or
+   * selected threads, where a listing can drop out of the read while still open.
+   */
+  completeRead: boolean;
   /** Set when the source has a lasting block; the daily run skips it. */
   disabled: string | null;
 };

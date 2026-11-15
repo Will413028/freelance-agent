@@ -68,7 +68,7 @@ describe("cryptojobslist feed", () => {
     expect(tags(html)).toEqual(["part-time", "remote"]);
   });
 
-  it("keeps only remote part-time or freelance jobs and counts every item seen", () => {
+  it("marks only remote part-time or freelance jobs kept, returns the rest, and counts every item seen", () => {
     const got = parseFeed(feed(
       item(),
       item({ link: "https://cryptojobslist.com/jobs/ft", description: tagged("full-time", "part-time", "remote") }),
@@ -76,9 +76,9 @@ describe("cryptojobslist feed", () => {
       item({ link: "https://cryptojobslist.com/jobs/smart", description: tagged("contract", "remote") }),
       item({ link: "https://cryptojobslist.com/jobs/free", description: tagged("freelance"), location: "Remote, worldwide" }),
     ));
-    expect([got.seen, got.listings.map((l) => l.external_id)]).toEqual([5, ["https://cryptojobslist.com/jobs/backend-1", "https://cryptojobslist.com/jobs/free"]]);
-    // Old `exists ||`: what the rule drops goes to others, for intake to refresh stored rows only.
-    expect(got.others?.map((l) => l.external_id)).toEqual(["https://cryptojobslist.com/jobs/ft", "https://cryptojobslist.com/jobs/onsite", "https://cryptojobslist.com/jobs/smart"]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([5, ["https://cryptojobslist.com/jobs/backend-1", "https://cryptojobslist.com/jobs/free"]]);
+    // Plan D9: what the rule drops is still returned, marked, for intake to store.
+    expect(got.listings.filter((l) => !got.sourceKept(l)).map((l) => l.external_id)).toEqual(["https://cryptojobslist.com/jobs/ft", "https://cryptojobslist.com/jobs/onsite", "https://cryptojobslist.com/jobs/smart"]);
   });
 
   it("keeps a job listed twice once, as its last entry; strips query and fragment from the id", () => {
@@ -132,12 +132,13 @@ const fakeFetcher = (pages: Record<string, Uint8Array>): Fetcher & { urls: strin
 };
 
 describe("cryptojobslist intake", () => {
-  it("reads the feed in one request and gives only the listings its rule keeps; the same feed gives the same result", async () => {
+  it("reads the feed in one request and marks the listings its rule keeps; the same feed gives the same result", async () => {
     const body = feed(item(), item({ link: "https://cryptojobslist.com/jobs/ft", description: tagged("full-time", "remote") }));
     const f = fakeFetcher({ [FEED]: body });
     const a = await cryptojobslistConnector(f), b = await cryptojobslistConnector(fakeFetcher({ [FEED]: body }));
-    expect([f.urls, a.seen, a.listings.map((l) => l.external_id)]).toEqual([[FEED], 2, ["https://cryptojobslist.com/jobs/backend-1"]]);
-    expect(b).toEqual(a);
+    expect([f.urls, a.seen, a.listings.filter(a.sourceKept).map((l) => l.external_id)]).toEqual([[FEED], 2, ["https://cryptojobslist.com/jobs/backend-1"]]);
+    const marks = (c: typeof a) => ({ ...c, sourceKept: c.listings.map(c.sourceKept) });
+    expect(marks(b)).toEqual(marks(a));
   });
 
   it("gives nothing when the feed fails; a broken item is counted in rejected", async () => {
@@ -154,10 +155,10 @@ describe("cryptojobslist into intake (collectSource)", () => {
   const settings = { ...CRYPTOJOBSLIST_SETTINGS, order: 0 };
   const body = () => feed(item(), item({ link: "https://cryptojobslist.com/jobs/ft", description: tagged("full-time", "remote") }));
 
-  it("writes only listings the source's rule and screening keep", async () => {
+  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
     const run = await collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: body() }));
-    expect([run.seen, run.externalIds]).toEqual([2, ["https://cryptojobslist.com/jobs/backend-1"]]);
-    expect(await listingBy(db, "cryptojobslist", "https://cryptojobslist.com/jobs/ft")).toBeNull();
+    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["https://cryptojobslist.com/jobs/backend-1", "https://cryptojobslist.com/jobs/ft"]]);
+    expect([(await listingBy(db, "cryptojobslist", "https://cryptojobslist.com/jobs/backend-1"))?.sourceKept, (await listingBy(db, "cryptojobslist", "https://cryptojobslist.com/jobs/ft"))?.sourceKept]).toEqual([true, false]);
   });
 
   it("writes the good items when one lacks its identity, and nothing when most do", async () => {
@@ -170,6 +171,6 @@ describe("cryptojobslist into intake (collectSource)", () => {
 
   it("a second run of the same feed changes nothing", async () => {
     await collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: body() }));
-    expect((await collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: body() }))).intake).toEqual({ inserted: 0, updated: 0, unchanged: 1, versioned: 0 });
+    expect((await collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: body() }))).intake).toEqual({ inserted: 0, updated: 0, unchanged: 2, versioned: 0 });
   });
 });

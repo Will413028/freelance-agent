@@ -177,7 +177,7 @@ export async function readAll(fetcher: Fetcher): Promise<{ listings: ListingInpu
 export async function himalayasConnector(fetcher: Fetcher): Promise<Collected> {
   const { listings: all, rejected, examined } = await readAll(fetcher);
   // seen: the distinct listings read (old himalayas.ts `seen: all.length`).
-  return { seen: all.length, listings: all.filter((l) => l.kind === "contract"), rejected, examined };
+  return { seen: all.length, listings: all, sourceKept: (l) => l.kind === "contract", rejected, examined };
 }
 
 export const HIMALAYAS_SETTINGS: Omit<SourceSettings, "order"> = {
@@ -186,5 +186,5 @@ export const HIMALAYAS_SETTINGS: Omit<SourceSettings, "order"> = {
   minIntervalMs: 1000,
   // Old: 4 queries x 2 employment types, one page each (collection/sources/himalayas.ts:15, 102-105).
   maxRequestsPerRun: 8,
-  disabled: null,
+  completeRead: false, disabled: null,
 };

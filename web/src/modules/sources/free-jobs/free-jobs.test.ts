@@ -39,24 +39,24 @@ const rem = (changes: Record<string, unknown> = {}) => ({
 });
 
 describe("free-jobs feed", () => {
-  it("keeps only contract, part-time and freelance listings and counts every listing seen", () => {
+  it("marks only contract, part-time and freelance listings kept and counts every listing seen", () => {
     const got = parseFeed("remotive", enc({ jobs: [rem(), rem({ id: 2, job_type: "full_time" }), rem({ id: 3, job_type: "freelance" }), rem({ id: 4, job_type: "internship" })] }));
-    expect([got.seen, got.listings.map((l) => l.external_id)]).toEqual([4, ["1", "3"]]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([4, ["1", "3"]]);
   });
 
   it("keeps a job listed twice once, as its last entry", () => {
     const got = parseFeed("remotive", enc({ jobs: [rem({ title: "First" }), rem({ title: "Second" })] }));
-    expect([got.seen, got.listings.map((l) => l.title)]).toEqual([2, ["Second"]]);
+    expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.title)]).toEqual([2, ["Second"]]);
   });
 
   it("sets aside a listing whose employment types change format or that lacks its identity, and keeps the others (Will 2026-11-15)", () => {
     expect(() => normalize("remotive", rem({ job_type: ["contract"] }))).toThrow(/employment type/);
     for (const bad of [rem({ id: 2, job_type: ["contract"] }), rem({ id: 2, description: null }), rem({ id: "2" }), "x"]) {
       const got = parseFeed("remotive", enc({ jobs: [rem(), bad, rem({ id: 3 })] }));
-      expect([got.seen, got.rejected, got.listings.map((l) => l.external_id)]).toEqual([3, 1, ["1", "3"]]);
+      expect([got.seen, got.rejected, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([3, 1, ["1", "3"]]);
     }
     const j = parseFeed("jobicy", enc({ jobs: [{ id: 2, url: "https://jobicy.com/jobs/2-python", jobTitle: "Python API", jobDescription: "<p>API</p>", jobType: ["contract"] }, { id: 3 }] }));
-    expect([j.seen, j.rejected, j.listings.map((l) => l.external_id)]).toEqual([2, 1, ["2"]]);
+    expect([j.seen, j.rejected, j.listings.filter(j.sourceKept).map((l) => l.external_id)]).toEqual([2, 1, ["2"]]);
   });
 
   it("refuses a feed that is not JSON, has no jobs list or lists over 200", () => {

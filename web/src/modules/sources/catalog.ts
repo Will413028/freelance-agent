@@ -11,11 +11,13 @@ import type { SourceSettings } from "./types";
 // Every source of the new system, one entry each (plan step 4; steps 5, 7 and 8 add theirs following
 // docs/plans/2026-11-15-self-hosted-rebuild/connector-checklist.md). Both free boards answer with
 // their whole latest list in one request. Every source keeps the old daily order (collection/source-catalog.ts) times ten;
-// each connector's settings cite the old request count and pause.
+// each connector's settings cite the old request count and pause. completeRead (plan D9): only sources
+// whose one read pages through the whole board to its end (arbeitnow, getonboard); the free boards
+// (limit/count 200) and taiwanjobs (count=1000) answer a latest-N window, where an open listing can drop out.
 
 export const SOURCES: readonly SourceSettings[] = [
-  { name: "remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null },
-  { name: "jobicy", order: 60, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, disabled: null },
+  { name: "remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
+  { name: "jobicy", order: 60, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
   { ...FREELANCER_SETTINGS, order: 50 },
   { ...HIMALAYAS_SETTINGS, order: 80 },
   { ...HACKERNEWS_SETTINGS, order: 90 },

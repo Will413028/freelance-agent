@@ -158,9 +158,10 @@ export function keeps(l: ListingInput, now: Date): boolean {
 
 export async function getonboardConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
   const read = await readAll(fetcher);
-  // Old: a scan stopped by the page cap was partial (truncated); stored listings were refreshed whatever the rule said (:131 `exists ||`).
-  const kept = read.listings.filter((l) => keeps(l, now));
-  return { seen: read.seen, listings: kept, others: read.listings.filter((l) => !kept.includes(l)), truncated: read.truncated, rejected: read.rejected, examined: read.examined };
+  // The rule runs here, once per listing: a category it cannot read refuses the batch before anything is written.
+  const kept = new Set(read.listings.filter((l) => keeps(l, now)).map((l) => l.external_id));
+  // Old: a scan stopped by the page cap was partial (truncated).
+  return { seen: read.seen, listings: read.listings, sourceKept: (l) => kept.has(l.external_id), truncated: read.truncated, rejected: read.rejected, examined: read.examined };
 }
 
 export const GETONBOARD_SETTINGS: Omit<SourceSettings, "order"> = {
@@ -169,5 +170,5 @@ export const GETONBOARD_SETTINGS: Omit<SourceSettings, "order"> = {
   minIntervalMs: 1000,
   // Old: the modality taxonomy plus up to 10 search pages (collection/sources/getonboard.ts:83, 89).
   maxRequestsPerRun: 1 + MAX_PAGES,
-  disabled: null,
+  completeRead: true, disabled: null,
 };

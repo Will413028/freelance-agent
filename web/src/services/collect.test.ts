@@ -7,7 +7,7 @@ import type { Fetcher } from "@/platform/fetch";
 import { collectSource } from "./collect";
 import { freshPg } from "../../tests/helpers/pg";
 
-// Plan step 4: one source through screening into intake (the store cases of the old test_free_jobs.py).
+// Plan step 4, D9: one source into intake, every listing stored and marked (the store cases of the old test_free_jobs.py).
 
 let db: PgDb, close: () => Promise<void>;
 beforeAll(async () => ({ db, close } = await freshPg()));
@@ -24,12 +24,13 @@ const serving = (jobs: unknown[]): Fetcher => ({ requests: 1, get: async () => (
 const remotive = SOURCES.find((s) => s.name === "remotive")!;
 
 describe("collectSource", () => {
-  it("writes only contract listings that screening keeps, and reports seen, jobs and ids", async () => {
+  it("writes every listing read, marked by the source's rule, and counts as jobs the kept ones screening allows (plan D9)", async () => {
     const jobs = [rem(), rem({ id: 2, job_type: "full_time" }), rem({ id: 3, title: "Accountant", description: "Bookkeeping" }), rem({ id: 4, candidate_required_location: "USA" })];
     const run = await collectSource(db, "remotive", NOW, serving(jobs));
-    expect([run.seen, run.jobs, run.externalIds, run.intake.inserted]).toEqual([4, 1, ["1"], 1]);
+    expect([run.seen, run.stored, run.jobs, run.externalIds, run.intake.inserted]).toEqual([4, 4, 1, ["1", "2", "3", "4"], 4]);
     expect((await listingBy(db, "remotive", "1"))?.publishedAt?.toISOString()).toBe("2026-09-18T12:00:00.000Z");
-    expect(await listingBy(db, "remotive", "3")).toBeNull();
+    const rows = await Promise.all(["1", "2", "3", "4"].map((id) => listingBy(db, "remotive", id)));
+    expect(rows.map((r) => [r?.sourceKept, r?.hardExcluded])).toEqual([[true, false], [false, true], [true, true], [true, true]]);
   });
 
   it("writes the others when one listing lacks its identity, and reports it rejected (Will 2026-11-15)", async () => {
@@ -54,36 +55,42 @@ describe("collectSource", () => {
   });
 });
 
-describe("collectSource for a source that refreshes stored listings (old `exists ||`)", () => {
+describe("collectSource with a scripted connector", () => {
   const listing = (id: string, kind: "contract" | "full_time", title = "Backend API engineer") =>
     ({ external_id: id, title, description: title === "Accountant" ? "Bookkeeping" : "Build an API", url: `https://example.com/${id}`, canonical_url: `https://example.com/${id}`, location: null,
       kind, taiwan_eligible: null, complete: false, published_at: null, extra: {} });
-  const source = (got: () => Collected): SourceSettings =>
-    ({ name: "remotive", order: 0, connector: async () => got(), maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, disabled: null });
+  const all = () => true;
+  const contractOnly = (l: { kind: string | null }) => l.kind === "contract";
+  const source = (got: () => Omit<Collected, "sourceKept"> & Partial<Pick<Collected, "sourceKept">>, completeRead = false): SourceSettings =>
+    ({ name: "remotive", order: 0, connector: async () => ({ sourceKept: all, ...got() }), maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead, disabled: null });
   const none: Fetcher = { requests: 0, get: async () => { throw new Error("no request"); } };
 
-  it("refreshes a stored listing the rules now drop, never inserts one, and reports both kinds of written ids", async () => {
+  it("stores what the rule drops as not kept and follows a stored listing whose content changes either way", async () => {
     await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none);
     const run = await collectSource(db, source(() => ({
-      seen: 3, listings: [parseListingInput(listing("c", "contract")), parseListingInput(listing("d", "contract", "Accountant"))],
-      others: [parseListingInput(listing("a", "full_time")), parseListingInput(listing("b", "full_time"))],
+      seen: 3, sourceKept: contractOnly,
+      listings: [parseListingInput(listing("c", "contract")), parseListingInput(listing("d", "contract", "Accountant")), parseListingInput(listing("a", "full_time")), parseListingInput(listing("b", "full_time"))],
     })), NOW, none);
-    expect([run.jobs, run.externalIds, run.intake]).toEqual([2, ["c", "a"], { inserted: 1, updated: 1, unchanged: 0, versioned: 0 }]);
-    expect((await listingBy(db, "remotive", "a"))?.kind).toBe("full_time");
-    expect(await listingBy(db, "remotive", "b")).toBeNull();
-    expect(await listingBy(db, "remotive", "d")).toBeNull();
+    expect([run.stored, run.jobs, run.externalIds, run.intake]).toEqual([4, 1, ["c", "d", "a", "b"], { inserted: 3, updated: 1, unchanged: 0, versioned: 0 }]);
+    const rows = await Promise.all(["a", "b", "c", "d"].map((id) => listingBy(db, "remotive", id)));
+    expect(rows.map((r) => [r?.kind, r?.sourceKept])).toEqual([["full_time", false], ["full_time", false], ["contract", true], ["contract", true]]);
   });
 
-  it("refreshes a stored listing that screening now excludes", async () => {
-    await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))], others: [] })), NOW, none);
-    const run = await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract", "Accountant"))], others: [] })), NOW, none);
-    expect([run.externalIds, run.intake.updated]).toEqual([["a"], 1]);
+  it("a rule that refuses (SourceError) fails the run with nothing written", async () => {
+    const refuse = () => { throw new SourceError("remotive: category is not text"); };
+    await expect(collectSource(db, source(() => ({ seen: 1, sourceKept: refuse, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none)).rejects.toThrow(/category/);
+    expect(await listingBy(db, "remotive", "a")).toBeNull();
   });
 
-  it("without `others` a dropped stored listing is left as it was", async () => {
-    await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none);
-    const run = await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract", "Accountant"))] })), NOW, none);
-    expect([run.externalIds, run.intake]).toEqual([[], { inserted: 0, updated: 0, unchanged: 0, versioned: 0 }]);
+  it("marks gone only after a complete, untruncated read of a source the catalog marks complete", async () => {
+    const t1 = new Date(NOW.getTime() + 86_400_000);
+    const read = (ids: string[], truncated = false) => () => ({ seen: ids.length, truncated, listings: ids.map((id) => parseListingInput(listing(id, "contract"))) });
+    await collectSource(db, source(read(["a", "b"]), true), NOW, none);
+    await collectSource(db, source(read(["a"], true), true), t1, none);
+    await collectSource(db, source(read(["a"])), t1, none);
+    expect((await listingBy(db, "remotive", "b"))?.goneAt).toBeNull();
+    await collectSource(db, source(read(["a"]), true), t1, none);
+    expect((await listingBy(db, "remotive", "b"))?.goneAt).toEqual(t1);
   });
 
   it("reports a truncated read", async () => {
