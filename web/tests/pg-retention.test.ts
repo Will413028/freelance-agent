@@ -12,6 +12,7 @@ afterAll(async () => close());
 beforeEach(async () => db.execute(sql`truncate listings cascade`));
 
 const job = (id: string) => ({ external_id: id, title: "Backend API contractor", url: `https://example.com/jobs/${id}`, kind: "contract" });
+const J = ["jobicy"];
 const day = (n: number) => new Date(Date.UTC(2026, 10, 1) + n * 86_400_000);
 
 // Needs two connections: PGlite has one, so this runs only on a real server (CI sets TEST_PG_URL; the pool has max 2).
@@ -29,7 +30,7 @@ describe.skipIf(!process.env.TEST_PG_URL)("pruneListings under a concurrent save
       await held;
     });
     await isLocked;
-    expect(await pruneListings(db, day(31), 30)).toBe(1);
+    expect(await pruneListings(db, J, day(31), 30)).toBe(1);
     release();
     await writer;
     expect(await listingBy(db, "jobicy", "busy")).not.toBeNull();

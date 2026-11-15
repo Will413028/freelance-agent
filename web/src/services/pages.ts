@@ -1,30 +1,21 @@
-import type { Db } from "@/db/client";
 import type { PgDb } from "@/db/pg/client";
 import { CATEGORIES } from "@/db/pg/schema";
-import { REGISTRY, sourceChecks } from "@/modules/collection/public";
-import { storageSignals, type StorageSignal } from "@/ops/storage-triggers";
+import { REGISTRY } from "@/modules/collection/public";
 import { evaluate, PAGE_SIZE, rankedPage, readSettings, recommend, VIEWS, type Content, type FeedbackState, type Settings, type View } from "@/modules/evaluation/public";
 import { listingOfRow, readShown, type ListingRow, type Shown, type VersionRow } from "@/modules/listings/public";
-import { latestDailyRun } from "@/modules/notifications/public";
+import { latestRuns } from "@/modules/runs/public";
+import { SOURCES } from "@/modules/sources/public";
 import { feedbackToken, saveSettings, setFeedback } from "@/modules/review/public";
 import { NotFound } from "@/platform/errors";
-import { asDict, isDict, PyDict, type PyValue } from "@/platform/py/value";
 
 // What the pages render (plan step 3c): typed views with only the fields a page shows. Pages output
 // rendered HTML only, so these views are the whitelist; nothing else of a record leaves the server.
-// The list, detail and settings pages read Postgres; /sources still reads D1 until plan step 6.
+// Every page reads Postgres (/sources since plan step 6).
 
 export { PAGE_SIZE };
 
 /** A value as the page reads it: JSON-like, integers as numbers (every integer shown is small). */
 export type Plain = null | boolean | number | string | Plain[] | { [key: string]: Plain };
-
-export function plain(value: PyValue): Plain {
-  if (typeof value === "bigint") return Number(value);
-  if (Array.isArray(value)) return value.map(plain);
-  if (value instanceof PyDict) return Object.fromEntries([...value].map(([k, v]) => [k, plain(v)]));
-  return value;
-}
 
 /** A content's shown fields, keyed as the page names them. */
 export type JobFields = {
@@ -149,34 +140,36 @@ export async function settingsPage(db: PgDb): Promise<SettingsView> {
   return { revision, maxWeeklyHours: settings.maxWeeklyHours, minFixedTwd: settings.minFixedTwd, categories: settings.categories, allCategories: CATEGORIES };
 }
 
-export type SourceRow = { source: string; name: string; status: string; checkedAt: string | null; daily: Record<string, Plain> | null };
-/** How many days of runs, ending with the latest one, the sources page checks for storage signals. */
-const SIGNAL_DAYS = 7;
-const daysBefore = (localDate: string, days: number) => new Date(Date.parse(`${localDate}T00:00:00Z`) - days * 86_400_000).toISOString().slice(0, 10);
+/** The list page's query budget (plan step 5a2-3: ≤ 250 ms at the measured row count); /sources flags a daily run whose timing exceeds it. */
+export const LIST_BUDGET_MS = 250;
+
+/** One catalog source on /sources: its latest run_sources row, or null when no run has read it yet. */
+export type SourceRow = {
+  source: string; name: string; disabled: string | null;
+  latest: { localDate: string; status: string; reason: string | null; counts: Record<string, Plain>; finishedAt: string | null } | null;
+};
 
 export type SourcesView = {
-  /** Signals that reopen a deferred storage decision (D18, D20, D21, the projection read), over the runs checked. */
-  signals: { runs: number; reopened: StorageSignal[] };
-  lastRun: { localDate: string; status: string; startedAt: string; finishedAt: string | null; reason: string | null } | null;
+  lastRun: { localDate: string; status: string; reason: string | null; startedAt: string; finishedAt: string | null; pruned: number | null; listMs: number | null; listSlow: boolean } | null;
   sources: SourceRow[];
 };
 
-export async function sourcesPage(db: Db): Promise<SourcesView> {
-  const [checks, run] = await Promise.all([sourceChecks(db), latestDailyRun(db)]);
-  const result = run && isDict(run.result) ? run.result : null;
-  const details = result && result.has("source_details") && isDict(result.get("source_details")!) ? result.dict("source_details") : null;
-  const reason = result?.at("source_reason") ?? result?.at("reason") ?? null;
-  // Nothing else runs this check since the cutover (plan step 14); "totals" only qualifies a run's numbers.
-  const checked = run ? await storageSignals(db, daysBefore(run.localDate, SIGNAL_DAYS - 1)) : { runs: 0, signals: [] };
+/** Source health and the latest daily run of the new system (plan step 6): reads runs and run_sources. */
+export async function sourcesPage(db: PgDb): Promise<SourcesView> {
+  const { run, sources } = await latestRuns(db);
+  const bySource = new Map(sources.map((r) => [r.source, r]));
+  const num = (v: unknown) => (typeof v === "number" ? v : null);
+  const listMs = run ? num(run.counts.listMs) : null;
   return {
-    signals: { runs: checked.runs, reopened: checked.signals.filter((s) => s.decision !== "totals") },
-    lastRun: run ? { localDate: run.localDate, status: run.status, startedAt: run.startedAt, finishedAt: run.finishedAt, reason: typeof reason === "string" ? reason : null } : null,
-    sources: [...checks].map(([source, v]) => {
-      const check = asDict(v), daily = details?.at(source);
+    lastRun: run ? {
+      localDate: run.localDate, status: run.status, reason: run.reason, startedAt: run.startedAt.toISOString(),
+      finishedAt: run.finishedAt?.toISOString() ?? null, pruned: num(run.counts.pruned), listMs, listSlow: listMs !== null && listMs > LIST_BUDGET_MS,
+    } : null,
+    sources: [...SOURCES].sort((a, b) => a.order - b.order).map((s) => {
+      const r = bySource.get(s.name);
       return {
-        source, name: sourceName(source), status: String(check.at("status")),
-        checkedAt: typeof check.at("checked_at") === "string" ? check.str("checked_at") : null,
-        daily: daily !== undefined && isDict(daily) ? plain(daily) as Record<string, Plain> : null,
+        source: s.name, name: sourceName(s.name), disabled: s.disabled,
+        latest: r ? { localDate: r.localDate, status: r.status, reason: r.reason, counts: r.counts as Record<string, Plain>, finishedAt: r.finishedAt?.toISOString() ?? null } : null,
       };
     }),
   };

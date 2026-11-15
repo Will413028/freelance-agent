@@ -1,0 +1,16 @@
+# The daily run (plan step 6). Install on the VM (root, with Will's authorization):
+#   install -m 0644 deploy/systemd/side-income-daily.{service,timer} /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now side-income-daily.timer
+[Unit]
+Description=side-income daily run
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/side-income
+ExecStart=/usr/bin/docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml run --rm daily
+# A backstop over the retries; a run stopped here is resumed by the timer's 16:00 start. Whether the
+# container stops with the compose client is checked on the VM when the timer is installed (plan step 6).
+TimeoutStartSec=60min

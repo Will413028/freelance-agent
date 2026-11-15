@@ -1,0 +1,14 @@
+# Shadow period: 14:00 Asia/Taipei, clear of production's 09:00 and 12:00 triggers, so one source is never
+# read by both systems at once; 16:00 resumes a day that failed or was killed (a succeeded day exits at once).
+# A Persistent catch-up before 14:00 exits as not_due (EARLIEST_HOUR in web/src/services/run-daily.ts).
+# Plan step 10 moves both, and EARLIEST_HOUR, to 09:00 and 11:00.
+[Unit]
+Description=side-income daily run at 14:00 Asia/Taipei, resumed at 16:00
+
+[Timer]
+OnCalendar=*-*-* 14:00:00 Asia/Taipei
+OnCalendar=*-*-* 16:00:00 Asia/Taipei
+Persistent=true
+
+[Install]
+WantedBy=timers.target

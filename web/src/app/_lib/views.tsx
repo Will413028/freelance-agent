@@ -1,5 +1,6 @@
 import type { View } from "@/modules/evaluation/public";
 import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView } from "@/services/pages";
+import { LIST_BUDGET_MS } from "@/services/pages";
 import { NOTICES, type Notice } from "./writes";
 
 // The pages' markup (plan step 11), synchronous and props-only so tests can render it with
@@ -155,36 +156,29 @@ export function SettingsForm({ data }: { data: SettingsView }) {
   </form>;
 }
 
-const SOURCE_LABELS: Record<string, string> = { ok: "最近讀取成功", partial: "部分資料取得", failed: "讀取失敗或不完整", waiting: "等待職缺通知", not_connected: "尚未接通" };
-const RUN_LABELS: Record<string, string> = { running: "執行中，需核對是否中斷", complete: "完成", failed: "部分來源或處理失敗" };
+const SOURCE_LABELS: Record<string, string> = { ok: "最近讀取成功", failed: "讀取失敗", waiting: "等待職缺通知" };
+const RUN_LABELS: Record<string, string> = { running: "執行中，或中斷待下次接續", succeeded: "完成", failed: "部分來源或處理失敗" };
 
 function taipei(value: string | null) {
   if (!value) return "尚無紀錄";
-  const date = new Date(value.includes("T") ? value : value.replace(" ", "T") + "Z");
+  const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "時間未知" : new Intl.DateTimeFormat("zh-TW", {
     timeZone: "Asia/Taipei", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
   }).format(date) + " 台灣時間";
 }
 
-function dailyLine(daily: Record<string, Plain>) {
-  const n = (k: string) => (typeof daily[k] === "number" ? daily[k] as number : null);
-  const parts = [n("seen") !== null ? `讀取 ${n("seen")} 筆` : n("messages") !== null ? `職缺通知 ${n("messages")} 封` : "讀取數量未知"];
+function countsLine(c: Record<string, Plain>) {
+  const n = (k: string) => (typeof c[k] === "number" ? c[k] as number : null);
+  const parts: string[] = [];
+  if (n("seen") !== null) parts.push(`讀取 ${n("seen")} 筆`);
+  if (n("stored") !== null) parts.push(`寫入 ${n("stored")} 筆`);
+  if (n("inserted") !== null) parts.push(`新增 ${n("inserted")} 筆`);
   if (n("jobs") !== null) parts.push(`初篩 ${n("jobs")} 筆`);
-  if (n("rejected_count") !== null) parts.push(`拒收 ${n("rejected_count")} 筆`);
-  if (n("quarantined") !== null) parts.push(`隔離 ${n("quarantined")} 封（歷來累計）`);
-  if (typeof daily.error === "string") parts.push(`錯誤種類 ${daily.error}`);
-  if (typeof daily.reason === "string" && daily.status === "failed") parts.push(`原因 ${daily.reason}`);
-  if (daily.truncated === true || daily.limited === true) parts.push("本次讀取未完整");
-  if (daily.complete_scan === false) parts.push("有限範圍，不代表全站");
+  if (n("rejected")) parts.push(`拒收 ${n("rejected")} 筆`);
+  if (c.truncated === true) parts.push("本次讀取未完整");
+  if ((n("attempts") ?? 1) > 1) parts.push(`嘗試 ${n("attempts")} 次`);
   return parts.join(" · ");
 }
-
-/** What each storage signal means; the decision it reopens is in docs/operations.md. */
-const SIGNAL_LABELS: Record<SourcesView["signals"]["reopened"][number]["signal"], string> = {
-  lease_wait_over_limit: "單次執行等寫入租約超過 2 秒（毫秒）", lease_timeout: "等不到寫入租約的次數", lease_lost: "寫入租約被搶走的次數",
-  rate_limited: "D1 回 429 的次數", requests_over_limit: "單次執行的 D1 請求數超過 600", lost_steps: "沒回報用量的步驟數",
-  read_retries: "清單讀取重來的次數", cross_source_title_pairs: "跨來源同職稱達 3 組", cross_source_unmeasured: "跨來源同職稱這次沒量到",
-};
 
 export function SourcesTable({ data }: { data: SourcesView }) {
   const run = data.lastRun;
@@ -196,20 +190,18 @@ export function SourcesTable({ data }: { data: SourcesView }) {
         <p>{run.localDate} · {RUN_LABELS[run.status] ?? run.status}</p>
         <p>開始 {taipei(run.startedAt)}{run.finishedAt ? ` · 結束 ${taipei(run.finishedAt)}` : ""}</p>
         {run.reason && <p>原因：{run.reason}</p>}
+        {run.pruned !== null && <p>保留期限刪除 {run.pruned} 筆</p>}
+        {run.listMs !== null && <p>{run.listSlow ? `清單頁查詢 ${run.listMs} ms，超過 ${LIST_BUDGET_MS} ms 上限` : `清單頁查詢 ${run.listMs} ms`}</p>}
       </> : <p>尚無每日執行紀錄</p>}
-    </section>
-    <section className="schedule" aria-label="儲存設計的檢討訊號">
-      <span className="eyebrow">儲存設計的檢討訊號</span>
-      {data.signals.reopened.length === 0
-        ? <p>近 7 天 {data.signals.runs} 次執行沒有訊號</p>
-        : <ul>{data.signals.reopened.map((s) => <li key={`${s.localDate}-${s.signal}`}>{s.localDate} · {SIGNAL_LABELS[s.signal]}：{s.value}（決定 {s.decision}）</li>)}</ul>}
     </section>
     <p className="hint">讀取成功代表最近一次已配置範圍的結果；尚未接通或讀取不完整的來源不等於沒有職缺。</p>
     <table>
-      <thead><tr><th>來源</th><th>狀態</th><th>檢查時間</th><th>最近一次每日收案</th></tr></thead>
+      <thead><tr><th>來源</th><th>最近一次每日收案</th><th>時間</th><th>明細</th></tr></thead>
       <tbody>{data.sources.map((s) => <tr key={s.source}>
-        <td>{s.name}</td><td>{SOURCE_LABELS[s.status] ?? s.status}</td><td>{taipei(s.checkedAt)}</td>
-        <td>{s.daily ? `${typeof s.daily.status === "string" ? SOURCE_LABELS[s.daily.status] ?? s.daily.status : "結果未知"} · ${dailyLine(s.daily)}` : "—"}</td>
+        <td>{s.name}</td>
+        <td>{s.disabled ? `停用：${s.disabled}` : s.latest ? `${s.latest.localDate} · ${SOURCE_LABELS[s.latest.status] ?? s.latest.status}` : "尚未執行"}</td>
+        <td>{s.latest ? taipei(s.latest.finishedAt) : "—"}</td>
+        <td>{s.latest ? [countsLine(s.latest.counts), s.latest.reason && `錯誤種類 ${s.latest.reason}`].filter(Boolean).join(" · ") || "—" : "—"}</td>
       </tr>)}</tbody>
     </table>
   </>;
