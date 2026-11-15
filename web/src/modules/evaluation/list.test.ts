@@ -36,6 +36,10 @@ describe("which stored listings the page considers", () => {
     const saved = await listingBy(db, "jobicy", "dropped-saved");
     await db.execute(sql`insert into listing_feedback (listing_id, state, revision) values (${saved!.id}, 'interested', 1)`);
     expect(await shownIds()).toEqual(["kept", "dropped-saved", "mail"]);
+    // A neutral feedback row (saved, then set back) keeps nothing in.
+    await db.execute(sql`update listing_feedback set state = 'neutral' where listing_id = ${saved!.id}`);
+    expect(await shownIds()).toEqual(["kept", "mail"]);
+    await db.execute(sql`update listing_feedback set state = 'interested' where listing_id = ${saved!.id}`);
     const all = await rankedPage(db, DEFAULT_SETTINGS, now, "all", 0);
     expect(all.total).toBe(3);
   });

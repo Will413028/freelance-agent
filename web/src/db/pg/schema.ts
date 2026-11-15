@@ -86,7 +86,10 @@ export const listings = pgTable("listings", {
   goneAt: at("gone_at"),
 }, (t) => [
   uniqueIndex("listings_source_external_id").on(t.source, t.externalId),
-  /** The listing query's filter (modules/evaluation/list.ts shown()): the rows the source keeps and no hard reason excludes. */
+  /**
+   * The first branch of the listing query's filter (modules/evaluation/list.ts shownWhere). While that filter ORs in the
+   * version and feedback branches Postgres may not use it; 5a2-3 measures the VM page and keeps, reshapes or drops it.
+   */
   index("listings_shown").on(t.id).where(sql`${t.sourceKept} and not ${t.hardExcluded}`),
   kindCheck("listings_kind", t.kind),
   ...deadlineChecks("listings", t),

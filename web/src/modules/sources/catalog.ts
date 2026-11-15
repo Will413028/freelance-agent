@@ -12,7 +12,8 @@ import type { SourceSettings } from "./types";
 // docs/plans/2026-11-15-self-hosted-rebuild/connector-checklist.md). Both free boards answer with
 // their whole latest list in one request. Every source keeps the old daily order (collection/source-catalog.ts) times ten;
 // each connector's settings cite the old request count and pause. completeRead (plan D9): only sources
-// whose one read pages through the whole board to its end (arbeitnow, getonboard); the free boards
+// whose one read pages through the whole board to its end (arbeitnow; getonboard reads a remote-only
+// search, so a listing can leave the read while still open); the free boards
 // (limit/count 200) and taiwanjobs (count=1000) answer a latest-N window, where an open listing can drop out.
 
 export const SOURCES: readonly SourceSettings[] = [

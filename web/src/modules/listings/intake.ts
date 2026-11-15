@@ -114,8 +114,9 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
       if (old.fingerprint === columns.fingerprint) {
         counts.unchanged++;
       } else if (mode === "page") {
-        await tx.update(listings).set({ ...columns, updatedAt: observedAt }).where(eq(listings.id, old.id));
+        await tx.update(listings).set({ ...columns, sourceKept, updatedAt: observedAt, ...seen }).where(eq(listings.id, old.id));
         counts.updated++;
+        continue;
       } else {
         // The row's content becomes a version too, as first seen: its stored columns, never a re-parse of raw.
         const first = Object.fromEntries(CONTENT_KEYS.map((k) => [k, old[k]])) as Pick<typeof old, (typeof CONTENT_KEYS)[number]>;
@@ -126,7 +127,7 @@ export async function intakeListings(db: PgDb, source: string, given: readonly u
       }
       (sourceKept ? sighted.kept : sighted.out).push(old.id);
     }
-    // Every sighting of a stored row, whatever happened to its content; the rule is re-read each time (it may depend on the date).
+    // Every other sighting of a stored row (unchanged, or mail); the rule is re-read each time (it may depend on the date).
     if (sighted.kept.length) await tx.update(listings).set({ sourceKept: true, ...seen }).where(inArray(listings.id, sighted.kept));
     if (sighted.out.length) await tx.update(listings).set({ sourceKept: false, ...seen }).where(inArray(listings.id, sighted.out));
     // A complete read that no longer shows a stored listing: it left the source.

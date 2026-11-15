@@ -170,5 +170,5 @@ export const GETONBOARD_SETTINGS: Omit<SourceSettings, "order"> = {
   minIntervalMs: 1000,
   // Old: the modality taxonomy plus up to 10 search pages (collection/sources/getonboard.ts:83, 89).
   maxRequestsPerRun: 1 + MAX_PAGES,
-  completeRead: true, disabled: null,
+  completeRead: false, disabled: null,
 };
