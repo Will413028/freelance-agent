@@ -244,7 +244,7 @@
 | 6 每日執行 | 未開始 | | | |
 | 7 信件來源 | 未開始 | | | |
 | 8 分層讀取與新平台 | 未開始 | | | |
-| 9 營運 | 未開始 | | | |
+| 9 營運 | 程式完成待驗收 | `deploy/test-deploy.mjs` 7 個情境（健康部署、分支名解析成 origin、build／migration 失敗不動、不健康回滾、重建失敗回滾、回滾也不健康、健康狀態卡住逾時）以 stub `docker`／`git`／`flock` 通過並接進 `pnpm check`；mutation 8 個都被擋；`shellcheck` 無警告；`/code-review` 10 項：修 9、接受 1（腳本用目前 checkout 的版本，改 `deploy.sh` 從下一次部署生效，已寫進 `docs/operations.md`）；compose 的 `web`、`daily` 早已只用 `${APP_IMAGE}`（步驟 2），本步不用改 | VM 上兩次演練（故意不健康的 commit、故意失敗的 migration）：要 Will 授權部署；`flock` 只在 VM 上實際生效（測試用 stub） | 本 PR |
 | 10 搬移、切換與退役 | 未開始 | | | |
 | 11 刪舊機制 | 未開始 | | | |
 | 12 收尾 | 未開始 | | | |

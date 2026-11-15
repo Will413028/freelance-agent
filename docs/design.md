@@ -16,6 +16,8 @@
 
 ## 架構
 
+下圖是過渡期的正式系統（Vercel 加 D1）。新系統在自建 VM 上（[自建重構計畫](plans/2026-11-15-self-hosted-rebuild.md)）：Docker Compose 跑 `web`（Next.js）與 Postgres，只經 Tailscale Serve 可達；部署用 `deploy/deploy.sh`，用新映像先套 migration、健康檢查失敗自動回前一個映像 tag，切換後 migration 一律先加後刪（[操作手冊](operations.md)「自建 VM」）。
+
 ```mermaid
 flowchart LR
   C[Vercel Cron] --> R["/api/cron"]

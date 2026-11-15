@@ -13,7 +13,7 @@
     "boundaries": "depcruise src --config .dependency-cruiser.cjs",
     "db:generate": "drizzle-kit generate && drizzle-kit generate --config drizzle.pg.config.ts",
     "db:check": "drizzle-kit check && drizzle-kit generate && drizzle-kit check --config drizzle.pg.config.ts && drizzle-kit generate --config drizzle.pg.config.ts && test -z \"$(git status --porcelain -- drizzle drizzle-pg)\"",
-    "check": "pnpm typecheck && pnpm boundaries && pnpm db:check && pnpm test && node ../deploy/check-compose.mjs"
+    "check": "pnpm typecheck && pnpm boundaries && pnpm db:check && pnpm test && node ../deploy/check-compose.mjs && node --test ../deploy/test-deploy.mjs"
   },
   "dependencies": {
     "@vercel/functions": "3.10.3",

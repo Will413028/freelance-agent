@@ -1,28 +1,23 @@
 # deploy — the self-hosted stack on the VM
 
-Plan: `docs/plans/2026-11-15-self-hosted-rebuild.md` (step 2 built the walking skeleton, step 3 the data model; step 9 writes the full operations procedure).
+Plan: `docs/plans/2026-11-15-self-hosted-rebuild.md` (step 2 built the walking skeleton, step 3 the data model, step 9 the deploy script).
 Every deploy, scheduled job or new container on the VM needs Will's authorization first.
 
 - Checkout: `/opt/side-income` (a git clone of this repository).
 - Env file: `/etc/side-income/compose.env`, mode 0600, owned by root. It sets `APP_IMAGE` (the image tag, e.g. `side-income-web:<commit>`) and `POSTGRES_PASSWORD` (hex, so it needs no URL escaping). Never commit it.
 - Ports: `web` publishes `127.0.0.1:3347` only; `db` publishes nothing. `deploy/check-compose.mjs` (in `pnpm check` and CI) fails on any other binding. Tailscale Serve is the only way in.
 
-## Build and start
+## Deploy
 
-Run as root from `/opt/side-income`:
+Run as root, after CI is green for the commit:
 
 ```bash
-git fetch origin && git checkout --detach origin/dev
-commit=$(git rev-parse --short HEAD)
-docker build -f deploy/web.Dockerfile -t "side-income-web:$commit" web
-sed -i "s/^APP_IMAGE=.*/APP_IMAGE=side-income-web:$commit/" /etc/side-income/compose.env
-compose() { docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml "$@"; }
-compose up -d db
-compose run --rm daily pnpm exec tsx scripts/migrate-pg.ts
-compose up -d web
-compose ps
+/opt/side-income/deploy/deploy.sh <commit>
 ```
 
+It checks out the commit, builds `side-income-web:<short sha>`, runs `migrate-pg` with the new image (failure: nothing else changes), points `APP_IMAGE` at the new tag, recreates `web` and waits for its healthcheck; unhealthy means `APP_IMAGE` and the checkout go back to the previous ones and `web` is recreated on them. `deploy/test-deploy.mjs` (in `pnpm check`) covers these decisions with stub `docker` and `git`. The procedure, the migration rule and what is lost without a backup are in [`docs/operations.md`](../docs/operations.md), section 自建 VM.
+
+First install only (no previous `APP_IMAGE` yet): set `APP_IMAGE` in the env file to any placeholder tag, then run `deploy.sh`.
 
 Before cutover (plan step 10) the migrations may be regenerated in place (`web/drizzle-pg/` squashed to one `0000_init.sql`, as in step 3a). The migrator then tries to re-run `0000` on the old database and stops at "already exists": the database holds only shadow data, so remove the `db` volume (`compose down -v`, with Will's go-ahead like every VM deploy) and run the steps above again.
 

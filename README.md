@@ -60,11 +60,11 @@ pnpm test
 在 `web/` 執行，與 CI（`.github/workflows/ci.yml`）相同：
 
 ```bash
-pnpm check   # typecheck、boundaries、db:check（D1 與 Postgres 兩套）、test、deploy/check-compose.mjs
+pnpm check   # typecheck、boundaries、db:check（D1 與 Postgres 兩套）、test、deploy/check-compose.mjs、deploy/test-deploy.mjs
 pnpm build
 ```
 
-CI 另外對真的 Postgres 18 重跑 Postgres 測試（`TEST_PG_URL`），並建一次映像（不推送）。VM 上的部署見 [`deploy/README.md`](deploy/README.md)。
+CI 另外對真的 Postgres 18 重跑 Postgres 測試（`TEST_PG_URL`），並建一次映像（不推送）。VM 上的部署用 `deploy/deploy.sh`（健康檢查失敗自動回前一版），見 [`deploy/README.md`](deploy/README.md) 與[操作手冊](docs/operations.md)的「自建 VM」。
 
 `pnpm test:d1` 對真的 D1 跑整合測試，**會先清空該資料庫的所有表**。只能指向名稱是 `freelance-agent-*-test` 的資料庫（CI 已不跑它，計畫步驟 11 刪除），絕不能指向正式資料庫；它另外要求 `D1_DESTRUCTIVE_TEST` 與 `D1_DATABASE_ID` 相同才會執行。
 
