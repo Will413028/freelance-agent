@@ -18,7 +18,10 @@
 - `Fetcher` 依呼叫順序一次服務一個請求，connector 可以並行呼叫，間隔與上限仍成立。
 - 其他欄位轉不了：寫 `null`（未知），不猜、不拒收（D8）。三態欄位只在來源明說時寫 `true`／`false`；remote、worldwide 不等於台灣可接。
 - 時間：有時區的照轉；沒時區的，照來源的規則決定（例：jobicy、remotive 以 UTC 發布，`utcInstant`），規則寫在 connector 的註解裡。截止日照契約的四種形狀。
-- 來源自己的篩選規則（例：只收合約類）放在 connector；與設定無關的資格初篩是共用的，在 `web/src/services/collect.ts` 的 `screen`，connector 不重做。
+- 來源自己的篩選規則（例：只收合約類）放在 connector；與設定無關的資格初篩是共用的，在 `web/src/services/collect.ts` 的 `screen`，connector 不重做。舊程式的 `qualifyForIntake(...).score > 0` 也是 `screen` 的事：`evaluate` 對類別分數 0 加排除理由「不在目前接案專長範圍」（`web/src/modules/evaluation/evaluate.ts`），connector 不另寫（步驟 5a）。
+- 舊程式有 `exists ||`（已存在的職缺不套篩選、照樣更新）的來源：connector 把讀到但自己的規則沒留下的職缺放進 `Collected.others`；`collectSource` 只拿它們和被 `screen` 擋下的職缺去更新已存在的列，從不新增（Will 2026-11-15，步驟 5a）。舊程式沒有這條的來源不設 `others`。
+- 讀到來源自己的讀取上限（頁數）還沒讀完：已讀的照寫，`Collected.truncated = true`（舊的 partial），`collectSource` 回報在 `SourceRun.truncated`，步驟 6 記到執行列。單筆身分壞掉、分頁不一致仍是整批失敗。
+- 舊程式為了 serverless 時限設的整個來源的時間預算不搬：讀取範圍由請求上限界定；`Fetcher` 一次一個請求、間隔至少 1 秒，舊的預算在這裡只會讓執行失敗（步驟 5a：hackernews、freelancer）。
 - `extra` 只放 connector 讀到、契約沒有欄位、之後稽核用得到的東西（例：原始的工作類型、原始的發布時間字串）。不放全文副本。
 
 ## 3. id 不變
@@ -36,7 +39,7 @@
   - `PATCHED`：舊結果的某欄位刻意改變（1 例：Python 與 V8 的 Unicode 小寫版本不同，只影響不認得的工作類型字串）。
   - `REFUSED`：舊的照收，新的拒收（1 例：超過 2^53 的 id，JavaScript 的數字存不準，拒收才能保住 `external_id`）。
 - connector 新增的欄位（例：`location` 改填來源的地區文字）也在產生器裡寫明。
-- HTML 轉文字與舊的 html.parser 移植版在 98 個片段中有 15 個不同，全是舊版錯（結尾未完的文字被丟掉、顯示瀏覽器不會顯示的內容）；落單的區塊結束標籤（`</p>`、`</br>`）照舊當斷字。空白字元用 JavaScript 的 `\s`，與 Python `str.split()` 在 NEL、U+001C–U+001F、BOM 上不同（已接受，步驟 4 審查）。新預期寫在 `shared/html.test.ts`。時間一律經 `shared/time.ts`，它用 `listings` 的同一個 ISO 解析器，不另寫。
+- HTML 轉文字與舊的 html.parser 移植版在 98 個片段中有 15 個不同，全是舊版錯（結尾未完的文字被丟掉、顯示瀏覽器不會顯示的內容）；落單的區塊結束標籤（`</p>`、`</br>`）照舊當斷字。空白字元用 JavaScript 的 `\s`，與 Python `str.split()` 在 NEL、U+001C–U+001F、BOM 上不同（已接受，步驟 4 審查）。新預期寫在 `shared/html.test.ts`。時間一律經 `shared/time.ts`，它用 `listings` 的同一個 ISO 解析器，不另寫；RFC 2822 日期用 `rfc2822Instant`／`pubDateInstant`（照 Python `email.utils.parsedate_to_datetime` 的步驟，golden `parsedate` 70 例對照；非 ASCII 數字不讀，已接受）。
 
 ## 5. 測試與 mutation
 

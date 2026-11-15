@@ -45,6 +45,13 @@ describe("fingerprint", () => {
 });
 
 describe("intake", () => {
+  it("refreshOnly updates a stored listing and never inserts one that is not stored", async () => {
+    await intakeListings(db, "jobicy", [job("1")], "page");
+    expect(await intakeListings(db, "jobicy", [], "page", new Date(), [job("1", { title: "Changed" }), job("2")])).toEqual({ inserted: 0, updated: 1, unchanged: 0, versioned: 0 });
+    expect((await listingBy(db, "jobicy", "1"))?.title).toBe("Changed");
+    expect(await listingBy(db, "jobicy", "2")).toBeNull();
+  });
+
   it("inserts, then leaves the same content unchanged and keeps first_seen_at", async () => {
     expect(await intakeListings(db, "jobicy", [job("1"), job("2")], "page")).toMatchObject({ inserted: 2 });
     const first = await listingBy(db, "jobicy", "1");

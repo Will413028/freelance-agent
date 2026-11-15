@@ -1,0 +1,2970 @@
+{
+ "normalize": [
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.ch/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.ch/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.ch/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.ch.evil.test/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.co.uk/jobs/companies/acme/ai-agent-123/",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.co.uk/jobs/companies/acme/ai-agent-123/",
+    "canonical_url": "https://www.arbeitnow.co.uk/jobs/companies/acme/ai-agent-123/",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.fr/jobs/companies/acme/ai-agent-123?utm=x#y",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.fr/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.fr/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "http://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/other",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123//",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123//",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123//",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": null,
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": 5,
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://WWW.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "bad slug",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": null,
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123\n",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 0
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": -1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": true
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "listing": true
+   },
+   "why": "JSON has one number type: created_at 1790000000.0 is second 1790000000"
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 100000000000000000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 9223372036854776000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 4611686018427388000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 253402300800
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 253402300799
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "9999-12-31T23:59:59.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": "1790000000"
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": null
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": "Part Time",
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     1
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": null,
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Full-Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "full_time",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "full time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     " Part-time "
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "freelance",
+     "contract"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "contract",
+      "freelance"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Fulltime",
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "full_time",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "fulltime",
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "PART TIME"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "full_time",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "full time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": null,
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "part-time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "internship"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": null,
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "internship"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Contract ",
+     "İ"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "contract",
+      "i̇"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": null,
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": null,
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": 5,
+    "created_at": 1790000000
+   },
+   "expect": {
+    "unknown": "location"
+   },
+   "why": "D8: location not text"
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": "yes",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": false
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": false
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": null,
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": null,
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>\n<p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>  <p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>\n<p>Find <a href=\"https://www.arbeitnow.com\">Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find <a href=\"https://www.arbeitnow.com\">Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>  <p>Find <a href=\"https://www.arbeitnow.com\">Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>　\n",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a><p>Must live in Germany</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.\nFind more English Speaking Jobs in Germany on Arbeitnow\nMust live in Germany",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>\u001c",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>\u001f",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>﻿",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "why": "BOM is whitespace in JavaScript",
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.\nFind more English Speaking Jobs in Germany on Arbeitnow",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a> ",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>\u000b",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find Jobs in Germany on Arbeitnow</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.\nFind Jobs in Germany on Arbeitnow",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Find <a href=\"https://www.arbeitnow.com\">Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p><p>Find <a href=\"https://www.arbeitnow.com\">Jobs in Germany</a> on Arbeitnow</a><p>Find more <a href=\"https://www.arbeitnow.com/english-speaking-jobs\">English Speaking Jobs in Germany</a> on Arbeitnow</a>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.\nFind Jobs in Germany on Arbeitnow",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  },
+  {
+   "payload": [],
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": null,
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": "x",
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "payload": {
+    "slug": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "description": "<p>Build an AI agent and API.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "tags": null,
+    "job_types": [
+     "Part Time"
+    ],
+    "location": "Remote",
+    "created_at": 1790000000,
+    "extra": [
+     1
+    ]
+   },
+   "expect": {
+    "external_id": "ai-agent-123",
+    "title": "Part time AI agent developer",
+    "company": null,
+    "description": "Build an AI agent and API.",
+    "url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "canonical_url": "https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123",
+    "location": "Remote",
+    "kind": "contract",
+    "currency": null,
+    "budget_min": null,
+    "budget_max": null,
+    "weekly_hours": null,
+    "taiwan_eligible": null,
+    "timezone_compatible": null,
+    "complete": false,
+    "listing_closed": null,
+    "compensation_evidence": null,
+    "published_at": "2026-09-21T14:13:20.000Z",
+    "deadline": null,
+    "extra": {
+     "employment_types": [
+      "part time"
+     ],
+     "remote_evidence": true
+    }
+   }
+  }
+ ],
+ "page": [
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "count": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": null
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}",
+    "page": 2
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 2, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}",
+    "page": 2
+   },
+   "expect": {
+    "count": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": null
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "count": 0,
+    "ids": [],
+    "next": null
+   }
+  },
+  {
+   "input": {
+    "body": "{}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "x",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "[]",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": {}, \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [], \"meta\": null, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [], \"meta\": {\"current_page\": true, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [], \"meta\": {\"current_page\": 1.0, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "listing": true
+   },
+   "why": "JSON has one number type: current_page 1.0 is page 1"
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": null}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "count": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.nl/api/job-board-api?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "count": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://evil.test/api/job-board-api?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.nl.evil.test/api/job-board-api?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.nl/api/job-board-api?page=2&token=x\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"http://www.arbeitnow.com/api/job-board-api?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=1\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2&token=x\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2#x\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2#\"}}",
+    "page": 1
+   },
+   "expect": {
+    "count": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api/?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=02\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=%32\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \" https://www.arbeitnow.com/api/job-board-api?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "count": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\\n\"}}",
+    "page": 1
+   },
+   "expect": {
+    "count": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": 5}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}, {\"slug\": \"bad\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://evil.example/jobs/bad\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 2}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{}, {}, {}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 100000000000000000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+  },
+  {
+   "input": {
+    "body": "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 9223372036854775808}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old set rows aside (rejected > 0); D8: a listing without identity fails the run"
+  },
+  {
+   "input": {
+    "body": "ÿþ{\u0000\"\u0000d\u0000a\u0000t\u0000a\u0000\"\u0000:\u0000 \u0000[\u0000{\u0000\"\u0000s\u0000l\u0000u\u0000g\u0000\"\u0000:\u0000 \u0000\"\u0000a\u0000i\u0000-\u0000a\u0000g\u0000e\u0000n\u0000t\u0000-\u00001\u00002\u00003\u0000\"\u0000,\u0000 \u0000\"\u0000t\u0000i\u0000t\u0000l\u0000e\u0000\"\u0000:\u0000 \u0000\"\u0000P\u0000a\u0000r\u0000t\u0000 \u0000t\u0000i\u0000m\u0000e\u0000 \u0000A\u0000I\u0000 \u0000a\u0000g\u0000e\u0000n\u0000t\u0000 \u0000d\u0000e\u0000v\u0000e\u0000l\u0000o\u0000p\u0000e\u0000r\u0000\"\u0000,\u0000 \u0000\"\u0000d\u0000e\u0000s\u0000c\u0000r\u0000i\u0000p\u0000t\u0000i\u0000o\u0000n\u0000\"\u0000:\u0000 \u0000\"\u0000<\u0000p\u0000>\u0000B\u0000u\u0000i\u0000l\u0000d\u0000 \u0000a\u0000n\u0000 \u0000A\u0000I\u0000 \u0000a\u0000g\u0000e\u0000n\u0000t\u0000 \u0000a\u0000n\u0000d\u0000 \u0000A\u0000P\u0000I\u0000.\u0000<\u0000/\u0000p\u0000>\u0000\"\u0000,\u0000 \u0000\"\u0000r\u0000e\u0000m\u0000o\u0000t\u0000e\u0000\"\u0000:\u0000 \u0000t\u0000r\u0000u\u0000e\u0000,\u0000 \u0000\"\u0000u\u0000r\u0000l\u0000\"\u0000:\u0000 \u0000\"\u0000h\u0000t\u0000t\u0000p\u0000s\u0000:\u0000/\u0000/\u0000w\u0000w\u0000w\u0000.\u0000a\u0000r\u0000b\u0000e\u0000i\u0000t\u0000n\u0000o\u0000w\u0000.\u0000c\u0000o\u0000m\u0000/\u0000j\u0000o\u0000b\u0000s\u0000/\u0000c\u0000o\u0000m\u0000p\u0000a\u0000n\u0000i\u0000e\u0000s\u0000/\u0000a\u0000c\u0000m\u0000e\u0000/\u0000a\u0000i\u0000-\u0000a\u0000g\u0000e\u0000n\u0000t\u0000-\u00001\u00002\u00003\u0000\"\u0000,\u0000 \u0000\"\u0000t\u0000a\u0000g\u0000s\u0000\"\u0000:\u0000 \u0000[\u0000\"\u0000A\u0000I\u0000\"\u0000]\u0000,\u0000 \u0000\"\u0000j\u0000o\u0000b\u0000_\u0000t\u0000y\u0000p\u0000e\u0000s\u0000\"\u0000:\u0000 \u0000[\u0000\"\u0000P\u0000a\u0000r\u0000t\u0000 \u0000T\u0000i\u0000m\u0000e\u0000\"\u0000]\u0000,\u0000 \u0000\"\u0000l\u0000o\u0000c\u0000a\u0000t\u0000i\u0000o\u0000n\u0000\"\u0000:\u0000 \u0000\"\u0000R\u0000e\u0000m\u0000o\u0000t\u0000e\u0000\"\u0000,\u0000 \u0000\"\u0000c\u0000r\u0000e\u0000a\u0000t\u0000e\u0000d\u0000_\u0000a\u0000t\u0000\"\u0000:\u0000 \u00001\u00007\u00009\u00000\u00000\u00000\u00000\u00000\u00000\u00000\u0000}\u0000]\u0000,\u0000 \u0000\"\u0000m\u0000e\u0000t\u0000a\u0000\"\u0000:\u0000 \u0000{\u0000\"\u0000c\u0000u\u0000r\u0000r\u0000e\u0000n\u0000t\u0000_\u0000p\u0000a\u0000g\u0000e\u0000\"\u0000:\u0000 \u00001\u0000}\u0000,\u0000 \u0000\"\u0000l\u0000i\u0000n\u0000k\u0000s\u0000\"\u0000:\u0000 \u0000{\u0000\"\u0000n\u0000e\u0000x\u0000t\u0000\"\u0000:\u0000 \u0000n\u0000u\u0000l\u0000l\u0000}\u0000}\u0000",
+    "page": 1
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "body not UTF-8: the official API sends UTF-8, Python's json also read UTF-16/32"
+  }
+ ],
+ "scan": [
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "seen": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ]
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"job-1\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-1\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 1, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ],
+    "https://www.arbeitnow.com/api/job-board-api?page=2": [
+     200,
+     "{\"data\": [{\"slug\": \"job-2\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-2\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 2, \"per_page\": 1, \"from\": 2, \"to\": 2}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "seen": 2,
+    "ids": [
+     "job-1",
+     "job-2"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api",
+     "https://www.arbeitnow.com/api/job-board-api?page=2"
+    ]
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"job-1\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-1\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ],
+    "https://www.arbeitnow.com/api/job-board-api?page=2": [
+     200,
+     "{\"data\": [{\"slug\": \"job-1\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-1\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}, {\"slug\": \"job-2\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-2\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 2, \"per_page\": 250, \"from\": 1, \"to\": 2}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>20 hours</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ],
+    "https://www.arbeitnow.com/api/job-board-api?page=2": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>40 hours</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 2, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ],
+    "https://www.arbeitnow.com/api/job-board-api?page=2": [
+     404,
+     ""
+    ]
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     301,
+     ""
+    ]
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     204,
+     ""
+    ]
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     500,
+     ""
+    ]
+   },
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 100, \"from\": 101, \"to\": 250}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": true, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": null, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 2}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 0, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 10001, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 1.0, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "listing": true
+   },
+   "why": "JSON has one number type: per_page 1.0 is 1"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1.0, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "listing": true
+   },
+   "why": "JSON has one number type: from 1.0 is 1"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 1, \"from\": 1, \"to\": 1}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "seen": 1,
+    "ids": [
+     "ai-agent-123"
+    ],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ]
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": true, \"to\": true}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"job-1\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-1\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 2, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ],
+    "https://www.arbeitnow.com/api/job-board-api?page=2": [
+     200,
+     "{\"data\": [{\"slug\": \"job-2\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-2\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 2, \"per_page\": 2, \"from\": 3, \"to\": 3}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"job-1\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-1\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 1, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ],
+    "https://www.arbeitnow.com/api/job-board-api?page=2": [
+     200,
+     "{\"data\": [{\"slug\": \"job-2\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-2\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 2, \"per_page\": 2, \"from\": 3, \"to\": 3}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"job-1\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-1\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": true, \"from\": 1, \"to\": 1}, \"links\": {\"next\": \"https://www.arbeitnow.com/api/job-board-api?page=2\"}}"
+    ],
+    "https://www.arbeitnow.com/api/job-board-api?page=2": [
+     200,
+     "{\"data\": [{\"slug\": \"job-2\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/job-2\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 2, \"per_page\": 1, \"from\": 2, \"to\": 2}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": null, \"to\": null}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "seen": 0,
+    "ids": [],
+    "requests": [
+     "https://www.arbeitnow.com/api/job-board-api"
+    ]
+   }
+  },
+  {
+   "input": {
+    "https://www.arbeitnow.com/api/job-board-api": [
+     200,
+     "{\"data\": [{\"slug\": \"ai-agent-123\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://www.arbeitnow.com/jobs/companies/acme/ai-agent-123\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}, {\"slug\": \"bad\", \"title\": \"Part time AI agent developer\", \"description\": \"<p>Build an AI agent and API.</p>\", \"remote\": true, \"url\": \"https://evil.example/jobs/bad\", \"tags\": [\"AI\"], \"job_types\": [\"Part Time\"], \"location\": \"Remote\", \"created_at\": 1790000000}], \"meta\": {\"current_page\": 1, \"per_page\": 250, \"from\": 1, \"to\": 2}, \"links\": {\"next\": null}}"
+    ]
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "old scan was incomplete (rejected rows or inconsistent pagination) and marked the run failed; new fails the run"
+  }
+ ],
+ "skipped_scan": {
+  "count": 8,
+  "why": "old scan options or time budget, replaced by the Fetcher's per-request timeout and the fixed page cap"
+ }
+}

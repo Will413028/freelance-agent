@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { listingBy } from "@/modules/listings/public";
-import { SOURCES, type SourceSettings } from "@/modules/sources/public";
+import { listingBy, parseListingInput } from "@/modules/listings/public";
+import { SOURCES, type Collected, type SourceSettings } from "@/modules/sources/public";
 import type { Fetcher } from "@/platform/fetch";
 import { collectSource } from "./collect";
 import { freshPg } from "../../tests/helpers/pg";
@@ -45,5 +45,43 @@ describe("collectSource", () => {
   it("refuses a disabled source", async () => {
     const off: SourceSettings = { ...remotive, disabled: "blocked" };
     await expect(collectSource(db, off, NOW, serving([rem()]))).rejects.toThrow(/disabled/);
+  });
+});
+
+describe("collectSource for a source that refreshes stored listings (old `exists ||`)", () => {
+  const listing = (id: string, kind: "contract" | "full_time", title = "Backend API engineer") =>
+    ({ external_id: id, title, description: title === "Accountant" ? "Bookkeeping" : "Build an API", url: `https://example.com/${id}`, canonical_url: `https://example.com/${id}`, location: null,
+      kind, taiwan_eligible: null, complete: false, published_at: null, extra: {} });
+  const source = (got: () => Collected): SourceSettings =>
+    ({ name: "remotive", order: 0, connector: async () => got(), maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, disabled: null });
+  const none: Fetcher = { requests: 0, get: async () => { throw new Error("no request"); } };
+
+  it("refreshes a stored listing the rules now drop, never inserts one, and reports both kinds of written ids", async () => {
+    await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none);
+    const run = await collectSource(db, source(() => ({
+      seen: 3, listings: [parseListingInput(listing("c", "contract")), parseListingInput(listing("d", "contract", "Accountant"))],
+      others: [parseListingInput(listing("a", "full_time")), parseListingInput(listing("b", "full_time"))],
+    })), NOW, none);
+    expect([run.jobs, run.externalIds, run.intake]).toEqual([2, ["c", "a"], { inserted: 1, updated: 1, unchanged: 0, versioned: 0 }]);
+    expect((await listingBy(db, "remotive", "a"))?.kind).toBe("full_time");
+    expect(await listingBy(db, "remotive", "b")).toBeNull();
+    expect(await listingBy(db, "remotive", "d")).toBeNull();
+  });
+
+  it("refreshes a stored listing that screening now excludes", async () => {
+    await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))], others: [] })), NOW, none);
+    const run = await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract", "Accountant"))], others: [] })), NOW, none);
+    expect([run.externalIds, run.intake.updated]).toEqual([["a"], 1]);
+  });
+
+  it("without `others` a dropped stored listing is left as it was", async () => {
+    await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none);
+    const run = await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract", "Accountant"))] })), NOW, none);
+    expect([run.externalIds, run.intake]).toEqual([[], { inserted: 0, updated: 0, unchanged: 0, versioned: 0 }]);
+  });
+
+  it("reports a truncated read", async () => {
+    expect((await collectSource(db, source(() => ({ seen: 0, listings: [], truncated: true })), NOW, none)).truncated).toBe(true);
+    expect((await collectSource(db, source(() => ({ seen: 0, listings: [] })), NOW, none)).truncated).toBe(false);
   });
 });
