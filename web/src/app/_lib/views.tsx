@@ -1,6 +1,6 @@
 import type { View } from "@/modules/evaluation/public";
-import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView } from "@/services/pages";
-import { LIST_BUDGET_MS } from "@/services/pages";
+import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView, StaleRun } from "@/services/pages";
+import { LIST_BUDGET_MS, STALE_RUN_HOURS } from "@/services/pages";
 import { NOTICES, type Notice } from "./writes";
 
 // The pages' markup (plan step 11), synchronous and props-only so tests can render it with
@@ -64,8 +64,17 @@ export function NoticeLine({ notice }: { notice: string | undefined }) {
 
 const pageHref = (view: View, page: number) => `/?view=${view}${page > 1 ? `&page=${page}` : ""}`;
 
+/** Plan step 6b: one line when the daily run has not succeeded for over STALE_RUN_HOURS. */
+export function StaleLine({ stale }: { stale: StaleRun }) {
+  if (!stale) return null;
+  return <p role="alert" className="notice">{stale.lastSuccessAt
+    ? `最近一次成功的每日收案已超過 ${STALE_RUN_HOURS} 小時（${taipei(stale.lastSuccessAt)}），排程可能停了。`
+    : "還沒有成功的每日收案，清單可能是空的或過時。"}</p>;
+}
+
 export function JobList({ data }: { data: ListView }) {
   return <>
+    <StaleLine stale={data.stale} />
     <section className="intro"><div><p className="eyebrow">YOUR NEXT OPPORTUNITY</p><h1>值得看的兼職，集中在這裡。</h1>
       <p>依推薦分排序，候選在前；保留原始連結與待確認條件。</p></div></section>
     <div className="filters" role="group" aria-label="職缺狀態">{VIEW_LABELS.map(([value, label]) =>
@@ -183,6 +192,7 @@ function countsLine(c: Record<string, Plain>) {
 export function SourcesTable({ data }: { data: SourcesView }) {
   const run = data.lastRun;
   return <>
+    <StaleLine stale={data.stale} />
     <h1>來源狀態</h1>
     <section className="schedule" aria-label="最近一次每日收案">
       <span className="eyebrow">最近一次每日收案</span>

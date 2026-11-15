@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, max } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { runs, runSources } from "@/db/pg/schema";
 
@@ -70,3 +70,9 @@ export async function latestRuns(db: PgDb): Promise<{ run: RunRow | null; source
   };
 }
 
+
+/** When the latest succeeded run finished, or null when none has (plan step 6b). */
+export async function lastSucceededAt(db: PgDb): Promise<Date | null> {
+  const [row] = await db.select({ at: max(runs.finishedAt) }).from(runs).where(eq(runs.status, "succeeded"));
+  return row?.at ?? null;
+}
