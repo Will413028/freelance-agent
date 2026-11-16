@@ -1,14 +1,22 @@
-// Tiered reading (plan step 4; tiers 2 and 3 come in step 8): a source reads through one Fetcher made
-// from its source settings. Tier 1 is a plain GET: no redirects, a timeout over the whole request, a
-// size cap, a minimum interval between this source's requests and a cap on its requests per run.
+// Tiered reading (plan step 4; tier 2 in step 8c, tier 3 in 8d): a source reads through one Fetcher made
+// from its source settings, every request at the source's highest tier. Tier 1 (`plain`) is Node's fetch;
+// tier 2 (`browser_like`) sends the same GET with a browser's TLS and HTTP/2 fingerprint through impit,
+// the HTTP client Crawlee (plan D4) uses. Both keep the same rules: no redirects, a timeout over the whole
+// request, a size cap, a minimum interval between this source's requests and a cap on its requests per run.
+// No tier is tried and abandoned on the way up: a source needing tier 2 is blocked at tier 1 every time
+// (spikes.md §2 measured each source's lowest working tier), so starting low would only spend a request,
+// and a source blocked at its highest tier fails (plan step 8: no proxies, no CAPTCHA solving).
 // One daily run per Taipei day (runs table), so the per-run cap is the daily cap for scheduled runs; a
 // manual run-source.ts adds at most one more run's worth, by hand.
 
-/** The reading tier, named as run_sources.tier stores it; step 8 adds "browser_like" and "browser". */
-export type Tier = "plain";
+import type { Impit } from "impit";
+
+/** The reading tiers in order, named as run_sources.tier stores them; step 8d adds "browser". */
+export const TIERS = ["plain", "browser_like"] as const;
+export type Tier = (typeof TIERS)[number];
 
 export type FetchPolicy = {
-  /** The highest tier this source may use. */
+  /** The highest tier this source may use; every request of the source is sent at it. */
   maxTier: Tier;
   /** Minimum time between the starts of two requests of this source. */
   minIntervalMs: number;
@@ -35,11 +43,28 @@ export class FetchError extends Error {
 
 export type Fetcher = { get(req: FetchRequest): Promise<FetchResponse>; readonly requests: number };
 
+/** One GET at a tier; redirects are never followed and the signal bounds the whole request. */
+export type Transport = (url: string, init: { headers: Record<string, string>; signal: AbortSignal }) => Promise<TransportResponse>;
+type TransportResponse = { status: number; body: ReadableStream<Uint8Array> | null };
+
+// Firefox, not Chrome: on 2026-11-17 Remote.co's Akamai answered impit's Chrome fingerprint with its
+// challenge page and its Firefox one with the jobs (curl_cffi's Chrome passed; same machine and hour).
+// The impit sent with our own User-Agent header, which overrides the fingerprint's: Akamai passed it the
+// same day (measured), so the source still says who it is. Loaded on first use, so code that only needs
+// FetchError or the types (the web app's routes) never loads impit's native addon.
+let impit: Promise<Impit> | null = null;
+const browserLike: Transport = async (url, { headers, signal }) => {
+  impit ??= import("impit").then(({ Impit }) => new Impit({ browser: "firefox", followRedirects: false }));
+  return (await impit).fetch(url, { headers, signal });
+};
+const plain: Transport = (url, { headers, signal }) => fetch(url, { headers, signal, redirect: "manual" });
+const TRANSPORTS: Record<Tier, Transport> = { plain, browser_like: browserLike };
+
 type Clock = { now(): number; sleep(ms: number): Promise<void> };
 const realClock: Clock = { now: () => Date.now(), sleep: (ms) => new Promise((r) => setTimeout(r, ms)) };
 
 /** Reads the body up to maxBytes + 1 so a body of exactly the cap passes and one byte more fails. */
-async function readCapped(response: Response, maxBytes: number): Promise<Uint8Array> {
+async function readCapped(response: TransportResponse, maxBytes: number): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let size = 0;
   if (response.body) {
@@ -61,17 +86,24 @@ async function readCapped(response: Response, maxBytes: number): Promise<Uint8Ar
   return body;
 }
 
-const failure = (e: unknown, host: string) => {
+/**
+ * A failure by kind. A request whose timeout signal fired is a timeout whatever the transport threw: impit
+ * reports a body cut off by the signal as its own error class. Impit's own timeout classes (ConnectTimeout,
+ * ReadTimeout, ...) end in "Timeout".
+ */
+const failure = (e: unknown, host: string, signal: AbortSignal) => {
   if (e instanceof FetchError) return e;
   const name = (e as Error).name;
-  return new FetchError(name === "TimeoutError" || name === "AbortError" ? "timeout" : "network", `${name} reading ${host}`);
+  const timedOut = signal.aborted || name === "TimeoutError" || name === "AbortError" || name.endsWith("Timeout");
+  return new FetchError(timedOut ? "timeout" : "network", `${name} reading ${host}`);
 };
 
 /**
  * A Fetcher for one source and one run. Any status but 200 is an http_status error; redirects are not
  * followed. Calls are served one at a time in call order, so concurrent calls keep the interval and the cap.
  */
-export function createFetcher(policy: FetchPolicy, clock: Clock = realClock, transport: typeof fetch = fetch): Fetcher {
+export function createFetcher(policy: FetchPolicy, clock: Clock = realClock, transports: Record<Tier, Transport> = TRANSPORTS): Fetcher {
+  const tier = policy.maxTier, transport = transports[tier];
   let requests = 0, lastStart: number | null = null, queue: Promise<unknown> = Promise.resolve();
   async function one({ url, headers = {}, maxBytes, timeoutMs }: FetchRequest): Promise<FetchResponse> {
     if (!URL.canParse(url) || !/^https?:$/.test(new URL(url).protocol)) throw new FetchError("invalid_url", "not an http(s) URL");
@@ -83,15 +115,16 @@ export function createFetcher(policy: FetchPolicy, clock: Clock = realClock, tra
     }
     requests++;
     lastStart = clock.now();
+    const signal = AbortSignal.timeout(timeoutMs);
     try {
-      const response = await transport(url, { headers, redirect: "manual", signal: AbortSignal.timeout(timeoutMs) });
+      const response = await transport(url, { headers, signal });
       if (response.status !== 200) {
         await response.body?.cancel();
         throw new FetchError("http_status", `HTTP ${response.status} from ${host}`, response.status);
       }
-      return { status: response.status, body: await readCapped(response, maxBytes), tier: "plain" };
+      return { status: response.status, body: await readCapped(response, maxBytes), tier };
     } catch (e) {
-      throw failure(e, host);
+      throw failure(e, host, signal);
     }
   }
   return {

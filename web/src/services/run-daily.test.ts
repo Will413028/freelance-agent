@@ -60,6 +60,12 @@ describe("runDaily", () => {
     expect((await db.select().from(runs)).length).toBe(1);
   });
 
+  it("records the tier each source read with, ok or failed (plan step 8c)", async () => {
+    const tiered = (name: string, order: number, maxTier: string) => ({ ...src(name, order), maxTier }) as SourceSettings;
+    await runDaily(db, deps([tiered("a", 10, "plain"), tiered("b", 20, "browser_like"), tiered("c", 30, "browser_like")], { c: [new SourceError("blocked")] }).d);
+    expect((await rowsOf()).map((r) => [r.source, r.status, r.tier])).toEqual([["a", "ok", "plain"], ["b", "ok", "browser_like"], ["c", "failed", "browser_like"]]);
+  });
+
   it("finishes a killed run: a day left running resumes with the sources not yet ok", async () => {
     await runDaily(db, deps([src("a", 10)], {}).d);
     // A kill after source a: the run row stays running and b has no row.

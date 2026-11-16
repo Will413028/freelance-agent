@@ -1,11 +1,10 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createFetcher, FetchError, type FetchPolicy } from ".";
+import { createFetcher, FetchError, TIERS, type FetchPolicy, type Tier, type Transport } from ".";
 
-// Plan step 4: tier 1 reading against a local server.
-
-const policy: FetchPolicy = { maxTier: "plain", minIntervalMs: 0, maxRequestsPerRun: 10 };
+// Plan step 4 (tier 1) and step 8c (tier 2, browser_like): each tier's real transport against a local server,
+// so both keep the same rules; then the tier choice itself with stub transports.
 let server: Server, base = "";
 beforeAll(async () => {
   server = createServer((req, res) => {
@@ -14,6 +13,7 @@ beforeAll(async () => {
     else if (req.url === "/503") res.writeHead(503).end();
     else if (req.url === "/404") res.writeHead(404).end();
     else if (req.url === "/slow") setTimeout(() => res.writeHead(200).end("late"), 500);
+    else if (req.url === "/stall") res.writeHead(200).write("x"); // headers and one byte, then nothing
     else if (req.url === "/1024") res.writeHead(200).end("x".repeat(1024));
     else res.writeHead(200).end('{"jobs": []}');
   });
@@ -31,10 +31,11 @@ const failure = async (p: Promise<unknown>) => {
   throw new Error("expected a FetchError");
 };
 
-describe("tier 1 fetcher", () => {
+describe.each(TIERS)("%s fetcher", (tier: Tier) => {
+  const policy: FetchPolicy = { maxTier: tier, minIntervalMs: 0, maxRequestsPerRun: 10 };
   it("returns a 200 body with its tier", async () => {
     const r = await createFetcher(policy).get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 });
-    expect([r.status, new TextDecoder().decode(r.body), r.tier]).toEqual([200, '{"jobs": []}', "plain"]);
+    expect([r.status, new TextDecoder().decode(r.body), r.tier]).toEqual([200, '{"jobs": []}', tier]);
   });
 
   it("does not follow redirects and reports any other status as http_status", async () => {
@@ -62,11 +63,16 @@ describe("tier 1 fetcher", () => {
     expect([t.kind, t.transient, n.kind, n.transient]).toEqual(["timeout", true, "network", true]);
   });
 
+  it("times out a body that stalls after the headers (code review, step 8c)", async () => {
+    const e = await failure(createFetcher(policy).get({ url: `${base}/stall`, maxBytes: 100, timeoutMs: 200 }));
+    expect([e.kind, e.transient]).toEqual(["timeout", true]);
+  }, 5_000);
+
   it("serves concurrent calls one at a time, keeping the interval and the cap", async () => {
     let now = 0;
     const waits: number[] = [];
     const clock = { now: () => now, sleep: async (ms: number) => void (waits.push(ms), (now += ms)) };
-    const f = createFetcher({ maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 2 }, clock);
+    const f = createFetcher({ maxTier: tier, minIntervalMs: 3_000, maxRequestsPerRun: 2 }, clock);
     const got = await Promise.allSettled([1, 2, 3].map(() => f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 })));
     expect([got.map((g) => g.status), waits, f.requests]).toEqual([["fulfilled", "fulfilled", "rejected"], [3_000], 2]);
   });
@@ -82,11 +88,32 @@ describe("tier 1 fetcher", () => {
     let now = 1_000;
     const waits: number[] = [];
     const clock = { now: () => now, sleep: async (ms: number) => void (waits.push(ms), (now += ms)) };
-    const f = createFetcher({ maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 2 }, clock);
+    const f = createFetcher({ maxTier: tier, minIntervalMs: 3_000, maxRequestsPerRun: 2 }, clock);
     await f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 });
     now += 1_000;
     await f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 });
     const e = await failure(f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 }));
     expect([waits, f.requests, e.kind, e.transient]).toEqual([[2_000], 2, "request_limit", false]);
+  });
+});
+
+describe("tier choice (plan step 8c)", () => {
+  const stub = (status: number, log: string[], name: string): Transport => async (url) => (log.push(name), new Response(status === 200 ? "ok" : null, { status }));
+  const req = { url: "https://example.com/jobs", maxBytes: 100, timeoutMs: 2000 };
+
+  it("reads with the source's highest tier only and reports it", async () => {
+    const log: string[] = [];
+    const f = createFetcher({ maxTier: "browser_like", minIntervalMs: 0, maxRequestsPerRun: 2 }, undefined, { plain: stub(403, log, "plain"), browser_like: stub(200, log, "browser_like") });
+    expect([(await f.get(req)).tier, log]).toEqual(["browser_like", ["browser_like"]]);
+  });
+
+  it("a source whose highest tier is plain fails when blocked and never moves up a tier", async () => {
+    for (const blocked of [403, 0]) {
+      const log: string[] = [];
+      const reset: Transport = async () => (log.push("plain"), Promise.reject(Object.assign(new Error("reset"), { name: "TypeError" })));
+      const f = createFetcher({ maxTier: "plain", minIntervalMs: 0, maxRequestsPerRun: 5 }, undefined, { plain: blocked ? stub(blocked, log, "plain") : reset, browser_like: stub(200, log, "browser_like") });
+      const e = await failure(f.get(req));
+      expect([e.kind, log, f.requests]).toEqual([blocked ? "http_status" : "network", ["plain"], 1]);
+    }
   });
 });

@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, inArray, lt, max } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { runs, runSources } from "@/db/pg/schema";
+import type { Tier } from "@/platform/fetch";
 
 // The daily run's records (plan step 6): one `runs` row per Asia/Taipei day, one `run_sources` row per source
 // per run. A day whose run did not succeed is reopened by the next start and resumed: sources already `ok`
@@ -32,11 +33,12 @@ export async function openRun(db: PgDb, localDate: string, now: Date): Promise<O
   return { outcome: "resumed", runId: row!.id, done: new Set(ok.map((r) => r.source)) };
 }
 
-export type SourceRecord = { source: string; status: SourceStatus; reason: string | null; error: string | null; counts: RunCounts; startedAt: Date; finishedAt: Date };
+/** `tier`: the tier the source read with (plan step 8c; every request of a source uses its highest tier). */
+export type SourceRecord = { source: string; status: SourceStatus; tier: Tier; reason: string | null; error: string | null; counts: RunCounts; startedAt: Date; finishedAt: Date };
 
 /** Writes a source's outcome for the run, replacing an earlier attempt's row from the same day. */
 export async function recordSource(db: PgDb, runId: number, r: SourceRecord): Promise<void> {
-  const values = { status: r.status, reason: r.reason, error: r.error, counts: r.counts, startedAt: r.startedAt, finishedAt: r.finishedAt };
+  const values = { status: r.status, tier: r.tier, reason: r.reason, error: r.error, counts: r.counts, startedAt: r.startedAt, finishedAt: r.finishedAt };
   await db.insert(runSources).values({ runId, source: r.source, ...values })
     .onConflictDoUpdate({ target: [runSources.runId, runSources.source], set: values });
 }
@@ -54,7 +56,7 @@ export async function sourcesReadSince(db: PgDb, since: Date, sources: readonly 
 }
 
 export type RunRow = { localDate: string; status: RunStatus; reason: string | null; counts: RunCounts; startedAt: Date; finishedAt: Date | null };
-export type LatestSource = Omit<SourceRecord, "finishedAt" | "error"> & { localDate: string; finishedAt: Date | null };
+export type LatestSource = Omit<SourceRecord, "finishedAt" | "error" | "tier"> & { localDate: string; finishedAt: Date | null };
 
 /** The latest run, and each source's latest row across runs (a source skipped as done keeps an earlier row). */
 export async function latestRuns(db: PgDb): Promise<{ run: RunRow | null; sources: LatestSource[] }> {
