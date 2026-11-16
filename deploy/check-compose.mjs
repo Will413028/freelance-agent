@@ -22,15 +22,22 @@ for (const [name, service] of Object.entries(compose.services ?? {})) {
     if (hostIp(port) !== "127.0.0.1") problems.push(`${name}: port ${JSON.stringify(port)} is not bound to 127.0.0.1`);
   }
 }
-// The browser tier loads untrusted pages: it shares a network with no service but daily (plan step 8d).
+// The browser tier loads untrusted pages (plan step 8d): it publishes no port, shares no network
+// namespace, and shares a Docker network with no service but daily. Network keys are compared by the
+// Docker network they name (`name:`), so an alias of the default network is caught too.
+const networkName = (key) => compose.networks?.[key]?.name ?? key;
 const networksOf = (service) => {
   const n = service.networks ?? ["default"];
-  return Array.isArray(n) ? n : Object.keys(n);
+  return (Array.isArray(n) ? n : Object.keys(n)).map(networkName);
 };
 const browser = compose.services?.browser;
 if (browser) {
+  if ((browser.ports ?? []).length) problems.push("browser: publishes a port");
+  if (browser.network_mode) problems.push(`browser: network_mode ${browser.network_mode}`);
   for (const [name, service] of Object.entries(compose.services)) {
-    if (name === "browser" || name === "daily") continue;
+    if (name === "browser") continue;
+    if (service.network_mode === "service:browser") problems.push(`${name}: shares the browser's network namespace`);
+    if (name === "daily") continue;
     const shared = networksOf(service).filter((n) => networksOf(browser).includes(n));
     if (shared.length) problems.push(`${name}: shares network ${shared.join(", ")} with browser`);
   }

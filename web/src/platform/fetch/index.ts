@@ -36,8 +36,12 @@ export type FetchRequest = {
 };
 export type FetchResponse = { status: number; body: Uint8Array; tier: Tier };
 
-/** Why a read failed; step 6 retries the transient kinds (network, timeout, HTTP 429 and 5xx). */
-export type FetchErrorKind = "invalid_url" | "network" | "timeout" | "http_status" | "too_large" | "request_limit";
+/**
+ * Why a read failed; step 6 retries the transient kinds (network, timeout, HTTP 429 and 5xx).
+ * browser_tier (step 8d) is a lasting tier-3 failure a retry cannot fix: no service configured or
+ * reachable, a request the service refuses, or a page whose waitFor selector never appeared (layout changed).
+ */
+export type FetchErrorKind = "invalid_url" | "network" | "timeout" | "http_status" | "too_large" | "request_limit" | "browser_tier";
 
 export class FetchError extends Error {
   constructor(readonly kind: FetchErrorKind, message: string, readonly status: number | null = null) {
@@ -68,31 +72,49 @@ const browserLike: Transport = async (url, { headers, signal }) => {
 };
 const plain: Transport = (url, { headers, signal }) => fetch(url, { headers, signal, redirect: "manual" });
 
-const named = (name: string, message: string) => Object.assign(new Error(message), { name });
+/** The service's own limit on a render (browser/server.mjs MAX_TIMEOUT_MS). */
+const SERVICE_MAX_MS = 120_000;
+/**
+ * The service's budget: 5 s under this request's own timeout (at least half of it), so the service's 504
+ * arrives before the signal fires; always within 1 ms..SERVICE_MAX_MS so the service never refuses it.
+ */
+export const serviceBudget = (timeoutMs: number) => Math.min(SERVICE_MAX_MS, Math.max(1, Math.floor(timeoutMs / 2), timeoutMs - 5_000));
+// A service that does not answer at all (no such host, nothing listening): it was not started or has
+// died, and nothing restarts it within the run.
+const UNREACHABLE = new Set(["ENOTFOUND", "EAI_AGAIN", "ECONNREFUSED"]);
+
 /**
  * Tier 3: one POST to the browser service (contract in browser/server.mjs). The page's own status comes
- * back in x-upstream-status, so a blocked page is an http_status failure like on the other tiers; the
- * service's 504 is a timeout and any other service failure a network failure (both transient).
- * BROWSER_URL is set for the daily service only (deploy/compose.yaml). The service gets a smaller budget
- * than this request's own timeout, so its 504 arrives before the signal fires; it takes no headers (the
- * fingerprint sets them; browser/server.mjs).
+ * back in x-upstream-status, so a blocked page is an http_status failure like on the other tiers. The
+ * service's 504 is a timeout and its 5xx a network failure (both transient); a missing or unreachable
+ * service, a refused request (4xx) and a missing waitFor selector (422) are browser_tier (not retried).
+ * BROWSER_URL is set for the daily service only (deploy/compose.yaml). No headers are sent: the
+ * fingerprint sets them (browser/server.mjs).
  */
-export const serviceBudget = (timeoutMs: number) => Math.max(Math.floor(timeoutMs / 2), timeoutMs - 5_000);
 export const browserTier = (service: () => string | undefined = () => process.env.BROWSER_URL): Transport => async (url, { signal, timeoutMs, waitFor }) => {
   const base = service();
-  if (!base) throw named("BrowserTierMissing", "BROWSER_URL is not set");
-  const r = await fetch(`${base}/render`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ url, timeoutMs: serviceBudget(timeoutMs), waitFor: waitFor ?? null }),
-    signal,
-    redirect: "manual",
-  });
+  if (!base) throw new FetchError("browser_tier", "BROWSER_URL is not set");
+  let r: Response;
+  try {
+    r = await fetch(`${base}/render`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url, timeoutMs: serviceBudget(timeoutMs), waitFor: waitFor ?? null }),
+      signal,
+      redirect: "manual",
+    });
+  } catch (e) {
+    const code = ((e as Error).cause as { code?: string } | undefined)?.code;
+    if (code && UNREACHABLE.has(code)) throw new FetchError("browser_tier", `browser service unreachable (${code})`);
+    throw e;
+  }
   const upstream = Number(r.headers.get("x-upstream-status"));
   if (r.status !== 200 || !Number.isInteger(upstream) || upstream < 100) {
     await r.body?.cancel();
-    if (r.status === 504) throw named("TimeoutError", "browser tier timed out");
-    throw named("BrowserTierError", `browser tier answered ${r.status}`);
+    if (r.status === 504) throw new FetchError("timeout", "browser tier timed out");
+    if (r.status === 422) throw new FetchError("browser_tier", "waitFor selector never appeared (layout changed?)", 422);
+    if (r.status >= 400 && r.status < 500) throw new FetchError("browser_tier", `browser service refused the request (${r.status})`, r.status);
+    throw new FetchError("network", `browser service answered ${r.status}`);
   }
   return { status: upstream, body: r.body };
 };

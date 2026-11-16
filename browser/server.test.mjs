@@ -62,19 +62,39 @@ test("request headers are not taken (the fingerprint sets them)", () => {
   assert.deepEqual(request, { url: ok.url, timeoutMs: 1000, waitFor: null });
 });
 
-const never = () => new Promise(() => {});
-
-test("a render over its timeout answers 504, and a hung one holds the queue only for its grace", async () => {
-  let calls = 0;
-  const render = async () => (++calls === 1 ? never() : { status: 200, html: "next" });
+test("a request whose deadline passed while it waited is 504 without a render (its time counts from arrival)", async () => {
+  const seen = [];
+  const render = async ({ url }) => {
+    seen.push(new URL(url).pathname);
+    await new Promise((r) => setTimeout(r, 120));
+    return { status: 200, html: "" };
+  };
   await withServer(render, async (base) => {
-    const started = Date.now();
-    const [first, second] = await Promise.all([post(base, { ...ok, timeoutMs: 50 }), post(base, { ...ok, timeoutMs: 1000 })]);
-    assert.equal(first.status, 504);
-    assert.equal(first.headers.get("x-error"), "RenderTimeout");
-    assert.equal(await second.text(), "next");
-    assert.ok(Date.now() - started < 900, "second waited for the hung render beyond its grace");
-  }, 100);
+    const first = post(base, { ...ok, url: "https://example.com/slow" });
+    await new Promise((r) => setTimeout(r, 10));
+    const late = await post(base, { ...ok, url: "https://example.com/late", timeoutMs: 50 });
+    assert.equal(late.status, 504);
+    await first;
+  });
+  assert.deepEqual(seen, ["/slow"]);
+});
+
+test("the service gives each render its deadline from arrival", async () => {
+  let got;
+  await withServer(async (r) => ((got = r), { status: 200, html: "" }), async (base) => {
+    const before = Date.now();
+    await post(base, { ...ok, timeoutMs: 5000 });
+    assert.ok(got.deadline >= before + 5000 && got.deadline <= Date.now() + 5000);
+  });
+});
+
+test("a waitFor selector that never appears is 422", async () => {
+  const layout = async () => {
+    const e = new Error("x");
+    e.name = "LayoutMissing";
+    throw e;
+  };
+  await withServer(layout, async (base) => assert.equal((await post(base, ok)).status, 422));
 });
 
 test("a render whose caller left before its turn is skipped", async () => {
@@ -101,14 +121,18 @@ test("a render whose caller left before its turn is skipped", async () => {
   assert.deepEqual(seen, ["/first", "/third"]);
 });
 
-test("renders run one at a time", async () => {
+test("renders run one at a time, also when calls arrive while others run (code review round 2)", async () => {
   let running = 0, peak = 0;
   const one = serial(async () => {
     peak = Math.max(peak, ++running);
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 30));
     running--;
   });
-  await Promise.all([one(ok), one(ok), one(ok)]);
+  const arg = () => ({ deadline: Date.now() + 10_000 });
+  const calls = [one(arg()), one(arg()), one(arg())];
+  await new Promise((r) => setTimeout(r, 45)); // the second render is running
+  calls.push(one(arg()), one(arg()));
+  await Promise.all(calls);
   assert.equal(peak, 1);
 });
 

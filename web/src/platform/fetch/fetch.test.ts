@@ -30,6 +30,8 @@ beforeAll(async () => {
     renders.push(body);
     if (body.url.endsWith("/service-504")) return void res.writeHead(504).end();
     if (body.url.endsWith("/service-502")) return void res.writeHead(502, { "x-error": "TargetClosedError" }).end();
+    if (body.url.endsWith("/service-422")) return void res.writeHead(422, { "x-error": "LayoutMissing" }).end();
+    if (body.url.endsWith("/service-400")) return void res.writeHead(400).end();
     try {
       const page = await fetch(body.url, { redirect: "manual", signal: AbortSignal.timeout(body.timeoutMs) });
       res.writeHead(200, { "x-upstream-status": String(page.status) }).end(Buffer.from(await page.arrayBuffer()));
@@ -151,7 +153,7 @@ describe("browser tier service (plan step 8d)", () => {
     renders.length = 0;
     await createFetcher(policy).get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 30_000, waitFor: ".job", headers: { "User-Agent": "x" } });
     expect(renders).toEqual([{ url: `${base}/ok`, timeoutMs: 25_000, waitFor: ".job" }]);
-    expect([serviceBudget(2_000), serviceBudget(8_000)]).toEqual([1_000, 4_000]);
+    expect([serviceBudget(2_000), serviceBudget(8_000), serviceBudget(1), serviceBudget(0), serviceBudget(300_000)]).toEqual([1_000, 4_000, 1, 1, 120_000]);
   });
 
   it("maps the service's 504 to timeout and its other failures to network, both transient", async () => {
@@ -161,10 +163,23 @@ describe("browser tier service (plan step 8d)", () => {
     expect([timeout.kind, timeout.transient, broken.kind, broken.transient]).toEqual(["timeout", true, "network", true]);
   });
 
-  it("fails as network when no service is configured, without sending anything", async () => {
+  it("a missing selector and a refused request are browser_tier, not retried (code review round 2)", async () => {
+    const f = createFetcher(policy);
+    const layout = await failure(f.get({ url: `${base}/service-422`, maxBytes: 100, timeoutMs: 2000 }));
+    const refused = await failure(f.get({ url: `${base}/service-400`, maxBytes: 100, timeoutMs: 2000 }));
+    expect([layout.kind, layout.transient, refused.kind, refused.transient]).toEqual(["browser_tier", false, "browser_tier", false]);
+  });
+
+  it("no service configured, or none listening, is browser_tier, not retried", async () => {
     renders.length = 0;
-    const f = createFetcher(policy, undefined, { plain: browserTier(), browser_like: browserTier(), browser: browserTier(() => undefined) });
-    const e = await failure(f.get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 }));
-    expect([e.kind, e.message.startsWith("BrowserTierMissing"), renders]).toEqual(["network", true, []]);
+    const one = (svc: () => string | undefined) => failure(createFetcher(policy, undefined, { plain: browserTier(), browser_like: browserTier(), browser: browserTier(svc) }).get({ url: `${base}/ok`, maxBytes: 100, timeoutMs: 2000 }));
+    const missing = await one(() => undefined);
+    // A port nothing listens on (port 1 is on fetch's blocked-port list, so it never connects at all).
+    const idle = createServer();
+    await new Promise<void>((resolve) => idle.listen(0, "127.0.0.1", resolve));
+    const port = (idle.address() as AddressInfo).port;
+    await new Promise<void>((resolve) => idle.close(() => resolve()));
+    const down = await one(() => `http://127.0.0.1:${port}`);
+    expect([missing.kind, missing.transient, down.kind, down.transient, renders]).toEqual(["browser_tier", false, "browser_tier", false, []]);
   });
 });

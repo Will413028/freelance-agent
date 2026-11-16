@@ -6,10 +6,11 @@
 //   POST /render  {"url": "https://…", "timeoutMs": 25000, "waitFor": "css selector"}
 //     200 with `x-upstream-status: <status of the page's first response>` and the HTML as the body;
 //         a redirect is reported as its own 3xx status (redirects are never followed as a success)
-//     400 bad request, 502 the browser failed (`x-error: <error name>`), 504 the page did not settle in time
+//     400 bad request, 422 the waitFor selector never appeared, 502 the browser failed (`x-error: <error
+//     name>`), 504 the page did not settle before the deadline (timeoutMs from the request's arrival)
 //   GET /healthz  200 "ok"
 //
-// One page at a time (memory: one Chromium peaked at 484 MiB on the VM). Each render is its own
+// One page at a time (memory: one Chromium peaked at 484 MiB on the VM; the limit is 1 GB). Each render is its own
 // PlaywrightCrawler run with no retries and no stored state, so nothing carries over between sources.
 // No request headers are taken: Crawlee's generated fingerprint sets them consistently, a replaced
 // User-Agent is what fingerprint checks look for, and Chromium would send extra headers to every
@@ -41,40 +42,40 @@ export function parseRenderRequest(text) {
 export class RenderTimeout extends Error {
   name = "RenderTimeout";
 }
+/** The page loaded but the waitFor selector never appeared: its layout changed, retrying will not help. */
+export class LayoutMissing extends Error {
+  name = "LayoutMissing";
+}
 
 /**
- * Runs renders one after another in arrival order. A render whose caller is gone before its turn
- * (`signal` aborted) is skipped. Each render answers within its timeoutMs (RenderTimeout otherwise),
- * and the next one waits at most `grace` ms longer for it, so a render that never settles cannot hold
- * the queue (code review, step 8d).
+ * Runs renders one after another in arrival order: the next starts only after the previous render has
+ * really finished (render() closes its browser by its own deadline, render.mjs). A request whose deadline
+ * passed while it waited, or whose caller left, is skipped without opening a browser.
  */
-export function serial(fn, grace = 15_000) {
+export function serial(fn) {
   let queue = Promise.resolve();
   return (arg, signal) => {
     const run = queue.then(() => {
       if (signal?.aborted) throw new RenderTimeout("caller gone before its turn");
-      const work = Promise.resolve().then(() => fn(arg));
-      let timer;
-      const deadline = new Promise((_, reject) => (timer = setTimeout(() => reject(new RenderTimeout("render over its timeout")), arg.timeoutMs)));
-      const answer = Promise.race([work, deadline]).finally(() => clearTimeout(timer));
-      let holdTimer;
-      const hold = new Promise((r) => (holdTimer = setTimeout(r, arg.timeoutMs + grace)));
-      queue = Promise.race([work.catch(() => undefined), hold]).finally(() => clearTimeout(holdTimer));
-      return answer;
+      if (Date.now() >= arg.deadline) throw new RenderTimeout("deadline passed in the queue");
+      return fn(arg);
     });
     queue = run.catch(() => undefined);
     return run;
   };
 }
 
+const STATUS_OF = { RenderTimeout: 504, LayoutMissing: 422 };
+
 // Loaded on first render, so the tests (stub render) need neither Crawlee nor a browser installed.
 const crawleeRender = (request) => import("./render.mjs").then((m) => m.render(request));
 
-export function createRenderServer(render = crawleeRender, grace) {
-  const one = serial(render, grace);
+export function createRenderServer(render = crawleeRender) {
+  const one = serial(render);
   return createServer(async (req, res) => {
     if (req.method === "GET" && req.url === "/healthz") return void res.writeHead(200).end("ok");
     if (req.method !== "POST" || req.url !== "/render") return void res.writeHead(404).end();
+    const arrived = Date.now();
     let text = "";
     for await (const chunk of req) {
       text += chunk;
@@ -86,13 +87,13 @@ export function createRenderServer(render = crawleeRender, grace) {
     const gone = new AbortController();
     res.on("close", () => gone.abort());
     try {
-      const { status, html } = await one({ ...parsed.request, id }, gone.signal);
+      const { status, html } = await one({ ...parsed.request, id, deadline: arrived + parsed.request.timeoutMs }, gone.signal);
       res.writeHead(200, { "content-type": "text/html; charset=utf-8", "x-upstream-status": String(status) }).end(html);
     } catch (e) {
       const name = e?.name ?? "Error";
       // Only the error name and host are logged: never page content (AGENTS.md).
       console.error(`render ${id} ${new URL(parsed.request.url).host}: ${name}`);
-      if (!res.headersSent) res.writeHead(name === "RenderTimeout" ? 504 : 502, { "x-error": name.replace(/[^\w.-]/g, "") }).end();
+      if (!res.headersSent) res.writeHead(STATUS_OF[name] ?? 502, { "x-error": name.replace(/[^\w.-]/g, "") }).end();
     }
   });
 }
