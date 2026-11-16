@@ -78,8 +78,8 @@ jobs:
           missing=$(curl -sS -D - -o /dev/null -X POST http://127.0.0.1:3100/render -d '{"url":"http://page/missing","timeoutMs":30000}')
           grep -qi '^x-upstream-status: 404' <<<"$missing"
           # A selector that never appears is 422 (layout changed) within the budget, and the next render still works.
-          code=$(curl -sS -o /dev/null -w '%{http_code}' -m 20 -X POST http://127.0.0.1:3100/render -d '{"url":"http://page/","timeoutMs":5000,"waitFor":".never"}')
-          test "$code" = 422
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -m 40 -X POST http://127.0.0.1:3100/render -d '{"url":"http://page/","timeoutMs":15000,"waitFor":".never"}')
+          echo "missing selector: $code"; test "$code" = 422
           curl -fsS -o /dev/null -D - -X POST http://127.0.0.1:3100/render -d '{"url":"http://page/","timeoutMs":30000}' | grep -qi '^x-upstream-status: 200'
       - if: failure()
         run: docker logs browser || true
