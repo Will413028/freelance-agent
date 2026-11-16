@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { describeOnePageSource } from "../../../../tests/helpers/single-page-source";
 import { INDEX, normalizeJob, parseIndex, REMOTECOM_SETTINGS } from ".";
 
-// Plan step 8b: Remote.com Jobs is a new source (no old reader or golden pages); the entries below follow
+// Plan step 8b: Remote.com Jobs is a new source (no old reader or recorded reference pages); the entries below follow
 // the page read on 2026-11-17 (spikes.md §2), with made-up values.
 
 type J = Record<string, unknown>;

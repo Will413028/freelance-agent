@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { describeOnePageSource } from "../../../../tests/helpers/single-page-source";
 import { INDEX, normalizeRow, parseIndex, WEB3CAREER_SETTINGS, type Row } from ".";
 
-// Plan step 8b: Web3.career is a new source (no old reader or golden pages); the rows below follow the
+// Plan step 8b: Web3.career is a new source (no old reader or recorded reference pages); the rows below follow the
 // page read on 2026-11-17 (spikes.md §2), with made-up values.
 
 type R = { id: string; slug: string; title: string; company: string; places: string[]; time: string; ld?: Record<string, unknown> | null };
