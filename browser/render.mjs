@@ -37,8 +37,11 @@ export async function render({ url, waitFor, id, deadline }) {
       maxConcurrency: 1,
       useSessionPool: false,
       persistCookiesPerSession: false,
-      navigationTimeoutSecs: secs(),
-      requestHandlerTimeoutSecs: secs(),
+      // Crawlee's own timeouts sit above the deadline: they count from different points (CI measured its
+      // handler timeout firing before a shorter waitFor, 2026-11-17), so only the waits below (inner())
+      // and the hard deadline decide.
+      navigationTimeoutSecs: secs() + 30,
+      requestHandlerTimeoutSecs: secs() + 30,
       launchContext: { launchOptions: { headless: true } },
       preNavigationHooks: [
         async (_ctx, gotoOptions) => {
