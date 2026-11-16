@@ -9,6 +9,12 @@ import { LayoutMissing, RenderTimeout } from "./server.mjs";
 const TIMED_OUT = /net::ERR_(?:CONNECTION_)?TIMED_OUT|\btimed out after\b|Timeout \d+ms exceeded/;
 
 const TEARDOWN_MS = 10_000;
+/**
+ * Navigation and the waitFor wait end this long before the deadline, so their own timeouts (a slow page,
+ * a missing selector: 422) are seen before the hard deadline tears the browser down (504). CI measured
+ * the two firing together when both used the whole budget (2026-11-17).
+ */
+const MARGIN_MS = 1_500;
 const after = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)).unref());
 
 /**
@@ -23,7 +29,8 @@ export async function render({ url, waitFor, id, deadline }) {
   let failure = null;
   let layoutMissing = false;
   const left = () => Math.max(1, deadline - Date.now());
-  const secs = () => Math.max(1, Math.floor(left() / 1000));
+  const inner = () => Math.max(1, left() - MARGIN_MS);
+  const secs = () => Math.max(1, Math.floor(inner() / 1000));
   const crawler = new PlaywrightCrawler(
     {
       maxRequestRetries: 0,
@@ -36,7 +43,7 @@ export async function render({ url, waitFor, id, deadline }) {
       preNavigationHooks: [
         async (_ctx, gotoOptions) => {
           gotoOptions.waitUntil = "load";
-          gotoOptions.timeout = left();
+          gotoOptions.timeout = inner();
         },
       ],
       postNavigationHooks: [
@@ -53,7 +60,7 @@ export async function render({ url, waitFor, id, deadline }) {
         if (status !== 200) return;
         if (waitFor) {
           try {
-            await page.waitForSelector(waitFor, { timeout: left() });
+            await page.waitForSelector(waitFor, { timeout: inner() });
           } catch (e) {
             // The page itself loaded (status 200): a selector that never shows is a layout change.
             if (e?.name === "TimeoutError") layoutMissing = true;
