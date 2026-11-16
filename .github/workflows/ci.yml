@@ -34,7 +34,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      # typecheck, boundaries, db:check (Postgres schema and migrations agree), test (PGlite), compose port check.
+      # typecheck, boundaries, db:check (Postgres schema and migrations agree), test (PGlite), compose port check,
+      # deploy and browser tests, and the plan step 11 deleted and residue checks.
       - run: pnpm check
       # Every test again on a real Postgres 18: each one using tests/helpers/pg.ts freshPg switches to it,
       # the rest are unaffected. Running the whole suite means no Postgres test can be left out by its file name.
@@ -46,9 +47,8 @@ jobs:
       # Plan step 11: nothing the inventory marks deleted comes back, and references to the old system
       # stay within allowed-residue.md (git grep lists tracked files only, the same set rg sees).
       - run: bash ../docs/plans/2026-11-15-self-hosted-rebuild/check-deleted.sh
-      - run: |
-          git -C .. grep -l -E "@/platform/py/|golden|@/db/d1|@/db/client|workflow|vercel|sqliteTable|D1_|oci-a1" > "$RUNNER_TEMP/residue.txt"
-          python3 ../docs/plans/2026-11-15-self-hosted-rebuild/check_inventory.py --residue "$RUNNER_TEMP/residue.txt"
+      # Both also run in pnpm check; kept here as their own steps so a failure is named in the CI log.
+      - run: bash ../docs/plans/2026-11-15-self-hosted-rebuild/check-residue.sh
 
   image:
     # The application image builds and starts on arm64, the VM's architecture (not pushed; the VM
