@@ -2,6 +2,7 @@
 // The stub docker reads the env file's APP_IMAGE at call time: `inspect` says unhealthy when it matches the
 // glob FAKE_BAD (and `starting` forever with FAKE_STUCK), `up -d web` fails when it matches FAKE_UP_FAIL;
 // FAKE_MIGRATE_FAIL fails the migration; FAKE_BUILD_FAIL fails a build whose arguments contain it.
+// `compose run` reads its stdin to the end, as the real one does (it attaches stdin unless told otherwise).
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync } from "node:fs";
@@ -34,7 +35,7 @@ if [[ "$1" == inspect ]]; then
 fi
 shift 5 # compose --env-file F -f Y
 case "$1 \${2:-} \${3:-}" in
-  "run --rm daily") [[ -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1 ;;
+  "run --rm daily") cat >/dev/null; [[ -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1 ;;
   "up -d web") [[ "$img" == \${FAKE_UP_FAIL:-none} ]] && exit 1 ;;
   "ps -q web") echo web-container ;;
 esac
@@ -61,9 +62,11 @@ exit 0
   return { dir, envFile, calls, head };
 }
 
-function run(extraEnv = {}, target = "new5678full") {
+function run(extraEnv = {}, target = "new5678full", { scriptOnStdin = false } = {}) {
   const ctx = setup();
-  const r = spawnSync("bash", [script, target], {
+  const args = scriptOnStdin ? ["-s", target] : [script, target];
+  const r = spawnSync("bash", args, {
+    input: scriptOnStdin ? readFileSync(script, "utf8") : undefined,
     env: { ...process.env, PATH: `${ctx.dir}:${process.env.PATH}`, ENV_FILE: ctx.envFile, REPO: ctx.dir, POLL: "0", HEALTH_TIMEOUT: "2", ...extraEnv },
     encoding: "utf8",
     timeout: 20_000,
@@ -80,6 +83,15 @@ test("healthy deploy switches APP_IMAGE and migrates with the new image", () => 
   assert.match(r.env, /^POSTGRES_PASSWORD=x$/m);
   assert.match(r.calls, /APP_IMAGE=side-income-web:new5678 compose .* run --rm daily pnpm exec tsx scripts\/migrate-pg\.ts/);
   assert.equal(r.head, "new5678full");
+});
+
+test("the migration cannot swallow the rest of a script read from stdin (2026-11-15: web was never switched)", () => {
+  // bash -s (or a pasted block, or ssh … bash -s < deploy.sh) reads the script from stdin as it goes;
+  // a compose run that inherits that stdin consumes every line after it, and the shell then exits 0.
+  const r = run({}, "new5678full", { scriptOnStdin: true });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.env, /^APP_IMAGE=side-income-web:new5678$/m);
+  assert.equal(upWeb(r.calls).length, 1);
 });
 
 test("builds the browser tier as the app image's tag plus -browser (plan step 8d)", () => {
