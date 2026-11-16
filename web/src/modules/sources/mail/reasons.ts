@@ -42,7 +42,20 @@ export const JOBBANK104_REASONS = [
   "104_duplicate_card",
 ] as const;
 
-export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number];
+export const TASKER_REASONS = [
+  /** Not from Tasker's notification sender. */
+  "tasker_unsupported",
+  /** Not exactly one 「查看完整資訊」 link (or text line) to a case page. */
+  "tasker_boundary",
+  /** Links to more than one case page, or none. */
+  "tasker_case_link",
+  /** The subject does not name exactly one 【title】. */
+  "tasker_subject",
+  /** The header line, the title, the amount or 「預算詳談」, or the 「需求說明」 text is missing. */
+  "tasker_body",
+] as const;
+
+export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number];
 
 export class MailRejection extends Error {
   constructor(readonly reason: MailReason) {

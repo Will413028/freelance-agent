@@ -1,0 +1,1594 @@
+[
+ {
+  "name": "old 0",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 1",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>請串接 API https://x.example/?private=fake <a href=\"https://x.example/?secret=fake\">需求</a></p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "請串接 API 需求",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 2",
+  "message": {
+   "sender": "deals@tasker.com.tw.evil.example",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_unsupported"
+  }
+ },
+ {
+  "name": "old 3",
+  "message": {
+   "sender": "other@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_unsupported"
+  }
+ },
+ {
+  "name": "old 4",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"http://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"http://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 5",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw.evil.example/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw.evil.example/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 6",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://user@www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://user@www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 7",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab-123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab-123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 8",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123/?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123/\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 9 (ACCEPTED: an uppercase host is the same case page under the standard URL parser (repo rule for URL-shaped ids))",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://WWW.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://WWW.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 10",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ａb123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ａb123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 11 (ACCEPTED: the default port :443 is the same case page under the standard URL parser)",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw:443/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw:443/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 12",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://[::1/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://[::1/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 13",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a><a href=\"https://www.tasker.com.tw/cases/Other123\">Other</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_case_link"
+  }
+ },
+ {
+  "name": "old 14",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "PRIVATE BODY",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 15",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>PRIVATE BODY</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 16",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>PRIVATE BODY</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 17",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 18",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>API //tracking.example/?private=fake mailto:user@example.org?private=fake www.example.org/?private=fake</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a><script><a href=\"https://www.tasker.com.tw/cases/Secret123\">hidden</a></script>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 19",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>建立網站，按鈕文字為查看完整資訊，另外需要串接 API，僅限美國居民。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "建立網站，按鈕文字為查看完整資訊，另外需要串接 API，僅限美國居民。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 20",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n建立網站，按鈕文字為查看完整資訊，另外需要串接 API，僅限美國居民。\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "建立網站，按鈕文字為查看完整資訊，另外需要串接 API，僅限美國居民。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 21",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>查看完整資訊</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">不同連結</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 22",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\nAPI\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 23",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\nAPI\n查看完整資訊 unrelated https://www.tasker.com.tw/cases/Ab123",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 24",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新上架案件，歡迎提案</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 25",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新上架案件，歡迎提案\n測試網站\n$15,000\n台北市\n需求說明\n串接 API 與建立網站。\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$15,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 26",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 未知郵件格式</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 27",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>預算詳談</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 28 (ACCEPTED: CRLF lines, mail text parts on the wire, are read as LF)",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\r\n測試網站\r\n$100,000\r\n台北市\r\n需求說明\r\n串接 API\r\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\r\n其它需求\r\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 29 (ACCEPTED: bare CR lines are read as LF)",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\r測試網站\r$100,000\r台北市\r需求說明\r串接 API\r查看完整資訊 https://www.tasker.com.tw/cases/Ab123\r其它需求\rFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 30",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！ 測試網站 $100,000 台北市 需求說明 串接 API 查看完整資訊 https://www.tasker.com.tw/cases/Ab123 其它需求 FOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 31",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n  查看完整資訊\thttps://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 32",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123  \n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 33",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 34",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123　\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 35",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】【另一個】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_subject"
+  }
+ },
+ {
+  "name": "old 36",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_subject"
+  }
+ },
+ {
+  "name": "old 37",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "【 】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 38",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試  網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 39",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試  網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試 網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試 網站",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 40",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "【a.b (c)+[d]$】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\na.b (c)+[d]$\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "a.b (c)+[d]$",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 41",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "【a?b】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\na.b\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 42",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "【a\\b】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\na\\b\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "a\\b",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 43",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "【x{2}】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\nx{2}\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "x{2}",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 44",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$1,000,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$1,000,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 45",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 46",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n＄100\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 47 (REFUSED: fullwidth digits in the header date: JavaScript \\\\d is ASCII; Tasker writes ASCII digits)",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "２０２６/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 48",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 49",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n　\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_body"
+  }
+ },
+ {
+  "name": "old 50",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\nsee https://evil.example/x\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "see",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 51",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <A HREF=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 52",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\"><b>查看</b>完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 53",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\"> 查看完整資訊 &gt;</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 54",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API &amp; 建立網站&#12290;</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API & 建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 55",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><br/>台北市<br><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 56 (ACCEPTED: a duplicate href attribute: htmlparser2 keeps the first, as browsers do)",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\" href=\"https://x.example\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 57",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href>空</a><a href=\"\">空</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 58",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><noscript><p>查看完整資訊</p><a href=\"https://www.tasker.com.tw/cases/Zz9\">x</a></noscript>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 59",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><template><a href=\"https://www.tasker.com.tw/cases/Zz9\">查看完整資訊</a></template><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 60 (REFUSED: an unclosed second call-to-action link at the end is closed by the HTML parser, so the boundary is ambiguous)",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html><a href=\"https://www.tasker.com.tw/cases/Ab123\">查看完整資訊",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 61",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a><a href=\"https://www.tasker.com.tw/cases/Ab123\">查看完整資訊</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 62",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>查看完整資訊 https://www.tasker.com.tw/cases/Ab123</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 63",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】 ",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "Ab123",
+     "title": "測試網站",
+     "company": null,
+     "description": "串接 API 與建立網站。",
+     "url": "https://www.tasker.com.tw/cases/Ab123",
+     "canonical_url": "https://www.tasker.com.tw/cases/Ab123",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "$100,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 64",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "2026/09/17 最新案件，限時搶先提案！\n測試網站\n$100,000\n台北市\n需求說明\n串接 API\n查看完整資訊 https://www.tasker.com.tw/cases/Ab123\n其它需求\nFOOTER",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ },
+ {
+  "name": "old 65",
+  "message": {
+   "sender": "deals@tasker.com.tw",
+   "subject": "新案件【測試網站】",
+   "body": "<html><style>HIDDEN STYLE</style><script>HIDDEN SCRIPT</script>\n    <img src=\"https://tracking.example/pixel?private=fake\">\n    <p>2026/09/17 最新案件，限時搶先提案！</p><h2>測試網站</h2>\n    <p>$100,000</p><p>台北市</p><h3>需求說明</h3><p>串接 API 與建立網站。</p>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123?private=fake\">查看完整資訊</a>\n    <a href=\"https://www.tasker.com.tw/cases/Ab123\">同案件</a>\n    <p>其它需求</p><p>FOOTER MUST NOT SURVIVE</p>\n    <a href=\"https://www.tasker.com.tw/login?private=fake\">登入</a></html>",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "tasker_boundary"
+  }
+ }
+]

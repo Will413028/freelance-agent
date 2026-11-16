@@ -13,6 +13,7 @@ import { IDEALIST_SETTINGS } from "./idealist";
 import { JOBBANK518_SETTINGS } from "./jobbank518";
 import { JUSTREMOTE_SETTINGS } from "./justremote";
 import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
+import { TASKER_SETTINGS } from "./mail/tasker";
 import { NODESK_SETTINGS } from "./nodesk";
 import { PTT_CODEJOB_SETTINGS, PTT_SOHO_SETTINGS } from "./ptt";
 import { REMOTECO_SETTINGS } from "./remoteco";
@@ -34,6 +35,7 @@ import { YCJOBS_SETTINGS } from "./ycjobs";
 // (an index's first page or feed, plan step 5c) answer a latest-N window, where an open listing can drop out.
 
 export const SOURCES: readonly SourceSettings[] = [
+  { ...TASKER_SETTINGS, order: 0 },
   { ...JOBBANK104_SETTINGS, order: 30 },
   { name: "remotive", label: "Remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
   { name: "jobicy", label: "Jobicy", order: 60, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
