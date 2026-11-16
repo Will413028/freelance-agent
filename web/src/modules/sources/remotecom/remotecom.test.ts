@@ -42,14 +42,23 @@ describe("remote.com jobs", () => {
     expect(() => parseIndex(notObject)).toThrow(/not an object/);
   });
 
-  it("reads Taiwan eligibility only from listed places that leave Taiwan out; global stays unknown", () => {
-    const at = (h: unknown) => one({ hiringLocation: h }).taiwan_eligible;
+  it("reads Taiwan eligibility only from country codes that leave TW out; regions, global and the rest stay unknown", () => {
+    const country = (name: string, alpha2Code?: string) => ({ type: "country", value: { name, alpha2Code } });
+    const at = (...includedLocations: unknown[]) => one({ hiringLocation: { type: "location", includedLocations } }).taiwan_eligible;
     expect([
-      at({ type: "location", includedLocations: [{ type: "region", value: { name: "Europe" } }] }),
-      at({ type: "location", includedLocations: [{ type: "country", value: { name: "Taiwan" } }] }),
-      at({ type: "global", includedLocations: null }), at({ type: "timezone", includedLocations: [{ type: "region", value: { name: "Europe" } }] }), at(null), at({ type: "location", includedLocations: [{ type: "city", value: { name: "X" } }] }),
-    ]).toEqual([false, null, null, null, null, null]);
+      at(country("South Africa", "ZA")), at(country("South Africa", "ZA"), country("Taiwan", "TW")), at(country("South Africa")),
+      at(country("South Africa", "ZA"), { type: "region", value: { name: "Asia-Pacific" } }), at({ type: "region", value: { name: "Europe" } }), at({ type: "city", value: { name: "X" } }),
+      at(country("South Africa", "ZA"), { type: "region", value: { code: "eu", name: "EU" } }),
+    ]).toEqual([false, null, null, null, null, null, null]);
+    const of = (h: unknown) => one({ hiringLocation: h }).taiwan_eligible;
+    expect([of({ type: "global", includedLocations: null }), of({ type: "timezone", includedLocations: [country("South Africa", "ZA")] }), of(null)]).toEqual([null, null, null]);
     expect(one({ hiringLocation: { type: "global" } }).location).toBe("Global (as listed)");
+  });
+
+  it("undoes the stream's escapes: \"$$\" is a literal \"$\", \"$D\" a date", () => {
+    const l = one({ title: "$$100 bounty", publishedAt: "$D2026-08-28T07:16:12.000Z" });
+    expect([l.title, l.published_at]).toEqual(["$100 bounty", "2026-08-28T07:16:12.000Z"]);
+    expect(() => one({ companyProfile: "$4:props:jobsData:jobs:0:companyProfile" })).toThrow(/slugs required/);
   });
 
   it("keeps unknown unknown: a time without a zone, an odd kind or status, no pay", () => {

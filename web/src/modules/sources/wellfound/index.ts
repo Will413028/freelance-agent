@@ -1,9 +1,10 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
-import { eligibleFrom, epochInstant, lastById, nextData, optionalText, pageRequest, requiredText, stringList } from "../shared/embedded";
-import { pageHtml } from "../shared/job-pages";
+import { lastById, nextData, optionalText, requiredText, stringList } from "../shared/embedded";
+import { pageHtml, pageRequest } from "../shared/job-pages";
 import { isObject } from "../shared/json";
 import { setAside } from "../shared/set-aside";
+import { epochInstant } from "../shared/time";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Wellfound (plan step 8b, D3; a new source, no old reader): the public /jobs page and the job listings
@@ -13,9 +14,9 @@ import { SourceError, type Collected, type PageSourceSettings } from "../types";
 // which answers with a challenge page: that fails the source (shared/job-pages), it is never solved.
 //
 // Identity is the numeric listing id. A listing is set aside when its id, title or slug is missing. The
-// page fails the source when the cache is not there, holds no listing, or more than 200. For a remote
-// listing the accepted remote locations name where the hire may be: a list without Taiwan or a region
-// containing it makes Taiwan eligibility false; on-site listings and empty lists stay unknown. The
+// page fails the source when the cache is not there, holds no listing, or more than 200. Places are free text (cities,
+// regions such as "Europe"), kept as the location; Taiwan eligibility stays unknown, since an unlisted
+// spelling of a place containing Taiwan must not hide the listing (D8). The
 // compensation text is evidence only. No rule of its own (sourceKept is always true).
 
 const ORIGIN = "https://wellfound.com";
@@ -60,7 +61,7 @@ export function normalizeJob(cache: Cache, job: unknown): ListingInput {
     external_id: id, title, company, url, canonical_url: url,
     location: [...(places ?? []), ...(remote ? (remotePlaces ?? []).map((p) => `Remote: ${p}`) : [])].join("; ") || null,
     compensation_evidence: optionalText(job.compensation),
-    taiwan_eligible: remote === true ? eligibleFrom(remotePlaces) : null, complete: false,
+    complete: false,
     published_at: epochInstant(job.liveStartAt),
     extra: { remote, location_names: places, accepted_remote_locations: remotePlaces, role: isObject(job.primaryRole) ? job.primaryRole.slug ?? null : null },
   });

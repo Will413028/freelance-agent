@@ -1,8 +1,6 @@
 import { load } from "cheerio";
-import { parseLegacyIsoTime, type ListingInput } from "@/modules/listings/public";
-import type { FetchRequest } from "@/platform/fetch";
+import type { ListingInput } from "@/modules/listings/public";
 import { isObject } from "./json";
-import { PAGE_BYTES, PAGE_TIMEOUT_MS, USER_AGENT } from "./job-pages";
 import { pyStrip } from "./text";
 import { SourceError } from "../types";
 
@@ -10,9 +8,6 @@ import { SourceError } from "../types";
 // Jobs, YC, Web3.career): Next.js page props, a Next.js server-component stream, an Inertia data-page
 // attribute. Each source reads one public page with one plain request; these only find and decode the
 // embedded JSON. A missing or undecodable payload is a batch problem (SourceError): the format changed.
-
-/** One plain GET of a board page (checklist §1: through the Fetcher, the page limits of job-pages). */
-export const pageRequest = (url: string): FetchRequest => ({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
 
 /** The props of a Next.js page (`<script id="__NEXT_DATA__">`). */
 export function nextData(name: string, html: string): Record<string, unknown> {
@@ -90,7 +85,10 @@ export function flightValue(name: string, html: string, key: string): Record<str
   if (end < 0) throw new SourceError(`${name}: ${key} is not an object`);
   let value: unknown;
   try {
-    value = JSON.parse(flight.slice(start, end));
+    // Flight escapes a string that starts with "$" as "$$…" and sends a Date as "$D<ISO>"; other "$…"
+    // strings are references this reader does not follow, left as they are (they fail the field checks).
+    value = JSON.parse(flight.slice(start, end), (_, v: unknown) =>
+      typeof v === "string" && v.startsWith("$") ? (v.startsWith("$$") ? v.slice(1) : v.startsWith("$D") ? v.slice(2) : v) : v);
   } catch {
     throw new SourceError(`${name}: ${key} is not JSON`);
   }
@@ -109,31 +107,20 @@ export function requiredText(name: string, value: unknown, what: string, max = 5
 /** Optional text: trimmed, or null when absent, not a string or blank (unknown, D8). */
 export const optionalText = (value: unknown): string | null => (typeof value === "string" && pyStrip(value) ? pyStrip(value) : null);
 
-const rfc3339 = (d: Date) => (Number.isFinite(d.getTime()) && d.getUTCFullYear() >= 1 && d.getUTCFullYear() <= 9999 ? d.toISOString() : null);
-
-/** Unix seconds as an instant; null when not a finite number (unknown, D8). */
-export const epochInstant = (value: unknown): string | null =>
-  typeof value === "number" && Number.isFinite(value) && value > 0 ? rfc3339(new Date(value * 1000)) : null;
-
-/** An ISO 8601 time that carries its offset; a time without one, or not a time, is null (unknown, D8). */
-export function awareInstant(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const t = parseLegacyIsoTime(value.trim().replaceAll("Z", "+00:00"));
-  return t?.kind === "aware" ? rfc3339(t.instant) : null;
-}
-
-/** Names that do not rule Taiwan out: Taiwan itself and the broad regions that contain it. */
-const BROAD = new Set(["tw", "twn", "taiwan", "taiwan, province of china", "asia", "apac", "asia pacific", "worldwide", "anywhere", "global", "earth"]);
-
 /**
- * Taiwan eligibility from a list of required places (countries or regions): false only when the source
- * lists places and none of them is Taiwan or a region containing it; null otherwise. Remote is not
- * worldwide (AGENTS.md): an empty or unreadable list stays unknown.
+ * Taiwan eligibility from ISO 3166 alpha-2 country codes the hire must be in: false when the source
+ * lists codes and none is TW; null otherwise. Only a closed vocabulary can say "Taiwan is not in it":
+ * free-text places (a city, "Asia-Pacific") are never read as an exclusion, since a false here hides
+ * the listing (evaluation's hard exclusion), and remote is not worldwide (AGENTS.md).
  */
-export function eligibleFrom(places: readonly string[] | null): ListingInput["taiwan_eligible"] {
-  if (places === null || !places.length) return null;
-  return places.some((p) => BROAD.has(p.trim().toLowerCase())) ? null : false;
+export function eligibleFromCodes(codes: readonly string[] | null): ListingInput["taiwan_eligible"] {
+  if (codes === null || !codes.length || !codes.every((c) => /^[A-Za-z]{2}$/.test(c))) return null;
+  return codes.some((c) => c.toUpperCase() === "TW") ? null : false;
 }
+
+/** A value of a closed set, or null for anything else (an own key only: "constructor" is not one). */
+export const lookup = <V>(table: Record<string, V>, key: unknown): V | null =>
+  typeof key === "string" && Object.hasOwn(table, key) ? table[key] : null;
 
 /** A list of strings, or null when it is not one (unknown, D8). */
 export function stringList(value: unknown): string[] | null {

@@ -37,12 +37,9 @@ describe("wellfound listings", () => {
     expect(one({ title: "Renamed", slug: "renamed" }).external_id).toBe(one().external_id);
   });
 
-  it("reads Taiwan eligibility only from a remote listing's accepted places that leave Taiwan out", () => {
+  it("never reads free-text places as a Taiwan exclusion; remote places are kept in the location", () => {
     const tw = (o: J) => one(o).taiwan_eligible;
-    expect([
-      tw({ remote: true, acceptedRemoteLocationNames: ["Europe"] }), tw({ remote: true, acceptedRemoteLocationNames: ["Europe", "Asia"] }),
-      tw({ remote: true, acceptedRemoteLocationNames: [] }), tw({ remote: false, acceptedRemoteLocationNames: ["Europe"] }), tw({ remote: true, acceptedRemoteLocationNames: "Europe" }),
-    ]).toEqual([false, null, null, null, null]);
+    expect([tw({ remote: true, acceptedRemoteLocationNames: ["Europe"] }), tw({ remote: true, acceptedRemoteLocationNames: ["Taipei"] }), tw({ remote: false })]).toEqual([null, null, null]);
     expect(one({ remote: true, acceptedRemoteLocationNames: ["Europe"] }).location).toBe("Taipei; Remote: Europe");
   });
 

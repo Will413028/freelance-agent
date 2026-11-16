@@ -24,17 +24,21 @@ describe("arc entries", () => {
   it("reads Arc's own jobs and the external ones, each under its own link", () => {
     const entries = parseIndex(page([job(1)], [job(2, { company: { name: "Acme" }, jobType: "permanent", minHourlyRate: null, maxHourlyRate: null, minAnnualSalary: 90000, maxAnnualSalary: 120000 })]));
     const [a, b] = entries.map(normalizeJob);
-    expect([a.url, a.kind, a.company, a.compensation_evidence, a.extra.listed_by]).toEqual(["https://arc.dev/remote-jobs/details/ai-agent-engineer-1-key0001", "contract", null, "USD 65–115 per hour", "arc"]);
-    expect([b.url, b.kind, b.company, b.compensation_evidence, b.extra.listed_by]).toEqual(["https://arc.dev/remote-jobs/j/ai-agent-engineer-2-key0002", "full_time", "Acme", "USD 90000–120000 per year", "external"]);
+    expect([a.url, a.kind, a.company, a.compensation_evidence, a.extra.listed_by]).toEqual(["https://arc.dev/remote-jobs/details/ai-agent-engineer-1-key0001", "contract", null, "65–115 per hour (currency not stated)", "arc"]);
+    expect([b.url, b.kind, b.company, b.compensation_evidence, b.extra.listed_by]).toEqual(["https://arc.dev/remote-jobs/j/ai-agent-engineer-2-key0002", "full_time", "Acme", "90000–120000 per year (currency not stated)", "external"]);
   });
 
   it("names a job by its key only: a changed title or slug is the same listing", () => {
     expect(one({ title: "Renamed", urlString: "renamed" }).external_id).toBe(one().external_id);
   });
 
-  it("reads Taiwan eligibility only from required countries that leave Taiwan out", () => {
-    expect([one({ requiredCountries: ["US"] }), one({ requiredCountries: ["US", "TW"] }), one({ requiredCountries: [] }), one({ requiredCountries: "US" })].map((l) => l.taiwan_eligible))
-      .toEqual([false, null, null, null]);
+  it("reads Taiwan eligibility only from required country codes that leave TW out", () => {
+    expect([["US"], ["US", "tw"], [], "US", ["US", "Taiwan"], ["Asia"]].map((c) => one({ requiredCountries: c }).taiwan_eligible))
+      .toEqual([false, null, null, null, null, null]);
+  });
+
+  it("keeps a job type that is not one of Arc's unknown, even a name Object.prototype carries", () => {
+    expect([one({ jobType: "constructor" }).kind, one({ jobType: "toString" }).kind]).toEqual([null, null]);
   });
 
   it("keeps unknown unknown: description, budget, hours, a missing time or job type", () => {

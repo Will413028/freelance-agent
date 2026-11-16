@@ -49,15 +49,15 @@ Arbeitnow：官方`.com` API第11頁回傳的next主機是`.nl`。connector只�
 | 停用 2 | PTT SOHO、PTT CodeJob | Vercel 出口對 PTT 取得 403 challenge（遷移計畫 D12）；不繞過存取驗證，正式站維持停用。新系統（VM）在 2026-11-16 計畫步驟 8a 重新接上，切換後生效 |
 | 郵件每日真實收信已驗 4 | LinkedIn、Cake、104、Talent.com | 四站health=ok。Talent於9/29自然排程首次由Resend匯入1封／2案；LinkedIn管理連結模板已修復，停用提醒記為非職缺通知（2026-10-27 起又有一種通知每天約 4 封被拒，待補 parser）。缺正文及未知資格／工時保留unknown |
 | 訂閱成功待內容 1 | Yourator | 首封含職缺的週報及parser，不以訂閱確認信驗收 |
-| 已登入實讀待通知 1 | Arc | 既有Email提醒啟用，但未有職缺信；Account Email已驗證 |
+| 已登入實讀待通知 1 | Arc | 既有Email提醒啟用，但未有職缺信；Account Email已驗證。新系統（VM）在 2026-11-17 計畫步驟 8b 改以公開列表頁一般請求讀取（D3，Will 2026-11-15，取代本列較早的「不抓取／不接 crawler」）：Arc，切換後生效 |
 | 訂閱已確認、待職缺通知 1 | Remoters | 本輪讀到9/27確認信，沿已授權訂閱點擊確認，官方頁顯示 Subscription Confirmed；待第一封實際職缺信才能驗parser／轉寄／daily整合 |
 | 使用者排除 1 | 1111 | 2026-09-26 明確不使用，已移出待接通清單；不再要求登入、訂閱或整合 |
-| API先決條件未完成 2 | Idealist、Web3.career | Idealist免費申請已寄，等核發；Web3申請必填真實使用網站URL，本專案沒有可提供的公開網址，未提交 |
+| API先決條件未完成 2 | Idealist、Web3.career | Idealist免費申請已寄，等核發；Web3申請必填真實使用網站URL，本專案沒有可提供的公開網址，未提交。新系統（VM）在 2026-11-17 計畫步驟 8b 改以公開列表頁一般請求讀取（D3，Will 2026-11-15，取代本列較早的「不抓取／不接 crawler」）：Web3.career，切換後生效 |
 | 存取驗證阻擋 1 | Guru | 已讀8正文但遭challenge停止；需官方通知／授權通道，不換IP繞過 |
 | 已配置通知等待首封 1 | Glassdoor | 通知卡parser與共用增量同步已在每日收案內；限定未來轉寄已保存。2026-10-01有限檢查43 metadata／0匹配、waiting，待自然Resend通知／daily匯入。新信13個ID已驗；同ID去追蹤詳情起初challenge，後續同分頁可讀全職QA正文，不接crawler |
-| 通知已訂閱待接入 2 | SimplyHired、Wellfound | SimplyHired 9/28首封20張摘要卡只有不透明`engage.indeed.com`追蹤URL；Wellfound待樣本。不重建訂閱 |
-| 使用者選擇僅公開搜尋 2 | Remote.com Jobs、Braintrust | 暫不建帳或訂閱、不接每日crawler，帳號問題已結束 |
-| 其他官方通道尚未驗收 5 | 打工探吉、Indeed、YC Jobs（含Work at a Startup）、Welcome to the Jungle、Remote.co | 打工探吉未找到Email職缺通知；Indeed已於9/30將既有提醒改為「軟體 兼職」／台灣／每日，重新載入確認已啟動且提醒ID不變；待調整後自然通知驗命中品質。舊新模板有穩定`jk`，但現行系統沒有Indeed的parser與每日connector；YC／Remote.co詢問信已取消，兩站不抓取；WTTJ官方通知改版暫停 |
+| 通知已訂閱待接入 2 | SimplyHired、Wellfound | SimplyHired 9/28首封20張摘要卡只有不透明`engage.indeed.com`追蹤URL；Wellfound待樣本。不重建訂閱。新系統（VM）在 2026-11-17 計畫步驟 8b 改以公開列表頁一般請求讀取（D3，Will 2026-11-15，取代本列較早的「不抓取／不接 crawler」）：Wellfound，切換後生效 |
+| 使用者選擇僅公開搜尋 2 | Remote.com Jobs、Braintrust | 暫不建帳或訂閱、不接每日crawler，帳號問題已結束。新系統（VM）在 2026-11-17 計畫步驟 8b 改以公開列表頁一般請求讀取（D3，Will 2026-11-15，取代本列較早的「不抓取／不接 crawler」）：Remote.com Jobs，切換後生效 |
+| 其他官方通道尚未驗收 5 | 打工探吉、Indeed、YC Jobs（含Work at a Startup）、Welcome to the Jungle、Remote.co | 打工探吉未找到Email職缺通知；Indeed已於9/30將既有提醒改為「軟體 兼職」／台灣／每日，重新載入確認已啟動且提醒ID不變；待調整後自然通知驗命中品質。舊新模板有穩定`jk`，但現行系統沒有Indeed的parser與每日connector；YC／Remote.co詢問信已取消，兩站不抓取；WTTJ官方通知改版暫停。新系統（VM）在 2026-11-17 計畫步驟 8b 改以公開列表頁一般請求讀取（D3，Will 2026-11-15，取代本列較早的「不抓取／不接 crawler」）：YC Jobs，切換後生效 |
 | 本人申請已送、待聯繫 1 | NomadBridge | 本人回報9/26已送出，不重送；費用／入網／案件仍待平台確認 |
 | 本人入網／資格／個人任務 8 | A.Team、Gun.io、Proxify、Toptal、Turing、Outlier、DataAnnotation、TELUS Digital AI Community | 需本人入網、資格或測驗；個別帳號進度屬個人資料，不記在公開 repo。公開職缺不等於私人任務池已接通 |
 | 帳號市場或賣方服務 4 | Contra、Fiverr、Upwork、PRO360 | 本人確認四站皆無帳號，該問題結束。Contra全feed需Pro；Upwork摘要徽章條件；Fiverr服務配對；PRO360免費配對信但報價付費。未新建帳或公開上架 |

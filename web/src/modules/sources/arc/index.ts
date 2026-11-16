@@ -1,9 +1,10 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
-import { eligibleFrom, epochInstant, lastById, nextData, optionalText, pageRequest, requiredText, stringList } from "../shared/embedded";
-import { pageHtml } from "../shared/job-pages";
+import { eligibleFromCodes, lastById, lookup, nextData, optionalText, requiredText, stringList } from "../shared/embedded";
+import { pageHtml, pageRequest } from "../shared/job-pages";
 import { isObject } from "../shared/json";
 import { setAside } from "../shared/set-aside";
+import { epochInstant } from "../shared/time";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Arc (plan step 8b, D3; a new source, no old reader): the public remote-jobs page and the jobs its
@@ -13,10 +14,10 @@ import { SourceError, type Collected, type PageSourceSettings } from "../types";
 //
 // Identity is Arc's `randomKey`, the token that ends each job URL. A job is set aside when its key, title
 // or URL slug is missing. The page fails the source when it has no props, neither list, no job at all,
-// or more than 200. Required countries (ISO codes) name where the hire must be: a list without Taiwan
-// makes Taiwan eligibility false, an empty list leaves it unknown. Pay (Arc's hourly rate for contract
-// work, a yearly salary otherwise) is kept as evidence text, not as a budget: the contract's budget has
-// no unit. The source has no rule of its own (sourceKept is always true; evaluation judges fit).
+// or more than 200. Required countries (ISO alpha-2 codes) name where the hire must be: a list without
+// TW makes Taiwan eligibility false, an empty or unreadable list leaves it unknown. Pay (an hourly rate or
+// a yearly salary) is kept as evidence text, not as a budget (the contract's budget has no unit), and
+// without a currency: the page names none. The source has no rule of its own (sourceKept is always true; evaluation judges fit).
 
 const ORIGIN = "https://arc.dev";
 export const INDEX = ORIGIN + "/remote-jobs";
@@ -47,7 +48,7 @@ const KIND: Record<string, ListingInput["kind"]> = { contract: "contract", perma
 function pay(job: Record<string, unknown>): string | null {
   const range = (lo: unknown, hi: unknown, unit: string) => {
     const nums = [lo, hi].filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-    return nums.length ? `USD ${[...new Set(nums)].join("–")} ${unit}` : null;
+    return nums.length ? `${[...new Set(nums)].join("–")} ${unit} (currency not stated)` : null;
   };
   return range(job.minHourlyRate, job.maxHourlyRate, "per hour") ?? range(job.minAnnualSalary, job.maxAnnualSalary, "per year");
 }
@@ -68,9 +69,8 @@ export function normalizeJob({ job, external }: Listed): ListingInput {
   return parseListingInput({
     external_id: key, title, company, url, canonical_url: url,
     location: countries?.length ? countries.join(", ") : null,
-    kind: typeof job.jobType === "string" ? KIND[job.jobType] ?? null : null,
-    currency: evidence ? "USD" : null, compensation_evidence: evidence,
-    taiwan_eligible: eligibleFrom(countries), complete: false,
+    kind: lookup(KIND, job.jobType), compensation_evidence: evidence,
+    taiwan_eligible: eligibleFromCodes(countries), complete: false,
     published_at: epochInstant(job.postedAt),
     extra: { listed_by: external ? "external" : "arc", job_type: job.jobType ?? null, required_countries: countries, categories },
   });

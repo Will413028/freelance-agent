@@ -77,6 +77,8 @@ export function describeOnePageSource<J>(s: OnePage<J>): void {
       await expect(run(s.page([]))).rejects.toThrow(/no job/);
       await expect(run(s.page(Array.from({ length: 201 }, (_, i) => s.good(i + 1))))).rejects.toThrow(/more than 200/);
       await expect(run(new TextEncoder().encode("<html><title>Just a moment...</title></html>"))).rejects.toThrow(/access challenge/);
+      // DataDome's interstitial (Wellfound is known to use it) is a challenge, not a format change.
+      await expect(run(new TextEncoder().encode('<html><script src="https://ct.captcha-delivery.com/c.js"></script></html>'))).rejects.toThrow(/access challenge/);
       await expect(run(new FetchError("http_status", "HTTP 403", 403))).rejects.toThrow(/403/);
     });
   });

@@ -1,12 +1,13 @@
 import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
-import { awareInstant, lastById, optionalText, pageRequest, requiredText } from "../shared/embedded";
-import { jobPostings, pageHtml } from "../shared/job-pages";
+import { lastById, optionalText, requiredText } from "../shared/embedded";
+import { jobPostings, pageHtml, pageRequest } from "../shared/job-pages";
 import { codePoints, isObject } from "../shared/json";
 import { pyStrip, visibleLines } from "../shared/text";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 import { setAside } from "../shared/set-aside";
+import { awareInstant } from "../shared/time";
 
 // Web3.career (plan step 8b, D3; a new source, no old reader): the public front page, its job table
 // (`tr[data-jobid]` rows, newest first) and the schema.org JobPosting scripts the page carries for the
@@ -16,7 +17,7 @@ import { setAside } from "../shared/set-aside";
 // aside when its id, link or title is missing or the link does not end with the id. The page fails the
 // source when it has no job row or more than 200, or a JobPosting script is not JSON. The JobPostings
 // carry no URL or id, so a row takes the description of the one JobPosting with the same title and
-// company; none or several leave it unknown (D8). The row's time carries its offset; one without stays
+// company, when only one row has that title and company; otherwise it stays unknown (D8). The row's time carries its offset; one without stays
 // unknown. The table's salary is the site's estimate from similar jobs, not the listing's, so it is not
 // kept. Places shown on the row are kept as the location; Taiwan eligibility stays unknown. No rule of
 // its own.
@@ -36,11 +37,16 @@ export type Row = { id: string; href: string; title: string; company: string; pl
 /**
  * Title and company compared by their letters and digits only: the table drops the punctuation the
  * JobPosting keeps ("Data Engineer, NYC" is "Data Engineer NYC"), and the JobPosting's names arrive
- * HTML-escaped once or twice more than the table's ("Node &amp;amp; Vector").
+ * HTML-escaped once or twice more than the table's ("Node &amp;amp; Vector"), so entities are decoded
+ * until nothing changes.
  */
 function bare(s: string): string {
   let t = s;
-  for (let before = ""; before !== t; ) [before, t] = [t, t.replaceAll(/&amp;/gi, "&")];
+  for (let i = 0; i < 4 && t.includes("&"); i++) {
+    const next = load(`<p>${t.replaceAll("<", "&lt;")}</p>`, { scriptingEnabled: false })("p").text();
+    if (next === t) break;
+    t = next;
+  }
   return t.toLowerCase().replaceAll(/[^\p{L}\p{N}]+/gu, "");
 }
 const key = (title: string, company: string) => `${bare(title)}\u0000${bare(company)}`;
@@ -72,6 +78,10 @@ export function parseIndex(raw: Uint8Array): { rows: Row[]; descriptions: Map<st
     // Two postings with the same title and company cannot be told apart: neither description is used.
     descriptions.set(k, descriptions.has(k) || !text || codePoints(text) > 100_000 ? null : text);
   }
+  // Two rows with the same title and company cannot be told apart either.
+  const rowCount = new Map<string, number>();
+  for (const r of rows) rowCount.set(key(r.title, r.company), (rowCount.get(key(r.title, r.company)) ?? 0) + 1);
+  for (const [k, n] of rowCount) if (n > 1 && descriptions.has(k)) descriptions.set(k, null);
   return { rows, descriptions };
 }
 

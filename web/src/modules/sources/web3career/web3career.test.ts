@@ -32,9 +32,12 @@ describe("web3.career rows", () => {
   it("takes the description of the one JobPosting with the same title and company, ignoring punctuation and an extra escape", () => {
     expect(one().description).toBe("Build AI agent engineer 1");
     expect(one({ title: "Data Engineer NYC", company: "Node &amp; Vector", ld: { title: "Data Engineer, NYC", hiringOrganization: { name: "Node &amp;amp; Vector" } } }).description).toBe("Build Data Engineer NYC");
+    expect(one({ title: "Engineer's Role", ld: { title: "Engineer&amp;#39;s Role" } }).description).toBe("Build Engineer's Role");
     expect(one({ ld: null }).description).toBeNull();
     // Two postings for the same title and company cannot be told apart: unknown.
     expect(one({}, [row(2, { title: "AI agent engineer 1" })]).description).toBeNull();
+    // Two rows with one title and company but only one posting: neither row takes it.
+    expect(one({}, [row(2, { title: "AI agent engineer 1", ld: null })]).description).toBeNull();
   });
 
   it("names a row by its id only", () => {

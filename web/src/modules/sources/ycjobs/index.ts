@@ -1,7 +1,7 @@
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
-import { inertiaPage, lastById, optionalText, pageRequest, requiredText } from "../shared/embedded";
-import { pageHtml } from "../shared/job-pages";
+import { inertiaPage, lastById, lookup, optionalText, requiredText } from "../shared/embedded";
+import { pageHtml, pageRequest } from "../shared/job-pages";
 import { isObject } from "../shared/json";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
@@ -49,7 +49,7 @@ export function normalizeJob(job: unknown): ListingInput {
   const type = typeof job.type === "string" ? job.type.trim().toLowerCase() : null;
   return parseListingInput({
     external_id: String(job.id), title, company: optionalText(job.companyName), url, canonical_url: url,
-    location: optionalText(job.location), kind: type === null ? null : KIND[type] ?? null,
+    location: optionalText(job.location), kind: lookup(KIND, type),
     compensation_evidence: optionalText(job.salaryRange), complete: false,
     extra: {
       type: job.type ?? null, role: job.prettyRole ?? null, created_ago: optionalText(job.createdAt), visa: optionalText(job.visa),
