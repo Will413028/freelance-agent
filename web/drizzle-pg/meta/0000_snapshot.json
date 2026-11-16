@@ -1,5 +1,5 @@
 {
-  "id": "86dfac9a-5649-4f0d-9caa-c5443589c368",
+  "id": "2ed0fb9f-e1fc-44d8-92f1-a8496af58cab",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -591,6 +591,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "source_kept": {
+          "name": "source_kept",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
         "first_seen_at": {
           "name": "first_seen_at",
           "type": "timestamp with time zone",
@@ -604,6 +610,19 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "gone_at": {
+          "name": "gone_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -624,6 +643,22 @@
             }
           ],
           "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "listings_shown": {
+          "name": "listings_shown",
+          "columns": [
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"listings\".\"source_kept\" and not \"listings\".\"hard_excluded\"",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -922,6 +957,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "counts": {
+          "name": "counts",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
         },
         "started_at": {
           "name": "started_at",

@@ -86,8 +86,11 @@ CREATE TABLE "listings" (
 	"hard_excluded" boolean NOT NULL,
 	"confirmed_base" smallint NOT NULL,
 	"fixed_twd_max" double precision,
+	"source_kept" boolean NOT NULL,
 	"first_seen_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"last_seen_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"gone_at" timestamp with time zone,
 	CONSTRAINT "listings_kind" CHECK ("listings"."kind" in ('fixed', 'hourly', 'contract', 'full_time')),
 	CONSTRAINT "listings_deadline_kind" CHECK ("listings"."deadline_kind" in ('date', 'instant', 'no_timezone', 'invalid')),
 	CONSTRAINT "listings_deadline_at" CHECK (("listings"."deadline_at" is not null) = coalesce("listings"."deadline_kind" in ('date', 'instant'), false)),
@@ -137,6 +140,7 @@ CREATE TABLE "runs" (
 	"local_date" date NOT NULL,
 	"status" text NOT NULL,
 	"reason" text,
+	"counts" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"started_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"finished_at" timestamp with time zone,
 	CONSTRAINT "runs_local_date_unique" UNIQUE("local_date"),
@@ -161,4 +165,5 @@ ALTER TABLE "listing_feedback_events" ADD CONSTRAINT "listing_feedback_events_li
 ALTER TABLE "listing_versions" ADD CONSTRAINT "listing_versions_listing_id_listings_id_fk" FOREIGN KEY ("listing_id") REFERENCES "public"."listings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "run_sources" ADD CONSTRAINT "run_sources_run_id_runs_id_fk" FOREIGN KEY ("run_id") REFERENCES "public"."runs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "listing_feedback_events_listing_revision" ON "listing_feedback_events" USING btree ("listing_id","revision");--> statement-breakpoint
-CREATE UNIQUE INDEX "listings_source_external_id" ON "listings" USING btree ("source","external_id");
+CREATE UNIQUE INDEX "listings_source_external_id" ON "listings" USING btree ("source","external_id");--> statement-breakpoint
+CREATE INDEX "listings_shown" ON "listings" USING btree ("id") WHERE "listings"."source_kept" and not "listings"."hard_excluded";
