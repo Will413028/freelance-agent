@@ -9,6 +9,17 @@ const rfc3339 = (d: Date) => {
   return Number.isFinite(d.getTime()) && y >= 1 && y <= 9999 ? d.toISOString() : null;
 };
 
+/** Unix seconds as an instant; null when not a positive finite number (unknown, D8). */
+export const epochInstant = (value: unknown): string | null =>
+  typeof value === "number" && Number.isFinite(value) && value > 0 ? rfc3339(new Date(value * 1000)) : null;
+
+/** An ISO 8601 time that carries its offset; a time without one, or not a time, is null (unknown, D8). */
+export function awareInstant(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const t = parseLegacyIsoTime(value.trim().replaceAll("Z", "+00:00"));
+  return t?.kind === "aware" ? rfc3339(t.instant) : null;
+}
+
 /** An instant for published_at where the source sends times in UTC: a naive time or a date reads as UTC. */
 export function utcInstant(text: string): string | null {
   const t = parseLegacyIsoTime(text.replaceAll("Z", "+00:00"));

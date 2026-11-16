@@ -1,4 +1,5 @@
 import { ARBEITNOW_SETTINGS } from "./arbeitnow";
+import { ARC_SETTINGS } from "./arc";
 import { HACKERNEWS_SETTINGS, V2EX_SETTINGS } from "./community-jobs";
 import { CHICKPT_SETTINGS } from "./chickpt";
 import { CRYPTOJOBSLIST_SETTINGS } from "./cryptojobslist";
@@ -12,9 +13,13 @@ import { JUSTREMOTE_SETTINGS } from "./justremote";
 import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
 import { NODESK_SETTINGS } from "./nodesk";
 import { PTT_CODEJOB_SETTINGS, PTT_SOHO_SETTINGS } from "./ptt";
+import { REMOTECOM_SETTINGS } from "./remotecom";
 import { REALWORKFROMANYWHERE_SETTINGS, REMOTEOK_SETTINGS, WEWORKREMOTELY_SETTINGS, WORKINGNOMADS_SETTINGS } from "./public-feeds";
 import { TAIWANJOBS_SETTINGS } from "./taiwanjobs";
 import type { SourceSettings } from "./types";
+import { WEB3CAREER_SETTINGS } from "./web3career";
+import { WELLFOUND_SETTINGS } from "./wellfound";
+import { YCJOBS_SETTINGS } from "./ycjobs";
 
 // Every source of the new system, one entry each (plan step 4; steps 5, 7 and 8 add theirs following
 // docs/plans/2026-11-15-self-hosted-rebuild/connector-checklist.md). Both free boards answer with
@@ -48,6 +53,12 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...DYNAMITEJOBS_SETTINGS, order: 230 },
   { ...JOBBANK518_SETTINGS, order: 240 },
   { ...CHICKPT_SETTINGS, order: 250 },
+  // Plan step 8b: new sources (no old order), each one plain request for its latest page (latest-N window).
+  { ...ARC_SETTINGS, order: 260 },
+  { ...WEB3CAREER_SETTINGS, order: 270 },
+  { ...WELLFOUND_SETTINGS, order: 280 },
+  { ...REMOTECOM_SETTINGS, order: 290 },
+  { ...YCJOBS_SETTINGS, order: 300 },
 ];
 
 export function sourceSettings(name: string): SourceSettings {

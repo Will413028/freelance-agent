@@ -1,7 +1,7 @@
 import { load } from "cheerio";
 import type { ListingInput } from "@/modules/listings/public";
 import { ZodError } from "zod";
-import { FetchError } from "@/platform/fetch";
+import { FetchError, type FetchRequest } from "@/platform/fetch";
 import { isObject } from "./json";
 import { SourceError } from "../types";
 
@@ -16,10 +16,14 @@ export const PAGE_BYTES = 2_000_000;
 /** Old urlopen timeout (10 s per page); the old whole-source budget is not carried (checklist §2). */
 export const PAGE_TIMEOUT_MS = 10_000;
 
+/** One plain GET of a board page with the page limits above (plan step 8b; older page sources build the same object inline). */
+export const pageRequest = (url: string): FetchRequest => ({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
+
 /** A page answered with an access challenge: the whole source fails (old AccessBlocked stopped the fetch). */
 export class AccessChallenge extends SourceError {}
 
-const CHALLENGE = /cf-chl-|_Incapsula_Resource|captcha-container|<title>\s*(?:Just a moment|Access denied)/i;
+// captcha-delivery.com: DataDome's interstitial (Wellfound is known to use it, plan step 8b).
+const CHALLENGE = /cf-chl-|_Incapsula_Resource|captcha-container|captcha-delivery\.com|<title>\s*(?:Just a moment|Access denied)/i;
 
 /** A page's HTML: empty or over 2 MB, not UTF-8, or an access challenge refuses it (old pageText). */
 export function pageHtml(name: string, raw: Uint8Array): string {
