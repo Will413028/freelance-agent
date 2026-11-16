@@ -1,1 +1,0 @@
-ALTER TABLE "runs" ADD COLUMN "counts" jsonb DEFAULT '{}'::jsonb NOT NULL;

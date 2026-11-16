@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1794731679393,
+      "when": 1794869887034,
       "tag": "0000_init",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1794733816620,
-      "tag": "0001_store_all_listings",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1794741934325,
-      "tag": "0002_run_counts",
       "breakpoints": true
     }
   ]
