@@ -18,7 +18,7 @@ describe("source catalog", () => {
   });
 
   it("reads every source plain except the ones a plain request cannot read (spikes.md §2, plan step 8)", () => {
-    expect(Object.fromEntries(SOURCES.filter((s) => s.maxTier !== "plain").map((s) => [s.name, s.maxTier]))).toEqual({ remoteco: "browser_like" });
+    expect(Object.fromEntries(SOURCES.filter((s) => s.maxTier !== "plain").map((s) => [s.name, s.maxTier]))).toEqual({ remoteco: "browser_like", idealist: "browser", braintrust: "browser" });
   });
 
   it("finds a source by name and refuses an unknown one", () => {
@@ -40,7 +40,7 @@ describe("source catalog", () => {
       taiwanjobs: "台灣就業通", arbeitnow: "Arbeitnow", getonboard: "Get on Board", cryptojobslist: "CryptoJobsList",
       nodesk: "NoDesk", justremote: "JustRemote", dynamitejobs: "Dynamite Jobs", jobbank518: "518 熊班", chickpt: "小雞上工",
       arc: "Arc", web3career: "Web3.career", wellfound: "Wellfound", remotecom: "Remote.com Jobs", ycjobs: "YC Jobs",
-      remoteco: "Remote.co",
+      remoteco: "Remote.co", idealist: "Idealist", braintrust: "Braintrust",
     });
     expect(sourceLabel("hackernews")).toBe("Hacker News");
     expect(sourceLabel("constructor")).toBe("constructor");

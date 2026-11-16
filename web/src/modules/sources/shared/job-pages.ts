@@ -19,6 +19,15 @@ export const PAGE_TIMEOUT_MS = 10_000;
 /** One plain GET of a board page with the page limits above (plan step 8b; older page sources build the same object inline). */
 export const pageRequest = (url: string): FetchRequest => ({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
 
+/**
+ * Tier 3 budget for one rendered page (plan step 8d-3): a cold browser launch plus the render. 8d-2 measured
+ * 2.6–4.9 s per render from the VM; 60 s leaves the service 55 s (serviceBudget) and still bounds the run.
+ */
+export const RENDER_TIMEOUT_MS = 60_000;
+
+/** One render of a board page by the browser tier, read once `waitFor` shows (no headers: the fingerprint sets them). */
+export const renderRequest = (url: string, waitFor: string): FetchRequest => ({ url, maxBytes: PAGE_BYTES, timeoutMs: RENDER_TIMEOUT_MS, waitFor });
+
 /** A page answered with an access challenge: the whole source fails (old AccessBlocked stopped the fetch). */
 export class AccessChallenge extends SourceError {}
 
