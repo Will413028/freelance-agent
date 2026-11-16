@@ -52,8 +52,35 @@ services:
       <<: *app-env
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_INBOX: ${RESEND_INBOX:-}
+      BROWSER_URL: http://browser:3100
     profiles: [jobs]
+    networks: [default, browser]
     command: ["pnpm", "exec", "tsx", "scripts/daily.ts"]
+
+  # The browser tier (plan step 8d): renders a page for the sources whose maxTier is "browser". No
+  # published port. It sits on its own network shared only with daily, never with db or web: it loads
+  # untrusted pages (code review, step 8d). Built by deploy.sh with the app image's tag plus "-browser",
+  # so a rollback of APP_IMAGE moves it too. Not a dependency of daily (a missing image would stop the
+  # whole run): the systemd unit starts it before the run and removes it after; without it only the
+  # browser-tier sources fail.
+  browser:
+    image: ${APP_IMAGE:?set APP_IMAGE in the env file}-browser
+    profiles: [jobs]
+    networks: [browser]
+    init: true
+    shm_size: 512m # Chromium uses /dev/shm; the 64 MB default crashes tabs (Playwright docs)
+    mem_limit: 1g
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/healthz').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+
+networks:
+  default:
+  browser:
 
 volumes:
   pgdata:

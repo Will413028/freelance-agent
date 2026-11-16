@@ -1,7 +1,7 @@
 // Tests deploy/deploy.sh's decisions with stub docker, git and flock on PATH (no containers; plan step 9).
 // The stub docker reads the env file's APP_IMAGE at call time: `inspect` says unhealthy when it matches the
 // glob FAKE_BAD (and `starting` forever with FAKE_STUCK), `up -d web` fails when it matches FAKE_UP_FAIL;
-// FAKE_MIGRATE_FAIL / FAKE_BUILD_FAIL fail those steps.
+// FAKE_MIGRATE_FAIL fails the migration; FAKE_BUILD_FAIL fails a build whose arguments contain it.
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync } from "node:fs";
@@ -27,7 +27,7 @@ function setup() {
     docker: `#!/bin/bash
 img=$(sed -n 's/^APP_IMAGE=//p' "${envFile}")
 echo "docker env=$img APP_IMAGE=\${APP_IMAGE:-} $*" >> "${calls}"
-if [[ "$1" == build ]]; then [[ -n "\${FAKE_BUILD_FAIL:-}" ]] && exit 1; exit 0; fi
+if [[ "$1" == build ]]; then [[ -n "\${FAKE_BUILD_FAIL:-}" && "$*" == *"\$FAKE_BUILD_FAIL"* ]] && exit 1; exit 0; fi
 if [[ "$1" == inspect ]]; then
   if [[ -n "\${FAKE_STUCK:-}" ]]; then echo starting
   elif [[ "$img" == \${FAKE_BAD:-none} ]]; then echo unhealthy; else echo healthy; fi; exit 0
@@ -82,6 +82,12 @@ test("healthy deploy switches APP_IMAGE and migrates with the new image", () => 
   assert.equal(r.head, "new5678full");
 });
 
+test("builds the browser tier as the app image's tag plus -browser (plan step 8d)", () => {
+  const r = run();
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.calls, / build -f deploy\/browser\.Dockerfile -t side-income-web:new5678-browser browser$/m);
+});
+
 test("a branch name deploys the fetched origin branch", () => {
   const r = run({}, "dev");
   assert.equal(r.status, 0, r.stderr);
@@ -89,7 +95,7 @@ test("a branch name deploys the fetched origin branch", () => {
 });
 
 test("failed build or migration leaves APP_IMAGE, the checkout and web untouched", () => {
-  for (const env of [{ FAKE_BUILD_FAIL: "1" }, { FAKE_MIGRATE_FAIL: "1" }]) {
+  for (const env of [{ FAKE_BUILD_FAIL: "web.Dockerfile" }, { FAKE_BUILD_FAIL: "browser.Dockerfile" }, { FAKE_MIGRATE_FAIL: "1" }]) {
     const r = run(env);
     assert.equal(r.status, 1);
     assert.match(r.env, OLD);

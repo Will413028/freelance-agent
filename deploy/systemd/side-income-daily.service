@@ -10,7 +10,12 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=/opt/side-income
+# The browser tier (plan step 8d) for the run; "-": if it cannot start (e.g. its image is missing) the run
+# still goes ahead and only the browser-tier sources fail. Removed after the run whatever its outcome,
+# so Chromium holds no memory between runs.
+ExecStartPre=-/usr/bin/docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml --profile jobs up -d --wait browser
 ExecStart=/usr/bin/docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml run --rm daily
+ExecStopPost=/usr/bin/docker compose --env-file /etc/side-income/compose.env -f deploy/compose.yaml --profile jobs rm --stop --force browser
 # A backstop over the retries; a run stopped here is resumed by the timer's 16:00 start. Whether the
 # container stops with the compose client is checked on the VM when the timer is installed (plan step 6).
 TimeoutStartSec=60min

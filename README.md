@@ -11,7 +11,7 @@
 
 ## 架構
 
-全部程式在 `web/`，是一個 Next.js 專案加 Postgres，以 Docker Compose 跑在自建 VM，只經 Tailscale 連線（[自建計畫](docs/plans/2026-11-15-self-hosted-rebuild.md)）。切換（計畫步驟 10）前，正式站仍是凍結的 Vercel 部署加 Cloudflare D1，來源 commit `ce1254d`；它的程式已從 `dev` 刪除（計畫 D23），要查用 `git show ce1254d:<路徑>`。
+程式都在 `web/`（只有瀏覽器層的渲染小服務在 `browser/`，另一個映像，計畫步驟 8d），是一個 Next.js 專案加 Postgres，以 Docker Compose 跑在自建 VM，只經 Tailscale 連線（[自建計畫](docs/plans/2026-11-15-self-hosted-rebuild.md)）。切換（計畫步驟 10）前，正式站仍是凍結的 Vercel 部署加 Cloudflare D1，來源 commit `ce1254d`；它的程式已從 `dev` 刪除（計畫 D23），要查用 `git show ce1254d:<路徑>`。
 
 - **資料**：Postgres，結構在 `web/src/db/pg/schema.ts`，migration 在 `web/drizzle-pg/`。
 - **每日收案**：VM 上的 systemd timer 跑 `web/scripts/daily.ts`（`deploy/systemd/`）；同一個台灣日期只執行一次，中斷的執行下次接著做完。

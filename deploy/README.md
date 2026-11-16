@@ -21,6 +21,12 @@ First install only (no previous `APP_IMAGE` yet): set `APP_IMAGE` in the env fil
 
 Before cutover (plan step 10) the migrations may be regenerated in place (`web/drizzle-pg/` squashed to one `0000_init.sql`, as in step 3a). The migrator then tries to re-run `0000` on the old database and stops at "already exists": the database holds only shadow data, so remove the `db` volume (`compose down -v`, with Will's go-ahead like every VM deploy) and run the steps above again.
 
+## Browser tier
+
+`browser` (plan step 8d) renders pages for the sources whose `maxTier` is `browser`: Crawlee with Playwright Chromium, image `${APP_IMAGE}-browser` built by `deploy.sh` from `browser/` (`deploy/browser.Dockerfile`). It publishes no port and sits on its own `browser` network shared only with `daily` (`BROWSER_URL=http://browser:3100`), never with `db` or `web`: it loads untrusted pages (`deploy/check-compose.mjs` fails otherwise). It is not a dependency of `daily`: the systemd unit's `ExecStartPre` starts it (`-`: if it cannot start, the run still goes ahead and only the browser-tier sources fail) and `ExecStopPost` removes it, so Chromium holds no memory between runs (limit 1 GB). For a manual `run-source.ts` of a browser source, start it first with `docker compose … --profile jobs up -d --wait browser` and remove it after with `docker compose … --profile jobs rm --stop --force browser`. A change to the unit file takes effect only after it is installed again (`install` and `daemon-reload`, with Will's authorization).
+
+The first deploy of step 8d runs the previous `deploy.sh`, which does not build this image: in the same authorized session, build it by hand with `docker build -f deploy/browser.Dockerfile -t "<APP_IMAGE>-browser" browser`.
+
 ## Tailscale Serve
 
 ```bash

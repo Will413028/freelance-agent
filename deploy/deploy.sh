@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Deploys one commit of this repository to the VM (plan step 9). Run as root:
 #   /opt/side-income/deploy/deploy.sh <sha | origin branch name>
-# 1. checkout the commit (detached), build side-income-web:<short sha>
+# 1. checkout the commit (detached), build side-income-web:<short sha> and the browser tier's
+#    side-income-web:<short sha>-browser (compose names it from APP_IMAGE, so both move together)
 # 2. run migrate-pg with the NEW image; on failure stop here: APP_IMAGE and the running web are untouched
 #    (drizzle applies all pending migrations in one transaction, so a failed one leaves the schema as it was)
 # 3. point APP_IMAGE at the new tag, recreate web, wait for its healthcheck
@@ -65,7 +66,7 @@ image="side-income-web:$commit"
 log "previous $prev_image ($prev_commit), new $image"
 restore_checkout() { "$GIT" checkout --quiet --detach "$prev_commit"; }
 
-if ! "$DOCKER" build -f deploy/web.Dockerfile -t "$image" web; then
+if ! "$DOCKER" build -f deploy/web.Dockerfile -t "$image" web || ! "$DOCKER" build -f deploy/browser.Dockerfile -t "$image-browser" browser; then
   log "build failed; nothing changed"; restore_checkout; exit 1
 fi
 if ! APP_IMAGE=$image compose run --rm daily pnpm exec tsx scripts/migrate-pg.ts; then
