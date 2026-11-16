@@ -1,5 +1,6 @@
 import { ARBEITNOW_SETTINGS } from "./arbeitnow";
 import { ARC_SETTINGS } from "./arc";
+import { BRAINTRUST_SETTINGS } from "./braintrust";
 import { HACKERNEWS_SETTINGS, V2EX_SETTINGS } from "./community-jobs";
 import { CHICKPT_SETTINGS } from "./chickpt";
 import { CRYPTOJOBSLIST_SETTINGS } from "./cryptojobslist";
@@ -8,6 +9,7 @@ import { freeJobsConnector } from "./free-jobs";
 import { FREELANCER_SETTINGS } from "./freelancer";
 import { GETONBOARD_SETTINGS } from "./getonboard";
 import { HIMALAYAS_SETTINGS } from "./himalayas";
+import { IDEALIST_SETTINGS } from "./idealist";
 import { JOBBANK518_SETTINGS } from "./jobbank518";
 import { JUSTREMOTE_SETTINGS } from "./justremote";
 import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
@@ -64,6 +66,9 @@ export const SOURCES: readonly SourceSettings[] = [
   // impit's Firefox fingerprint with 403 and its Chrome one with a challenge, while curl_cffi passes from
   // the same VM (measured); the way forward is decided in the plan (8c/8d).
   { ...REMOTECO_SETTINGS, order: 310, disabled: "blocked at tier 2 from the VM (Akamai 403 to impit, 2026-11-17)" },
+  // Plan step 8d-3: the browser-tier (tier 3) sources that passed from the VM in 8d-2, one render each.
+  { ...IDEALIST_SETTINGS, order: 320 },
+  { ...BRAINTRUST_SETTINGS, order: 330 },
 ];
 
 export function sourceSettings(name: string): SourceSettings {

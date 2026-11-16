@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { PgDb } from "@/db/pg/client";
 import { listingBy } from "@/modules/listings/public";
 import type { PageSourceSettings } from "@/modules/sources/types";
-import { FetchError, type Fetcher, type Tier } from "@/platform/fetch";
+import { FetchError, type Fetcher, type FetchRequest, type Tier } from "@/platform/fetch";
 import { collectSource } from "@/services/collect";
 import { freshPg } from "./pg";
 
@@ -28,11 +28,15 @@ export type OnePage<J> = {
   bad: () => J;
   /** The tier the source reads at (default plain; step 8c). */
   tier?: Tier;
+  /** The request the connector must send, without its url (default: the plain page request; step 8d-3 renders). */
+  request?: Omit<FetchRequest, "url">;
   /** A page whose embedded data is not there (the format changed). */
   broken: Uint8Array;
 };
 
-export const pageFetcher = (url: string, body: Uint8Array | FetchError, tier: Tier = "plain"): Fetcher & { urls: string[] } => {
+const PLAIN_REQUEST: Omit<FetchRequest, "url"> = { maxBytes: 2_000_000, timeoutMs: 10_000, headers: { "User-Agent": "side-income/0.1 personal-job-discovery" } };
+
+export const pageFetcher = (url: string, body: Uint8Array | FetchError, tier: Tier = "plain", request = PLAIN_REQUEST): Fetcher & { urls: string[] } => {
   const urls: string[] = [];
   return {
     urls,
@@ -42,7 +46,8 @@ export const pageFetcher = (url: string, body: Uint8Array | FetchError, tier: Ti
     async get(req) {
       if (urls.length >= 1) throw new FetchError("request_limit", "cap");
       urls.push(req.url);
-      expect([req.maxBytes, req.timeoutMs, req.headers?.["User-Agent"]]).toEqual([2_000_000, 10_000, "side-income/0.1 personal-job-discovery"]);
+      const { url: _, ...rest } = req;
+      expect(rest).toEqual(request);
       if (req.url !== url) throw new FetchError("http_status", "HTTP 404", 404);
       if (body instanceof FetchError) throw body;
       return { status: 200, body, tier };
@@ -54,11 +59,12 @@ const NOW = new Date("2026-11-17T00:00:00Z");
 
 export function describeOnePageSource<J>(s: OnePage<J>): void {
   const tier = s.tier ?? "plain";
-  const run = (body: Uint8Array | FetchError) => s.settings.connector(pageFetcher(s.index, body, tier), NOW);
+  const fetcher = (body: Uint8Array | FetchError) => pageFetcher(s.index, body, tier, s.request);
+  const run = (body: Uint8Array | FetchError) => s.settings.connector(fetcher(body), NOW);
 
   describe(`${s.settings.name} connector`, () => {
     it(`reads its one page with one ${tier} request and keeps every listing (no rule of its own)`, async () => {
-      const f = pageFetcher(s.index, s.page([s.good(1), s.good(2)]), tier);
+      const f = fetcher(s.page([s.good(1), s.good(2)]));
       const got = await s.settings.connector(f, NOW);
       expect([f.urls, got.seen, got.listings.map((l) => l.external_id), got.rejected]).toEqual([[s.index], 2, [s.id(1), s.id(2)], 0]);
       expect(got.listings.map(got.sourceKept)).toEqual([true, true]);
@@ -94,7 +100,7 @@ export function describeOnePageSource<J>(s: OnePage<J>): void {
     afterAll(async () => close());
     beforeEach(async () => db.execute(sql`truncate listings cascade`));
     const settings = { ...s.settings, order: 0 };
-    const collect = (body: Uint8Array | FetchError) => collectSource(db, settings, NOW, pageFetcher(s.index, body, tier));
+    const collect = (body: Uint8Array | FetchError) => collectSource(db, settings, NOW, fetcher(body));
     const stored = async (i: number) => (await listingBy(db, s.settings.name, s.id(i)))?.sourceKept ?? null;
 
     it("writes every listing, kept (plan D9)", async () => {
