@@ -107,8 +107,8 @@ describe("runDaily", () => {
     expect([row!.reason, row!.error]).toEqual(["internal", "SyntaxError"]);
   });
 
-  it("does not start before 14:00 Asia/Taipei (a timer catch-up during production's triggers) and writes nothing", async () => {
-    const t = deps([src("a", 10)], {}, new Date("2026-11-16T05:59:00Z"));
+  it("does not start before 09:00 Asia/Taipei (a timer catch-up) and writes nothing", async () => {
+    const t = deps([src("a", 10)], {}, new Date("2026-11-16T00:59:00Z"));
     expect(await runDaily(db, t.d)).toMatchObject({ outcome: "not_due", localDate: "2026-11-16" });
     expect([t.calls, await db.select().from(runs)]).toEqual([[], []]);
   });
