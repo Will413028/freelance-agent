@@ -18,10 +18,10 @@ import { listJobs } from "./pages";
 export const RETRY_DELAYS_MS = [30_000, 120_000] as const;
 const DAY_MS = 86_400_000;
 /**
- * No run starts before this Asia/Taipei hour (shadow period: clear of production's 09:00 and 12:00 triggers);
- * a start the timer's Persistent catch-up makes earlier exits as not_due. Plan step 10 sets it to 9.
+ * No run starts before this Asia/Taipei hour, the timer's first trigger; a start the timer's Persistent
+ * catch-up makes earlier (e.g. right after midnight) exits as not_due.
  */
-export const EARLIEST_HOUR = 14;
+export const EARLIEST_HOUR = 9;
 
 export type DailyDeps = {
   now: () => Date;
