@@ -12,7 +12,7 @@ afterAll(async () => close());
 beforeEach(async () => db.execute(sql`truncate runs cascade`));
 
 const at = (iso: string) => new Date(iso);
-const row = (source: string, status: "ok" | "failed", finishedAt: Date) => ({ source, status, reason: null, error: null, counts: {}, startedAt: finishedAt, finishedAt });
+const row = (source: string, status: "ok" | "failed", finishedAt: Date) => ({ source, status, tier: "plain" as const, reason: null, error: null, counts: {}, startedAt: finishedAt, finishedAt });
 
 describe("run records", () => {
   it("dates a run by the Asia/Taipei day", () => {

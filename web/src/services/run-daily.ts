@@ -70,12 +70,12 @@ async function runOpened(db: PgDb, deps: DailyDeps, localDate: string, runId: nu
     for (let attempt = 1; ; attempt++) {
       try {
         const run = await collect(db, s, deps.now());
-        await recordSource(db, runId, { source: s.name, status: "ok", reason: null, error: null, counts: countsOf(run, attempt), startedAt: sourceStarted, finishedAt: deps.now() });
+        await recordSource(db, runId, { source: s.name, status: "ok", tier: s.maxTier, reason: null, error: null, counts: countsOf(run, attempt), startedAt: sourceStarted, finishedAt: deps.now() });
         break;
       } catch (e) {
         if (transient(e) && attempt <= RETRY_DELAYS_MS.length) { await deps.sleep(RETRY_DELAYS_MS[attempt - 1]!); continue; }
         allOk = false;
-        await recordSource(db, runId, { source: s.name, status: "failed", reason: errorKind(e), error: errorCode(e), counts: { attempts: attempt }, startedAt: sourceStarted, finishedAt: deps.now() });
+        await recordSource(db, runId, { source: s.name, status: "failed", tier: s.maxTier, reason: errorKind(e), error: errorCode(e), counts: { attempts: attempt }, startedAt: sourceStarted, finishedAt: deps.now() });
         break;
       }
     }

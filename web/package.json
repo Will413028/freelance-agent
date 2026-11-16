@@ -17,6 +17,7 @@
   "dependencies": {
     "cheerio": "1.2.0",
     "drizzle-orm": "0.45.4",
+    "impit": "0.14.8",
     "next": "16.3.5",
     "pg": "8.23.1",
     "react": "19.3.0",

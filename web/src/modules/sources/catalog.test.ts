@@ -8,9 +8,13 @@ describe("source catalog", () => {
     expect(new Set(SOURCES.map((s) => s.order)).size).toBe(SOURCES.length);
   });
 
-  it("gives every source an interval of at least a second, a per-run cap and the plain tier until step 8", () => {
-    const bad = SOURCES.filter((s) => !(s.minIntervalMs >= 1_000 && Number.isInteger(s.maxRequestsPerRun) && s.maxRequestsPerRun >= 1 && s.maxTier === "plain"));
+  it("gives every source an interval of at least a second and a per-run cap", () => {
+    const bad = SOURCES.filter((s) => !(s.minIntervalMs >= 1_000 && Number.isInteger(s.maxRequestsPerRun) && s.maxRequestsPerRun >= 1));
     expect(bad.map((s) => s.name)).toEqual([]);
+  });
+
+  it("reads every source plain except the ones a plain request cannot read (spikes.md §2, plan step 8)", () => {
+    expect(Object.fromEntries(SOURCES.filter((s) => s.maxTier !== "plain").map((s) => [s.name, s.maxTier]))).toEqual({ remoteco: "browser_like" });
   });
 
   it("finds a source by name and refuses an unknown one", () => {
@@ -32,6 +36,7 @@ describe("source catalog", () => {
       taiwanjobs: "台灣就業通", arbeitnow: "Arbeitnow", getonboard: "Get on Board", cryptojobslist: "CryptoJobsList",
       nodesk: "NoDesk", justremote: "JustRemote", dynamitejobs: "Dynamite Jobs", jobbank518: "518 熊班", chickpt: "小雞上工",
       arc: "Arc", web3career: "Web3.career", wellfound: "Wellfound", remotecom: "Remote.com Jobs", ycjobs: "YC Jobs",
+      remoteco: "Remote.co",
     });
     expect(sourceLabel("hackernews")).toBe("Hacker News");
     expect(sourceLabel("constructor")).toBe("constructor");
