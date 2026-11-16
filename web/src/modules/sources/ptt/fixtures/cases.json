@@ -1,0 +1,24 @@
+{
+  "_source": "Ported by hand from the old Python tests (ce1254d backend/tests/collection/test_ptt_soho.py, test_ptt_codejob.py); the old system had no golden cases for PTT. Inputs are synthetic: no real post goes into this public repository. `index` lists titles by what the old parse_index did with them; `closedBody` and `kind` list post bodies and titles with the old result.",
+  "ptt_soho": {
+    "index": {
+      "inScope": ["[徵才] AI agent 後端 API", "[徵才] 商品攝影", "[徵才] 已徵到"],
+      "outOfScope": ["[自介] AI agent後端", "Re: [徵才] API", "[公告] API", "[合作] 找AI合夥人"],
+      "closedTitle": ["[徵才] 已徵到", "[徵才] API 已結案", "[徵才] 停止徵求"]
+    },
+    "kept": { "true": ["[徵才] AI agent 後端 API", "[徵才] WordPress 網站維護", "[徵才] Python 爬蟲", "[徵才] LLM RAG 系統開發"], "false": ["[徵才] 商品攝影", "[徵才] rapid 翻譯", "[徵才] 已徵到"] },
+    "closedBody": { "true": ["已徵到\n開發後端 API", "更新：本案已結案\n後端 API", "【更新】此案 已找到\n後端"], "false": ["徵求期限：徵到為止\n開發 API", "工作內容：開發後端 API"] }
+  },
+  "ptt_codejob": {
+    "index": {
+      "inScope": ["[發案] API", "[發包] 網站", "[徵才] 後端", "[發案] 近期專案需求", "[已解決] API", "[結案] API", "[解決] API", "[發案] 已徵到", "[發案] API（結案）"],
+      "outOfScope": ["[個人] API", "[自介] 網站", "[自介] API 已結案", "Re: [發案] API", "[問題] API", "[公告] API"],
+      "closedTitle": ["[已解決] API", "[結案] API", "[解決] API", "[發案] 已徵到", "[發案] API（結案）"]
+    },
+    "closedBody": { "true": ["已解決\n後端 API 開發", "更新：本案已結案\n後端 API 開發", "結案。\n後端"], "false": ["徵到為止\n後端 API 開發", "結案日期另議\n後端"] },
+    "kind": {
+      "full_time": { "bodies": ["職務性質：全職", "這是全職職缺", "This is a full-time role", "工作性質：全職", "招聘全職後端工程師"], "titles": ["[徵才] 全職後端 API 工程師"] },
+      "contract": { "notes": ["非全職", "不用全職", "不需要全職", "全職亦可/兼職亦可", "全職或兼職皆可", "not a full-time role", "full-time or part-time"], "bodies": ["客戶已有全職工程師，需求為後端 API 串接"] }
+    }
+  }
+}

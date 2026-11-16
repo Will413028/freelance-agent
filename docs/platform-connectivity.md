@@ -9,7 +9,7 @@
 **本頁「全清單驗收對帳」是全部 61 平台接通狀態的唯一主表。**
 
 - 每日收案的來源共 25 個：來源目錄（`web/src/modules/collection/source-catalog.ts`）裡有 connector 且沒有停用原因的那些。其中 6 個是信件來源（出任務、LinkedIn、Cake、104、Talent.com、Glassdoor），經 Resend Receiving 讀取；其餘 19 個讀公開 API、RSS 或頁面。
-- **PTT SOHO、PTT CodeJob 已停用**：Vercel 出口對 PTT 取得 403 challenge，依規則不繞過（遷移計畫 D12）。歷史資料保留。
+- **PTT SOHO、PTT CodeJob 已停用**：Vercel 出口對 PTT 取得 403 challenge，依規則不繞過（遷移計畫 D12）。歷史資料保留。新系統（VM 出口，一般請求可讀）在 2026-11-16 計畫步驟 8a 重新接上，切換後才是正式收案。
 - 來源目錄另有 5 個沒有 connector 的名稱（FlexJobs、Remoters、Toptal、Guru、Indeed），在 `/sources` 顯示「尚未接通」。目錄共 32 個名稱，不是 61 平台全清單。
 - 其餘 33 項未接每日，1111 由使用者排除。
 
@@ -46,7 +46,7 @@ Arbeitnow：官方`.com` API第11頁回傳的next主機是`.nl`。connector只�
 | 狀態／數量 | 全部對應平台 | 尚缺的完成證據／下一步 |
 |---|---|---|
 | 已配置每日讀取 20 | 出任務、Freelancer、Jobicy、Remotive、Himalayas、Hacker News、V2EX、Remote OK、Real Work From Anywhere、台灣就業通、We Work Remotely、Working Nomads、Arbeitnow、NoDesk、Get on Board、JustRemote、CryptoJobsList、Dynamite Jobs、518熊班、小雞上工 | 9/29自然run已核對，518仍為已確認空結果；Freelancer／Remote OK／台灣就業通／Arbeitnow／We Work Remotely為partial，Tasker單來源恢復成功，其餘正常。仍不代表全站全量 |
-| 停用 2 | PTT SOHO、PTT CodeJob | Vercel 出口對 PTT 取得 403 challenge（遷移計畫 D12）；不繞過存取驗證，維持停用。歷史職缺保留 |
+| 停用 2 | PTT SOHO、PTT CodeJob | Vercel 出口對 PTT 取得 403 challenge（遷移計畫 D12）；不繞過存取驗證，正式站維持停用。新系統（VM）在 2026-11-16 計畫步驟 8a 重新接上，切換後生效 |
 | 郵件每日真實收信已驗 4 | LinkedIn、Cake、104、Talent.com | 四站health=ok。Talent於9/29自然排程首次由Resend匯入1封／2案；LinkedIn管理連結模板已修復，停用提醒記為非職缺通知（2026-10-27 起又有一種通知每天約 4 封被拒，待補 parser）。缺正文及未知資格／工時保留unknown |
 | 訂閱成功待內容 1 | Yourator | 首封含職缺的週報及parser，不以訂閱確認信驗收 |
 | 已登入實讀待通知 1 | Arc | 既有Email提醒啟用，但未有職缺信；Account Email已驗證 |
