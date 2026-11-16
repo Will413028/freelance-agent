@@ -13,6 +13,10 @@ describe("source catalog", () => {
     expect(bad.map((s) => s.name)).toEqual([]);
   });
 
+  it("disables only the sources with a lasting block, each with its reason", () => {
+    expect(SOURCES.filter((s) => s.disabled).map((s) => s.name)).toEqual(["remoteco"]);
+  });
+
   it("reads every source plain except the ones a plain request cannot read (spikes.md §2, plan step 8)", () => {
     expect(Object.fromEntries(SOURCES.filter((s) => s.maxTier !== "plain").map((s) => [s.name, s.maxTier]))).toEqual({ remoteco: "browser_like" });
   });

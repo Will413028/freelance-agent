@@ -60,8 +60,10 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...WELLFOUND_SETTINGS, order: 280 },
   { ...REMOTECOM_SETTINGS, order: 290 },
   { ...YCJOBS_SETTINGS, order: 300 },
-  // Plan step 8c: the first tier-2 (browser_like) source.
-  { ...REMOTECO_SETTINGS, order: 310 },
+  // Plan step 8c: the first tier-2 (browser_like) source. Disabled 2026-11-17: from the VM, Akamai answers
+  // impit's Firefox fingerprint with 403 and its Chrome one with a challenge, while curl_cffi passes from
+  // the same VM (measured); the way forward is decided in the plan (8c/8d).
+  { ...REMOTECO_SETTINGS, order: 310, disabled: "blocked at tier 2 from the VM (Akamai 403 to impit, 2026-11-17)" },
 ];
 
 export function sourceSettings(name: string): SourceSettings {
