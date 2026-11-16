@@ -8,6 +8,7 @@
 - `web/src/modules/sources/catalog.ts` 加一筆：`name`、`label`（頁面顯示的名稱，舊名稱用 `git show ce1254d:web/src/modules/collection/source-catalog.ts` 查）、`order`、`maxTier`（步驟 8 之前都是 `"plain"`，名稱與 `run_sources.tier` 相同）、`minIntervalMs`（≥ 1000）、`maxRequestsPerRun`（這個來源一次執行最多送幾個請求）、`disabled`（長期被擋時寫原因，否則 `null`）。`catalog.test.ts` 會擋缺項。
 - 一天只有一次每日執行（`runs` 以台北日期 claim），所以「每次執行上限」就是排程的每日上限；手動 `run-source.ts` 最多再多一次執行的量。
 - 讀取只經 `createFetcher(設定)` 拿到的 `Fetcher`，不直接呼叫 `fetch`：間隔、上限、逾時、大小上限、不跟隨轉址、錯誤種類（`invalid_url`、`network`、`timeout`、`http_status`、`too_large`、`request_limit`）都在那裡。
+- 第 1 層以上的來源：spike 量過的是某個工具在某個出口；實作換了工具（例：spike 用 curl_cffi、實作用 impit）或換了出口，先在 VM 用實作的工具送一個請求再寫 connector，本機過不代表 VM 過（步驟 8c：impit 本機 50 筆、VM 403）。
 - 不 import `@/platform/py/`（`pnpm boundaries` 的 `sources-are-native` 規則擋；`fixtures/` 底下的產生器例外，因為要讀 `golden.json`）。HTML 轉文字用 `shared/html.ts`（cheerio，照 HTML 標準解析）；時間用 `shared/time.ts`。
 
 ## 2. 輸出：D8 契約
