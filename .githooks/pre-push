@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Secret scan of the commits being pushed (origin is a PUBLIC repository; a pushed secret is out for good).
+# Enable once per clone: git config core.hooksPath .githooks
+# Fails closed: no gitleaks, no push (install it, e.g. `brew install gitleaks`). Scans only the commits
+# the remote does not have yet (a full-history scan takes about a minute); .gitleaks.toml applies.
+set -euo pipefail
+zero=0000000000000000000000000000000000000000
+command -v gitleaks >/dev/null || { echo "pre-push: gitleaks not found; install it, the push is blocked" >&2; exit 1; }
+root=$(git rev-parse --show-toplevel)
+remote=${1:-origin}
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ $local_sha == "$zero" ]] && continue # deleting a remote branch pushes no content
+  if [[ $remote_sha == "$zero" ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    range="$local_sha --not --remotes=$remote" # new branch: whatever no remote-tracking ref already has
+  else
+    range="$remote_sha..$local_sha"
+  fi
+  echo "pre-push: gitleaks on $local_ref ($range)" >&2
+  gitleaks git --no-banner --redact --log-opts="$range" "$root" || {
+    echo "pre-push: gitleaks found a leak or failed on $local_ref; the push is blocked" >&2
+    exit 1
+  }
+done
