@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { PgDb } from "@/db/pg/client";
 import { listingBy } from "@/modules/listings/public";
 import type { PageSourceSettings } from "@/modules/sources/types";
-import { FetchError, type Fetcher } from "@/platform/fetch";
+import { FetchError, type Fetcher, type Tier } from "@/platform/fetch";
 import { collectSource } from "@/services/collect";
 import { freshPg } from "./pg";
 
@@ -26,11 +26,13 @@ export type OnePage<J> = {
   id: (i: number) => string;
   /** An entry whose identity is missing (set aside). */
   bad: () => J;
+  /** The tier the source reads at (default plain; step 8c). */
+  tier?: Tier;
   /** A page whose embedded data is not there (the format changed). */
   broken: Uint8Array;
 };
 
-export const pageFetcher = (url: string, body: Uint8Array | FetchError): Fetcher & { urls: string[] } => {
+export const pageFetcher = (url: string, body: Uint8Array | FetchError, tier: Tier = "plain"): Fetcher & { urls: string[] } => {
   const urls: string[] = [];
   return {
     urls,
@@ -43,7 +45,7 @@ export const pageFetcher = (url: string, body: Uint8Array | FetchError): Fetcher
       expect([req.maxBytes, req.timeoutMs, req.headers?.["User-Agent"]]).toEqual([2_000_000, 10_000, "side-income/0.1 personal-job-discovery"]);
       if (req.url !== url) throw new FetchError("http_status", "HTTP 404", 404);
       if (body instanceof FetchError) throw body;
-      return { status: 200, body, tier: "plain" };
+      return { status: 200, body, tier };
     },
   };
 };
@@ -51,15 +53,16 @@ export const pageFetcher = (url: string, body: Uint8Array | FetchError): Fetcher
 const NOW = new Date("2026-11-17T00:00:00Z");
 
 export function describeOnePageSource<J>(s: OnePage<J>): void {
-  const run = (body: Uint8Array | FetchError) => s.settings.connector(pageFetcher(s.index, body), NOW);
+  const tier = s.tier ?? "plain";
+  const run = (body: Uint8Array | FetchError) => s.settings.connector(pageFetcher(s.index, body, tier), NOW);
 
   describe(`${s.settings.name} connector`, () => {
-    it("reads its one page with one plain request and keeps every listing (no rule of its own)", async () => {
-      const f = pageFetcher(s.index, s.page([s.good(1), s.good(2)]));
+    it(`reads its one page with one ${tier} request and keeps every listing (no rule of its own)`, async () => {
+      const f = pageFetcher(s.index, s.page([s.good(1), s.good(2)]), tier);
       const got = await s.settings.connector(f, NOW);
       expect([f.urls, got.seen, got.listings.map((l) => l.external_id), got.rejected]).toEqual([[s.index], 2, [s.id(1), s.id(2)], 0]);
       expect(got.listings.map(got.sourceKept)).toEqual([true, true]);
-      expect([s.settings.maxTier, s.settings.maxRequestsPerRun, s.settings.completeRead, s.settings.disabled]).toEqual(["plain", 1, false, null]);
+      expect([s.settings.maxTier, s.settings.maxRequestsPerRun, s.settings.completeRead, s.settings.disabled]).toEqual([tier, 1, false, null]);
     });
 
     it("sets aside one entry without its identity between good ones", async () => {
@@ -79,6 +82,8 @@ export function describeOnePageSource<J>(s: OnePage<J>): void {
       await expect(run(new TextEncoder().encode("<html><title>Just a moment...</title></html>"))).rejects.toThrow(/access challenge/);
       // DataDome's interstitial (Wellfound is known to use it) is a challenge, not a format change.
       await expect(run(new TextEncoder().encode('<html><script src="https://ct.captcha-delivery.com/c.js"></script></html>'))).rejects.toThrow(/access challenge/);
+      // Akamai's behavioural challenge (Remote.co, step 8c), answered with 200.
+      await expect(run(new TextEncoder().encode('<html><body><div id="sec-if-cpt-container" role="main"></div></body></html>'))).rejects.toThrow(/access challenge/);
       await expect(run(new FetchError("http_status", "HTTP 403", 403))).rejects.toThrow(/403/);
     });
   });
@@ -89,7 +94,7 @@ export function describeOnePageSource<J>(s: OnePage<J>): void {
     afterAll(async () => close());
     beforeEach(async () => db.execute(sql`truncate listings cascade`));
     const settings = { ...s.settings, order: 0 };
-    const collect = (body: Uint8Array | FetchError) => collectSource(db, settings, NOW, pageFetcher(s.index, body));
+    const collect = (body: Uint8Array | FetchError) => collectSource(db, settings, NOW, pageFetcher(s.index, body, tier));
     const stored = async (i: number) => (await listingBy(db, s.settings.name, s.id(i)))?.sourceKept ?? null;
 
     it("writes every listing, kept (plan D9)", async () => {

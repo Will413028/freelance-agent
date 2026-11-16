@@ -22,8 +22,9 @@ export const pageRequest = (url: string): FetchRequest => ({ url, maxBytes: PAGE
 /** A page answered with an access challenge: the whole source fails (old AccessBlocked stopped the fetch). */
 export class AccessChallenge extends SourceError {}
 
-// captcha-delivery.com: DataDome's interstitial (Wellfound is known to use it, plan step 8b).
-const CHALLENGE = /cf-chl-|_Incapsula_Resource|captcha-container|captcha-delivery\.com|<title>\s*(?:Just a moment|Access denied)/i;
+// captcha-delivery.com: DataDome's interstitial (Wellfound is known to use it, plan step 8b);
+// sec-if-cpt-container: Akamai's behavioural challenge (Remote.co answered a Chrome fingerprint with it, step 8c).
+const CHALLENGE = /cf-chl-|_Incapsula_Resource|captcha-container|captcha-delivery\.com|sec-if-cpt-container|<title>\s*(?:Just a moment|Access denied)/i;
 
 /** A page's HTML: empty or over 2 MB, not UTF-8, or an access challenge refuses it (old pageText). */
 export function pageHtml(name: string, raw: Uint8Array): string {

@@ -13,6 +13,7 @@ import { JUSTREMOTE_SETTINGS } from "./justremote";
 import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
 import { NODESK_SETTINGS } from "./nodesk";
 import { PTT_CODEJOB_SETTINGS, PTT_SOHO_SETTINGS } from "./ptt";
+import { REMOTECO_SETTINGS } from "./remoteco";
 import { REMOTECOM_SETTINGS } from "./remotecom";
 import { REALWORKFROMANYWHERE_SETTINGS, REMOTEOK_SETTINGS, WEWORKREMOTELY_SETTINGS, WORKINGNOMADS_SETTINGS } from "./public-feeds";
 import { TAIWANJOBS_SETTINGS } from "./taiwanjobs";
@@ -59,6 +60,8 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...WELLFOUND_SETTINGS, order: 280 },
   { ...REMOTECOM_SETTINGS, order: 290 },
   { ...YCJOBS_SETTINGS, order: 300 },
+  // Plan step 8c: the first tier-2 (browser_like) source.
+  { ...REMOTECO_SETTINGS, order: 310 },
 ];
 
 export function sourceSettings(name: string): SourceSettings {
