@@ -1,5 +1,5 @@
 {
-  "_source": "Ported by hand from the old Python tests (ce1254d backend/tests/collection/test_ptt_soho.py, test_ptt_codejob.py); the old system had no golden cases for PTT. Inputs are synthetic: no real post goes into this public repository. `index` lists titles by what the old parse_index did with them; `closedBody` and `kind` list post bodies and titles with the old result.",
+  "_source": "Ported by hand from the old Python tests (ce1254d backend/tests/collection/test_ptt_soho.py, test_ptt_codejob.py); the old system recorded no reference cases for PTT. Inputs are synthetic: no real post goes into this public repository. `index` lists titles by what the old parse_index did with them; `closedBody` and `kind` list post bodies and titles with the old result.",
   "ptt_soho": {
     "index": {
       "inScope": ["[徵才] AI agent 後端 API", "[徵才] 商品攝影", "[徵才] 已徵到"],

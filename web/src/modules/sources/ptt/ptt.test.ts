@@ -10,7 +10,7 @@ import { freshPg } from "../../../../tests/helpers/pg";
 import { AccessChallenge } from "../shared/job-pages";
 import { CODEJOB, MAX_ARTICLES, parseArticle, parseIndex, postUrl, PTT_SOHO_SETTINGS, pttConnector, SOHO, type Entry } from ".";
 
-// Plan step 8a. fixtures/cases.json ports the old Python tests' inputs and results (no golden cases
+// Plan step 8a. fixtures/cases.json ports the old Python tests' inputs and results (no recorded reference cases
 // existed for PTT); the rest are this connector's own rules.
 
 type Board = typeof SOHO;
