@@ -1,0 +1,15 @@
+{
+  "name": "side-income-browser",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tier 3 of the tiered reading (plan step 8d): renders one public page in Chromium through Crawlee and returns its HTML.",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "crawlee": "3.18.2",
+    "playwright": "1.56.1"
+  }
+}

@@ -61,6 +61,24 @@ jobs:
       - run: docker image inspect side-income-web:ci --format 'image size {{.Size}} bytes'
       # pnpm runs as the runtime user without fetching anything (corepack cache readable, no network).
       - run: docker run --rm --network none side-income-web:ci pnpm exec tsx --version
+      # The browser tier (plan step 8d; its contract tests run in pnpm check): the image builds on arm64 and
+      # renders a local page with the compose service's restrictions (no capabilities, non-root, no new privileges).
+      - run: docker build -f deploy/browser.Dockerfile -t side-income-web:ci-browser browser
+      - run: docker image inspect side-income-web:ci-browser --format 'browser image size {{.Size}} bytes'
+      - name: Browser tier renders a page
+        run: |
+          docker network create smoke
+          docker run -d --name page --network smoke nginx:1.29.3-alpine
+          docker run -d --name browser --network smoke -p 127.0.0.1:3100:3100 --cap-drop ALL --security-opt no-new-privileges:true --shm-size 512m --init side-income-web:ci-browser
+          for i in $(seq 30); do curl -fsS http://127.0.0.1:3100/healthz && break; sleep 1; done
+          out=$(curl -sS -D headers.txt -X POST http://127.0.0.1:3100/render -d '{"url":"http://page/","timeoutMs":30000,"waitFor":"h1"}')
+          cat headers.txt
+          grep -qi '^x-upstream-status: 200' headers.txt
+          grep -q 'Welcome to nginx' <<<"$out"
+          missing=$(curl -sS -D - -o /dev/null -X POST http://127.0.0.1:3100/render -d '{"url":"http://page/missing","timeoutMs":30000}')
+          grep -qi '^x-upstream-status: 404' <<<"$missing"
+      - if: failure()
+        run: docker logs browser || true
 
   gate:
     # The only required check on main: it passes when every other job in this workflow succeeded or was skipped.

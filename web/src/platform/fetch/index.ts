@@ -1,7 +1,9 @@
 // Tiered reading (plan step 4; tier 2 in step 8c, tier 3 in 8d): a source reads through one Fetcher made
 // from its source settings, every request at the source's highest tier. Tier 1 (`plain`) is Node's fetch;
 // tier 2 (`browser_like`) sends the same GET with a browser's TLS and HTTP/2 fingerprint through impit,
-// the HTTP client Crawlee (plan D4) uses. Both keep the same rules: no redirects, a timeout over the whole
+// the HTTP client Crawlee (plan D4) uses; tier 3 (`browser`) asks the browser service (`browser/`, a
+// separate image started with the daily run, plan step 8d) to render the page in Chromium through Crawlee
+// and reads back the HTML and the status of the page's first response. All tiers keep the same rules: no redirects, a timeout over the whole
 // request, a size cap, a minimum interval between this source's requests and a cap on its requests per run.
 // No tier is tried and abandoned on the way up: a source needing tier 2 is blocked at tier 1 every time
 // (spikes.md §2 measured each source's lowest working tier), so starting low would only spend a request,
@@ -11,8 +13,8 @@
 
 import type { Impit } from "impit";
 
-/** The reading tiers in order, named as run_sources.tier stores them; step 8d adds "browser". */
-export const TIERS = ["plain", "browser_like"] as const;
+/** The reading tiers in order, named as run_sources.tier stores them. */
+export const TIERS = ["plain", "browser_like", "browser"] as const;
 export type Tier = (typeof TIERS)[number];
 
 export type FetchPolicy = {
@@ -24,7 +26,14 @@ export type FetchPolicy = {
   maxRequestsPerRun: number;
 };
 
-export type FetchRequest = { url: string; headers?: Record<string, string>; maxBytes: number; timeoutMs: number };
+export type FetchRequest = {
+  url: string;
+  headers?: Record<string, string>;
+  maxBytes: number;
+  timeoutMs: number;
+  /** Tier 3 only: a CSS selector the rendered page must show before it is read (other tiers ignore it). */
+  waitFor?: string;
+};
 export type FetchResponse = { status: number; body: Uint8Array; tier: Tier };
 
 /** Why a read failed; step 6 retries the transient kinds (network, timeout, HTTP 429 and 5xx). */
@@ -44,7 +53,7 @@ export class FetchError extends Error {
 export type Fetcher = { get(req: FetchRequest): Promise<FetchResponse>; readonly requests: number };
 
 /** One GET at a tier; redirects are never followed and the signal bounds the whole request. */
-export type Transport = (url: string, init: { headers: Record<string, string>; signal: AbortSignal }) => Promise<TransportResponse>;
+export type Transport = (url: string, init: { headers: Record<string, string>; signal: AbortSignal; timeoutMs: number; waitFor?: string }) => Promise<TransportResponse>;
 type TransportResponse = { status: number; body: ReadableStream<Uint8Array> | null };
 
 // Firefox, not Chrome: on 2026-11-17 Remote.co's Akamai answered impit's Chrome fingerprint with its
@@ -58,7 +67,36 @@ const browserLike: Transport = async (url, { headers, signal }) => {
   return (await impit).fetch(url, { headers, signal });
 };
 const plain: Transport = (url, { headers, signal }) => fetch(url, { headers, signal, redirect: "manual" });
-const TRANSPORTS: Record<Tier, Transport> = { plain, browser_like: browserLike };
+
+const named = (name: string, message: string) => Object.assign(new Error(message), { name });
+/**
+ * Tier 3: one POST to the browser service (contract in browser/server.mjs). The page's own status comes
+ * back in x-upstream-status, so a blocked page is an http_status failure like on the other tiers; the
+ * service's 504 is a timeout and any other service failure a network failure (both transient).
+ * BROWSER_URL is set for the daily service only (deploy/compose.yaml). The service gets a smaller budget
+ * than this request's own timeout, so its 504 arrives before the signal fires; it takes no headers (the
+ * fingerprint sets them; browser/server.mjs).
+ */
+export const serviceBudget = (timeoutMs: number) => Math.max(Math.floor(timeoutMs / 2), timeoutMs - 5_000);
+export const browserTier = (service: () => string | undefined = () => process.env.BROWSER_URL): Transport => async (url, { signal, timeoutMs, waitFor }) => {
+  const base = service();
+  if (!base) throw named("BrowserTierMissing", "BROWSER_URL is not set");
+  const r = await fetch(`${base}/render`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ url, timeoutMs: serviceBudget(timeoutMs), waitFor: waitFor ?? null }),
+    signal,
+    redirect: "manual",
+  });
+  const upstream = Number(r.headers.get("x-upstream-status"));
+  if (r.status !== 200 || !Number.isInteger(upstream) || upstream < 100) {
+    await r.body?.cancel();
+    if (r.status === 504) throw named("TimeoutError", "browser tier timed out");
+    throw named("BrowserTierError", `browser tier answered ${r.status}`);
+  }
+  return { status: upstream, body: r.body };
+};
+const TRANSPORTS: Record<Tier, Transport> = { plain, browser_like: browserLike, browser: browserTier() };
 
 type Clock = { now(): number; sleep(ms: number): Promise<void> };
 const realClock: Clock = { now: () => Date.now(), sleep: (ms) => new Promise((r) => setTimeout(r, ms)) };
@@ -105,7 +143,7 @@ const failure = (e: unknown, host: string, signal: AbortSignal) => {
 export function createFetcher(policy: FetchPolicy, clock: Clock = realClock, transports: Record<Tier, Transport> = TRANSPORTS): Fetcher {
   const tier = policy.maxTier, transport = transports[tier];
   let requests = 0, lastStart: number | null = null, queue: Promise<unknown> = Promise.resolve();
-  async function one({ url, headers = {}, maxBytes, timeoutMs }: FetchRequest): Promise<FetchResponse> {
+  async function one({ url, headers = {}, maxBytes, timeoutMs, waitFor }: FetchRequest): Promise<FetchResponse> {
     if (!URL.canParse(url) || !/^https?:$/.test(new URL(url).protocol)) throw new FetchError("invalid_url", "not an http(s) URL");
     const host = new URL(url).host;
     if (requests >= policy.maxRequestsPerRun) throw new FetchError("request_limit", `over ${policy.maxRequestsPerRun} requests this run`);
@@ -117,7 +155,7 @@ export function createFetcher(policy: FetchPolicy, clock: Clock = realClock, tra
     lastStart = clock.now();
     const signal = AbortSignal.timeout(timeoutMs);
     try {
-      const response = await transport(url, { headers, signal });
+      const response = await transport(url, { headers, signal, timeoutMs, waitFor });
       if (response.status !== 200) {
         await response.body?.cancel();
         throw new FetchError("http_status", `HTTP ${response.status} from ${host}`, response.status);
