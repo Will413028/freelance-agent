@@ -110,7 +110,7 @@ D1 每個請求自動提交，一個 batch 是一個原子請求，沒有跨請�
 - 所有 step 不自動重試。中斷的執行停在 `running`，由人核對，不自動重跑。
 - 結果：全部來源 `ok` 或 `waiting` 才是 `complete`，否則 `failed`。每個來源的狀態與計數、這次的 D1 用量寫進 `daily_runs.result`。
 
-來源目錄在 `web/src/modules/collection/source-catalog.ts`，connector 對照在 `registry.ts`。每日執行的來源是「目錄裡有 connector、且沒有 `disabled` 原因」的那些。目前沒有不經部署就能切換的開關；等第一次有來源需要比部署更快關掉時才做（計畫步驟 14）。PTT 兩個來源因 Vercel 出口被 403 challenge 而停用（D12），不繞過。
+來源目錄在 `web/src/modules/collection/source-catalog.ts`，connector 對照在 `registry.ts`。每日執行的來源是「目錄裡有 connector、且沒有 `disabled` 原因」的那些。目前沒有不經部署就能切換的開關；等第一次有來源需要比部署更快關掉時才做（計畫步驟 14）。PTT 兩個來源因 Vercel 出口被 403 challenge 而停用（D12），不繞過；新系統在 VM 出口以一般請求讀得到，2026-11-16 計畫步驟 8a 重新接上（`web/src/modules/sources/ptt/`）。
 
 ### 收案規則
 

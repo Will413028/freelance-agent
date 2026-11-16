@@ -11,6 +11,7 @@ import { JOBBANK518_SETTINGS } from "./jobbank518";
 import { JUSTREMOTE_SETTINGS } from "./justremote";
 import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
 import { NODESK_SETTINGS } from "./nodesk";
+import { PTT_CODEJOB_SETTINGS, PTT_SOHO_SETTINGS } from "./ptt";
 import { REALWORKFROMANYWHERE_SETTINGS, REMOTEOK_SETTINGS, WEWORKREMOTELY_SETTINGS, WORKINGNOMADS_SETTINGS } from "./public-feeds";
 import { TAIWANJOBS_SETTINGS } from "./taiwanjobs";
 import type { SourceSettings } from "./types";
@@ -32,6 +33,8 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...HIMALAYAS_SETTINGS, order: 80 },
   { ...HACKERNEWS_SETTINGS, order: 90 },
   { ...V2EX_SETTINGS, order: 100 },
+  { ...PTT_SOHO_SETTINGS, order: 110 },
+  { ...PTT_CODEJOB_SETTINGS, order: 120 },
   { ...REMOTEOK_SETTINGS, order: 130 },
   { ...REALWORKFROMANYWHERE_SETTINGS, order: 140 },
   { ...WEWORKREMOTELY_SETTINGS, order: 150 },
