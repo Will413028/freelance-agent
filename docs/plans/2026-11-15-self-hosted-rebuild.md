@@ -227,6 +227,7 @@
   - B：Scrapling 包成 VM 上獨立的小服務（給網址、回內容）——多一個 Python 容器；只在它明顯過得多時選。
   - C：只做到第 2 層——不裝瀏覽器，最省資源；需要瀏覽器的平台放棄。
 - **D4a 第 2 層的工具要不要換成 curl_cffi 系**（狀態：未決 2026-11-17；擋住步驟：Remote.co 能不能接；事實：上面 8c 的 VM 實測；8d-2（2026-11-17）：瀏覽器層從 VM 也被 Akamai 擋，A 案的「Remote.co 走瀏覽器層」不成立）
+  - 驗證順序（Will 2026-11-17）：先在 VM 用暫時容器跑 curl_cffi 0.17.0，連 3 天各讀一次 Remote.co 列表（Chrome、Firefox 指紋各一個請求），3 天都過才做 C（照 8d-1 的做法包成只對 `daily` 開放的小服務），有一天被擋就把 Remote.co 寫進「延後」、不做服務。第 1 天 2026-11-17 06:11（台北）：兩種指紋都 200、49 筆、沒有挑戰頁；第 2、3 天由 VM 上的一次性 systemd timer 在 11-18、11-19 10:00 跑，結果在 VM `/var/tmp/fa8d-remoteco/results.log`（只有狀態、位元組數、筆數），量完刪掉該目錄。
   - A：維持 impit，Remote.co 走 8d 的瀏覽器層（單一語言，瀏覽器較吃記憶體）。8d-2 量測：瀏覽器層也被擋，A 等於不接 Remote.co。
   - B：Node 綁 curl-impersonate 的套件（仍單一語言，套件成熟度要另查）。
   - C：Python curl_cffi 或 Scrapling 包成 VM 上的小服務（多一個 Python 容器，D4 的 B 案）。
