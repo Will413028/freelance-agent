@@ -93,7 +93,24 @@ export const TALENT_REASONS = [
   "talent_unbalanced",
 ] as const;
 
-export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number] | (typeof TALENT_REASONS)[number];
+export const GLASSDOOR_REASONS = [
+  /** Not an HTML alert from Glassdoor's sender with a known subject. */
+  "glassdoor_unsupported",
+  /** A link inside a listing link. */
+  "glassdoor_nested_link",
+  /** A jobListing link that is not https://www.glassdoor.com/partner/jobListing.htm with one 10–20 digit id. */
+  "glassdoor_listing_link",
+  /** Script, style or loose text inside a card. */
+  "glassdoor_card_content",
+  /** A card without its company, title or age, with an unexpected middle paragraph, or with an element the body never closed. */
+  "glassdoor_incomplete_card",
+  /** No cards, or more than 100. */
+  "glassdoor_incomplete_alert",
+  /** The same listing twice in one alert. */
+  "glassdoor_duplicate_card",
+] as const;
+
+export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number] | (typeof TALENT_REASONS)[number] | (typeof GLASSDOOR_REASONS)[number];
 
 export class MailRejection extends Error {
   constructor(readonly reason: MailReason) {

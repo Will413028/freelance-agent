@@ -1,0 +1,967 @@
+[
+ {
+  "name": "old 0",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 1",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_duplicate_card"
+  }
+ },
+ {
+  "name": "old 2",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 3",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "No jobs",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_alert"
+  }
+ },
+ {
+  "name": "old 4",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 5",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>yesterday</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 6",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 7",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span><script>bad</script></span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_card_content"
+  }
+ },
+ {
+  "name": "old 8",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>Unexpected field</p><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 9",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>Easy Apply</p><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 10",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>7h</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 11",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>Just posted</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 12 (REFUSED: a fullwidth digit in the age: JavaScript \\\\d is ASCII; Glassdoor writes ASCII digits)",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>１2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 13",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>1000d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 14",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p> 2d </p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 15",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://example.com/private\">Unsubscribe</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 16",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>Full-time AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "Full-time AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: Full-time AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 17",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>Contract AI Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "Contract AI Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: Contract AI Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 18",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135827&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    },
+    {
+     "external_id": "1010273135827",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135827",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135827",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 19",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table>stray<tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_card_content"
+  }
+ },
+ {
+  "name": "old 20",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example <b>Co</b></span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 21",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 22",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></p></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 23",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"x\"><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 24",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://example.com/jobListing\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_listing_link"
+  }
+ },
+ {
+  "name": "old 25 (ACCEPTED: a valueless href reads as an empty link outside any card (the old crashed with TypeError, no deliberate check))",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href>x</a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 26",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span><style>x</style>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_card_content"
+  }
+ },
+ {
+  "name": "old 27",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 28",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 29 (ACCEPTED: an extra </span> with no open span is dropped by the HTML parser; the card is complete)",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 30",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135000&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135001&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135002&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135003&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135004&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135005&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135006&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135007&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135008&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135009&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135010&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135011&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135012&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135013&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135014&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135015&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135016&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135017&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135018&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135019&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135020&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135021&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135022&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135023&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135024&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135025&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135026&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135027&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135028&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135029&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135030&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135031&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135032&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135033&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135034&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135035&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135036&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135037&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135038&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135039&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135040&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135041&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135042&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135043&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135044&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135045&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135046&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135047&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135048&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135049&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135050&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135051&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135052&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135053&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135054&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135055&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135056&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135057&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135058&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135059&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135060&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135061&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135062&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135063&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135064&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135065&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135066&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135067&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135068&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135069&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135070&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135071&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135072&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135073&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135074&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135075&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135076&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135077&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135078&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135079&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135080&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135081&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135082&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135083&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135084&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135085&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135086&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135087&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135088&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135089&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135090&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135091&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135092&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135093&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135094&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135095&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135096&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135097&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135098&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135099&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a><a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135100&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_alert"
+  }
+ },
+ {
+  "name": "old 31",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>Easy Apply</p><p>Easy Apply</p><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 32",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 33",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>  </span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_incomplete_card"
+  }
+ },
+ {
+  "name": "old 34",
+  "message": {
+   "sender": "other@example.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_unsupported"
+  }
+ },
+ {
+  "name": "old 35",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "Welcome to Glassdoor",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_unsupported"
+  }
+ },
+ {
+  "name": "old 36",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "glassdoor_unsupported"
+  }
+ },
+ {
+  "name": "old 37 (ENVELOPE: received_at without a time is checked by readMessage (bad_received_at), not by the parser)",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 38",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "Software Engineer at Example and 6 more jobs in Taiwan for you. Apply Now.",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 39",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "Software Engineer at Example and 6 more jobs in Taiwan for you. Apply Now.",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 40",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for Software Engineer in Taiwan. Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1010273135749",
+     "title": "AI Agent Engineer",
+     "company": "Example Co",
+     "description": "Glassdoor notification card only: AI Agent Engineer\nExample Co",
+     "url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "canonical_url": "https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 41",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "All the top jobs for . Ready to apply?",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_unsupported"
+  }
+ },
+ {
+  "name": "old 42",
+  "message": {
+   "sender": "noreply@glassdoor.com",
+   "subject": "A at B and 1000 more jobs in C for you. Apply Now.",
+   "body": "<a href=\"https://www.glassdoor.com/partner/jobListing.htm?jobListingId=1010273135749&tracking=private\"><table><tr><td><span><span>Example Co</span></span></td></tr><tr><td><p>AI Agent Engineer</p></td><td><p>2d</p></td></tr></table></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "glassdoor_unsupported"
+  }
+ }
+]

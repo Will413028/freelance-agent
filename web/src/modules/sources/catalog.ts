@@ -16,6 +16,7 @@ import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
 import { TASKER_SETTINGS } from "./mail/tasker";
 import { CAKE_SETTINGS } from "./mail/cake";
 import { TALENT_SETTINGS } from "./mail/talent";
+import { GLASSDOOR_SETTINGS } from "./mail/glassdoor";
 import { NODESK_SETTINGS } from "./nodesk";
 import { PTT_CODEJOB_SETTINGS, PTT_SOHO_SETTINGS } from "./ptt";
 import { REMOTECO_SETTINGS } from "./remoteco";
@@ -62,6 +63,8 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...DYNAMITEJOBS_SETTINGS, order: 230 },
   { ...JOBBANK518_SETTINGS, order: 240 },
   { ...CHICKPT_SETTINGS, order: 250 },
+  // Old order 26, between chickpt and the step-8b sources (a mail source, plan step 7b).
+  { ...GLASSDOOR_SETTINGS, order: 255 },
   // Plan step 8b: new sources (no old order), each one plain request for its latest page (latest-N window).
   { ...ARC_SETTINGS, order: 260 },
   { ...WEB3CAREER_SETTINGS, order: 270 },
