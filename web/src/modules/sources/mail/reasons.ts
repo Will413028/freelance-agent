@@ -17,6 +17,8 @@ export const ENVELOPE_REASONS = [
   "body_too_large",
   /** Resend answered for this message with something other than a JSON message object. */
   "unreadable_message",
+  /** The body's HTML is nested deeper than any real notification (html.ts MAX_DEPTH). */
+  "html_too_deep",
   /** A listing the parser produced was refused by the listing contract. */
   "contract_refused",
 ] as const;
@@ -55,7 +57,20 @@ export const TASKER_REASONS = [
   "tasker_body",
 ] as const;
 
-export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number];
+export const CAKE_REASONS = [
+  /** Not an HTML notification from Cake's sender. */
+  "cake_unsupported",
+  /** The subject is not 「您追蹤的 <company> 刊登了一筆新職缺 - <title>」. */
+  "cake_subject",
+  /** An <a> inside an <a>. */
+  "cake_nested_link",
+  /** A 「了解詳情」 link that is not a Cake job page, directly or through Cake's tracker. */
+  "cake_job_link",
+  /** No 「了解詳情」 link, or links to more than one job. */
+  "cake_job_link_count",
+] as const;
+
+export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number];
 
 export class MailRejection extends Error {
   constructor(readonly reason: MailReason) {

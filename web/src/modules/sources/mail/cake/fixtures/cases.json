@@ -1,0 +1,872 @@
+[
+ {
+  "name": "old 0",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<p>Personal greeting</p><a href=\"https://email.no-reply.cake.me/c/eJwti0EKgDAMBF9Tb_Vgzz0I4j9iDRq1bbDB6u-NIOxhZmBnjzdEPrA5_CrCxbjedKOu1toG2LGNqBZyZEiERfl_KG15-sIEYcc0W2AybpRTldJi3MAnXSDYiC9PkhWFgv2blayfF_nwLTY\"><span>了解詳情</span></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 1",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 2",
+  "message": {
+   "sender": "attacker@cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<p>Personal greeting</p><a href=\"https://email.no-reply.cake.me/c/eJwti0EKgDAMBF9Tb_Vgzz0I4j9iDRq1bbDB6u-NIOxhZmBnjzdEPrA5_CrCxbjedKOu1toG2LGNqBZyZEiERfl_KG15-sIEYcc0W2AybpRTldJi3MAnXSDYiC9PkhWFgv2blayfF_nwLTY\"><span>了解詳情</span></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_unsupported"
+  }
+ },
+ {
+  "name": "old 3",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "New message",
+   "body": "<p>Personal greeting</p><a href=\"https://email.no-reply.cake.me/c/eJwti0EKgDAMBF9Tb_Vgzz0I4j9iDRq1bbDB6u-NIOxhZmBnjzdEPrA5_CrCxbjedKOu1toG2LGNqBZyZEiERfl_KG15-sIEYcc0W2AybpRTldJi3MAnXSDYiC9PkhWFgv2blayfF_nwLTY\"><span>了解詳情</span></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_subject"
+  }
+ },
+ {
+  "name": "old 4",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">取消訂閱</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_job_link_count"
+  }
+ },
+ {
+  "name": "old 5",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<p>Personal greeting</p><a href=\"https://email.no-reply.cake.me/c/eJwti0EKgDAMBF9Tb_Vgzz0I4j9iDRq1bbDB6u-NIOxhZmBnjzdEPrA5_CrCxbjedKOu1toG2LGNqBZyZEiERfl_KG15-sIEYcc0W2AybpRTldJi3MAnXSDYiC9PkhWFgv2blayfF_nwLTY\"><span>了解詳情</span></a><a href=\"https://www.cake.me/companies/example/jobs/backend-api-other\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_job_link_count"
+  }
+ },
+ {
+  "name": "old 6",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a><a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 7",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a><a href=\"https://www.cake.me/companies/example/jobs/backend-api/\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 8",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\"> 了解詳情 </a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 9",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解<b>詳情</b></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 10",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\"><a>了解詳情</a></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_nested_link"
+  }
+ },
+ {
+  "name": "old 11 (ACCEPTED: an unclosed link at the very end is closed by the HTML parser)",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 12 (REFUSED: a valueless href reads as an empty link, not as no link)",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href>了解詳情</a><a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_job_link"
+  }
+ },
+ {
+  "name": "old 13 (REFUSED: a valueless href still opens a link, so the next one is nested)",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href><a href=\"x\">y</a><a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_nested_link"
+  }
+ },
+ {
+  "name": "old 14",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a>了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_job_link"
+  }
+ },
+ {
+  "name": "old 15",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://evil.test/x\">了解詳情</a><a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_job_link"
+  }
+ },
+ {
+  "name": "old 16",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://evil.test/x\">其他</a><a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 17 (ACCEPTED: a duplicate href: htmlparser2 keeps the first, the one a browser follows (the old kept the last))",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\" href=\"https://evil.test/x\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 18 (REFUSED: a duplicate href: the first, the one a browser follows, is off Cake)",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://evil.test/x\" href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_job_link"
+  }
+ },
+ {
+  "name": "old 19",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解&#35443;情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 20",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "cake_unsupported"
+  }
+ },
+ {
+  "name": "old 21 (ENVELOPE: received_at without a time is checked by readMessage (bad_received_at), not by the parser)",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 兼職 Backend API 工程師",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "兼職 Backend API 工程師",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：兼職 Backend API 工程師\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 22",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 全職 Backend",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "全職 Backend",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：全職 Backend\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 23",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - Full-time Backend",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "Full-time Backend",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：Full-time Backend\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 24",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - 接案 API",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "接案 API",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：接案 API\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 25",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - freelance dev",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "freelance dev",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：freelance dev\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 26",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - Contractor",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "Contractor",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：Contractor\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 27",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 Example 刊登了一筆新職缺 - Backend",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "Backend",
+     "company": "Example",
+     "description": "Cake 新職缺通知摘要：Backend\nExample",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 28",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 A 刊登了一筆新職缺 - B 刊登了一筆新職缺 - C",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "example/backend-api",
+     "title": "B 刊登了一筆新職缺 - C",
+     "company": "A",
+     "description": "Cake 新職缺通知摘要：B 刊登了一筆新職缺 - C\nA",
+     "url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "canonical_url": "https://www.cake.me/companies/example/jobs/backend-api",
+     "location": null,
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "zh-TW"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 29",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的  刊登了一筆新職缺 - B",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_subject"
+  }
+ },
+ {
+  "name": "old 30",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 A 刊登了一筆新職缺 - ",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_subject"
+  }
+ },
+ {
+  "name": "old 31",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 A 刊登了一筆新職缺 - B\n",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_subject"
+  }
+ },
+ {
+  "name": "old 32",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 A\nB 刊登了一筆新職缺 - C",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_subject"
+  }
+ },
+ {
+  "name": "old 33",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 刊登了一筆新職缺 - B",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_subject"
+  }
+ },
+ {
+  "name": "old 34",
+  "message": {
+   "sender": "notifications@no-reply.cake.me",
+   "subject": "您追蹤的 A 刊登了一筆新職缺 - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "body": "<a href=\"https://www.cake.me/companies/example/jobs/backend-api\">了解詳情</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "cake_subject"
+  }
+ }
+]

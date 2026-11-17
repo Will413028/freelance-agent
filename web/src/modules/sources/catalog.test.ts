@@ -34,6 +34,7 @@ describe("source catalog", () => {
     // The old catalog's names (ce1254d web/src/modules/collection/source-catalog.ts).
     expect(Object.fromEntries(SOURCES.map((s) => [s.name, s.label]))).toEqual({
       tasker: "出任務",
+      cake: "Cake",
       jobbank104: "104 人力銀行",
       remotive: "Remotive", jobicy: "Jobicy", freelancer: "Freelancer", himalayas: "Himalayas", hackernews: "Hacker News", v2ex: "V2EX",
       ptt_soho: "PTT SOHO", ptt_codejob: "PTT CodeJob",

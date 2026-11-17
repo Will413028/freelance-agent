@@ -1,5 +1,5 @@
-import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { loadMailHtml, type AnyNode } from "../html";
 import type { MailMessage } from "../message";
 import { MailRejection, reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
@@ -39,12 +39,10 @@ function casePage(href: string): string | null {
   return /^\/cases\/[A-Za-z0-9]+$/.test(u.pathname) ? `https://www.tasker.com.tw${u.pathname}` : null;
 }
 
-/** The parts of a domhandler node this walk reads (cheerio does not export the type). */
-type AnyNode = { type: string; data?: string; name?: string; attribs?: Record<string, string>; children?: AnyNode[] };
 
 /** HTML part: every link target, and the text before the one call-to-action link. */
 function htmlParts(html: string): { links: string[]; text: string } {
-  const $ = load(html, { xml: { xmlMode: false, decodeEntities: true } }, false);
+  const root = loadMailHtml(html);
   const chunks: string[] = [], links: string[] = [], ctaStarts: number[] = [];
   const walk = (node: AnyNode) => {
     if (node.type === "text") {
@@ -62,7 +60,7 @@ function htmlParts(html: string): { links: string[]; text: string } {
     if (tag === "a" && clean(chunks.slice(start).join("")).startsWith(CTA) && hrefs.length === 1 && casePage(hrefs[0])) ctaStarts.push(start);
     if (BREAK_AFTER.has(tag)) chunks.push("\n");
   };
-  walk($.root()[0] as unknown as AnyNode);
+  walk(root);
   if (ctaStarts.length !== 1) reject("tasker_boundary");
   return { links, text: chunks.slice(0, ctaStarts[0]).join("") };
 }
