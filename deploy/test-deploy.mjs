@@ -2,8 +2,8 @@
 // The stub docker reads the env file's APP_IMAGE at call time: `inspect` says unhealthy when it matches the
 // glob FAKE_BAD (and `starting` forever with FAKE_STUCK), `up -d web` fails when it matches FAKE_UP_FAIL;
 // FAKE_MIGRATE_FAIL fails the migration; FAKE_BUILD_FAIL fails a build whose arguments contain it.
-// Every stub whose real counterpart attaches stdin (`compose run` and `compose exec`, whatever their flags: -T only
-// drops the TTY) reads it to the end, as the real one does, so such a call left without </dev/null swallows the
+// The stub `compose run` reads stdin to the end, as the real one does whatever its flags (-T only removes the TTY;
+// deploy.sh calls no `compose exec`), as the real one does, so such a call left without </dev/null swallows the
 // rest of a script read from stdin; the failure and rollback scenarios run that way too.
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
@@ -36,9 +36,9 @@ if [[ "$1" == inspect ]]; then
   elif [[ "$img" == \${FAKE_BAD:-none} ]]; then echo unhealthy; else echo healthy; fi; exit 0
 fi
 shift 5 # compose --env-file F -f Y
-[[ "$1" == run || "$1" == exec ]] && cat >/dev/null
+[[ "$1" == run ]] && cat >/dev/null
+[[ "$1 \${2:-} \${3:-} \${4:-}" == "run --rm -T daily" && -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1
 case "$1 \${2:-} \${3:-}" in
-  "run --rm -T") [[ -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1 ;;
   "up -d web") [[ "$img" == \${FAKE_UP_FAIL:-none} ]] && exit 1 ;;
   "ps -q web") echo web-container ;;
 esac
