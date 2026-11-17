@@ -1,0 +1,2017 @@
+[
+ {
+  "name": "old 0",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 1",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: https://www.linkedin.com/comm/jobs/alerts?trackingId=private\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 2",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: https://www.linkedin.com/comm/jobs/alerts?trackingId=changed\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 3",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: https://www.linkedin.com.evil.test/comm/jobs/alerts\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_manage_link"
+  }
+ },
+ {
+  "name": "old 4",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: https://www.linkedin.com/comm/jobs/view/1234/\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_manage_link"
+  }
+ },
+ {
+  "name": "old 5",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: http://www.linkedin.com/comm/jobs/alerts\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_manage_link"
+  }
+ },
+ {
+  "name": "old 6",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: https://www.linkedin.com/comm/jobs/alerts#x\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_manage_link"
+  }
+ },
+ {
+  "name": "old 7",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: https://www.linkedin.com/comm/jobs/alertsxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_manage_link"
+  }
+ },
+ {
+  "name": "old 8",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nManage alerts: https://[www.linkedin.com/comm/jobs/alerts\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_manage_link"
+  }
+ },
+ {
+  "name": "old 9",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nManage alerts: https://www.linkedin.com/comm/jobs/alerts\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_manage_link"
+  }
+ },
+ {
+  "name": "old 10",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nA new job matches your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 11",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nRecommended content for you.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 12",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n14 new jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 13",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n2 new jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 14",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n0 new jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 15",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n14 new jobs match your preferences\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 16",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nMany new jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 17",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n10000 new jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 18",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n9999 new jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 19",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n１4 new jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 20",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nnew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 21",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 22",
+  "message": {
+   "sender": "attacker@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_unsupported"
+  }
+ },
+ {
+  "name": "old 23",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "linkedin_unsupported"
+  }
+ },
+ {
+  "name": "old 24",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert has been created",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 25",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nView job: https://www.linkedin.com/jobs/view/1234/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_card"
+  }
+ },
+ {
+  "name": "old 26",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFull-stack developer (Part-time, Equity only)\nExample Co\nIndia\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nFull-time Backend Engineer\nOther Co\nRemote\nView job: https://www.linkedin.com/jobs/view/456/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Full-stack developer (Part-time, Equity only)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Full-stack developer (Part-time, Equity only)\nExample Co\nIndia",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "India",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "unpaid_or_equity_only",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    },
+    {
+     "external_id": "456",
+     "title": "Full-time Backend Engineer",
+     "company": "Other Co",
+     "description": "LinkedIn notification card only: Full-time Backend Engineer\nOther Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/456/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/456/",
+     "location": "Remote",
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 27",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Backend API Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Backend API Engineer\nExample Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 28",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\nBackend API Engineer\nDifferent Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_conflicting_cards"
+  }
+ },
+ {
+  "name": "old 29",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com.evil.test/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_job_link"
+  }
+ },
+ {
+  "name": "old 30",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com@evil.test/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_job_link"
+  }
+ },
+ {
+  "name": "old 31",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/search/?currentJobId=123\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_job_link"
+  }
+ },
+ {
+  "name": "old 32",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: http://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_job_link"
+  }
+ },
+ {
+  "name": "old 33",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Backend API Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Backend API Engineer\nExample Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 34",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/111111111111111111111/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_job_link"
+  }
+ },
+ {
+  "name": "old 35",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/１２３/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_job_link"
+  }
+ },
+ {
+  "name": "old 36",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123//\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_job_link"
+  }
+ },
+ {
+  "name": "old 37",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/comm/jobs/view/123/?x=1#y\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Backend API Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Backend API Engineer\nExample Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 38",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\r\nNew jobs match your preferences.\r\nFreelance Backend API Engineer (Remote)\r\nExample Co\r\nSingapore\r\nFast growing\r\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\r\n---------------------------------------------------------\r\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 39",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia New jobs match your preferences. Freelance Backend API Engineer (Remote) Example Co Singapore Fast growing View job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private --------------------------------------------------------- See all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 40",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\u001cNew jobs match your preferences.\u001cFreelance Backend API Engineer (Remote)\u001cExample Co\u001cSingapore\u001cFast growing\u001cView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\u001c---------------------------------------------------------\u001cSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 41",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in AsiaNew jobs match your preferences.Freelance Backend API Engineer (Remote)Example CoSingaporeFast growingView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private---------------------------------------------------------See all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 42",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\n 　 \nNew jobs match your preferences.\n 　 \nFreelance Backend API Engineer (Remote)\n 　 \nExample Co\n 　 \nSingapore\n 　 \nFast growing\n 　 \nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n 　 \n---------------------------------------------------------\n 　 \nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 43",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\n  Example Co\t\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 44",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFULL-TIME Engineer\nExample Co\nTaipei\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "FULL-TIME Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: FULL-TIME Engineer\nExample Co\nTaipei",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Taipei",
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 45",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFull time Engineer\nExample Co\nTaipei\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Full time Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Full time Engineer\nExample Co\nTaipei",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Taipei",
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 46",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFulltime Engineer\nExample Co\nTaipei\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Fulltime Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Fulltime Engineer\nExample Co\nTaipei",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Taipei",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 47",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nPart time dev\nExample Co\nRemote-first\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Part time dev",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Part time dev\nExample Co\nRemote-first",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Remote-first",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 48",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nContractor\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Contractor",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Contractor\nExample Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 49",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nContract dev\nExample Co\nremotely\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Contract dev",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Contract dev\nExample Co\nremotely",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "remotely",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 50",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nEngineer\nExample Co\nREMOTE\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Engineer\nExample Co\nREMOTE",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "REMOTE",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 51",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nEngineer\nExample Co\nHybrid / Remote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Engineer\nExample Co\nHybrid / Remote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Hybrid / Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 52",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nUnpaid intern\nExample Co\nX\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Unpaid intern",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Unpaid intern\nExample Co\nX",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "X",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "unpaid_or_equity_only",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 53",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nEquity  only\nExample Co\nX\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Equity  only",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Equity  only\nExample Co\nX",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "X",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 54",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nEQUITY ONLY role\nExample Co\nX\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "EQUITY ONLY role",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: EQUITY ONLY role\nExample Co\nX",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "X",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "unpaid_or_equity_only",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 55",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nﬀull-time\nExample Co\nX\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "ﬀull-time",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: ﬀull-time\nExample Co\nX",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "X",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 56",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nfreelancer\nExample Co\nX\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "freelancer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: freelancer\nExample Co\nX",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "X",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 57",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nfull-time_x\nExample Co\nX\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "full-time_x",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: full-time_x\nExample Co\nX",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "X",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 58",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nEngineer\nExample Co\nＲemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Engineer\nExample Co\nＲemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Ｒemote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 59",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nEngineer\nExample Co\nKemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Engineer\nExample Co\nKemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Kemote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 60",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_card"
+  }
+ },
+ {
+  "name": "old 61",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nHas https://link\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_card"
+  }
+ },
+ {
+  "name": "old 62",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nA\nB\nView job: https://www.linkedin.com/jobs/view/1/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_card"
+  }
+ },
+ {
+  "name": "old 63",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nL0\nL1\nL2\nL3\nL4\nL5\nL6\nL7\nL8\nL9\nL10\nView job: https://www.linkedin.com/jobs/view/1/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_card"
+  }
+ },
+ {
+  "name": "old 64",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nL0\nL1\nL2\nL3\nL4\nL5\nL6\nL7\nL8\nL9\nView job: https://www.linkedin.com/jobs/view/1/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1",
+     "title": "L0",
+     "company": "L1",
+     "description": "LinkedIn notification card only: L0\nL1\nL2",
+     "url": "https://www.linkedin.com/jobs/view/1/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1/",
+     "location": "L2",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 65",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n----------\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/124/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Backend API Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Backend API Engineer\nExample Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    },
+    {
+     "external_id": "124",
+     "title": "Backend API Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Backend API Engineer\nExample Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/124/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/124/",
+     "location": "Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 66",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/124/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "123",
+     "title": "Backend API Engineer",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Backend API Engineer\nExample Co\nRemote",
+     "url": "https://www.linkedin.com/jobs/view/123/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/123/",
+     "location": "Remote",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    },
+    {
+     "external_id": "124",
+     "title": "---------",
+     "company": "Backend API Engineer",
+     "description": "LinkedIn notification card only: ---------\nBackend API Engineer\nExample Co",
+     "url": "https://www.linkedin.com/jobs/view/124/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/124/",
+     "location": "Example Co",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 67",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\nTrailing card line\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_incomplete_card"
+  }
+ },
+ {
+  "name": "old 68",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nBackend API Engineer\nExample Co\nRemote\nView job: https://www.linkedin.com/jobs/view/123/\n---------------------------------------------------------\nFooter https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_incomplete_card"
+  }
+ },
+ {
+  "name": "old 69",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for \nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 70",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Job alert for backend\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 71",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for x",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "linkedin_template"
+  }
+ },
+ {
+  "name": "old 72 (ENVELOPE: received_at without an offset is checked by readMessage (bad_received_at), not by the parser)",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 73",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 74 (ENVELOPE: a received_at that is no date is checked by readMessage (bad_received_at), not by the parser)",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example is hiring",
+   "body": "Your job alert for backend in Asia\nNew jobs match your preferences.\nFreelance Backend API Engineer (Remote)\nExample Co\nSingapore\nFast growing\nView job: https://www.linkedin.com/comm/jobs/view/1234/?otpToken=private&trackingId=private\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/jobs/",
+   "isHtml": false
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Freelance Backend API Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Freelance Backend API Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    }
+   ]
+  }
+ }
+]
