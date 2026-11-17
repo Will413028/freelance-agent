@@ -36,6 +36,7 @@ describe("source catalog", () => {
       tasker: "出任務",
       cake: "Cake",
       jobbank104: "104 人力銀行",
+      talent: "Talent.com",
       remotive: "Remotive", jobicy: "Jobicy", freelancer: "Freelancer", himalayas: "Himalayas", hackernews: "Hacker News", v2ex: "V2EX",
       ptt_soho: "PTT SOHO", ptt_codejob: "PTT CodeJob",
       remoteok: "Remote OK", realworkfromanywhere: "Real Work From Anywhere", weworkremotely: "We Work Remotely", workingnomads: "Working Nomads",
