@@ -17,6 +17,7 @@ import { TASKER_SETTINGS } from "./mail/tasker";
 import { CAKE_SETTINGS } from "./mail/cake";
 import { TALENT_SETTINGS } from "./mail/talent";
 import { GLASSDOOR_SETTINGS } from "./mail/glassdoor";
+import { LINKEDIN_SETTINGS } from "./mail/linkedin";
 import { NODESK_SETTINGS } from "./nodesk";
 import { PTT_CODEJOB_SETTINGS, PTT_SOHO_SETTINGS } from "./ptt";
 import { REMOTECO_SETTINGS } from "./remoteco";
@@ -39,6 +40,7 @@ import { YCJOBS_SETTINGS } from "./ycjobs";
 
 export const SOURCES: readonly SourceSettings[] = [
   { ...TASKER_SETTINGS, order: 0 },
+  { ...LINKEDIN_SETTINGS, order: 10 },
   { ...CAKE_SETTINGS, order: 20 },
   { ...JOBBANK104_SETTINGS, order: 30 },
   { ...TALENT_SETTINGS, order: 40 },

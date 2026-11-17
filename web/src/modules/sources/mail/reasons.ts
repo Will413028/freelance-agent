@@ -110,7 +110,24 @@ export const GLASSDOOR_REASONS = [
   "glassdoor_duplicate_card",
 ] as const;
 
-export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number] | (typeof TALENT_REASONS)[number] | (typeof GLASSDOOR_REASONS)[number];
+export const LINKEDIN_REASONS = [
+  /** Not a text alert from LinkedIn's job alert sender. */
+  "linkedin_unsupported",
+  /** The first two lines are not 「Your job alert for …」 and the matching-jobs line. */
+  "linkedin_template",
+  /** A 「Manage alerts:」 line that is not LinkedIn's alert page, or one inside the cards. */
+  "linkedin_manage_link",
+  /** A card of fewer than 3 or more than 10 lines, a line over 500 characters, or a link in a card line. */
+  "linkedin_card",
+  /** A 「View job:」 url that is not https://www.linkedin.com/(comm/)jobs/view/<id>/. */
+  "linkedin_job_link",
+  /** A card left open at a separator or at the end, or no card at all. */
+  "linkedin_incomplete_card",
+  /** The same job twice with different content. */
+  "linkedin_conflicting_cards",
+] as const;
+
+export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number] | (typeof TALENT_REASONS)[number] | (typeof GLASSDOOR_REASONS)[number] | (typeof LINKEDIN_REASONS)[number];
 
 export class MailRejection extends Error {
   constructor(readonly reason: MailReason) {
