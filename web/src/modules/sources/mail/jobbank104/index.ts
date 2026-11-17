@@ -1,8 +1,8 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import type { ListingInput } from "@/modules/listings/public";
 import { loadMailHtml, type AnyNode } from "../html";
-import { FULL_TIME, wordsIgnoreCase } from "../kind";
-import type { MailMessage } from "../message";
-import { MailRejection, reject } from "../reasons";
+import { jobKind, wordsIgnoreCase } from "../kind";
+import { mailListing, type MailMessage } from "../message";
+import { reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
 
 // 104 job bank: the daily matching digest (「…MM/DD的配對日報，符合職缺N筆」) sent to the inbox, read
@@ -17,7 +17,6 @@ import type { MailSourceSettings } from "../../types";
 export const SENDER = "jobbank@ms1.104.com.tw";
 const SUBJECT = /^.{1,100}\d{2}\/\d{2}的配對日報，符合職缺(\d{1,3})筆$/u;
 const STOP = "適合你大展身手的工作";
-const MAX_BODY_BYTES = 1_000_000;
 const CONTRACT = wordsIgnoreCase(String.raw`兼職|接案|\b(?:part[ -]time|freelance)\b`);
 
 /** The listing gate: only the matching digest's subject is read. */
@@ -90,7 +89,6 @@ function readCards(html: string) {
 export function parse104(message: MailMessage): ListingInput[] {
   const subject = SUBJECT.exec(message.subject);
   if (message.sender !== SENDER || !message.isHtml || !subject) reject("104_unsupported");
-  if (Buffer.byteLength(message.body, "utf8") > MAX_BODY_BYTES) reject("body_too_large");
   const { cards, open, stopped } = readCards(message.body);
   if (!stopped || open || !cards.length || cards.length !== Number(subject![1])) reject("104_incomplete_digest");
   const seen = new Set<string>();
@@ -98,16 +96,11 @@ export function parse104(message: MailMessage): ListingInput[] {
     if (!card.company || !card.parts.length) reject("104_invalid_card");
     if (seen.has(card.id)) reject("104_duplicate_card");
     seen.add(card.id);
-    try {
-      return parseListingInput({
-        external_id: card.id, title: card.title, company: card.company, url: card.url, canonical_url: card.url,
-        description: card.parts.join("\n"), complete: false,
-        kind: FULL_TIME.test(card.title) ? "full_time" : CONTRACT.test(card.title) ? "contract" : null,
-      });
-    } catch (e) {
-      if (e instanceof MailRejection) throw e;
-      return reject("contract_refused");
-    }
+    return mailListing({
+      external_id: card.id, title: card.title, company: card.company, url: card.url, canonical_url: card.url,
+      description: card.parts.join("\n"), complete: false,
+      kind: jobKind(card.title, CONTRACT),
+    });
   });
 }
 

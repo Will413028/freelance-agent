@@ -1,5 +1,6 @@
 import { load } from "cheerio";
 import { Parser } from "htmlparser2";
+import { collapseSpaces } from "../shared/text";
 import { reject } from "./reasons";
 
 /** The parts of a domhandler node the mail parsers read (cheerio does not export the type). */
@@ -49,3 +50,6 @@ export function replay(html: string, on: HtmlHandlers): void {
   }, { decodeEntities: true, lowerCaseTags: true, lowerCaseAttributeNames: true });
   parser.end(html);
 }
+
+/** Text pieces joined and with every whitespace run collapsed to one space. */
+export const squash = (parts: string[]) => collapseSpaces(parts.join(""));

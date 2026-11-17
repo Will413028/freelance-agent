@@ -1,8 +1,8 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
-import { replay } from "../html";
-import { FULL_TIME, wordsIgnoreCase } from "../kind";
-import type { MailMessage } from "../message";
-import { MailRejection, reject } from "../reasons";
+import type { ListingInput } from "@/modules/listings/public";
+import { replay, squash } from "../html";
+import { jobKind, wordsIgnoreCase } from "../kind";
+import { mailListing, type MailMessage } from "../message";
+import { reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
 
 // Talent.com: the job alert's cards, read offline as observed (old collection/talent_mail.py,
@@ -14,7 +14,6 @@ import type { MailSourceSettings } from "../../types";
 // whose public page is https://tw.talent.com/view?id=…; the redirect is never visited.
 
 export const SENDER = "no-reply@alerts.talent.com";
-const MAX_BODY_BYTES = 1_000_000;
 const MAX_CARDS = 100;
 const FIELDS = ["Title", "Location", "Company", "Salary", "Description"] as const;
 const CONTRACT = wordsIgnoreCase(String.raw`兼職|接案|\b(?:contractor|contract|freelance|part[ -]time)\b`);
@@ -40,7 +39,6 @@ export function jobOf(href: string | undefined): Identity | null {
   return [ids[0], `https://tw.talent.com/view?id=${ids[0]}`];
 }
 const job = (href: string | undefined) => jobOf(href) ?? reject("talent_job_link");
-const squash = (parts: string[]) => parts.join("").split(/\s+/u).filter(Boolean).join(" ");
 
 /** The described template: fields marked by comments inside one job link per card. */
 function describedCards(html: string): Card[] {
@@ -169,7 +167,6 @@ function cardOnlyCards(html: string): Card[] {
 export function parseTalent(message: MailMessage): ListingInput[] {
   const template = subjectFormat(message.subject);
   if (message.sender !== SENDER || !message.isHtml || template === null) reject("talent_unsupported");
-  if (Buffer.byteLength(message.body, "utf8") > MAX_BODY_BYTES) reject("body_too_large");
   const cards = template === "described" ? describedCards(message.body) : cardOnlyCards(message.body);
   if (cards.length < 1 || cards.length > MAX_CARDS) reject("talent_incomplete_alert");
   const seen = new Set<string>();
@@ -180,17 +177,12 @@ export function parseTalent(message: MailMessage): ListingInput[] {
     const description = template === "described" ? card.Description!
       : "Talent.com notification card only: " + [card.Title, card.Company, card.Location].filter(Boolean).join("\n");
     const evidence = card.Title + (template === "described" ? "\n" + card.Description : "");
-    try {
-      return parseListingInput({
-        external_id: id, title: card.Title, company: card.Company || null, location: card.Location || null, url, canonical_url: url,
-        description, compensation_evidence: card.Salary || null, complete: false,
-        kind: FULL_TIME.test(evidence) ? "full_time" : CONTRACT.test(evidence) ? "contract" : null,
-        extra: { language: "en" },
-      });
-    } catch (e) {
-      if (e instanceof MailRejection) throw e;
-      return reject("contract_refused");
-    }
+    return mailListing({
+      external_id: id, title: card.Title, company: card.Company || null, location: card.Location || null, url, canonical_url: url,
+      description, compensation_evidence: card.Salary || null, complete: false,
+      kind: jobKind(evidence, CONTRACT),
+      extra: { language: "en" },
+    });
   });
 }
 

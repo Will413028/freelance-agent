@@ -1,8 +1,8 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
-import { replay } from "../html";
-import { FULL_TIME, wordsIgnoreCase } from "../kind";
-import type { MailMessage } from "../message";
-import { MailRejection, reject } from "../reasons";
+import type { ListingInput } from "@/modules/listings/public";
+import { replay, squash } from "../html";
+import { jobKind, wordsIgnoreCase } from "../kind";
+import { mailListing, type MailMessage } from "../message";
+import { reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
 
 // Glassdoor: the job alert's cards, read offline as observed (old collection/glassdoor_mail.py,
@@ -14,7 +14,6 @@ import type { MailSourceSettings } from "../../types";
 // the jobListingId of https://www.glassdoor.com/partner/jobListing.htm, which is never visited.
 
 export const SENDER = "noreply@glassdoor.com";
-const MAX_BODY_BYTES = 1_000_000;
 const MAX_CARDS = 100;
 const CONTRACT = wordsIgnoreCase(String.raw`兼職|接案|\b(?:contractor|contract|freelance|part[ -]time)\b`);
 const AGE = /^(?:\d{1,3}[dh]|Just posted)$/u;
@@ -35,7 +34,6 @@ export function listingOf(href: string): [id: string, url: string] | null {
 
 /** Length in characters (code points), as the old limits counted. */
 const chars = (s: string) => [...s].length;
-const squash = (parts: string[]) => parts.join("").split(/\s+/u).filter(Boolean).join(" ");
 type Card = { id: string; url: string; company: string; title: string };
 
 function cardsOf(html: string): Card[] {
@@ -95,19 +93,13 @@ function cardsOf(html: string): Card[] {
 /** The listings of one alert, or a MailRejection naming the check that failed. */
 export function parseGlassdoor(message: MailMessage): ListingInput[] {
   if (message.sender !== SENDER || !message.isHtml || !isJobSubject(message.subject)) reject("glassdoor_unsupported");
-  if (Buffer.byteLength(message.body, "utf8") > MAX_BODY_BYTES) reject("body_too_large");
   return cardsOf(message.body).map((card) => {
-    try {
-      return parseListingInput({
-        external_id: card.id, title: card.title, company: card.company, url: card.url, canonical_url: card.url,
-        description: `Glassdoor notification card only: ${card.title}\n${card.company}`, complete: false,
-        kind: FULL_TIME.test(card.title) ? "full_time" : CONTRACT.test(card.title) ? "contract" : null,
-        extra: { language: "en" },
-      });
-    } catch (e) {
-      if (e instanceof MailRejection) throw e;
-      return reject("contract_refused");
-    }
+    return mailListing({
+      external_id: card.id, title: card.title, company: card.company, url: card.url, canonical_url: card.url,
+      description: `Glassdoor notification card only: ${card.title}\n${card.company}`, complete: false,
+      kind: jobKind(card.title, CONTRACT),
+      extra: { language: "en" },
+    });
   });
 }
 

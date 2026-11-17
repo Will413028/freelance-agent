@@ -6,3 +6,7 @@ const W = String.raw`[\p{L}\p{N}_]`;
 export const wordsIgnoreCase = (pattern: string) => new RegExp(pattern.replaceAll(String.raw`\b`, `(?:(?<!${W})(?=${W})|(?<=${W})(?!${W}))`), "iu");
 
 export const FULL_TIME = wordsIgnoreCase(String.raw`全職|\bfull[ -]time\b`);
+
+/** A listing's kind from its text: full time first, then the source's own contract words, else unknown. */
+export const jobKind = (text: string, contract: RegExp, fullTime: RegExp = FULL_TIME) =>
+  fullTime.test(text) ? "full_time" as const : contract.test(text) ? "contract" as const : null;

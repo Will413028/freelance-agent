@@ -1,7 +1,9 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { escapeRegExp } from "@/platform/text";
+import type { ListingInput } from "@/modules/listings/public";
+import { collapseSpaces } from "../../shared/text";
 import { loadMailHtml, type AnyNode } from "../html";
-import type { MailMessage } from "../message";
-import { MailRejection, reject } from "../reasons";
+import { mailListing, type MailMessage } from "../message";
+import { reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
 
 // Tasker: the single-case notification (「新案件【<title>】」) sent to the inbox, read as observed in
@@ -13,7 +15,6 @@ import type { MailSourceSettings } from "../../types";
 // case code of https://www.tasker.com.tw/cases/<code>, read with the standard URL parser.
 
 export const SENDER = "deals@tasker.com.tw";
-const MAX_BODY_BYTES = 1_000_000;
 const HIDDEN = new Set(["script", "style", "noscript", "template"]);
 const BREAK_BEFORE = new Set(["p", "div", "br", "tr", "td", "h1", "h2", "h3", "li"]);
 const BREAK_AFTER = new Set(["p", "div", "tr", "td", "h1", "h2", "h3", "li"]);
@@ -28,8 +29,7 @@ const BOUNDARY = /(?<![^\n])[ \t]*查看完整資訊[ \t]+(https:\/\/[^\s<>]+)[ 
 /** The listing gate: a subject naming exactly one 【title】; other mail from Tasker (news, promotions) is not read. */
 export const isCaseSubject = (subject: string) => [...subject.matchAll(TITLE)].length === 1;
 
-const clean = (text: string) => text.replace(PASTED_URL, "").split(/\s+/u).filter(Boolean).join(" ");
-const escape = (s: string) => s.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
+const clean = (text: string) => collapseSpaces(text.replace(PASTED_URL, ""));
 
 /** The case page of a link, or null when it is not one: https, www.tasker.com.tw, /cases/<code>. */
 function casePage(href: string): string | null {
@@ -77,7 +77,6 @@ const textPartsOf = (body: string) => textParts(body.replace(/\r\n?/gu, "\n"));
 /** The one listing of a case notification, or a MailRejection naming the check that failed. */
 export function parseTasker(message: MailMessage): ListingInput[] {
   if (message.sender !== SENDER) reject("tasker_unsupported");
-  if (Buffer.byteLength(message.body, "utf8") > MAX_BODY_BYTES) reject("body_too_large");
   const { links, text } = message.isHtml ? htmlParts(message.body) : textPartsOf(message.body);
   const pages = new Set(links.map(casePage).filter((u): u is string => u !== null));
   if (pages.size !== 1) reject("tasker_case_link");
@@ -85,23 +84,18 @@ export function parseTasker(message: MailMessage): ListingInput[] {
   if (titles.length !== 1) reject("tasker_subject");
   // Pasted URLs leave the body text, so the header is matched with the title cleaned the same way;
   // the listing keeps the title as written (a case named after its site keeps the domain).
-  const title = titles[0][1].split(/\s+/u).filter(Boolean).join(" ");
+  const title = collapseSpaces(titles[0][1]);
   const matchTitle = clean(title);
   const header = new RegExp(
-    `\\d{4}/\\d{2}/\\d{2}\\s*(?:最新案件，限時搶先提案！|最新上架案件，歡迎提案)\\s*${escape(matchTitle)}\\s*(?:(\\$[\\d,]+)|預算詳談)(.*?)需求說明\\s*(.*?)\\s*$`, "u",
+    `\\d{4}/\\d{2}/\\d{2}\\s*(?:最新案件，限時搶先提案！|最新上架案件，歡迎提案)\\s*${escapeRegExp(matchTitle)}\\s*(?:(\\$[\\d,]+)|預算詳談)(.*?)需求說明\\s*(.*?)\\s*$`, "u",
   ).exec(clean(text));
   const description = header?.[3].trim();
   if (!matchTitle || !description) reject("tasker_body");
   const [url] = pages;
-  try {
-    return [parseListingInput({
-      external_id: url.slice(url.lastIndexOf("/") + 1), title, url, canonical_url: url, description,
-      compensation_evidence: header![1] ?? null, complete: false, extra: { language: "zh-TW" },
-    })];
-  } catch (e) {
-    if (e instanceof MailRejection) throw e;
-    return reject("contract_refused");
-  }
+  return [mailListing({
+    external_id: url.slice(url.lastIndexOf("/") + 1), title, url, canonical_url: url, description,
+    compensation_evidence: header![1] ?? null, complete: false, extra: { language: "zh-TW" },
+  })];
 }
 
 export const TASKER_SETTINGS: Omit<MailSourceSettings, "order"> = {
