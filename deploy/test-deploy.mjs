@@ -2,7 +2,9 @@
 // The stub docker reads the env file's APP_IMAGE at call time: `inspect` says unhealthy when it matches the
 // glob FAKE_BAD (and `starting` forever with FAKE_STUCK), `up -d web` fails when it matches FAKE_UP_FAIL;
 // FAKE_MIGRATE_FAIL fails the migration; FAKE_BUILD_FAIL fails a build whose arguments contain it.
-// `compose run` reads its stdin to the end, as the real one does (it attaches stdin unless told otherwise).
+// Every stub whose real counterpart attaches stdin (`compose run` and `compose exec`, whatever their flags: -T only
+// drops the TTY) reads it to the end, as the real one does, so such a call left without </dev/null swallows the
+// rest of a script read from stdin; the failure and rollback scenarios run that way too.
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync } from "node:fs";
@@ -34,8 +36,9 @@ if [[ "$1" == inspect ]]; then
   elif [[ "$img" == \${FAKE_BAD:-none} ]]; then echo unhealthy; else echo healthy; fi; exit 0
 fi
 shift 5 # compose --env-file F -f Y
+[[ "$1" == run || "$1" == exec ]] && cat >/dev/null
 case "$1 \${2:-} \${3:-}" in
-  "run --rm daily") cat >/dev/null; [[ -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1 ;;
+  "run --rm -T") [[ -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1 ;;
   "up -d web") [[ "$img" == \${FAKE_UP_FAIL:-none} ]] && exit 1 ;;
   "ps -q web") echo web-container ;;
 esac
@@ -81,7 +84,7 @@ test("healthy deploy switches APP_IMAGE and migrates with the new image", () => 
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.env, /^APP_IMAGE=side-income-web:new5678$/m);
   assert.match(r.env, /^POSTGRES_PASSWORD=x$/m);
-  assert.match(r.calls, /APP_IMAGE=side-income-web:new5678 compose .* run --rm daily pnpm exec tsx scripts\/migrate-pg\.ts/);
+  assert.match(r.calls, /APP_IMAGE=side-income-web:new5678 compose .* run --rm -T daily pnpm exec tsx scripts\/migrate-pg\.ts/);
   assert.equal(r.head, "new5678full");
 });
 
@@ -106,9 +109,9 @@ test("a branch name deploys the fetched origin branch", () => {
   assert.equal(r.head, "new5678full");
 });
 
-test("failed build or migration leaves APP_IMAGE, the checkout and web untouched", () => {
+for (const scriptOnStdin of [false, true]) test(`failed build or migration leaves APP_IMAGE, the checkout and web untouched${scriptOnStdin ? " (script on stdin)" : ""}`, () => {
   for (const env of [{ FAKE_BUILD_FAIL: "web.Dockerfile" }, { FAKE_BUILD_FAIL: "browser.Dockerfile" }, { FAKE_MIGRATE_FAIL: "1" }]) {
-    const r = run(env);
+    const r = run(env, undefined, { scriptOnStdin });
     assert.equal(r.status, 1);
     assert.match(r.env, OLD);
     assert.deepEqual(upWeb(r.calls), []);
@@ -116,8 +119,8 @@ test("failed build or migration leaves APP_IMAGE, the checkout and web untouched
   }
 });
 
-test("unhealthy web rolls APP_IMAGE and the checkout back, then recreates web on the old image", () => {
-  const r = run({ FAKE_BAD: "side-income-web:new5678" });
+for (const scriptOnStdin of [false, true]) test(`unhealthy web rolls APP_IMAGE and the checkout back, then recreates web on the old image${scriptOnStdin ? " (script on stdin)" : ""}`, () => {
+  const r = run({ FAKE_BAD: "side-income-web:new5678" }, undefined, { scriptOnStdin });
   assert.equal(r.status, 1);
   assert.match(r.env, OLD);
   assert.equal(r.head, "old1234full");
@@ -128,22 +131,22 @@ test("unhealthy web rolls APP_IMAGE and the checkout back, then recreates web on
   assert.match(r.stderr, /rolled back to side-income-web:old1234/);
 });
 
-test("a failing recreate of web also rolls back", () => {
-  const r = run({ FAKE_UP_FAIL: "side-income-web:new5678" });
+for (const scriptOnStdin of [false, true]) test(`a failing recreate of web also rolls back${scriptOnStdin ? " (script on stdin)" : ""}`, () => {
+  const r = run({ FAKE_UP_FAIL: "side-income-web:new5678" }, undefined, { scriptOnStdin });
   assert.equal(r.status, 1);
   assert.match(r.env, OLD);
   assert.match(r.stderr, /rolled back to side-income-web:old1234/);
 });
 
-test("a rollback that is unhealthy too says so", () => {
-  const r = run({ FAKE_BAD: "side-income-web:*" });
+for (const scriptOnStdin of [false, true]) test(`a rollback that is unhealthy too says so${scriptOnStdin ? " (script on stdin)" : ""}`, () => {
+  const r = run({ FAKE_BAD: "side-income-web:*" }, undefined, { scriptOnStdin });
   assert.equal(r.status, 1);
   assert.match(r.env, OLD);
   assert.match(r.stderr, /ROLLBACK UNHEALTHY/);
 });
 
-test("a health status that never settles times out and rolls back", () => {
-  const r = run({ FAKE_STUCK: "1" });
+for (const scriptOnStdin of [false, true]) test(`a health status that never settles times out and rolls back${scriptOnStdin ? " (script on stdin)" : ""}`, () => {
+  const r = run({ FAKE_STUCK: "1" }, undefined, { scriptOnStdin });
   assert.equal(r.status, 1);
   assert.match(r.env, OLD);
   assert.match(r.stderr, /not healthy within/);
