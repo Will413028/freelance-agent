@@ -7,7 +7,7 @@ import { MailRejection } from "../reasons";
 import { isCaseSubject, parseTasker, SENDER } from ".";
 
 // Plan step 7b: the Tasker case notification. fixtures/cases.json holds the 66 notifications the old
-// parser read (golden.json's tasker_parse at ce1254d), expected listings mapped field by field from the
+// parser read (its tasker_parse ground-truth cases at ce1254d), expected listings mapped field by field from the
 // old results (observed_amount → compensation_evidence, language → extra.language); the 7 deliberate differences are named in their
 // case names. Old refusals expect the new parser's reason code (the old raised one error class).
 
