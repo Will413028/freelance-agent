@@ -183,6 +183,7 @@ function countsLine(c: Record<string, Plain>) {
   if (n("inserted") !== null) parts.push(`新增 ${n("inserted")} 筆`);
   if (n("jobs") !== null) parts.push(`初篩 ${n("jobs")} 筆`);
   if (n("rejected")) parts.push(`拒收 ${n("rejected")} 筆`);
+  if (n("reread")) parts.push(`重讀 ${n("reread")} 封${n("rereadRejected") ? `（仍被拒 ${n("rereadRejected")}）` : ""}`);
   if (c.truncated === true) parts.push("本次讀取未完整");
   if ((n("attempts") ?? 1) > 1) parts.push(`嘗試 ${n("attempts")} 次`);
   return parts.join(" · ");
@@ -213,5 +214,32 @@ export function SourcesTable({ data }: { data: SourcesView }) {
         <td>{s.latest ? [countsLine(s.latest.counts), s.latest.reason && `錯誤種類 ${s.latest.reason}`].filter(Boolean).join(" · ") || "—" : "—"}</td>
       </tr>)}</tbody>
     </table>
+    <RejectedMail rows={data.rejectedMail} />
   </>;
+}
+
+function MailAction({ row, action, label }: { row: SourcesView["rejectedMail"][number]; action: "retry" | "dismiss"; label: string }) {
+  return <form method="post" action={`/sources/${action}`}>
+    <input type="hidden" name="source" value={row.source} />
+    <input type="hidden" name="reason" value={row.reason} />
+    <input type="hidden" name="back" value="/sources" />
+    <button className="outline-button">{label}</button>
+  </form>;
+}
+
+/** Rejected mail by reason: re-read after a parser fix, or dismiss what is not a listing. */
+function RejectedMail({ rows }: { rows: SourcesView["rejectedMail"] }) {
+  return <section aria-label="被拒的信">
+    <h2>被拒的信</h2>
+    {rows.length ? <>
+      <p className="hint">依原因代碼分組。修好解析後按「重讀」，下次每日收案會重讀這些信；確定不是職缺通知的按「略過」。</p>
+      <table>
+        <thead><tr><th>來源</th><th>原因代碼</th><th>未處理</th><th>待重讀</th><th>處理</th></tr></thead>
+        <tbody>{rows.map((r) => <tr key={`${r.source}/${r.reason}`}>
+          <td>{r.name}</td><td><code>{r.reason}</code></td><td>{r.open}</td><td>{r.retry}</td>
+          <td>{r.open > 0 && r.canRetry && <MailAction row={r} action="retry" label="重讀" />}<MailAction row={r} action="dismiss" label="略過" /></td>
+        </tr>)}</tbody>
+      </table>
+    </> : <p>沒有未處理的被拒信件</p>}
+  </section>;
 }

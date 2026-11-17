@@ -1,7 +1,7 @@
 import type { PgDb } from "@/db/pg/client";
 import { pruneListings, RETENTION_DAYS } from "@/modules/listings/public";
 import { finishRun, openRun, recordSource, sourcesReadSince, taipeiDate, type RunCounts } from "@/modules/runs/public";
-import { SOURCES, SourceError, type SourceSettings } from "@/modules/sources/public";
+import { pruneMailMessages, SOURCES, SourceError, type SourceSettings } from "@/modules/sources/public";
 import { FetchError } from "@/platform/fetch";
 import { collectSource, type SourceRun } from "./collect";
 import { listJobs } from "./pages";
@@ -40,7 +40,7 @@ const taipeiHour = (d: Date) => Number(new Intl.DateTimeFormat("en-GB", { timeZo
 
 const countsOf = (r: SourceRun, attempts: number): RunCounts => ({
   seen: r.seen, examined: r.examined, rejected: r.rejected, truncated: r.truncated, stored: r.stored, jobs: r.jobs,
-  requests: r.requests, attempts, ...r.intake,
+  requests: r.requests, attempts, ...r.intake, ...(r.reread === undefined ? {} : { reread: r.reread, rereadRejected: r.rereadRejected ?? 0 }),
 });
 
 export async function runDaily(db: PgDb, deps: DailyDeps): Promise<DailyOutcome> {
@@ -80,13 +80,14 @@ async function runOpened(db: PgDb, deps: DailyDeps, localDate: string, runId: nu
       }
     }
   }
-  const counts: RunCounts = { pruned: null, listMs: null };
+  const counts: RunCounts = { pruned: null, mailPruned: null, listMs: null };
   let reason: string | null = allOk ? null : "one_or_more_sources_failed";
   try {
     const now = deps.now();
     // One window for both: the sources read within it, and the listings unseen for longer.
     const healthy = await sourcesReadSince(db, new Date(now.getTime() - RETENTION_DAYS * DAY_MS), enabled.map((s) => s.name));
     counts.pruned = await pruneListings(db, healthy, now, RETENTION_DAYS);
+    counts.mailPruned = await pruneMailMessages(db, now);
     const t0 = performance.now();
     await listJobs(db, now, "candidates", 1);
     counts.listMs = Math.round(performance.now() - t0);

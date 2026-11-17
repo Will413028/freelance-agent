@@ -89,6 +89,18 @@ export class ReceivingClient {
   /** One message the last list showed from this source's sender; anything else is refused before a request. */
   async message(id: string): Promise<Record<string, unknown>> {
     if (!this.listed.has(resendId(id))) throw new SourceError("message not listed from the source's sender");
+    return this.retrieve(id);
+  }
+
+  /**
+   * A message this source recorded itself on an earlier run (a re-read): it was listed from the source's
+   * sender then; readMessage checks the sender again on what comes back.
+   */
+  async recorded(id: string): Promise<Record<string, unknown>> {
+    return this.retrieve(resendId(id));
+  }
+
+  private async retrieve(id: string): Promise<Record<string, unknown>> {
     const parsed = messageSchema.safeParse(await this.get(`/${id}?html_format=cid`));
     if (!parsed.success) throw new SourceError("invalid Resend message");
     return parsed.data;

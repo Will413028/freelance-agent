@@ -20,4 +20,4 @@ export const screen = (listings: readonly ListingInput[], now: Date) =>
  * `stored`: every listing written (plan D9: all of them); `jobs`: the ones the source's rule keeps and intake
  * screening allows, the old count the step 4/5 comparisons with production use. `externalIds`: the stored ones; `jobIds`: the ones counted in `jobs`.
  */
-export type SourceRun = { source: string; seen: number; stored: number; jobs: number; jobIds: string[]; requests: number; intake: IntakeCounts; externalIds: string[]; truncated: boolean; rejected: number; examined: number };
+export type SourceRun = { source: string; seen: number; stored: number; jobs: number; jobIds: string[]; requests: number; intake: IntakeCounts; externalIds: string[]; truncated: boolean; rejected: number; examined: number; reread?: number; rereadRejected?: number };

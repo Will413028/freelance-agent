@@ -106,5 +106,5 @@ export function parseCake(message: MailMessage): ListingInput[] {
 export const CAKE_SETTINGS: Omit<MailSourceSettings, "order"> = {
   kind: "mail", name: "cake", label: "Cake", sender: SENDER, subjectGate: isJobSubject, parse: parseCake, preferText: false,
   // One page of the inbox list per request; bodies only for new notifications.
-  maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 45, completeRead: false, disabled: null,
+  maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 60, completeRead: false, disabled: null,
 };
