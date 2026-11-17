@@ -7,16 +7,18 @@ set -euo pipefail
 zero=0000000000000000000000000000000000000000
 command -v gitleaks >/dev/null || { echo "pre-push: gitleaks not found; install it, the push is blocked" >&2; exit 1; }
 root=$(git rev-parse --show-toplevel)
-remote=${1:-origin}
+# $1 is the remote's name, or its URL when pushing to a URL; a URL names no remote-tracking refs, so a new branch
+# is then scanned against every remote-tracking ref (else --remotes=<url> matches nothing: a full-history scan).
+if [[ -n ${1:-} ]] && git remote | grep -xF -- "$1" >/dev/null; then not_remote="--remotes=$1"; else not_remote="--remotes"; fi
 while read -r local_ref local_sha remote_ref remote_sha; do
   [[ $local_sha == "$zero" ]] && continue # deleting a remote branch pushes no content
   if [[ $remote_sha == "$zero" ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
-    range="$local_sha --not --remotes=$remote" # new branch: whatever no remote-tracking ref already has
+    range="$local_sha --not $not_remote" # new branch: whatever no remote-tracking ref already has
   else
     range="$remote_sha..$local_sha"
   fi
   echo "pre-push: gitleaks on $local_ref ($range)" >&2
-  gitleaks git --no-banner --redact --log-opts="$range" "$root" || {
+  gitleaks git --no-banner --redact --log-opts="$range" "$root" </dev/null || { # </dev/null: the ref list on stdin is for this loop
     echo "pre-push: gitleaks found a leak or failed on $local_ref; the push is blocked" >&2
     exit 1
   }
