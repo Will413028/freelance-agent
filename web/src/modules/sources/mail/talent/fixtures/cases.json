@@ -1,0 +1,1482 @@
+[
+ {
+  "name": "old 0",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 1",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=new-tracker\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 2",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 3",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=new-tracker\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 4",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td></td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": null,
+     "description": "Talent.com notification card only: Backend API Engineer\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 5",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer - Open Source Contributions - Remote jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 6",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "software engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 7",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Verify your account",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 8",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Marketing jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 9",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss\nPrivate",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 10",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "SOFTWARE ENGINEER JOBS YOU DON'T WANT TO MISS",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 11",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer -  jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 12",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_incomplete_alert"
+  }
+ },
+ {
+  "name": "old 13",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_incomplete_alert"
+  }
+ },
+ {
+  "name": "old 14",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\"></a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_empty_card"
+  }
+ },
+ {
+  "name": "old 15",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;id=bad\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_job_link"
+  }
+ },
+ {
+  "name": "old 16",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=abcdef123456\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_card_link"
+  }
+ },
+ {
+  "name": "old 17",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button --><!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_card_boundary"
+  }
+ },
+ {
+  "name": "old 18",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface9999&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface9999&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    },
+    {
+     "external_id": "feedface9999",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface9999",
+     "canonical_url": "https://tw.talent.com/view?id=feedface9999",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 19",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Part-time, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nPart-time, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Part-time, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 20",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Full-time Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Full-time Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Full-time Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 21",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td>Extra</td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 22",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unbalanced"
+  }
+ },
+ {
+  "name": "old 23",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, <b>TW</b></td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 24",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table><tr>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unbalanced"
+  }
+ },
+ {
+  "name": "old 25",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards --></tr><!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_incomplete_alert"
+  }
+ },
+ {
+  "name": "old 26",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards --><!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_incomplete_alert"
+  }
+ },
+ {
+  "name": "old 27",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!-- Job cards -->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 28",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "Software Engineer jobs you don't want to miss",
+   "body": "<!--Job cards-->\n<tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;user_id=private\">\n  <table>\n    <tr><td><a href=\"https://tw.talent.com/redirect?id=feedface1234&amp;click_type=title\">Backend API Engineer</a></td></tr>\n    <tr><td>Taipei, TW</td></tr>\n    <tr><td>Example Company</td></tr>\n    <tr><td></td></tr>\n  </table>\n</a></td></tr>\n<!-- View more jobs button -->",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "feedface1234",
+     "title": "Backend API Engineer",
+     "company": "Example Company",
+     "description": "Talent.com notification card only: Backend API Engineer\nExample Company\nTaipei, TW",
+     "url": "https://tw.talent.com/view?id=feedface1234",
+     "canonical_url": "https://tw.talent.com/view?id=feedface1234",
+     "location": "Taipei, TW",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 29",
+  "message": {
+   "sender": "other@talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 30",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "驗證信",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 31",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": false
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 32",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unbalanced"
+  }
+ },
+ {
+  "name": "old 33",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a><a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_duplicate_card"
+  }
+ },
+ {
+  "name": "old 34",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_field_order"
+  }
+ },
+ {
+  "name": "old 35 (ENVELOPE: received_at without a time is checked by readMessage (bad_received_at), not by the parser)",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 36",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a><a href=\"https://tw.talent.com/redirect?id=111111222222\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=111111222222&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    },
+    {
+     "external_id": "111111222222",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=111111222222",
+     "canonical_url": "https://tw.talent.com/view?id=111111222222",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 37",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a><a href=\"https://tw.talent.com/redirect?id=111111222222\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=111111222222&amp;user_id=private\">Full-time X</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    },
+    {
+     "external_id": "111111222222",
+     "title": "Full-time X",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=111111222222",
+     "canonical_url": "https://tw.talent.com/view?id=111111222222",
+     "location": "Taiwan",
+     "kind": "full_time",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 38",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": null,
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 39",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td>NT$ 1,000</td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": "NT$ 1,000",
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 40",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td></td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_empty_card"
+  }
+ },
+ {
+  "name": "old 41",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!--Location--><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 42",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Salary --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_field_order"
+  }
+ },
+ {
+  "name": "old 43",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"x job__link y\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 44",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_incomplete_card"
+  }
+ },
+ {
+  "name": "old 45",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a  href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_incomplete_card"
+  }
+ },
+ {
+  "name": "old 46",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_card_boundary"
+  }
+ },
+ {
+  "name": "old 47",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<!-- Title --><a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_card_boundary"
+  }
+ },
+ {
+  "name": "old 48 (ACCEPTED: an extra </a> with no open link is dropped by the HTML parser; every card is complete)",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 49",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unbalanced"
+  }
+ },
+ {
+  "name": "old 50",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Ex&amp;mple</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Ex&mple",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 51",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>  Tai\n wan </td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Tai wan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 52",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<p>header</p><a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a><p>footer</p>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 53",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a><a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unbalanced"
+  }
+ },
+ {
+  "name": "old 54 (ACCEPTED: a valueless class reads as an empty class (the old crashed with AttributeError, no deliberate check))",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a><a class>x</a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 55 (ACCEPTED: a valueless class reads as an empty class (the old crashed with AttributeError, no deliberate check))",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a class>x</a><a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "abcdef123456",
+     "title": "Backend API Engineer",
+     "company": "Example",
+     "description": "Contractor building APIs...",
+     "url": "https://tw.talent.com/view?id=abcdef123456",
+     "canonical_url": "https://tw.talent.com/view?id=abcdef123456",
+     "location": "Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "name": "old 56",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如Software Engineer",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a><a href=\"x\">trailing",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unbalanced"
+  }
+ },
+ {
+  "name": "old 57",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ },
+ {
+  "name": "old 58",
+  "message": {
+   "sender": "no-reply@alerts.talent.com",
+   "subject": "更多职位，例如x\n",
+   "body": "<a href=\"https://tw.talent.com/redirect?id=abcdef123456\">\n<!-- Title --><a class=\"job__link\" href=\"https://tw.talent.com/redirect?id=abcdef123456&amp;user_id=private\">Backend API Engineer</a>\n<!-- Location --><td>Taiwan</td><!-- Company --><td>Example</td>\n<!-- Salary --><td></td><!-- Description --><td>Contractor building APIs...</td></a>",
+   "isHtml": true
+  },
+  "expect": {
+   "reason": "talent_unsupported"
+  }
+ }
+]

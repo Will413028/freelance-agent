@@ -15,6 +15,7 @@ import { JUSTREMOTE_SETTINGS } from "./justremote";
 import { JOBBANK104_SETTINGS } from "./mail/jobbank104";
 import { TASKER_SETTINGS } from "./mail/tasker";
 import { CAKE_SETTINGS } from "./mail/cake";
+import { TALENT_SETTINGS } from "./mail/talent";
 import { NODESK_SETTINGS } from "./nodesk";
 import { PTT_CODEJOB_SETTINGS, PTT_SOHO_SETTINGS } from "./ptt";
 import { REMOTECO_SETTINGS } from "./remoteco";
@@ -39,6 +40,7 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...TASKER_SETTINGS, order: 0 },
   { ...CAKE_SETTINGS, order: 20 },
   { ...JOBBANK104_SETTINGS, order: 30 },
+  { ...TALENT_SETTINGS, order: 40 },
   { name: "remotive", label: "Remotive", order: 70, connector: freeJobsConnector("remotive"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
   { name: "jobicy", label: "Jobicy", order: 60, connector: freeJobsConnector("jobicy"), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null },
   { ...FREELANCER_SETTINGS, order: 50 },

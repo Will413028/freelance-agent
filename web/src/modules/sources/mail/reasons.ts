@@ -70,7 +70,30 @@ export const CAKE_REASONS = [
   "cake_job_link_count",
 ] as const;
 
-export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number];
+export const TALENT_REASONS = [
+  /** Not an HTML alert from Talent.com's sender with a known subject. */
+  "talent_unsupported",
+  /** A card link that is not https://tw.talent.com/redirect with one 12-hex id. */
+  "talent_job_link",
+  /** A card starting where it cannot (inside another, outside its link, a second card section). */
+  "talent_card_boundary",
+  /** Card fields missing or out of order. */
+  "talent_field_order",
+  /** A job link where the template has none, or a second one. */
+  "talent_card_link",
+  /** A card closed before all its fields or links. */
+  "talent_incomplete_card",
+  /** A card without a title, location, company or description the template requires. */
+  "talent_empty_card",
+  /** No cards, more than 100, an open card at the end, or no end marker. */
+  "talent_incomplete_alert",
+  /** The same job twice in one alert. */
+  "talent_duplicate_card",
+  /** A link (or, in the card-only section, a row) the body never closed. */
+  "talent_unbalanced",
+] as const;
+
+export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number] | (typeof TALENT_REASONS)[number];
 
 export class MailRejection extends Error {
   constructor(readonly reason: MailReason) {
