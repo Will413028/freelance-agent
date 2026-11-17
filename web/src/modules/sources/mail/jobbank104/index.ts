@@ -1,5 +1,6 @@
-import { load } from "cheerio";
 import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { loadMailHtml, type AnyNode } from "../html";
+import { FULL_TIME, wordsIgnoreCase } from "../kind";
 import type { MailMessage } from "../message";
 import { MailRejection, reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
@@ -17,21 +18,18 @@ export const SENDER = "jobbank@ms1.104.com.tw";
 const SUBJECT = /^.{1,100}\d{2}\/\d{2}的配對日報，符合職缺(\d{1,3})筆$/u;
 const STOP = "適合你大展身手的工作";
 const MAX_BODY_BYTES = 1_000_000;
-const FULL_TIME = /全職|\bfull[ -]time\b/i;
-const CONTRACT = /兼職|接案|\b(?:part[ -]time|freelance)\b/i;
+const CONTRACT = wordsIgnoreCase(String.raw`兼職|接案|\b(?:part[ -]time|freelance)\b`);
 
 /** The listing gate: only the matching digest's subject is read. */
 export const isDigestSubject = (subject: string) => SUBJECT.test(subject);
 
-/** The parts of a domhandler node this walk reads (cheerio does not export the type). */
-type AnyNode = { type: string; data?: string; name?: string; attribs?: Record<string, string>; children?: AnyNode[] };
 
 type Card = { id: string; title: string; url: string; parts: string[]; company?: string };
 const strip = (s: string) => s.replace(/^\s+|\s+$/gu, "");
 const on104 = (u: URL | null): u is URL => u !== null && u.protocol === "https:" && u.host === "www.104.com.tw" && !u.username && !u.password;
 
 function readCards(html: string) {
-  const $ = load(html, { xml: { xmlMode: false, decodeEntities: true } }, false);
+  const root = loadMailHtml(html);
   const cards: Card[] = [];
   let current: Card | null = null, stopped = false;
 
@@ -84,7 +82,7 @@ function readCards(html: string) {
       for (const c of node.children ?? []) walk(c);
     }
   };
-  walk($.root()[0] as unknown as AnyNode);
+  walk(root);
   return { cards, open: current !== null, stopped };
 }
 
