@@ -3,9 +3,10 @@
 驗收指令（在 repo 根目錄）：
 
 ```bash
-git grep -l -E "@/platform/py/|golden|@/db/d1|@/db/client|workflow|vercel|sqliteTable|D1_|oci-a1" > "$TMPDIR/residue.txt"
-python3 docs/plans/2026-11-15-self-hosted-rebuild/check_inventory.py --residue "$TMPDIR/residue.txt"
+bash docs/plans/2026-11-15-self-hosted-rebuild/check-residue.sh
 ```
+
+搜尋樣式只寫在 `check-residue.sh` 一處（`pnpm check` 與 CI 都經由 `pnpm check` 跑它），這裡不再抄一份。
 
 `check_inventory.py`（舊計畫同名檔的複本，讀同目錄的本檔）只讀下面 `globs` 區塊。語法：`**` 跨目錄，`*` 不跨 `/`，路徑相對 repo 根目錄。`git grep` 只看追蹤中的檔案（含隱藏檔）。程式檔逐一列出，不用目錄萬用字元，以免遮住新的殘留。
 
@@ -50,7 +51,7 @@ web/tests/rank-scale.test.ts
 
 | glob | 為什麼可以留 |
 |---|---|
-| `.github/workflows/ci.yml` | 本檢查的指令本身含這些字，另有 GitHub Actions 的「workflow」用語。 |
+| `.github/workflows/ci.yml` | GitHub Actions 的「workflow」用語（註解「every other job in this workflow」），不是舊系統的 Vercel Workflow。 |
 | `.gitleaks.toml` | 豁免 spike-1c 合成雜湊的路徑在 `docs/plans/` 下，不是舊程式。 |
 | `web/.gitignore` | 忽略 `.vercel`：主 checkout 在步驟 10 退役前還有 Vercel 連結目錄，不能被提交。 |
 | `docs/plans/**` | 兩份計畫、盤點、spike 紀錄與檢查腳本本身；描述的就是被取代的系統，本檔也含這些字。 |

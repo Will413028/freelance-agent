@@ -69,7 +69,11 @@ restore_checkout() { "$GIT" checkout --quiet --detach "$prev_commit"; }
 if ! "$DOCKER" build -f deploy/web.Dockerfile -t "$image" web || ! "$DOCKER" build -f deploy/browser.Dockerfile -t "$image-browser" browser; then
   log "build failed; nothing changed"; restore_checkout; exit 1
 fi
-if ! APP_IMAGE=$image compose run --rm daily pnpm exec tsx scripts/migrate-pg.ts; then
+# </dev/null protects stdin: compose run attaches stdin (with or without -T), and when this script is itself read
+# from stdin (bash -s, ssh … < deploy.sh, a pasted block) it would swallow every line after this one and the shell would exit 0 with web never switched
+# (2026-11-15, plan step 4b; deploy/test-deploy.mjs covers it). -T only removes the TTY, which compose run allocates
+# from a terminal and which fails once stdin is /dev/null ("the input device is not a TTY").
+if ! APP_IMAGE=$image compose run --rm -T daily pnpm exec tsx scripts/migrate-pg.ts </dev/null; then
   log "migration failed; $prev_image keeps serving"; restore_checkout; exit 1
 fi
 

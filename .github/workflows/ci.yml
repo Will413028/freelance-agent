@@ -4,12 +4,16 @@ on:
   pull_request:
   push:
     branches: [main, dev]
+  schedule:
+    # Weekly full-history secret scan (about a minute); the other jobs skip it.
+    - cron: "17 3 * * 1"
 
 permissions:
   contents: read
 
 jobs:
   web:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -34,7 +38,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      # typecheck, boundaries, db:check (Postgres schema and migrations agree), test (PGlite), compose port check.
+      # typecheck, boundaries, db:check (Postgres schema and migrations agree), test (PGlite), compose port check,
+      # deploy, browser and pre-push hook tests, and the plan step 11 deleted and residue checks.
       - run: pnpm check
       # Every test again on a real Postgres 18: each one using tests/helpers/pg.ts freshPg switches to it,
       # the rest are unaffected. Running the whole suite means no Postgres test can be left out by its file name.
@@ -43,14 +48,42 @@ jobs:
         env:
           TEST_PG_URL: postgres://postgres:test@localhost:5432/side_income_test
       - run: pnpm build
-      # Plan step 11: nothing the inventory marks deleted comes back, and references to the old system
-      # stay within allowed-residue.md (git grep lists tracked files only, the same set rg sees).
-      - run: bash ../docs/plans/2026-11-15-self-hosted-rebuild/check-deleted.sh
-      - run: |
-          git -C .. grep -l -E "@/platform/py/|golden|@/db/d1|@/db/client|workflow|vercel|sqliteTable|D1_|oci-a1" > "$RUNNER_TEMP/residue.txt"
-          python3 ../docs/plans/2026-11-15-self-hosted-rebuild/check_inventory.py --residue "$RUNNER_TEMP/residue.txt"
+
+  secrets:
+    # The repository is public: gitleaks (pinned binary, checksum checked) on the commits this event adds,
+    # with .gitleaks.toml. A pull request scans base..head, a push before..after, a new branch or the weekly
+    # schedule the whole history. The local .githooks/pre-push is the earlier, opt-in warning; this is the net.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks 8.30.1
+        run: |
+          curl -fsSLo gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz -C "$RUNNER_TEMP" gitleaks
+          rm gitleaks.tar.gz
+      - name: Scan
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        run: |
+          range=""
+          if [[ $EVENT == pull_request ]]; then
+            range="$PR_BASE..$PR_HEAD"
+          elif [[ $EVENT == push && -n $BEFORE && $BEFORE != 0000000000000000000000000000000000000000 ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            range="$BEFORE..$AFTER"
+          fi
+          echo "gitleaks range: ${range:-full history}"
+          "$RUNNER_TEMP/gitleaks" git --no-banner --redact --exit-code 1 ${range:+--log-opts="$range"} .
 
   image:
+    if: github.event_name != 'schedule'
     # The application image builds and starts on arm64, the VM's architecture (not pushed; the VM
     # builds its own from a checkout).
     runs-on: ubuntu-24.04-arm
@@ -88,7 +121,7 @@ jobs:
     # The only required check on main: it passes when every other job in this workflow succeeded or was skipped.
     name: gate (ci)
     if: always()
-    needs: [web, image]
+    needs: [web, image, secrets]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Secret scan of the commits being pushed (origin is a PUBLIC repository; a pushed secret is out for good).
+# Enable once per clone: git config core.hooksPath .githooks
+# Fails closed: no gitleaks, no push (install it, e.g. `brew install gitleaks`). Scans only the commits
+# the target remote does not have yet when that is known, else the full reachable history (about a minute); .gitleaks.toml applies.
+set -euo pipefail
+zero=0000000000000000000000000000000000000000
+command -v gitleaks >/dev/null || { echo "pre-push: gitleaks not found; install it, the push is blocked" >&2; exit 1; }
+root=$(git rev-parse --show-toplevel)
+# $1 is the remote's name, or its URL when pushing to a URL. A new branch skips only commits the PUSH TARGET already
+# has (its remote-tracking refs): a commit on another remote (a fork, a mirror) was never checked by this hook for this
+# target, so it is not taken as scanned. With a URL, or a remote that has no remote-tracking refs yet (first push),
+# nothing is known to be there: the full history reachable from the pushed commit is scanned (slower, complete).
+not_target=""
+if [[ -n ${1:-} ]] && git remote | grep -xF -- "$1" >/dev/null && [[ -n $(git for-each-ref --count=1 "refs/remotes/$1/") ]]; then
+  not_target=" --not --remotes=$1"
+fi
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ $local_sha == "$zero" ]] && continue # deleting a remote branch pushes no content
+  if [[ $remote_sha == "$zero" ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    range="$local_sha$not_target" # new branch: whatever the target remote does not already have
+  else
+    range="$remote_sha..$local_sha"
+  fi
+  echo "pre-push: gitleaks on $local_ref ($range)" >&2
+  gitleaks git --no-banner --redact --log-opts="$range" "$root" </dev/null || { # </dev/null: the ref list on stdin is for this loop
+    echo "pre-push: gitleaks found a leak or failed on $local_ref; the push is blocked" >&2
+    exit 1
+  }
+done
