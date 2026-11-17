@@ -115,7 +115,7 @@ export const GLASSDOOR_REASONS = [
 export const LINKEDIN_REASONS = [
   /** Not a text alert from LinkedIn's job alert sender. */
   "linkedin_unsupported",
-  /** The first two lines are not 「Your job alert for …」 and the matching-jobs line. */
+  /** Fewer than two lines, a first line that is not 「Your job alert for …」, or a malformed count line. */
   "linkedin_template",
   /** A 「Manage alerts:」 line that is not LinkedIn's alert page, or one inside the cards. */
   "linkedin_manage_link",

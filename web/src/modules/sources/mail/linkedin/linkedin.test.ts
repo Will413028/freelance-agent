@@ -36,6 +36,23 @@ See all jobs on LinkedIn: https://www.linkedin.com/jobs/`;
 const text = (body = TEXT, subject = "Example is hiring") => ({ sender: SENDER, subject, isHtml: false, body });
 
 describe("linkedin alert", () => {
+  it("reads the template without a count line (seen since 2026-10): cards start on the second line", () => {
+    const body = TEXT.replace("New jobs match your preferences.\n", "").replace("See all", `Second Role\nOther Co\nTaipei\nThis company is actively hiring\nView job: https://www.linkedin.com/comm/jobs/view/5678/\n---------------------------------------------------------\nSee all`);
+    const got = outcome(text(body));
+    expect(got.listings?.map((l) => [l.external_id, l.title, l.company, l.location])).toEqual([["1234", "Contract Backend Engineer (Remote)", "Example Co", "Singapore"], ["5678", "Second Role", "Other Co", "Taipei"]]);
+    for (const bad of ["0 new jobs match your preferences.", "14 new jobs match your preferences", "Recommended content for you."]) {
+      expect(outcome(text(TEXT.replace("New jobs match your preferences.", bad))).reason, bad).toBe("linkedin_template");
+    }
+    // A title that only mentions preferences or recommended content is a card, not a count line.
+    for (const title of ["Recommended Content Strategist", "Senior Engineer, User Preferences Platform"]) {
+      expect(outcome(text(body.replace("Contract Backend Engineer (Remote)", title))).listings?.[0]?.title, title).toBe(title);
+    }
+    // A manage link right after the first line is checked as one.
+    const manage = (url: string) => outcome(text(body.replace("\nContract Backend", `\nManage alerts: ${url}\nContract Backend`)));
+    expect(manage("https://www.linkedin.com/comm/jobs/alerts?utm=preferences").listings).toHaveLength(2);
+    expect(manage("https://evil.example/comm/jobs/alerts").reason).toBe("linkedin_manage_link");
+  });
+
   it(`${cases.length} old messages give the expected listings or rejection`, () => {
     const wrong = cases.filter((c) => JSON.stringify(outcome(c.message)) !== JSON.stringify(c.expect)).map((c) => c.name);
     expect(wrong).toEqual([]);

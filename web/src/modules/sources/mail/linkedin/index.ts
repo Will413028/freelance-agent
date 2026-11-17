@@ -5,14 +5,19 @@ import { reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
 
 // LinkedIn: the English job alert's text part, read as observed (old collection/linkedin_mail.py,
-// web/src/modules/collection/mail/linkedin.ts at ce1254d). The alert names itself on its first two lines,
-// then lists cards: three to ten lines (title, company, location, then whatever LinkedIn adds) closed by
-// 「View job: <url>」, until 「See all jobs on LinkedIn:」. Only card metadata is there (complete false).
+// web/src/modules/collection/mail/linkedin.ts at ce1254d). The alert names itself on its first line. The
+// older template then has a count line (「N new jobs match your preferences.」); the one seen since 2026-10
+// (structure-only diagnostic on the VM, 2026-11-17) has none and starts the first card right away. A
+// second line worded like a count line but not exactly one is still refused. Cards: three to ten lines
+// (title, company, location, then whatever LinkedIn adds) closed by 「View job: <url>」, until 「See all
+// jobs on LinkedIn:」. Only card metadata is there (complete false).
 // The settings read the text part (preferText), never the HTML. external_id is the numeric id of
 // https://www.linkedin.com/jobs/view/<id>/ (the /comm/ form too), read with the standard URL parser.
 
 export const SENDER = "jobalerts-noreply@linkedin.com";
 const ALERT = /^(?:(?:New|[1-9][0-9]{0,3} new) jobs match your preferences\.|A new job matches your preferences\.)$/u;
+/** A second line worded as the count line (or the old 「Recommended content for you」 heading), well formed or not. */
+const COUNT_LIKE = /^(?:\S+ )?new jobs? match|^a new job match|^recommended content for you/iu;
 // English only, as the old LinkedIn parser had it (no 全職: the alerts are English).
 const FULL_TIME = wordsIgnoreCase(String.raw`\bfull[ -]time\b`);
 const CONTRACT = wordsIgnoreCase(String.raw`\b(?:freelance|part[ -]time|contract)\b`);
@@ -55,11 +60,13 @@ export function parseLinkedin(message: MailMessage): ListingInput[] {
   if (isAdministrativeNotice(message.subject)) return [];
   if (message.isHtml) reject("linkedin_unsupported");
   const lines = message.body.split(LINE_BREAK).map(pyStrip).filter(Boolean);
-  if (lines.length < 2 || !lines[0].startsWith("Your job alert for ") || !ALERT.test(lines[1])) reject("linkedin_template");
-  let start = 2;
-  if (lines.length > 2 && lines[2].startsWith("Manage alerts: ")) {
-    if (!manageAlerts(lines[2].slice("Manage alerts: ".length))) reject("linkedin_manage_link");
-    start = 3;
+  if (lines.length < 2 || !lines[0].startsWith("Your job alert for ")) reject("linkedin_template");
+  const counted = ALERT.test(lines[1]);
+  if (!counted && COUNT_LIKE.test(lines[1])) reject("linkedin_template");
+  let start = counted ? 2 : 1;
+  if (lines.length > start && lines[start].startsWith("Manage alerts: ")) {
+    if (!manageAlerts(lines[start].slice("Manage alerts: ".length))) reject("linkedin_manage_link");
+    start++;
   }
   const jobs = new Map<string, ListingInput>();
   let card: string[] = [];

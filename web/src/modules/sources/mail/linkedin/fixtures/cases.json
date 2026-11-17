@@ -2013,5 +2013,68 @@
     }
    ]
   }
+ },
+ {
+  "name": "new 1 (template without a count line, seen since 2026-10; synthetic, shaped after the 2026-11-17 structure diagnostic)",
+  "message": {
+   "sender": "jobalerts-noreply@linkedin.com",
+   "subject": "Example Co is hiring: Contract Backend Engineer (Remote)",
+   "isHtml": false,
+   "body": "Your job alert for backend in Asia\nContract Backend Engineer (Remote)\nExample Co\nSingapore\nThis company is actively hiring\nApply with resume & profile\nView job: https://www.linkedin.com/comm/jobs/view/1234/?trackingId=synthetic\n---------------------------------------------------------\nPart-time API Developer\nOther Co\nTaipei, Taiwan\nView job: https://www.linkedin.com/comm/jobs/view/5678/\n---------------------------------------------------------\nSee all jobs on LinkedIn: https://www.linkedin.com/comm/jobs/search\nManage your job alerts: https://www.linkedin.com/comm/jobs/alerts"
+  },
+  "expect": {
+   "listings": [
+    {
+     "external_id": "1234",
+     "title": "Contract Backend Engineer (Remote)",
+     "company": "Example Co",
+     "description": "LinkedIn notification card only: Contract Backend Engineer (Remote)\nExample Co\nSingapore",
+     "url": "https://www.linkedin.com/jobs/view/1234/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/1234/",
+     "location": "Singapore",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": true
+     }
+    },
+    {
+     "external_id": "5678",
+     "title": "Part-time API Developer",
+     "company": "Other Co",
+     "description": "LinkedIn notification card only: Part-time API Developer\nOther Co\nTaipei, Taiwan",
+     "url": "https://www.linkedin.com/jobs/view/5678/",
+     "canonical_url": "https://www.linkedin.com/jobs/view/5678/",
+     "location": "Taipei, Taiwan",
+     "kind": "contract",
+     "currency": null,
+     "budget_min": null,
+     "budget_max": null,
+     "weekly_hours": null,
+     "taiwan_eligible": null,
+     "timezone_compatible": null,
+     "complete": false,
+     "listing_closed": null,
+     "compensation_evidence": null,
+     "published_at": null,
+     "deadline": null,
+     "extra": {
+      "language": "en",
+      "remote_evidence": false
+     }
+    }
+   ]
+  }
  }
 ]
