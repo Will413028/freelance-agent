@@ -8,6 +8,9 @@ const LEADING = new RegExp(`^[${PY_SPACE}]+`, "u"), TRAILING = new RegExp(`[${PY
 
 export const pyRstrip = (s: string) => s.replace(TRAILING, "");
 /** str.strip() */
+/** Every whitespace run collapsed to one space, without leading or trailing space. */
+export const collapseSpaces = (s: string) => s.split(/\s+/u).filter(Boolean).join(" ");
+
 export const pyStrip = (s: string) => pyRstrip(s.replace(LEADING, ""));
 
 /** Python's str.splitlines() boundaries. */
@@ -24,5 +27,5 @@ export function visibleLines(html: string): string {
   $("script, style").remove();
   $(BLOCKS).before("\n").after("\n");
   $("br").replaceWith("\n");
-  return $.root().text().split(LINE_BREAK).map((line) => line.split(/\s+/u).filter(Boolean).join(" ")).filter(Boolean).join("\n");
+  return $.root().text().split(LINE_BREAK).map((line) => collapseSpaces(line)).filter(Boolean).join("\n");
 }

@@ -1,9 +1,9 @@
 import { inflateSync } from "node:zlib";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import type { ListingInput } from "@/modules/listings/public";
 import { loadMailHtml, type AnyNode } from "../html";
-import { FULL_TIME, wordsIgnoreCase } from "../kind";
-import type { MailMessage } from "../message";
-import { MailRejection, reject } from "../reasons";
+import { jobKind, wordsIgnoreCase } from "../kind";
+import { mailListing, type MailMessage } from "../message";
+import { reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
 
 // Cake: the followed-company notification (「您追蹤的 <company> 刊登了一筆新職缺 - <title>」), read as
@@ -15,7 +15,6 @@ import type { MailSourceSettings } from "../../types";
 // `<company>/<job>` of https://www.cake.me/companies/<company>/jobs/<job>, read with the standard URL parser.
 
 export const SENDER = "notifications@no-reply.cake.me";
-const MAX_BODY_BYTES = 1_000_000;
 const MAX_LINK = 8192;
 // [^\n] as the old pattern's "." (a subject may carry \r or U+2028).
 const SUBJECT = /^您追蹤的 ([^\n]{1,300}?) 刊登了一筆新職缺 - ([^\n]{1,500})$/u;
@@ -91,23 +90,17 @@ export function parseCake(message: MailMessage): ListingInput[] {
   if (message.sender !== SENDER || !message.isHtml) reject("cake_unsupported");
   const subject = SUBJECT.exec(message.subject);
   if (!subject) reject("cake_subject");
-  if (Buffer.byteLength(message.body, "utf8") > MAX_BODY_BYTES) reject("body_too_large");
   const pages = detailLinks(message.body).map((href) => jobPage(href) ?? reject("cake_job_link"));
   const unique = new Map(pages.map(([url, id]) => [id, url]));
   if (unique.size !== 1) reject("cake_job_link_count");
   const [[externalId, url]] = unique;
   const [, company, title] = subject!;
-  try {
-    return [parseListingInput({
-      external_id: externalId, title, company, url, canonical_url: url,
-      description: `Cake 新職缺通知摘要：${title}\n${company}`, complete: false,
-      kind: FULL_TIME.test(title) ? "full_time" : CONTRACT.test(title) ? "contract" : null,
-      extra: { language: "zh-TW" },
-    })];
-  } catch (e) {
-    if (e instanceof MailRejection) throw e;
-    return reject("contract_refused");
-  }
+  return [mailListing({
+    external_id: externalId, title, company, url, canonical_url: url,
+    description: `Cake 新職缺通知摘要：${title}\n${company}`, complete: false,
+    kind: jobKind(title, CONTRACT),
+    extra: { language: "zh-TW" },
+  })];
 }
 
 export const CAKE_SETTINGS: Omit<MailSourceSettings, "order"> = {

@@ -1,4 +1,5 @@
 import { load } from "cheerio";
+import { collapseSpaces } from "./text";
 
 /** Visible text of an HTML fragment: script and style dropped, block tags as spaces, whitespace collapsed. */
 export function htmlText(html: string): string {
@@ -8,5 +9,5 @@ export function htmlText(html: string): string {
   $("script, style").remove();
   $("p, div, li").before(" ").after(" ");
   $("br").replaceWith(" ");
-  return $.root().text().split(/\s+/u).filter(Boolean).join(" ");
+  return collapseSpaces($.root().text());
 }

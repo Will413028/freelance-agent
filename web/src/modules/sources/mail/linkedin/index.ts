@@ -1,7 +1,7 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
-import { wordsIgnoreCase } from "../kind";
-import type { MailMessage } from "../message";
-import { MailRejection, reject } from "../reasons";
+import type { ListingInput } from "@/modules/listings/public";
+import { jobKind, wordsIgnoreCase } from "../kind";
+import { mailListing, type MailMessage } from "../message";
+import { reject } from "../reasons";
 import type { MailSourceSettings } from "../../types";
 
 // LinkedIn: the English job alert's text part, read as observed (old collection/linkedin_mail.py,
@@ -12,7 +12,6 @@ import type { MailSourceSettings } from "../../types";
 // https://www.linkedin.com/jobs/view/<id>/ (the /comm/ form too), read with the standard URL parser.
 
 export const SENDER = "jobalerts-noreply@linkedin.com";
-const MAX_BODY_BYTES = 1_000_000;
 const ALERT = /^(?:(?:New|[1-9][0-9]{0,3} new) jobs match your preferences\.|A new job matches your preferences\.)$/u;
 // English only, as the old LinkedIn parser had it (no 全職: the alerts are English).
 const FULL_TIME = wordsIgnoreCase(String.raw`\bfull[ -]time\b`);
@@ -55,7 +54,6 @@ export function parseLinkedin(message: MailMessage): ListingInput[] {
   if (message.sender !== SENDER) reject("linkedin_unsupported");
   if (isAdministrativeNotice(message.subject)) return [];
   if (message.isHtml) reject("linkedin_unsupported");
-  if (Buffer.byteLength(message.body, "utf8") > MAX_BODY_BYTES) reject("body_too_large");
   const lines = message.body.split(LINE_BREAK).map(pyStrip).filter(Boolean);
   if (lines.length < 2 || !lines[0].startsWith("Your job alert for ") || !ALERT.test(lines[1])) reject("linkedin_template");
   let start = 2;
@@ -79,19 +77,13 @@ export function parseLinkedin(message: MailMessage): ListingInput[] {
     if (card.length < 3 || card.length > 10 || card.some((v) => [...v].length > 500 || v.includes("https://"))) reject("linkedin_card");
     const [id, url] = jobOf(pyStrip(line.slice("View job: ".length))) ?? reject("linkedin_job_link");
     const [title, company, location] = card;
-    let listing: ListingInput;
-    try {
-      listing = parseListingInput({
-        external_id: id, title, company, location, url, canonical_url: url,
-        description: `LinkedIn notification card only: ${title}\n${company}\n${location}`, complete: false,
-        kind: FULL_TIME.test(title) ? "full_time" : CONTRACT.test(title) ? "contract" : null,
-        compensation_evidence: UNPAID.test(title) ? "unpaid_or_equity_only" : null,
-        extra: { language: "en", remote_evidence: REMOTE.test(`${title} ${location}`) },
-      });
-    } catch (e) {
-      if (e instanceof MailRejection) throw e;
-      return reject("contract_refused");
-    }
+    const listing = mailListing({
+      external_id: id, title, company, location, url, canonical_url: url,
+      description: `LinkedIn notification card only: ${title}\n${company}\n${location}`, complete: false,
+      kind: jobKind(title, CONTRACT, FULL_TIME),
+      compensation_evidence: UNPAID.test(title) ? "unpaid_or_equity_only" : null,
+      extra: { language: "en", remote_evidence: REMOTE.test(`${title} ${location}`) },
+    });
     const known = jobs.get(id);
     if (known !== undefined && JSON.stringify(known) !== JSON.stringify(listing)) reject("linkedin_conflicting_cards");
     jobs.set(id, listing);

@@ -39,7 +39,10 @@ export type Collected = {
 
 export type Connector = (fetcher: Fetcher, now: Date) => Promise<Collected>;
 
-/** One notification as a mail parser reads it. Never logged or stored: only the listings it yields are. */
+/**
+ * One notification as a mail parser reads it, after readMessage (mail/message.ts): parsers rely on its
+ * envelope checks and body cap. Never logged or stored: only the listings it yields are.
+ */
 export type MailMessage = { id: string; sender: string; subject: string; body: string; isHtml: boolean; receivedAt: string };
 
 type BaseSettings = FetchPolicy & {

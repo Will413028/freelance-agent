@@ -1,3 +1,4 @@
+import { escapeRegExp } from "@/platform/text";
 import type { CATEGORIES as CATEGORY_NAMES } from "@/db/pg/schema";
 import { deadlineAt, type Listing } from "./listing";
 
@@ -28,7 +29,6 @@ export type Facts = {
   deadlineAt: Date | null;
 };
 
-const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const isAscii = (s: string) => /^[\x00-\x7f]*$/.test(s);
 
 export function categorize(l: Pick<Listing, "title" | "description">): { category: Category; categoryScore: number } {

@@ -3,7 +3,7 @@ import { parseListingInput, type ListingInput } from "@/modules/listings/public"
 import type { Fetcher } from "@/platform/fetch";
 import { boardUrl, pageHtml, PAGE_BYTES, PAGE_TIMEOUT_MS, readDetails, USER_AGENT } from "../shared/job-pages";
 import { codePoints } from "../shared/json";
-import { visibleLines } from "../shared/text";
+import { collapseSpaces, visibleLines } from "../shared/text";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Two PTT boards read from their public web pages (plan step 8a; old collection/ptt_soho.py and
@@ -126,7 +126,7 @@ export function parseIndex(b: Board, raw: Uint8Array, now: Date): { entries: Ent
     if (url === null) continue;
     posts++;
     if (seen.has(url)) continue;
-    const title = $(a).text().split(/\s+/u).filter(Boolean).join(" ");
+    const title = collapseSpaces($(a).text());
     if (!b.demand.test(title)) continue;
     const [, id, seconds] = b.article.exec(new URL(url).pathname) ?? [];
     const published = Number(seconds) * 1000;

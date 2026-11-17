@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Fetcher, FetchRequest } from "@/platform/fetch";
-import { readMessage } from "./message";
+import { mailListing, MAX_BODY_BYTES, readMessage } from "./message";
 import { MailRejection } from "./reasons";
 import { assertReceivingUrl, inboxAddress, ReceivingClient, senderAddress } from "./receiving";
 
@@ -92,5 +92,20 @@ describe("envelope checks", () => {
       reason(raw({ created_at: "2026-09-26" })), reason(raw({ created_at: "2026-09-26T03:00:00" })), reason(raw({ subject: null })),
       reason(raw({ html: null, text: null })), reason(raw({ to: [{}, INBOX] })),
     ]).toEqual(["id_mismatch", "sender_mismatch", "recipient_mismatch", "bad_received_at", "bad_received_at", "missing_subject_or_body", "missing_subject_or_body", "recipient_mismatch"]);
+  });
+
+  it("caps the body a parser reads in UTF-8 bytes, whichever part it is", () => {
+    const fits = "é".repeat(MAX_BODY_BYTES / 2), over = fits + "x";
+    expect([reason(raw({ html: fits })), reason(raw({ html: over })), reason(raw({ html: null, text: over })), reason(raw({ text: over }), true), reason(raw({ text: over }))])
+      .toEqual([null, "body_too_large", "body_too_large", "body_too_large", null]);
+  });
+});
+
+describe("mailListing", () => {
+  const listing = { external_id: "1", title: "t", url: "https://example.com/1", canonical_url: "https://example.com/1", description: "d", complete: false };
+
+  it("passes a listing the contract accepts and rejects the message as contract_refused otherwise", () => {
+    expect(mailListing(listing)).toMatchObject({ external_id: "1" });
+    expect(() => mailListing({ ...listing, title: "" })).toThrow(expect.objectContaining({ reason: "contract_refused" }));
   });
 });
