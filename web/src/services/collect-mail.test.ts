@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { mailCursors, mailMessages, runSources } from "@/db/pg/schema";
 import { listingBy, versionCount } from "@/modules/listings/public";
-import { sourceSettings, type MailSourceSettings } from "@/modules/sources/public";
+import { markRejected, pruneMailMessages, recordMessage, rejectedGroups, sourceSettings, type MailSourceSettings } from "@/modules/sources/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
 import { collectSource } from "./collect";
 import { collectMail, MailConfigError } from "./collect-mail";
@@ -113,9 +113,9 @@ describe("collectMail", () => {
 
   it("stops at the body limit, saves its place, and the next run reads the rest and stops at the last scan's newest", async () => {
     const mails = [5, 4, 3, 2, 1].map((n) => ({ n }));
-    const first = await collectMail(db, s, NOW, { fetcher: inbox(mails, { pageSize: 2 }).fetcher, env: ENV, limits: { maxPages: 20, maxMessages: 2 } });
+    const first = await collectMail(db, s, NOW, { fetcher: inbox(mails, { pageSize: 2 }).fetcher, env: ENV, limits: { maxPages: 20, maxMessages: 2, maxRetries: 5 } });
     expect([first.examined, first.truncated]).toEqual([2, true]);
-    const second = await collectMail(db, s, NOW, { fetcher: inbox(mails, { pageSize: 2 }).fetcher, env: ENV, limits: { maxPages: 20, maxMessages: 20 } });
+    const second = await collectMail(db, s, NOW, { fetcher: inbox(mails, { pageSize: 2 }).fetcher, env: ENV, limits: { maxPages: 20, maxMessages: 20, maxRetries: 5 } });
     expect([second.examined, second.truncated]).toEqual([3, false]);
     expect((await db.select().from(mailCursors))[0]).toMatchObject({ cursor: id(5), after: null, head: null });
     const newer = await collectMail(db, s, NOW, { fetcher: inbox([{ n: 6 }, ...mails], { pageSize: 2 }).fetcher, env: ENV });
@@ -150,5 +150,91 @@ describe("a mail source in the daily run", () => {
     const out = await runDaily(db, { now: () => NOW, sleep: async () => {}, sources: [s], collect: (d, src, now) => collectSource(d, src, now, throttled, ENV) });
     expect(out.outcome).toBe("failed");
     expect((await db.select().from(runSources)).map((r) => [r.source, r.status, r.reason, r.error, r.counts])).toEqual([["jobbank104", "failed", "http_status", "http_429", { attempts: 3 }]]);
+  });
+
+});
+
+// Plan step 7b: the dead-letter actions on rejected mail (redrive after a parser fix, dismiss, retention).
+describe("rejected mail", () => {
+  const disp = async () => (await db.select().from(mailMessages)).map((r) => [r.messageId.slice(-2), r.status, r.reason, r.disposition]).sort();
+
+  it("re-reads a message marked retry on the next run by id, replaces its outcome and clears the mark", async () => {
+    const mails = [{ n: 3 }, { n: 2, body: "<p>template changed</p>" }, { n: 1 }];
+    await collectMail(db, s, NOW, { fetcher: inbox(mails).fetcher, env: ENV });
+    expect(await markRejected(db, "jobbank104", "104_incomplete_digest", "retry")).toBe(1);
+    mails[1].body = digest("fixed"); // the parser now reads it
+    const box = inbox(mails);
+    const out = await collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV });
+    expect(box.urls.filter((u) => !u.includes("?limit"))).toEqual([`https://api.resend.com/emails/receiving/${id(2)}?html_format=cid`]);
+    expect([out.examined, out.rejected, out.stored]).toEqual([0, 0, 1]);
+    expect(await disp()).toEqual([["01", "processed", null, "none"], ["02", "processed", null, "none"], ["03", "processed", null, "none"]]);
+    expect(await listingBy(db, "jobbank104", "fixed")).not.toBeNull();
+    const again = inbox(mails);
+    await collectMail(db, s, NOW, { fetcher: again.fetcher, env: ENV });
+    expect(again.bodies()).toBe(0);
+  });
+
+  it("a re-read that still fails keeps it rejected, does not count toward the run's rejected share, and a message Resend lost is message_gone", async () => {
+    const mails = [{ n: 3, body: "<p>a</p>" }, { n: 2, body: "<p>b</p>" }, { n: 1 }, { n: 0 }];
+    await collectMail(db, s, NOW, { fetcher: inbox(mails).fetcher, env: ENV });
+    await markRejected(db, "jobbank104", "104_incomplete_digest", "retry");
+    const box = inbox([{ n: 4 }, ...mails], { fail: { [id(3)]: new FetchError("http_status", "HTTP 404", 404) } });
+    const out = await collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV });
+    expect([out.examined, out.rejected, out.reread, out.rereadRejected]).toEqual([1, 0, 2, 2]);
+    expect(await disp()).toEqual([["00", "processed", null, "none"], ["01", "processed", null, "none"], ["02", "rejected", "104_incomplete_digest", "none"],
+      ["03", "rejected", "message_gone", "none"], ["04", "processed", null, "none"]]);
+  });
+
+  it("a re-read that fails outright comes after the scan, so new mail is still read", async () => {
+    await collectMail(db, s, NOW, { fetcher: inbox([{ n: 1, body: "<p>x</p>" }]).fetcher, env: ENV }).catch(() => {});
+    await markRejected(db, "jobbank104", "104_incomplete_digest", "retry");
+    const box = inbox([{ n: 2 }, { n: 1 }], { fail: { [id(1)]: new FetchError("http_status", "HTTP 503", 503) } });
+    await expect(collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV })).rejects.toMatchObject({ status: 503 });
+    expect(await disp()).toEqual([["01", "rejected", "104_incomplete_digest", "retry"], ["02", "processed", null, "none"]]);
+  });
+
+  it("re-reads at most maxRetries per run with their own budget, the rest on the next run", async () => {
+    const mails = [5, 4, 3, 2, 1].map((n) => ({ n, body: `<p>${n}</p>` }));
+    await expect(collectMail(db, s, NOW, { fetcher: inbox(mails).fetcher, env: ENV })).rejects.toThrow(/rejected/);
+    await markRejected(db, "jobbank104", "104_incomplete_digest", "retry");
+    for (const m of mails) m.body = digest(`r${m.n}`);
+    const limits = { maxPages: 20, maxMessages: 1, maxRetries: 3 };
+    const first = inbox([{ n: 6 }, ...mails]);
+    await collectMail(db, s, NOW, { fetcher: first.fetcher, env: ENV, limits });
+    expect([first.bodies(), (await rejectedGroups(db))[0]]).toEqual([4, { source: "jobbank104", reason: "104_incomplete_digest", open: 0, retry: 2 }]);
+    await collectMail(db, s, NOW, { fetcher: inbox([{ n: 6 }, ...mails]).fetcher, env: ENV, limits });
+    expect(await rejectedGroups(db)).toEqual([]);
+  });
+
+  it("dismissed messages leave the open count and are never re-read; a normal record never overwrites one", async () => {
+    await collectMail(db, s, NOW, { fetcher: inbox([{ n: 2, body: "<p>x</p>" }, { n: 1 }]).fetcher, env: ENV });
+    expect(await rejectedGroups(db)).toEqual([{ source: "jobbank104", reason: "104_incomplete_digest", open: 1, retry: 0 }]);
+    expect(await markRejected(db, "jobbank104", "104_incomplete_digest", "dismissed")).toBe(1);
+    expect(await markRejected(db, "jobbank104", "104_incomplete_digest", "dismissed")).toBe(0);
+    expect(await markRejected(db, "jobbank104", "104_incomplete_digest", "retry")).toBe(0);
+    expect(await rejectedGroups(db)).toEqual([]);
+    await db.execute(sql`truncate mail_cursors`);
+    const box = inbox([{ n: 2, body: digest("late") }, { n: 1 }]);
+    await collectMail(db, s, NOW, { fetcher: box.fetcher, env: ENV });
+    expect([box.bodies(), await disp()]).toEqual([0, [["01", "processed", null, "none"], ["02", "rejected", "104_incomplete_digest", "dismissed"]]]);
+  });
+
+  it("a record over an existing one (a concurrent read) keeps the first outcome unless it is marked retry", async () => {
+    await collectMail(db, s, NOW, { fetcher: inbox([{ n: 2, body: "<p>x</p>" }, { n: 1 }]).fetcher, env: ENV });
+    for (const d of ["none", "dismissed"] as const) {
+      await db.update(mailMessages).set({ disposition: d });
+      await recordMessage(db, "jobbank104", ENV.inbox, id(2), { status: "processed", reason: null }, NOW);
+      expect((await disp()).find((r) => r[0] === "02")).toEqual(["02", "rejected", "104_incomplete_digest", d]);
+    }
+  });
+
+  it("prunes records last checked more than 30 days ago", async () => {
+    await collectMail(db, s, NOW, { fetcher: inbox([{ n: 1 }]).fetcher, env: ENV });
+    expect(await pruneMailMessages(db, new Date(NOW.getTime() + 30 * 86_400_000))).toBe(0);
+    expect(await pruneMailMessages(db, new Date(NOW.getTime() + 30 * 86_400_000 + 1))).toBe(1);
+    await collectMail(db, s, NOW, { fetcher: inbox([{ n: 3, body: "<p>x</p>" }, { n: 2 }]).fetcher, env: ENV });
+    await markRejected(db, "jobbank104", "104_incomplete_digest", "retry");
+    expect(await pruneMailMessages(db, new Date(NOW.getTime() + 31 * 86_400_000))).toBe(1);
+    expect(await disp()).toEqual([["03", "rejected", "104_incomplete_digest", "retry"]]);
   });
 });

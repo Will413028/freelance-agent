@@ -1,7 +1,7 @@
 import type { PgDb } from "@/db/pg/client";
 import { intakeListings, type IntakeCounts, type ListingInput } from "@/modules/listings/public";
 import {
-  inboxAddress, loadCursor, MailRejection, readMessage, ReceivingClient, recordedMessages, recordMessage, saveCursor, SourceError,
+  inboxAddress, loadCursor, MailRejection, readMessage, ReceivingClient, recordedMessages, recordMessage, retryMessages, saveCursor, SourceError,
   type MailCursor, type MailSourceSettings,
 } from "@/modules/sources/public";
 import { createFetcher, FetchError, type Fetcher } from "@/platform/fetch";
@@ -17,9 +17,14 @@ import { screen, type SourceRun } from "./source-run";
 // the retry skips what was recorded. Listings are written before their message is recorded: a crash in
 // between reads that message again next time, which finds the same fingerprints and changes nothing.
 // Message text never leaves this function: only ids, counts and reason codes.
+// After the scan, the source re-reads up to maxRetries messages marked `retry` on /sources (the dead-letter
+// redrive after a parser fix), by id and with their own request budget, so they never crowd out new mail
+// and a failing re-read never keeps new mail from being read. Their outcome replaces the old one but does
+// not count toward this run's rejected share (they are old mail, and a re-read before the fix must not fail
+// the source); the run records them as reread / rereadRejected. The rest wait for the next run.
 
-/** Per run: inbox pages listed and message bodies read (old maxPages, maxMessages). */
-export const MAIL_LIMITS = { maxPages: 20, maxMessages: 20 } as const;
+/** Per run: inbox pages listed, new message bodies read (old maxPages, maxMessages) and re-reads. */
+export const MAIL_LIMITS = { maxPages: 20, maxMessages: 20, maxRetries: 20 } as const;
 
 export type MailEnv = { key: string; inbox: string };
 
@@ -37,13 +42,13 @@ function envFromProcess(): MailEnv {
   return { key, inbox };
 }
 
-export type CollectMailOptions = { fetcher?: Fetcher; env?: MailEnv; limits?: { maxPages: number; maxMessages: number } };
+export type CollectMailOptions = { fetcher?: Fetcher; env?: MailEnv; limits?: { maxPages: number; maxMessages: number; maxRetries: number } };
 
 export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, opts: CollectMailOptions = {}): Promise<SourceRun> {
   const env = opts.env ?? envFromProcess();
   const limits = opts.limits ?? MAIL_LIMITS;
   // A full scan (every page plus every body) must fit the source's request cap, so the scan stops as truncated, never on request_limit.
-  if (limits.maxPages + limits.maxMessages > s.maxRequestsPerRun) throw new Error(`${s.name}: mail limits exceed maxRequestsPerRun`);
+  if (limits.maxPages + limits.maxMessages + limits.maxRetries > s.maxRequestsPerRun) throw new Error(`${s.name}: mail limits exceed maxRequestsPerRun`);
   let inbox: string;
   try {
     inbox = inboxAddress(env.inbox);
@@ -56,15 +61,16 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
   const intake: IntakeCounts = { inserted: 0, updated: 0, unchanged: 0, versioned: 0 };
   /** Listings written this run by id: two digests can name the same job; the later content counts once. */
   const written = new Map<string, ListingInput>();
-  let seen = 0, pages = 0, reads = 0, rejected = 0, complete = false, interrupted = false;
+  let seen = 0, pages = 0, reads = 0, rejected = 0, reread = 0, rereadRejected = 0, complete = false, interrupted = false;
 
-  const handle = async (id: string) => {
+  const handle = async (id: string, again = false) => {
     let listings: ListingInput[];
     try {
       let raw: Record<string, unknown>;
       try {
-        raw = await client.message(id);
+        raw = await (again ? client.recorded(id) : client.message(id));
       } catch (e) {
+        if (again && e instanceof FetchError && e.kind === "http_status" && e.status === 404) throw new MailRejection("message_gone");
         // A transient failure is retried by the daily run; one message Resend cannot serve readably is
         // rejected and recorded, so it never blocks the newer mail behind it.
         if (e instanceof FetchError && e.transient) throw e;
@@ -76,7 +82,7 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
     } catch (e) {
       if (!(e instanceof MailRejection)) throw e;
       await recordMessage(db, s.name, inbox, id, { status: "rejected", reason: e.reason }, now);
-      rejected++;
+      if (again) rereadRejected++; else rejected++;
       return;
     }
     const got = await intakeListings(db, s.name, listings, "mail", now);
@@ -112,11 +118,15 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
   } finally {
     await saveCursor(db, s.name, inbox, c);
   }
+  for (const id of await retryMessages(db, s.name, inbox, limits.maxRetries)) {
+    reread++;
+    await handle(id, true);
+  }
   // Most messages read this run refused: the template changed, the source failed (same rule as set-aside listings).
   if (rejected * 2 > reads) throw new SourceError(`${s.name}: ${rejected} of ${reads} messages rejected`);
   const jobIds = screen([...written.values()], now).map((l) => l.external_id);
   return {
     source: s.name, seen, stored: written.size, jobs: jobIds.length, jobIds, requests: f.requests, intake,
-    externalIds: [...written.keys()], truncated: !complete, rejected, examined: reads,
+    externalIds: [...written.keys()], truncated: !complete, rejected, examined: reads, reread, rereadRejected,
   };
 }

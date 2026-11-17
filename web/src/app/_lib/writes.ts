@@ -1,6 +1,6 @@
 import type { PgDb } from "@/db/pg/client";
 import type { FeedbackState, Settings } from "@/modules/evaluation/public";
-import { writeFeedback, writeSettings } from "@/services/pages";
+import { writeFeedback, writeMailDisposition, writeSettings } from "@/services/pages";
 import { Conflict, InvalidAction, InvalidSettings, NotFound } from "@/platform/errors";
 import { guardedForm, messagePage, NO_STORE, safePath } from "./guard";
 
@@ -12,7 +12,8 @@ import { guardedForm, messagePage, NO_STORE, safePath } from "./guard";
 export type WriteDeps = { db: () => PgDb; now: () => Date };
 
 /** The notice codes a write sends back; the page maps each to its text (never free text from the URL). */
-export const NOTICES = { saved: "已加入收藏", unsaved: "已取消收藏", skipped: "已略過", restored: "已恢復待看", settings: "篩選設定已儲存，清單會依新設定排序" } as const;
+export const NOTICES = { saved: "已加入收藏", unsaved: "已取消收藏", skipped: "已略過", restored: "已恢復待看", settings: "篩選設定已儲存，清單會依新設定排序",
+  retried: "已排入下次每日收案重讀", dismissed: "已略過這類被拒的信", unchanged: "沒有可變更的信（可能已處理過）" } as const;
 export type Notice = keyof typeof NOTICES;
 
 /** The buttons a page shows: the feedback each one saves and the notice it answers with. */
@@ -41,6 +42,14 @@ export async function handleSettings(request: Request, deps: WriteDeps): Promise
     };
     await writeSettings(deps.db(), integer(form.get("revision") ?? "", "設定版本"), settings);
     return seeOther(back, "settings");
+  });
+}
+
+/** /sources/retry and /sources/dismiss: one source's rejected mail of one reason, re-read next run or dismissed. */
+export async function handleMailDisposition(request: Request, disposition: "retry" | "dismissed", deps: WriteDeps): Promise<Response> {
+  return write(request, deps, async (form, back) => {
+    const changed = await writeMailDisposition(deps.db(), form.get("source") ?? "", form.get("reason") ?? "", disposition);
+    return seeOther(back, changed === 0 ? "unchanged" : disposition === "retry" ? "retried" : "dismissed");
   });
 }
 

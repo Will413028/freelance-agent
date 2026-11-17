@@ -189,5 +189,5 @@ export function parseTalent(message: MailMessage): ListingInput[] {
 export const TALENT_SETTINGS: Omit<MailSourceSettings, "order"> = {
   kind: "mail", name: "talent", label: "Talent.com", sender: SENDER, subjectGate: isAlertSubject, parse: parseTalent, preferText: false,
   // One page of the inbox list per request; bodies only for new alerts.
-  maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 45, completeRead: false, disabled: null,
+  maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 60, completeRead: false, disabled: null,
 };

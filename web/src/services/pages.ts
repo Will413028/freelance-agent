@@ -3,9 +3,9 @@ import { CATEGORIES } from "@/db/pg/schema";
 import { evaluate, PAGE_SIZE, rankedPage, readSettings, recommend, VIEWS, type Content, type FeedbackState, type Settings, type View } from "@/modules/evaluation/public";
 import { listingOfRow, readShown, type ListingRow, type Shown, type VersionRow } from "@/modules/listings/public";
 import { lastSourceOkAt, latestRuns } from "@/modules/runs/public";
-import { SOURCES, sourceLabel } from "@/modules/sources/public";
+import { FINAL_REASONS, isReasonOf, markRejected, rejectedGroups, SOURCES, sourceLabel, type MailDisposition } from "@/modules/sources/public";
 import { feedbackToken, saveSettings, setFeedback } from "@/modules/review/public";
-import { NotFound } from "@/platform/errors";
+import { InvalidAction, NotFound } from "@/platform/errors";
 
 // What the pages render (plan step 3c): typed views with only the fields a page shows. Pages output
 // rendered HTML only, so these views are the whitelist; nothing else of a record leaves the server.
@@ -163,11 +163,13 @@ export type SourcesView = {
   stale: StaleRun;
   lastRun: { localDate: string; status: string; reason: string | null; startedAt: string; finishedAt: string | null; pruned: number | null; listMs: number | null; listSlow: boolean } | null;
   sources: SourceRow[];
+  /** Rejected mail by source and reason (the dead-letter view): open, and waiting for a re-read. */
+  rejectedMail: { source: string; name: string; reason: string; open: number; retry: number; canRetry: boolean }[];
 };
 
 /** Source health and the latest daily run of the new system (plan step 6): reads runs and run_sources. */
 export async function sourcesPage(db: PgDb, now: Date): Promise<SourcesView> {
-  const [{ run, sources }, stale] = await Promise.all([latestRuns(db), runStale(db, now)]);
+  const [{ run, sources }, stale, rejected] = await Promise.all([latestRuns(db), runStale(db, now), rejectedGroups(db)]);
   const bySource = new Map(sources.map((r) => [r.source, r]));
   const num = (v: unknown) => (typeof v === "number" ? v : null);
   const listMs = run ? num(run.counts.listMs) : null;
@@ -184,5 +186,13 @@ export async function sourcesPage(db: PgDb, now: Date): Promise<SourcesView> {
         latest: r ? { localDate: r.localDate, status: r.status, reason: r.reason, counts: r.counts as Record<string, Plain>, finishedAt: r.finishedAt?.toISOString() ?? null } : null,
       };
     }),
+    rejectedMail: rejected.map((g) => ({ ...g, name: sourceLabel(g.source), canRetry: !(FINAL_REASONS as readonly string[]).includes(g.reason) })),
   };
+}
+
+/** Marks a mail source's rejected messages of one reason for a re-read or as dismissed (the /sources writes). */
+export async function writeMailDisposition(db: PgDb, source: string, reason: string, disposition: MailDisposition): Promise<number> {
+  if (!SOURCES.some((s) => s.name === source && s.kind === "mail") || !isReasonOf(source, reason)) throw new InvalidAction("來源或原因代碼不符");
+  if (disposition === "retry" && FINAL_REASONS.includes(reason)) throw new InvalidAction("這類被拒的信無法重讀");
+  return markRejected(db, source, reason, disposition);
 }

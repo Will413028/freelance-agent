@@ -21,6 +21,8 @@ export const ENVELOPE_REASONS = [
   "html_too_deep",
   /** A listing the parser produced was refused by the listing contract. */
   "contract_refused",
+  /** A message marked for a re-read that Resend no longer has (HTTP 404). */
+  "message_gone",
 ] as const;
 
 export const JOBBANK104_REASONS = [
@@ -128,6 +130,15 @@ export const LINKEDIN_REASONS = [
 ] as const;
 
 export type MailReason = (typeof ENVELOPE_REASONS)[number] | (typeof JOBBANK104_REASONS)[number] | (typeof TASKER_REASONS)[number] | (typeof CAKE_REASONS)[number] | (typeof TALENT_REASONS)[number] | (typeof GLASSDOOR_REASONS)[number] | (typeof LINKEDIN_REASONS)[number];
+
+const SOURCE_REASONS: Record<string, readonly string[]> = {
+  jobbank104: JOBBANK104_REASONS, tasker: TASKER_REASONS, cake: CAKE_REASONS, talent: TALENT_REASONS, glassdoor: GLASSDOOR_REASONS, linkedin: LINKEDIN_REASONS,
+};
+/** Whether `reason` is a code mail source `source` can record: an envelope code or one of its parser's. */
+export const isReasonOf = (source: string, reason: string): reason is MailReason =>
+  Object.hasOwn(SOURCE_REASONS, source) && ((ENVELOPE_REASONS as readonly string[]).includes(reason) || SOURCE_REASONS[source].includes(reason));
+/** Rejections a re-read cannot change: the message is no longer at Resend. */
+export const FINAL_REASONS: readonly MailReason[] = ["message_gone"];
 
 export class MailRejection extends Error {
   constructor(readonly reason: MailReason) {
