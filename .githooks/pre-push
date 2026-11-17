@@ -2,18 +2,23 @@
 # Secret scan of the commits being pushed (origin is a PUBLIC repository; a pushed secret is out for good).
 # Enable once per clone: git config core.hooksPath .githooks
 # Fails closed: no gitleaks, no push (install it, e.g. `brew install gitleaks`). Scans only the commits
-# the remote does not have yet (a full-history scan takes about a minute); .gitleaks.toml applies.
+# the target remote does not have yet when that is known, else the full reachable history (about a minute); .gitleaks.toml applies.
 set -euo pipefail
 zero=0000000000000000000000000000000000000000
 command -v gitleaks >/dev/null || { echo "pre-push: gitleaks not found; install it, the push is blocked" >&2; exit 1; }
 root=$(git rev-parse --show-toplevel)
-# $1 is the remote's name, or its URL when pushing to a URL; a URL names no remote-tracking refs, so a new branch
-# is then scanned against every remote-tracking ref (else --remotes=<url> matches nothing: a full-history scan).
-if [[ -n ${1:-} ]] && git remote | grep -xF -- "$1" >/dev/null; then not_remote="--remotes=$1"; else not_remote="--remotes"; fi
+# $1 is the remote's name, or its URL when pushing to a URL. A new branch skips only commits the PUSH TARGET already
+# has (its remote-tracking refs): a commit on another remote (a fork, a mirror) was never checked by this hook for this
+# target, so it is not taken as scanned. With a URL, or a remote that has no remote-tracking refs yet (first push),
+# nothing is known to be there: the full history reachable from the pushed commit is scanned (slower, complete).
+not_target=""
+if [[ -n ${1:-} ]] && git remote | grep -xF -- "$1" >/dev/null && [[ -n $(git for-each-ref --count=1 "refs/remotes/$1/") ]]; then
+  not_target=" --not --remotes=$1"
+fi
 while read -r local_ref local_sha remote_ref remote_sha; do
   [[ $local_sha == "$zero" ]] && continue # deleting a remote branch pushes no content
   if [[ $remote_sha == "$zero" ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
-    range="$local_sha --not $not_remote" # new branch: whatever no remote-tracking ref already has
+    range="$local_sha$not_target" # new branch: whatever the target remote does not already have
   else
     range="$remote_sha..$local_sha"
   fi
