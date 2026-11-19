@@ -217,7 +217,7 @@
 - [ ] **12. 收尾**（被擋於：步驟 5c、7b、8、10、11）：完成定義逐來源核對（每個來源一列的核對表放附件）；獨立設計審查（design-review，材料是 `0f38208` 到收尾的 diff）；長期檢查在 CI（兩個方言只剩一個的 schema 漂移檢查、id 規則的 fixture、`deploy/check-compose.mjs`）；延後項附觸發條件搬回主清單；需要人做的事列給 Will；D0–D5 寫成 `docs/adr/` 的新 ADR 並把 2026-10-23 的 ADR 標成被取代；`docs/implementation-plan.md` 與 `docs/design.md` 改寫（`design.md` 仍描述舊系統，步驟 11 加入）；`legacy-time.ts` 與 parsedate 的 Python 語意換標準解析器（`inventory.md` 機制表）。驗收：核對表每個來源每項都有證據連結；`check-deleted.sh` 與殘留檢查 exit 0；CI 綠；審查發現都有處置。
   - 拆分（2026-11-19；一個 session 做不完，拆成各有驗收的子步驟，依序做；12d 要在 12e 之前，因為審查材料要含它的 diff）：
     - **12a 帳目對齊與逐來源核對表**（被擋於：11-20 每日執行的確認，見步驟 5 的「2026-11-19 修正」）：進度表第 5、7、11 列改成與各步驟段一致（5c、7b 的完成紀錄已在段內，步驟 11 的映像大小已量：VM `docker image ls` 刪除前 1.84 GB（`bcd7510`）、刪除後 1.47 GB（`cb852fb`））；勾選框補齊；新增附件 `source-checklist.md`，`catalog.ts` 每個來源一列（含停用的，寫停用原因），欄位是完成定義的六項，每格是證據連結（檔案路徑、PR、`runs` id）；附件目錄加一支一次性檢查腳本，核對表的來源集合等於 `catalog.ts`、沒有空格。驗收：腳本 exit 0；mutation：刪一格或多一個 catalog 來源，腳本要失敗。
-    - **12b ADR**：`docs/adr/` 新增一份 ADR 收 D0–D5（D0 方向：自建、Postgres、只走 Tailscale；D1 備份；D2 信件來源；D3 接哪些平台；D4／D4a 上層讀取工具；D5 回滾窗口；以決定表原文為準），2026-10-23 那份標成「被取代」並指向新的；決定表的 D0–D5 改成只留結論與指向。驗收：`rg -n "Superseded|被取代" docs/adr` 命中舊 ADR；新 ADR 每個決定都有被推翻的選項與理由。
+    - [x] **12b ADR**（完成 2026-11-19）：`docs/adr/` 新增一份 ADR 收 D0–D5（D0 方向：自建、Postgres、只走 Tailscale；D1 備份；D2 信件來源；D3 接哪些平台；D4／D4a 上層讀取工具；D5 回滾窗口；以決定表原文為準），2026-10-23 那份標成「被取代」並指向新的；決定表的 D0–D5 改成只留結論與指向。驗收：`rg -n "Superseded|被取代" docs/adr` 命中舊 ADR；新 ADR 每個決定都有被推翻的選項與理由。
     - **12c 文件改寫**：`docs/design.md` 改成描述現行系統（模組、資料表、每日執行、分層讀取、信件 dead-letter），`docs/implementation-plan.md` 改成現況與待辦；舊系統的段落刪除，不保留成歷史（歷史在計畫與 git）。驗收：`rg -n "Vercel|D1|workflow|Python|platform/py" docs/design.md docs/implementation-plan.md` 每個命中都是寫明的歷史指向或退役紀錄；文件提到的每個路徑都存在（附件腳本或一行 `rg` 檢查）。
     - **12d 換掉 Python 時間語意**（feature playbook）：`web/src/modules/listings/legacy-time.ts`、`web/src/modules/sources/shared/time.ts` 改用標準解析（ISO 8601 用 `Date`／Temporal 等價、RFC 2822 用標準格式），`parsedate.fixtures.json` 只留各來源 fixture 裡實際出現的格式（逐一列出從哪個來源來的）；無時區照現行規則不當 UTC。消費端：`rg -n "legacy-time|parseDate|fromIsoFormat|parsedate" web/src`。驗收：`pnpm check`、`pnpm build` 綠；每個來源的 fixture 預期輸出不變（變了逐案寫理由）；mutation：無時區改成當 UTC、RFC 2822 時區偏移拿掉，測試要失敗；`inventory.md` 該列去向改成完成。
     - **12e 長期檢查與設計審查**：確認 `db:check`、id 規則 fixture、`deploy/check-compose.mjs`、`check-deleted.sh`、`check-residue.sh` 都在 CI 跑（附 workflow 行號）；design-review 材料是 `0f38208..` 收尾時的 diff，發現逐項處置（改、記、交 Will）。驗收：CI 綠；兩支檢查 exit 0；每個發現有處置。
@@ -226,7 +226,7 @@
 ## 決定
 
 - **D0 方向**（狀態：已決 2026-11-15，Will；擋住步驟：全部）
-  - 結論：資料庫用 Postgres；提案、核准、投案功能不要了；infra 全自建在 Oracle VM；網頁只走 Tailscale；遇到存取驗證不停，只讀不用登入的公開頁面；目標平台是 PTT 加其餘未接平台的評估結果。Will 的原話在 `requirements.md` 開頭。這推翻 2026-10-23 ADR「離開 VM」與舊計畫 D19（D1）、D12（PTT 停用），步驟 12 寫成新的 ADR。
+  - 結論：資料庫用 Postgres；提案、核准、投案功能不要了；infra 全自建在 Oracle VM；網頁只走 Tailscale；遇到存取驗證不停，只讀不用登入的公開頁面；目標平台是 PTT 加其餘未接平台的評估結果。Will 的原話在 `requirements.md` 開頭。這推翻 2026-10-23 ADR「離開 VM」與舊計畫 D19（D1）、D12（PTT 停用）。D0–D5 與 D4a 的 ADR：`docs/adr/2026-11-15-self-hosted-vm-postgres-tailscale.md`（12b），舊 ADR 已標成被取代。
 - **D1 備份**（狀態：已決 2026-11-15，Will：「不需要備份」；擋住步驟：無）
   - 結論：不做備份，也不做還原演練。VM 的磁碟損毀或資料庫被誤刪時，職缺會由之後的每日執行重新收到，回饋、設定、信件紀錄與執行歷史不會回來。否決：送到另一台自己的機器、送到物件儲存、只留本機副本。
 - **D2 信件來源怎麼收**（狀態：已決 2026-11-15，Will：「信件繼續用 Resend」；擋住步驟：無）
@@ -234,15 +234,9 @@
 - **D3 步驟 8 要接哪些平台**（狀態：已決 2026-11-15，Will 照建議；擋住步驟：無；事實：`spikes.md` 第 2 節）
   - 結論：接一般請求就讀得到的 PTT SOHO、PTT CodeJob、Arc、Web3.career、Wellfound、Remote.com Jobs、YC Jobs，以及模仿瀏覽器連線特徵（第 2 層）讀得到的 Remote.co。不接：Reddit r/forhire（官方政策要求 API 核准）、Upwork（服務條款禁止爬取，推論）。只有瀏覽器讀得到的五個平台（2026-11-17 Will 點選）：接 Idealist、Braintrust、Glassdoor、Turing，不接打工探吉；其餘平台照 `spikes.md` 是範圍外或都沒過，放「延後」的觸發條件。
 - **D4 上層讀取用哪個工具**（狀態：已決 2026-11-15，Will 照建議選 A；擋住步驟：無；事實：`spikes.md` 第 2 節：Crawlee 過的平台比 Scrapling 多一個（Glassdoor），峰值 484 MiB 低於 Scrapling 的 406–734 MiB）
-  - A：Crawlee 加 Playwright——單一語言。兩者過關率相近時選它。（預設建議）
-  - B：Scrapling 包成 VM 上獨立的小服務（給網址、回內容）——多一個 Python 容器；只在它明顯過得多時選。
-  - C：只做到第 2 層——不裝瀏覽器，最省資源；需要瀏覽器的平台放棄。
+  - 結論：A，Crawlee 加 Playwright。選項與取捨見 ADR `docs/adr/2026-11-15-self-hosted-vm-postgres-tailscale.md`。
 - **D4a 第 2 層的工具要不要換成 curl_cffi 系**（狀態：已決 2026-11-19，照 Will 2026-11-17 預先定的規則：第 2 天被擋，不做服務，維持 impit，Remote.co 列入延後；擋住步驟：Remote.co 能不能接；事實：上面 8c 的 VM 實測；8d-2（2026-11-17）：瀏覽器層從 VM 也被 Akamai 擋，A 案的「Remote.co 走瀏覽器層」不成立）
-  - 驗證順序（Will 2026-11-17）：先在 VM 用暫時容器跑 curl_cffi 0.17.0，連 3 天各讀一次 Remote.co 列表（Chrome、Firefox 指紋各一個請求），3 天都過才做 C（照 8d-1 的做法包成只對 `daily` 開放的小服務），有一天被擋就把 Remote.co 寫進「延後」、不做服務。第 1 天 2026-11-17 06:11（台北）：兩種指紋都 200、49 筆、沒有挑戰頁；第 2、3 天由 VM 上的一次性 systemd timer 在 11-18、11-19 10:00 跑，結果在 VM `/var/tmp/fa8d-remoteco/results.log`（只有狀態、位元組數、筆數），量完刪掉該目錄。
-  - 結果（2026-11-19 讀 VM `results.log`，之後已刪目錄；兩個一次性 timer 已不在 `systemctl list-timers --all`）：11-17 06:11 Chrome、Firefox 都 200、49 筆；11-18 10:00 Chrome 403（523 位元組）、Firefox 200 但是挑戰頁（2599 位元組、0 筆）；11-19 10:00 兩者都 200、49 筆。3 天不是都過，照規則走「延後」。
-  - A：維持 impit，Remote.co 走 8d 的瀏覽器層（單一語言，瀏覽器較吃記憶體）。8d-2 量測：瀏覽器層也被擋，A 等於不接 Remote.co。
-  - B：Node 綁 curl-impersonate 的套件（仍單一語言，套件成熟度要另查）。
-  - C：Python curl_cffi 或 Scrapling 包成 VM 上的小服務（多一個 Python 容器，D4 的 B 案）。
+  - 結論：維持 impit，不做 curl_cffi 服務，Remote.co 列入延後（VM 量測 11-17 過、11-18 Chrome 403／Firefox 挑戰頁、11-19 過；3 天不是都過）。選項與取捨見同一份 ADR。
 - **D5 切換後的回滾窗口**（狀態：已決 2026-11-15，Will：「切換後不留」；擋住步驟：無）
   - 結論：不留回滾窗口。步驟 10 隔天的自然執行驗收通過，當天就退役 Vercel 專案與 D1；之後出問題只能往前修。否決：7 天、14 天。
 
@@ -295,4 +289,4 @@
 | 9 營運 | 完成 | `deploy/test-deploy.mjs` 7 個情境（健康部署、分支名解析成 origin、build／migration 失敗不動、不健康回滾、重建失敗回滾、回滾也不健康、健康狀態卡住逾時）以 stub `docker`／`git`／`flock` 通過並接進 `pnpm check`；mutation 8 個都被擋；`shellcheck` 無警告；`/code-review` 10 項：修 9、接受 1（腳本用目前 checkout 的版本，改 `deploy.sh` 從下一次部署生效，已寫進 `docs/operations.md`）；compose 的 `web`、`daily` 早已只用 `${APP_IMAGE}`（步驟 2），本步不用改 ；VM 演練（2026-11-15 Will 授權）：先以 `deploy.sh` 部署本 PR `28d7d8f`（healthy）；演練 A `/healthz` 故意失敗的 commit `094eb27`：`web unhealthy` → `rolled back to side-income-web:28d7d8f`，exit 1，前後 `APP_IMAGE` 都是 `28d7d8f`、checkout 回 `28d7d8f`、`/healthz` 200；演練 B 先建表再除以零的 migration（`b6b0ce7`）：`division by zero` → `migration failed; side-income-web:28d7d8f keeps serving`，exit 1，`web` 容器 id 前後相同仍 healthy、`drill_probe` 不存在、`__drizzle_migrations` 仍 2 列（整批交易回滾）；演練分支與映像已刪 | `flock` 的互斥沒有在 VM 上實測兩個並行部署 | `28d7d8f`（PR #36）、本 commit |
 | 10 搬移、切換與退役 | 完成 | 第 1–4 小步；11-17 手動（timer）與 11-18 自然執行各一列 `runs`、29／29 與 34／34 來源 ok、7 分 7 秒與 6 分 44 秒、重複 0 筆、四種檢視有資料、回饋與 409；退役後各清單查無 | 執行中常駐容器峰值沒量（執行後 0.3 GB） | PR #58、#59、本 PR |
 | 11 刪舊機制 | 程式完成待驗收 | 刪 177 檔、約 35.8 萬行（含 33 MB `golden.json`）；新系統還接舊碼的三處改寫：`withPageLog` 搬成 `app/_lib/page-log.ts`、`platform/errors.ts` 改原生類別、來源顯示名稱改成 catalog 每筆的 `label`（D23 只列了第一處；另兩處是 `pages.ts` 的 `REGISTRY` 與錯誤類別繼承 `PyError`）；golden 最後的 parsedate 70 例搬成 `sources/shared/parsedate.fixtures.json`。`pnpm check` 綠（274 過、1 略過）、`pnpm build` 綠（路由不再有 `/api/cron`）；`check-deleted.sh` 在 origin/dev 失敗（red-proof `--rev`）、本分支 53 路徑 21 表 OK；殘留檢查 48 檔全在 `allowed-residue.md`；兩者進 CI。red-proof：label、頁面顯示名稱、錯誤名稱、409 狀態 4 個 mutant 全擋。design-review 5 項（should 2：改 1、記 1；nit 3 駁回）；`/code-review` 9 項全改；第 2 輪 0 缺陷、1 nit 接受 | 映像大小前後：CI 的 `image` job 印出刪除後大小；刪除前的大小要在 VM 上讀 `side-income-web:bcd7510`（動 VM 先問 Will，未量） | 本 PR |
-| 12 收尾 | 未開始 | | | |
+| 12 收尾 | 進行中（12b 完成） | 12b：`rg -n "Superseded|被取代" docs/adr` 命中舊 ADR 的狀態列與段首說明；新 ADR 的 D0–D5、D4a 各有被否決的選項與理由；決定表 D4、D4a 改成只留結論與指向 | 12a 等 11-20 每日執行確認；12c–12f 未開始 | 本 PR |
