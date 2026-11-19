@@ -4,11 +4,13 @@ project: freelance-agent
 date: 2026-10-23
 review-date: 2027-01-23
 last-reviewed:
-status: active
+status: superseded-by: docs/adr/2026-11-15-self-hosted-vm-postgres-tailscale.md
 tags: [freelance-agent, decision, architecture, deployment]
 ---
 
 # Rewrite freelance-agent as a Next.js full-stack TypeScript app on Vercel and Neon, leaving the VM
+
+> Superseded on 2026-11-15 by `docs/adr/2026-11-15-self-hosted-vm-postgres-tailscale.md`: the app moved back to the VM with Postgres behind Tailscale, and Vercel and D1 were retired on 2026-11-18.
 
 ## Context
 
