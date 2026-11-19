@@ -15,7 +15,10 @@ import { pyRstrip, pyStrip, visibleLines } from "../shared/text";
 // source's own rule keeps remote contract listings published in the last 90 days.
 
 export const ENDPOINT = "https://www.arbeitnow.com/api/job-board-api";
-const MAX_BYTES = 8_000_000;
+// A resource bound per page. A few listings embed inline images in their description (VM 2026-11-19:
+// page 1 was 9.57 MB, three ~2.4 MB data:image descriptions, the rest 2.1 MB); those listings are set
+// aside by the 200 000-character description limit, but the page holding them must still be read.
+const MAX_BYTES = 32_000_000;
 /** A resource bound, not the provider's page size. */
 export const MAX_PAGE_ENTRIES = 10_000;
 /** The old scan's default page cap (old arbeitnow.ts:146): the requests of one run. */
