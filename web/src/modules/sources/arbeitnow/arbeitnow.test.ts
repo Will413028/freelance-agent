@@ -42,7 +42,9 @@ function site(pages: Record<string, [number, string]>): Fetcher & { urls: string
       const page = pages[req.url];
       if (!page) throw new FetchError("network", "no such page");
       if (page[0] !== 200) throw new FetchError("http_status", `HTTP ${page[0]}`, page[0]);
-      return { status: 200, body: enc(page[1]), tier: "plain" };
+      const body = enc(page[1]);
+      if (body.length > req.maxBytes) throw new FetchError("too_large", `body over ${req.maxBytes} bytes`);
+      return { status: 200, body, tier: "plain" };
     },
   };
 }
@@ -107,6 +109,18 @@ describe("arbeitnow connector", () => {
       job({ slug: "f", url: "https://www.arbeitnow.com/jobs/companies/acme/f", job_types: ["Freelance"] })];
     const got = await arbeitnowConnector(site({ [ENDPOINT]: [200, JSON.stringify(pageOf(data, 1, null, 6))] }), NOW);
     expect([got.seen, got.listings.filter(got.sourceKept).map((l) => l.external_id)]).toEqual([6, ["ai-agent-123", "f"]]);
+  });
+
+  it("reads a page made large by inline images in a few descriptions, setting those listings aside", async () => {
+    // VM 2026-11-19: page 1 was 9.57 MB, three descriptions each embedding a ~2.4 MB data:image (the
+    // other 297 listings 2.1 MB). The old 8 MB page cap failed the whole source.
+    const image = `<img src="data:image/png;base64,${"A".repeat(2_400_000)}">`;
+    const data = [job(), ...["x", "y", "z"].map((slug) => job({ slug, url: `https://www.arbeitnow.com/jobs/companies/acme/${slug}`, description: `<p>Role</p>${image}` })),
+      ...Array.from({ length: 296 }, (_, i) => job({ slug: `n${i}`, url: `https://www.arbeitnow.com/jobs/companies/acme/n${i}`, description: `<p>${"Text ".repeat(1400)}</p>` }))];
+    const body = JSON.stringify(pageOf(data, 1, null, 300));
+    expect(body.length).toBeGreaterThan(9_000_000);
+    const got = await scan(site({ [ENDPOINT]: [200, body] }));
+    expect([got.seen, got.rejected, got.listings.length]).toEqual([300, 3, 297]);
   });
 
   it("reads the pages in order, pinned to the endpoint, and keeps a job listed twice with the same content once", async () => {
