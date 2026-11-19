@@ -215,6 +215,13 @@
   - 需要人做的事：無。
   - 驗收：`inventory.md` 的路徑先統一成 repo 相對路徑，標「改寫」而舊檔要刪的列補上舊檔路徑；`check-deleted.sh` exit 0（先確認它在刪除前會失敗）；`web/.dependency-cruiser.cjs`（修改）沒有指向已刪目錄的規則；上面的搜尋結果交給 `check_inventory.py --residue`，只剩 `allowed-residue.md` 列的命中；`pnpm check` 綠；映像大小記錄前後。
 - [ ] **12. 收尾**（被擋於：步驟 5c、7b、8、10、11）：完成定義逐來源核對（每個來源一列的核對表放附件）；獨立設計審查（design-review，材料是 `0f38208` 到收尾的 diff）；長期檢查在 CI（兩個方言只剩一個的 schema 漂移檢查、id 規則的 fixture、`deploy/check-compose.mjs`）；延後項附觸發條件搬回主清單；需要人做的事列給 Will；D0–D5 寫成 `docs/adr/` 的新 ADR 並把 2026-10-23 的 ADR 標成被取代；`docs/implementation-plan.md` 與 `docs/design.md` 改寫（`design.md` 仍描述舊系統，步驟 11 加入）；`legacy-time.ts` 與 parsedate 的 Python 語意換標準解析器（`inventory.md` 機制表）。驗收：核對表每個來源每項都有證據連結；`check-deleted.sh` 與殘留檢查 exit 0；CI 綠；審查發現都有處置。
+  - 拆分（2026-11-19；一個 session 做不完，拆成各有驗收的子步驟，依序做；12d 要在 12e 之前，因為審查材料要含它的 diff）：
+    - **12a 帳目對齊與逐來源核對表**（被擋於：11-20 每日執行的確認，見步驟 5 的「2026-11-19 修正」）：進度表第 5、7、11 列改成與各步驟段一致（5c、7b 的完成紀錄已在段內，步驟 11 的映像大小已量：VM `docker image ls` 刪除前 1.84 GB（`bcd7510`）、刪除後 1.47 GB（`cb852fb`））；勾選框補齊；新增附件 `source-checklist.md`，`catalog.ts` 每個來源一列（含停用的，寫停用原因），欄位是完成定義的六項，每格是證據連結（檔案路徑、PR、`runs` id）；附件目錄加一支一次性檢查腳本，核對表的來源集合等於 `catalog.ts`、沒有空格。驗收：腳本 exit 0；mutation：刪一格或多一個 catalog 來源，腳本要失敗。
+    - **12b ADR**：`docs/adr/` 新增一份 ADR 收 D0–D5（D0 方向：自建、Postgres、只走 Tailscale；D1 備份；D2 信件來源；D3 接哪些平台；D4／D4a 上層讀取工具；D5 回滾窗口；以決定表原文為準），2026-10-23 那份標成「被取代」並指向新的；決定表的 D0–D5 改成只留結論與指向。驗收：`rg -n "Superseded|被取代" docs/adr` 命中舊 ADR；新 ADR 每個決定都有被推翻的選項與理由。
+    - **12c 文件改寫**：`docs/design.md` 改成描述現行系統（模組、資料表、每日執行、分層讀取、信件 dead-letter），`docs/implementation-plan.md` 改成現況與待辦；舊系統的段落刪除，不保留成歷史（歷史在計畫與 git）。驗收：`rg -n "Vercel|D1|workflow|Python|platform/py" docs/design.md docs/implementation-plan.md` 每個命中都是寫明的歷史指向或退役紀錄；文件提到的每個路徑都存在（附件腳本或一行 `rg` 檢查）。
+    - **12d 換掉 Python 時間語意**（feature playbook）：`web/src/modules/listings/legacy-time.ts`、`web/src/modules/sources/shared/time.ts` 改用標準解析（ISO 8601 用 `Date`／Temporal 等價、RFC 2822 用標準格式），`parsedate.fixtures.json` 只留各來源 fixture 裡實際出現的格式（逐一列出從哪個來源來的）；無時區照現行規則不當 UTC。消費端：`rg -n "legacy-time|parseDate|fromIsoFormat|parsedate" web/src`。驗收：`pnpm check`、`pnpm build` 綠；每個來源的 fixture 預期輸出不變（變了逐案寫理由）；mutation：無時區改成當 UTC、RFC 2822 時區偏移拿掉，測試要失敗；`inventory.md` 該列去向改成完成。
+    - **12e 長期檢查與設計審查**：確認 `db:check`、id 規則 fixture、`deploy/check-compose.mjs`、`check-deleted.sh`、`check-residue.sh` 都在 CI 跑（附 workflow 行號）；design-review 材料是 `0f38208..` 收尾時的 diff，發現逐項處置（改、記、交 Will）。驗收：CI 綠；兩支檢查 exit 0；每個發現有處置。
+    - **12f 收尾交付**：「延後」各項附觸發條件搬回主清單（位置見本機個人脈絡檔）；需要 Will 做的事列成清單（含 `freelance-agent-spike-1f` Vercel 專案、D1 token、舊 Resend key 的撤銷，以及 D25 的 Resend 保留期實測：被拒的信滿 14 天後 retrieve 一次）；附件裡的決定併入正式位置；計畫標成完成。驗收：主清單有每個延後項；計畫目錄沒有留下的 `decisions/`。
 
 ## 決定
 
