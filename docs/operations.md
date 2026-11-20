@@ -48,7 +48,7 @@ SQL 在 `web/drizzle-pg/`，由 `migrate-pg`（`web/scripts/migrate-pg.ts`）套
 | 已經從來源下架的職缺、職缺的歷史版本 | 不會 |
 | 回饋（儲存／略過）、設定 | 不會，要重新操作 |
 | 每日執行與來源明細的紀錄 | 不會 |
-| 信件來源的信 | 只有 Resend Receiving 還保有的那些會再收到（Resend 的保留期未查證） |
+| 信件來源的信 | 只有 Resend Receiving 還保有的那些會再收到（2026-11-20 實測第 28 天仍讀得到，上限未量） |
 
 
 ## 不要做的事
