@@ -1,4 +1,4 @@
-import { and, asc, count, eq, inArray, lt, ne } from "drizzle-orm";
+import { and, asc, count, eq, inArray, lt, min, ne } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { mailCursors, mailMessages } from "@/db/pg/schema";
 import type { MailReason } from "./reasons";
@@ -71,17 +71,22 @@ export async function markRejected(db: PgDb, source: string, reason: MailReason,
   return rows.length;
 }
 
-export type RejectedGroup = { source: string; reason: string; open: number; retry: number };
+export type RejectedGroup = { source: string; reason: string; open: number; retry: number; oldest: Date };
 
-/** Rejected messages by source and reason: open (no action yet) and waiting for a re-read; dismissed ones are not counted. */
+/**
+ * Rejected messages by source and reason: open (no action yet) and waiting for a re-read; dismissed ones are not counted.
+ * `oldest` is the earliest `checked_at` in the group (when the rejection was recorded): a dead-letter queue is
+ * watched by its oldest entry's age, not its size, because Resend drops a message before it can be re-read.
+ */
 export async function rejectedGroups(db: PgDb): Promise<RejectedGroup[]> {
-  const rows = await db.select({ source: mailMessages.source, reason: mailMessages.reason, disposition: mailMessages.disposition, n: count() }).from(mailMessages)
+  const rows = await db.select({ source: mailMessages.source, reason: mailMessages.reason, disposition: mailMessages.disposition, n: count(), oldest: min(mailMessages.checkedAt) }).from(mailMessages)
     .where(and(eq(mailMessages.status, "rejected"), ne(mailMessages.disposition, "dismissed")))
     .groupBy(mailMessages.source, mailMessages.reason, mailMessages.disposition);
   const groups = new Map<string, RejectedGroup>();
   for (const r of rows) {
     const key = `${r.source}\u0000${r.reason}`;
-    const g = groups.get(key) ?? { source: r.source, reason: r.reason ?? "", open: 0, retry: 0 };
+    const g = groups.get(key) ?? { source: r.source, reason: r.reason ?? "", open: 0, retry: 0, oldest: r.oldest! };
+    if (r.oldest! < g.oldest) g.oldest = r.oldest!;
     if (r.disposition === "retry") g.retry += r.n; else g.open += r.n;
     groups.set(key, g);
   }

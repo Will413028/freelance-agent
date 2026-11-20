@@ -233,9 +233,9 @@ function RejectedMail({ rows }: { rows: SourcesView["rejectedMail"] }) {
     {rows.length ? <>
       <p className="hint">依原因代碼分組。修好解析後按「重讀」，下次每日收案會重讀這些信；確定不是職缺通知的按「略過」。</p>
       <table>
-        <thead><tr><th>來源</th><th>原因代碼</th><th>未處理</th><th>待重讀</th><th>處理</th></tr></thead>
+        <thead><tr><th>來源</th><th>原因代碼</th><th>未處理</th><th>待重讀</th><th>最舊</th><th>處理</th></tr></thead>
         <tbody>{rows.map((r) => <tr key={`${r.source}/${r.reason}`}>
-          <td>{r.name}</td><td><code>{r.reason}</code></td><td>{r.open}</td><td>{r.retry}</td>
+          <td>{r.name}</td><td><code>{r.reason}</code></td><td>{r.open}</td><td>{r.retry}</td><td>{r.oldestDays} 天</td>
           <td>{r.open > 0 && r.canRetry && <MailAction row={r} action="retry" label="重讀" />}<MailAction row={r} action="dismiss" label="略過" /></td>
         </tr>)}</tbody>
       </table>
