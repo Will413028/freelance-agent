@@ -164,7 +164,7 @@ export function SettingsForm({ data }: { data: SettingsView }) {
   </form>;
 }
 
-const SOURCE_LABELS: Record<string, string> = { ok: "最近讀取成功", failed: "讀取失敗", waiting: "等待職缺通知" };
+const SOURCE_LABELS: Record<string, string> = { ok: "最近讀取成功", failed: "讀取失敗" };
 const RUN_LABELS: Record<string, string> = { running: "執行中，或中斷待下次接續", succeeded: "完成", failed: "部分來源或處理失敗" };
 
 function taipei(value: string | null) {
@@ -181,7 +181,6 @@ function countsLine(c: Record<string, Plain>) {
   if (n("seen") !== null) parts.push(`讀取 ${n("seen")} 筆`);
   if (n("stored") !== null) parts.push(`寫入 ${n("stored")} 筆`);
   if (n("inserted") !== null) parts.push(`新增 ${n("inserted")} 筆`);
-  if (n("jobs") !== null) parts.push(`初篩 ${n("jobs")} 筆`);
   if (n("rejected")) parts.push(`拒收 ${n("rejected")} 筆`);
   if (n("reread")) parts.push(`重讀 ${n("reread")} 封${n("rereadRejected") ? `（仍被拒 ${n("rereadRejected")}）` : ""}`);
   if (c.truncated === true) parts.push("本次讀取未完整");

@@ -108,9 +108,9 @@ describe("taiwanjobs intake", () => {
   beforeEach(async () => db.execute(sql`truncate listings cascade`));
   const settings = { ...TAIWANJOBS_SETTINGS, order: 0 };
 
-  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
+  it("writes every listing read, marked by the source's rule (plan D9)", async () => {
     const run = await collectSource(db, settings, NOW, serving([row(), row({ WK_TYPE: "全職" }, 35)]));
-    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["12:34", "12:35"]]);
+    expect([run.seen, run.externalIds]).toEqual([2, ["12:34", "12:35"]]);
     expect([(await listingBy(db, "taiwanjobs", "12:34"))?.sourceKept, (await listingBy(db, "taiwanjobs", "12:35"))?.sourceKept]).toEqual([true, false]);
   });
 

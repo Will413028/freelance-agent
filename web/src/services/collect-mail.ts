@@ -5,7 +5,7 @@ import {
   type MailCursor, type MailSourceSettings,
 } from "@/modules/sources/public";
 import { createFetcher, FetchError, type Fetcher } from "@/platform/fetch";
-import { screen, type SourceRun } from "./source-run";
+import type { SourceRun } from "./source-run";
 
 // One mail source, once (plan step 7; old web/src/modules/collection/mail/sync.ts at ce1254d): page the
 // Resend inbox newest first down to where the last complete scan stopped, read each new message from the
@@ -124,9 +124,8 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
   }
   // Most messages read this run refused: the template changed, the source failed (same rule as set-aside listings).
   if (rejected * 2 > reads) throw new SourceError(`${s.name}: ${rejected} of ${reads} messages rejected`);
-  const jobIds = screen([...written.values()], now).map((l) => l.external_id);
   return {
-    source: s.name, seen, stored: written.size, jobs: jobIds.length, jobIds, requests: f.requests, intake,
+    source: s.name, seen, stored: written.size, requests: f.requests, intake,
     externalIds: [...written.keys()], truncated: !complete, rejected, examined: reads, reread, rereadRejected,
   };
 }

@@ -6,7 +6,7 @@
 
 各欄共通的說明：
 
-- 原生：`web/src/platform/py/` 已在步驟 11 刪除；`check-deleted.sh` 擋這個路徑回來（`inventory.md` 第 81 列），`check-residue.sh` 擋任何檔案再出現 `@/platform/py/`，兩支都在 CI。步驟 4 起的 `sources-are-native` boundaries 規則隨目錄刪除一起拿掉（沒有東西可擋了）。
+- 原生：`web/src/platform/py/` 已在步驟 11 刪除；`check-deleted.sh` 擋這個路徑回來（`inventory.md` 第 81 列），`check-residue.sh` 擋任何檔案再出現 `@/platform/py/`，兩支在 12a 時都在 CI。2026-11-20 起（D27）兩支移出 CI，改由 `web/.dependency-cruiser.cjs` 的 `no-unresolvable` 擋任何 import 指向已刪的路徑；下表「（`check-residue.sh`）」是 12a 當時的證據。步驟 4 起的 `sources-are-native` boundaries 規則隨目錄刪除一起拿掉（沒有東西可擋了）。
 - 失敗原因：每日執行把錯誤種類（`invalid_url`、`network`、`timeout`、`http_status`、`too_large`、`request_limit`）與代碼寫進 `run_sources.reason`／`error`，所有來源共用 `collectSource` 與 `run-daily`；實例：11-19 arbeitnow `failed`、`too_large`（步驟 5「2026-11-19 修正」）。
 - 新來源（步驟 8）沒有舊程式的輸出可當預期，fixture 是測試檔內依 2026-11-17 實際頁面形狀做的合成資料（`spikes.md` 第 2 節），共用 `web/tests/helpers/single-page-source.ts` 的案例。
 

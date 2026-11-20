@@ -15,7 +15,7 @@ Run as root, after CI is green for the commit:
 /opt/side-income/deploy/deploy.sh <commit>
 ```
 
-It checks out the commit, builds `side-income-web:<short sha>`, runs `migrate-pg` with the new image (failure: nothing else changes), points `APP_IMAGE` at the new tag, recreates `web` and waits for its healthcheck; unhealthy means `APP_IMAGE` and the checkout go back to the previous ones and `web` is recreated on them. `deploy/test-deploy.mjs` (in `pnpm check`) covers these decisions with stub `docker` and `git`. The procedure, the migration rule and what is lost without a backup are in [`docs/operations.md`](../docs/operations.md), section 自建 VM.
+It checks out the commit, builds `side-income-web:<short sha>`, runs `migrate-pg` with the new image (compose service `migrate`: the database URL only) (failure: nothing else changes), points `APP_IMAGE` at the new tag, recreates `web` and waits for its healthcheck; unhealthy means `APP_IMAGE` and the checkout go back to the previous ones and `web` is recreated on them. `deploy/test-deploy.mjs` (in `pnpm check`) covers these decisions with stub `docker` and `git`. The procedure, the migration rule and what is lost without a backup are in [`docs/operations.md`](../docs/operations.md), section 自建 VM.
 
 Run the script file itself, not a copy pasted into a shell: before `deploy.sh` existed (2026-11-15) a pasted block stopped after the migration with no error, because `compose run` read the rest of the pasted lines from stdin, so `web` was never recreated. `deploy.sh` runs the migration with `-T </dev/null`, so even `bash -s < deploy.sh` runs to the end; any other one-off `compose run` typed after more pasted commands needs `-T </dev/null` too.
 

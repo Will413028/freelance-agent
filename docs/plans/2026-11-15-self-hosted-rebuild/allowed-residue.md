@@ -1,12 +1,14 @@
 # 步驟 11 允許留下的殘留
 
+**紀錄（2026-11-20 起）**：D27 把本檢查與 `check-deleted.sh` 移出 `pnpm check`，長期防護改由 `web/.dependency-cruiser.cjs` 的 `no-unresolvable`、`no-retired-platform` 規則負責。下面的理由是步驟 11 當時的狀態，之後不再維護；兩支腳本留著，只當步驟 11 的驗收紀錄。
+
 驗收指令（在 repo 根目錄）：
 
 ```bash
 bash docs/plans/2026-11-15-self-hosted-rebuild/check-residue.sh
 ```
 
-搜尋樣式只寫在 `check-residue.sh` 一處（`pnpm check` 與 CI 都經由 `pnpm check` 跑它），這裡不再抄一份。
+搜尋樣式只寫在 `check-residue.sh` 一處（步驟 11 至 12e 期間由 `pnpm check` 與 CI 執行），這裡不再抄一份。
 
 `check_inventory.py`（舊計畫同名檔的複本，讀同目錄的本檔）只讀下面 `globs` 區塊。語法：`**` 跨目錄，`*` 不跨 `/`，路徑相對 repo 根目錄。`git grep` 只看追蹤中的檔案（含隱藏檔）。程式檔逐一列出，不用目錄萬用字元，以免遮住新的殘留。
 

@@ -24,10 +24,10 @@ const serving = (jobs: unknown[]): Fetcher => ({ requests: 1, get: async () => (
 const remotive = SOURCES.find((s) => s.name === "remotive")!;
 
 describe("collectSource", () => {
-  it("writes every listing read, marked by the source's rule, and counts as jobs the kept ones screening allows (plan D9)", async () => {
+  it("writes every listing read, marked by the source's rule (plan D9)", async () => {
     const jobs = [rem(), rem({ id: 2, job_type: "full_time" }), rem({ id: 3, title: "Accountant", description: "Bookkeeping" }), rem({ id: 4, candidate_required_location: "USA" })];
     const run = await collectSource(db, "remotive", NOW, serving(jobs));
-    expect([run.seen, run.stored, run.jobs, run.externalIds, run.intake.inserted]).toEqual([4, 4, 1, ["1", "2", "3", "4"], 4]);
+    expect([run.seen, run.stored, run.externalIds, run.intake.inserted]).toEqual([4, 4, ["1", "2", "3", "4"], 4]);
     expect((await listingBy(db, "remotive", "1"))?.publishedAt?.toISOString()).toBe("2026-09-18T12:00:00.000Z");
     const rows = await Promise.all(["1", "2", "3", "4"].map((id) => listingBy(db, "remotive", id)));
     expect(rows.map((r) => [r?.sourceKept, r?.hardExcluded])).toEqual([[true, false], [false, true], [true, true], [true, true]]);
@@ -71,7 +71,7 @@ describe("collectSource with a scripted connector", () => {
       seen: 3, sourceKept: contractOnly,
       listings: [parseListingInput(listing("c", "contract")), parseListingInput(listing("d", "contract", "Accountant")), parseListingInput(listing("a", "full_time")), parseListingInput(listing("b", "full_time"))],
     })), NOW, none);
-    expect([run.stored, run.jobs, run.externalIds, run.intake]).toEqual([4, 1, ["c", "d", "a", "b"], { inserted: 3, updated: 1, unchanged: 0, versioned: 0 }]);
+    expect([run.stored, run.externalIds, run.intake]).toEqual([4, ["c", "d", "a", "b"], { inserted: 3, updated: 1, unchanged: 0, versioned: 0 }]);
     const rows = await Promise.all(["a", "b", "c", "d"].map((id) => listingBy(db, "remotive", id)));
     expect(rows.map((r) => [r?.kind, r?.sourceKept])).toEqual([["full_time", false], ["full_time", false], ["contract", true], ["contract", true]]);
   });

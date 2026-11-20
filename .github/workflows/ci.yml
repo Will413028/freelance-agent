@@ -38,8 +38,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      # typecheck, boundaries, db:check (Postgres schema and migrations agree), test (PGlite), compose port check,
-      # deploy, browser and pre-push hook tests, and the plan step 11 deleted and residue checks.
+      # typecheck, boundaries (incl. retired imports, plan D27), db:check (Postgres schema and migrations agree),
+      # test (PGlite), compose and migration checks, deploy, browser and pre-push hook tests.
       - run: pnpm check
       # Every test again on a real Postgres 18: each one using tests/helpers/pg.ts freshPg switches to it,
       # the rest are unaffected. Running the whole suite means no Postgres test can be left out by its file name.

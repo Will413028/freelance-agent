@@ -6,23 +6,25 @@
 
 ## 資料表（30 張；最後一列是三張）
 
+2026-11-20（12e W4）照 D10 改寫：原本寫「步驟 10 搬」「先匯出」的列都改成不搬、不匯出；舊庫 D1 已在步驟 10 刪除。
+
 | 表 | 列數 | 去向 |
 |---|---|---|
-| `opportunities` | 3,433 | 改寫：步驟 3 定成 `listings`（欄位化＋`raw` jsonb），步驟 10 搬資料；id 值原樣保留 |
+| `opportunities` | 3,433 | 改寫：步驟 3 定成 `listings`（欄位化＋`raw` jsonb）；資料不搬、id 不保留（D10，Will 2026-11-15） |
 | `source_receipts` | 3,569 | 刪除：收據的用途是「同一筆投遞不重收」，新系統用 `(source, external_id)` upsert 加內容比對達成；信件的投遞身分改放 `mail_messages`（步驟 3、7） |
 | `source_health` | 27 | 改寫：步驟 3 併入 `run_sources`（每次執行每來源一列），`/sources` 讀最近一次 |
-| `daily_runs` | 59 | 只搬資料：步驟 10 搬日期、狀態、起訖；`result` 的來源明細拆進 `run_sources` |
-| `opportunity_tracking` | 4 | 改寫：步驟 3 定成 `listing_feedback`，步驟 10 搬 |
-| `tracking_events` | 5 | 只搬資料：步驟 10 搬進 `listing_feedback_events` |
+| `daily_runs` | 59 | 刪除：資料不搬（D10）；新的 `runs`（步驟 6）從空開始，來源明細在 `run_sources` |
+| `opportunity_tracking` | 4 | 改寫：步驟 3 定成 `listing_feedback`；資料不搬（D10） |
+| `tracking_events` | 5 | 刪除：資料不搬（D10）；`listing_feedback_events` 從空開始 |
 | `discovery_settings` | 0 | 改寫：步驟 3 的 `settings` 單列表 |
-| `mail_sync_state` | 6 | 只搬資料：步驟 10 搬游標到 `mail_cursors` |
-| `mail_ingestion` | 451 | 改寫：步驟 3 定成 `mail_messages`（加原因代碼、處置狀態），步驟 10 搬 |
-| `mail_content_versions` | 30 | 改寫：步驟 3 定成 `listing_versions`，步驟 10 搬 |
+| `mail_sync_state` | 6 | 刪除：資料不搬（D10）；`mail_cursors` 從空開始，第一次執行讀現存收件匣 |
+| `mail_ingestion` | 451 | 改寫：步驟 3 定成 `mail_messages`（加原因代碼、處置狀態）；資料不搬（D10） |
+| `mail_content_versions` | 30 | 改寫：步驟 3 定成 `listing_versions`；資料不搬（D10） |
 | `discovery_items` | 3,433 | 刪除：衍生投影，新形狀下評估結果是 `listings` 的欄位，不另存表 |
 | `discovery_versions` | 30 | 刪除：同上，併入 `listing_versions` 的欄位 |
-| `proposal_revisions` | 559 | 刪除：功能不要了（Will 2026-11-15）；步驟 10 先匯出到私人封存檔 |
-| `ai_draft_attempts` | 30 | 刪除：同上，先匯出 |
-| `digest_outbox` | 50 | 刪除：不寄摘要（舊計畫 D22）；先匯出 |
+| `proposal_revisions` | 559 | 刪除：功能不要了（Will 2026-11-15）；不匯出（D10），D1 已於步驟 10 刪除 |
+| `ai_draft_attempts` | 30 | 刪除：同上，不匯出（D10） |
+| `digest_outbox` | 50 | 刪除：不寄摘要（舊計畫 D22）；不匯出（D10） |
 | `manual_applications` | 0 | 刪除：空表，功能不要了 |
 | `manual_application_opportunities` | 0 | 刪除：空表 |
 | `manual_application_events` | 0 | 刪除：空表 |
@@ -124,6 +126,28 @@
 | 下一次部署後刪 Vercel 的 `WEB_WRITES`、對正式 D1 套 0005 | 刪除：過渡期不部署新版，0005 不套；步驟 10 整個退役 |
 | D1 token 2026-11-30 到期 | 延後：主計畫前提段的有日期待辦（不是本計畫延後段的項目：觸發是日期） |
 | 確認 Cloudflare 與 Vercel 帳單 | 延後：步驟 10 退役後由 Will 確認（主計畫延後段沒有對應項，列在步驟 12「需要人做的事」） |
+
+## 新增與沿用機制的必要條件（12e O6、O7）
+
+上面各段只記舊系統每項的去向。這段補新系統新增或照搬的機制：為什麼需要、今天是否成立、什麼時候重新評估。（2026-11-20，design-review 12e。）
+
+| 機制 | 位置 | 必要條件 | 今天是否成立 | 重新評估條件 |
+|---|---|---|---|---|
+| 部署失敗自動回前一版 | `deploy/deploy.sh` | 單機、沒有藍綠或 registry；壞版不能讓網頁停擺 | 成立：步驟 9 兩次演練 | 改用 registry 或多台機器 |
+| 部署互斥鎖 | `deploy.sh` 的 `flock` | 多個 session 可能同時部署到同一台共用 VM | 成立：本機脈絡規定動 VM 前先查別的 session | 改由 CI 單一管道部署 |
+| migration 只能先加後刪 | `deploy/check-migrations.mjs`（12e O5） | 回滾只換映像不回 schema，且沒有備份（D1） | 成立 | 加了備份或 schema 回滾 |
+| 只在 `migrate` 服務跑 migration | `deploy/compose.yaml`（12e O3） | migration 不需要 Resend key 與 browser 網路 | 成立 | — |
+| gitleaks 雙層（pre-push＋CI `secrets`） | `.githooks/pre-push`、`ci.yml` | repo 公開；hook 可被跳過，CI 擋不了已推出去的 | 成立 | repo 改私人 |
+| browser 獨立網路 | `deploy/compose.yaml`、`check-compose.mjs` | browser 載入不受信任的頁面，不能碰 `db`、`web` | 成立（步驟 8d 審查） | 不再有 browser 層來源 |
+| CI 在 arm64 建映像並渲染一頁 | `ci.yml` 的 `image` job | VM 是 arm64；Apify 映像沒有 arm64（spikes §2） | 成立 | VM 換架構 |
+| `gate` 匯總 job（照搬） | `ci.yml` | 分支保護只要指定一個必要檢查，job 增減不用改設定 | 成立（推測：GitHub 分支保護的常見做法） | 分支保護改用 ruleset 列出每個 job |
+| 同站來源檢查（照搬） | `web/src/app/_lib/guard.ts` | 原為公開網路上的 Vercel 設計；只走 Tailscale 仍要防瀏覽器端的跨站請求（CSRF） | 成立：tailnet 內任一頁面仍可對它發請求 | — |
+| 完整 `web/` 映像（不用 standalone） | `deploy/web.Dockerfile` | `daily` 與一次性指令用 `tsx` 跑 `scripts/*.ts`；只在 VM 本機建置（計畫第 33 行） | 成立；1.47 GB | VM 磁碟吃緊或改走 registry |
+| 評估欄位帶規則版本 | `listings.evaluated_with`、`reevaluate.ts`（D26） | 規則改版後舊列要跟著重算；`facts.test.ts` 把版本綁在 fixture 結果的雜湊上 | 成立 | 規則改成依設定或時間變動（那時改成讀取時現算） |
+| 重算逐列 UPDATE、`evaluated_with` 無索引 | `reevaluate.ts` | 只在版本調升後跑一次；現有列數為數千（保存 30 天） | 成立（推論：數千列逐列更新遠小於 unit 的 60 分鐘上限） | 調版本後的每日執行 `reevaluated` 花的時間超過 5 分鐘，或列數超過 5 萬：改成每批一條 `UPDATE … FROM (VALUES …)` 並加部分索引 |
+| 重算讀不了的列（`unparsable`） | `reevaluate.ts`、`runs.counts.unparsable` | contract 收緊後，舊 `raw` 可能過不了 | 至今 0（新欄位尚未部署） | 每日執行記到 `unparsable > 0`：該列的評估值是舊規則的；修 contract 讓舊 `raw` 仍可讀，或在同一個 PR 寫一次性 migration 刪掉這些列（D9：還在來源上的會在下次收案重新收進來） |
+| `check-compose.mjs` 的 key、timer 與容器名檢查 | `deploy/check-compose.mjs`（12e O3、O4、W5） | Resend key 只給 `daily`；timer 首次觸發與 `EARLIEST_HOUR` 是同一事實的兩份；停止時刪的容器要是跑的那個 | 成立 | unit 或排程改由程式產生（單一來源） |
+| depcruise `no-unresolvable`、`no-retired-platform`，掃 `src` 與 `scripts` | `web/.dependency-cruiser.cjs`（D27） | 舊系統的路徑與套件不能回來；取代步驟 11 的 grep | 成立 | — |
 
 ## 既有缺陷與處置
 

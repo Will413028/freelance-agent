@@ -9,7 +9,7 @@ import type { Tier } from "@/platform/fetch";
 // functions only record.
 
 export type RunStatus = "running" | "succeeded" | "failed";
-export type SourceStatus = "ok" | "waiting" | "failed";
+export type SourceStatus = "ok" | "failed";
 export type RunCounts = Record<string, number | boolean | null>;
 
 /** The Asia/Taipei calendar date of `now`, YYYY-MM-DD. */

@@ -73,7 +73,15 @@ fi
 # from stdin (bash -s, ssh … < deploy.sh, a pasted block) it would swallow every line after this one and the shell would exit 0 with web never switched
 # (2026-11-15, plan step 4b; deploy/test-deploy.mjs covers it). -T only removes the TTY, which compose run allocates
 # from a terminal and which fails once stdin is /dev/null ("the input device is not a TTY").
-if ! APP_IMAGE=$image compose run --rm -T daily pnpm exec tsx scripts/migrate-pg.ts </dev/null; then
+# The migrate service exists from 12e-2 on; a target commit before it (a rollback to an older sha) has only
+# daily, which ran migrations then (code review 12e-2).
+# (captured, not piped into grep -q: under pipefail an early grep exit can SIGPIPE compose and read as "absent")
+services=$(APP_IMAGE=$image compose --profile jobs config --services </dev/null) || {
+  log "compose config failed; $prev_image keeps serving"; restore_checkout; exit 1
+}
+if grep -qx migrate <<<"$services"; then migrate=(migrate)
+else migrate=(daily pnpm exec tsx scripts/migrate-pg.ts); fi
+if ! APP_IMAGE=$image compose run --rm -T "${migrate[@]}" </dev/null; then
   log "migration failed; $prev_image keeps serving"; restore_checkout; exit 1
 fi
 
