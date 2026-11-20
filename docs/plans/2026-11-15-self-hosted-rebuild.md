@@ -220,7 +220,26 @@
     - [x] **12b ADR**（完成 2026-11-19）：`docs/adr/` 新增一份 ADR 收 D0–D5（D0 方向：自建、Postgres、只走 Tailscale；D1 備份；D2 信件來源；D3 接哪些平台；D4／D4a 上層讀取工具；D5 回滾窗口；以決定表原文為準），2026-10-23 那份標成「被取代」並指向新的；決定表的 D0–D5 改成只留結論與指向。驗收：`rg -n "Superseded|被取代" docs/adr` 命中舊 ADR；新 ADR 每個決定都有被推翻的選項與理由。
     - [x] **12c 文件改寫**：`docs/design.md` 改成描述現行系統（模組、資料表、每日執行、分層讀取、信件 dead-letter），`docs/implementation-plan.md` 改成現況與待辦；舊系統的段落刪除，不保留成歷史（歷史在計畫與 git）。驗收：`rg -n "Vercel|D1|workflow|Python|platform/py" docs/design.md docs/implementation-plan.md` 每個命中都是寫明的歷史指向或退役紀錄；文件提到的每個路徑都存在（附件腳本或一行 `rg` 檢查）。
     - [x] **12d 換掉 Python 時間語意**（feature playbook）：`web/src/modules/listings/legacy-time.ts`、`web/src/modules/sources/shared/time.ts` 改用標準解析（ISO 8601 用 `Date`／Temporal 等價、RFC 2822 用標準格式），`parsedate.fixtures.json` 只留各來源 fixture 裡實際出現的格式（逐一列出從哪個來源來的）；無時區照現行規則不當 UTC。消費端：`rg -n "legacy-time|parseDate|fromIsoFormat|parsedate" web/src`。驗收：`pnpm check`、`pnpm build` 綠；每個來源的 fixture 預期輸出不變（變了逐案寫理由）；mutation：無時區改成當 UTC、RFC 2822 時區偏移拿掉，測試要失敗；`inventory.md` 該列去向改成完成。
-    - **12e 長期檢查與設計審查**：確認 `db:check`、id 規則 fixture、`deploy/check-compose.mjs`、`check-deleted.sh`、`check-residue.sh` 都在 CI 跑（附 workflow 行號）；design-review 材料是 `0f38208..` 收尾時的 diff，發現逐項處置（改、記、交 Will）。驗收：CI 綠；兩支檢查 exit 0；每個發現有處置。
+    - **12e 長期檢查與設計審查**：拆成 12e-1／12e-2（2026-11-20；審查發現 12 項，修正跨 schema、每日執行、部署與 CI，一個 session 做不完）。
+      - [x] **12e-1 審查與處置**（完成 2026-11-20）：CI 行號：`db:check`、id 規則 fixture（`pnpm test`，`web/vitest.config.ts` 收 `src/**/*.test.ts`）、`deploy/check-compose.mjs`、`check-deleted.sh`、`check-residue.sh` 都在 `web/package.json` 的 `check`，由 `.github/workflows/ci.yml:43` 執行；`ci.yml:47` 以真 Postgres 重跑 vitest。兩支檢查本機 exit 0（53 路徑、21 表；殘留 0 不允許）。design-review 兩位審查者（`web/` 與其餘），12 項、blocking 0，處置見下表（W＝`web/` 審查者，O＝其餘）。
+      - [ ] **12e-2 修正**（被擋於：無）：做下表「改」的各項。驗收：`pnpm check`、`pnpm build`、CI 綠；W1 mutation：規則版本號不變但規則改了，舊列不重算的測試要失敗；W2 後 `rg -n "INTAKE_SETTINGS|jobIds|screen\(" web/src web/scripts` 無命中；D27 後 depcruise 擋得住一個暫時 import `@/db/d1` 的檔（複本中做）；O5 檢查擋得住一個含 `DROP COLUMN` 的暫時 migration；/code-review 與第 2 輪 design-review 只審修正。部署到 VM 另需 Will 授權。
+
+      | # | 發現 | 嚴重度 | 處置 |
+      |---|---|---|---|
+      | W1 | 評估欄位（category、分數、`hard_excluded` 等）只在內容 fingerprint 變時重算，`facts.ts` 規則改版後舊列永遠是舊值 | should | 交 Will → D26：改（加規則版本、每日執行重算過期列） |
+      | W2 | `INTAKE_SETTINGS`／`screen`／`jobs`／`jobIds`／`run-source.ts` 比對是跟舊正式庫比對用的相容層，D1 退役後無對象 | should | 改：刪除 |
+      | W3 | `run_sources.status` 的 `waiting` 沒有程式寫入 | nit | 改：migration 拿掉（前一版映像也不寫它，向前相容） |
+      | W4 | `inventory.md` 資料表段仍寫「步驟 10 搬」「先匯出」，與 D10 衝突 | should | 改：這些列改成「刪除：D10」 |
+      | W5 | timer 首次時間同時寫在 unit 與 `EARLIEST_HOUR` | nit | 改：`check-compose.mjs` 比對兩處 |
+      | O1 | `check-deleted.sh`／`check-residue.sh` 長期綁在已結案的附件表格，並 grep 一般英文字 | should | 交 Will → D27：改（換成 depcruise forbidden 規則，兩支腳本移出 `check`、留附件當紀錄） |
+      | O2 | `allowed-residue.md` 理由過時、沒命中的 glob 不報 | nit | 隨 D27 移出 `check` 後不再是 gate；理由更新成「步驟 11 紀錄」，不另修 |
+      | O3 | `deploy.sh` 借 `daily` 服務跑 migration，拿到 Resend key 與 browser 網路 | nit | 改：compose 加只有 `DATABASE_URL` 的 `migrate` 服務 |
+      | O4 | `TimeoutStartSec` 逾時是否連帶停掉 `daily` 容器沒實測 | should | 改：`compose run` 加固定 `--name`，`ExecStopPost` 一併 `rm --stop --force`，不再依賴實測 |
+      | O5 | 自動回滾靠「migration 先加後刪」規則，只寫在文件；無備份（D1）時違反就沒退路 | should | 改：CI 檢查 `0000` 之後的 migration 不含 `DROP COLUMN`／`DROP TABLE`／`RENAME`／`SET NOT NULL`，需要時以檔內明示標記豁免 |
+      | O6 | 盤點表沒有「今天是否成立」，新增機制（自動回滾、flock、雙層 gitleaks、browser 獨立網路、arm64 建置、`gate` job、`guard.ts`）沒列 | should | 記：`inventory.md` 新增「新增與沿用機制」段，每列寫必要條件與今天是否成立 |
+      | O7 | 映像未用 standalone（1.47 GB） | nit | 記：O6 段一列，計畫第 33 行的決定成立（tsx 跑腳本、VM 本機建置），重新評估條件：VM 磁碟吃緊或改走 registry |
+
+      計數：發現 12（blocking 0）；改 8、記 2、交 Will 2（已決 D26、D27）、駁回 0；O2 隨 D27 失去 gate 身分。
     - **12f 收尾交付**：「延後」各項附觸發條件搬回主清單（位置見本機個人脈絡檔）；需要 Will 做的事列成清單（含 `freelance-agent-spike-1f` Vercel 專案、D1 token、舊 Resend key 的撤銷，以及 D25 的 Resend 保留期實測：被拒的信滿 14 天後 retrieve 一次）；附件裡的決定併入正式位置；計畫標成完成。驗收：主清單有每個延後項；計畫目錄沒有留下的 `decisions/`。
 
 ## 決定
@@ -270,6 +289,13 @@
   - 會推翻它的事實：Resend 對收到的信保留期很短（官方只寫一般信件資料 30 天，收件功能是 beta；第三方套件註解寫 2 週，未證實）。7b 部署後以一封超過 14 天的信實測 retrieve；拿不到就拿掉重讀、只留數量與略過。
   - 可逆：`disposition` 欄位本來就有，不改表；改動只在頁面與一段讀取流程。
 
+- **D26 評估欄位帶規則版本並重算**（狀態：已決 2026-11-20，Will 照建議；來源：12e design-review W1；擋住步驟：12e-2）
+  - 選項：加 `evaluated_with` 規則版本，每日執行重算版本不同的列（建議）；欄位只留 `hard_excluded`、其餘讀取時現算；接受並在規則改版時手動重算。
+  - 理由：衍生欄位不帶版本就沒有辦法知道過期；改 `listings` 欄位是計畫外的產品表變更，故列決定。
+- **D27 長期殘留檢查改成 depcruise 規則**（狀態：已決 2026-11-20，Will 照建議；來源：12e design-review O1；擋住步驟：12e-2；改寫步驟 12 的驗收「`check-deleted.sh` 與殘留檢查 exit 0」：只在 12e-2 改動前跑一次）
+  - 選項：禁止 import 舊路徑與 `sqliteTable`／`@/db/d1` 改成 `pnpm boundaries` 的 forbidden 規則、兩支腳本移出 `check`（建議）；搬到 `scripts/` 保留；照原樣。
+  - 理由：兩支腳本解析結案計畫的附件表格，並 grep 一般英文字，只會越堆越多允許項；有長期價值的只有 import 規則。
+
 拍板順序：D0、D1、D2、D5 已決；D3、D4 已決（2026-11-15）；D3 瀏覽器層的平台 2026-11-17 Will 已點選（接四個，不接打工探吉）。
 
 ## 進度
@@ -289,4 +315,4 @@
 | 9 營運 | 完成 | `deploy/test-deploy.mjs` 7 個情境（健康部署、分支名解析成 origin、build／migration 失敗不動、不健康回滾、重建失敗回滾、回滾也不健康、健康狀態卡住逾時）以 stub `docker`／`git`／`flock` 通過並接進 `pnpm check`；mutation 8 個都被擋；`shellcheck` 無警告；`/code-review` 10 項：修 9、接受 1（腳本用目前 checkout 的版本，改 `deploy.sh` 從下一次部署生效，已寫進 `docs/operations.md`）；compose 的 `web`、`daily` 早已只用 `${APP_IMAGE}`（步驟 2），本步不用改 ；VM 演練（2026-11-15 Will 授權）：先以 `deploy.sh` 部署本 PR `28d7d8f`（healthy）；演練 A `/healthz` 故意失敗的 commit `094eb27`：`web unhealthy` → `rolled back to side-income-web:28d7d8f`，exit 1，前後 `APP_IMAGE` 都是 `28d7d8f`、checkout 回 `28d7d8f`、`/healthz` 200；演練 B 先建表再除以零的 migration（`b6b0ce7`）：`division by zero` → `migration failed; side-income-web:28d7d8f keeps serving`，exit 1，`web` 容器 id 前後相同仍 healthy、`drill_probe` 不存在、`__drizzle_migrations` 仍 2 列（整批交易回滾）；演練分支與映像已刪 | `flock` 的互斥沒有在 VM 上實測兩個並行部署 | `28d7d8f`（PR #36）、本 commit |
 | 10 搬移、切換與退役 | 完成 | 第 1–4 小步；11-17 手動（timer）與 11-18 自然執行各一列 `runs`、29／29 與 34／34 來源 ok、7 分 7 秒與 6 分 44 秒、重複 0 筆、四種檢視有資料、回饋與 409；退役後各清單查無 | 執行中常駐容器峰值沒量（執行後 0.3 GB） | PR #58、#59、本 PR |
 | 11 刪舊機制 | 完成（映像大小：VM `docker image ls` 刪除前 `side-income-web:bcd7510` 1.84 GB，2026-11-15 部署 `cb852fb` 後同一指令 1.47 GB） | 刪 177 檔、約 35.8 萬行（含 33 MB `golden.json`）；新系統還接舊碼的三處改寫：`withPageLog` 搬成 `app/_lib/page-log.ts`、`platform/errors.ts` 改原生類別、來源顯示名稱改成 catalog 每筆的 `label`（D23 只列了第一處；另兩處是 `pages.ts` 的 `REGISTRY` 與錯誤類別繼承 `PyError`）；golden 最後的 parsedate 70 例搬成 `sources/shared/parsedate.fixtures.json`。`pnpm check` 綠（274 過、1 略過）、`pnpm build` 綠（路由不再有 `/api/cron`）；`check-deleted.sh` 在 origin/dev 失敗（red-proof `--rev`）、本分支 53 路徑 21 表 OK；殘留檢查 48 檔全在 `allowed-residue.md`；兩者進 CI。red-proof：label、頁面顯示名稱、錯誤名稱、409 狀態 4 個 mutant 全擋。design-review 5 項（should 2：改 1、記 1；nit 3 駁回）；`/code-review` 9 項全改；第 2 輪 0 缺陷、1 nit 接受 | 無（映像大小已量，見狀態欄） | 本 PR |
-| 12 收尾 | 進行中（12a–12d 完成） | 12d：本機 `pnpm check` 綠（58 檔 668 過、1 跳過）、`pnpm build` 綠；各來源 fixture 預期只變 1 例（cryptojobslist 第 83 例 `1 Jan 0001 00:30:00 +0100`：Python 把四位數年 0001 當兩位數年加 2000，標準讀法是西元 1 年，換成 UTC 落在第 0 年、超出合約範圍，改成 null）；mutation 6 個全擋（無時區當 UTC、RFC 2822 拿掉偏移、ISO 拿掉偏移、`-0000` 當已知、兩位數年一律 20xx、拿掉日期檢查）；`rg -n "legacy-time|parseDate|fromIsoFormat|parsedate|parseLegacyIsoTime" web/src` 無命中。12c：`rg -n "Vercel|D1|workflow|Python|platform/py" docs/design.md docs/implementation-plan.md` 10 行命中都是退役紀錄、舊計畫指向或決定編號（D1 備份、D18、D22）；兩份文件提到的 `web/`、`deploy/`、`browser/`、`docs/` 路徑與相對連結逐一 `test -e` 全存在。12b：搜尋 `Superseded` 或「被取代」（`rg -n` 於 `docs/adr`）命中舊 ADR 的狀態列與段首說明；新 ADR 的 D0–D5、D4a 各有被否決的選項與理由；決定表 D4、D4a 改成只留結論與指向。12a：11-20 每日執行 `runs` id 7 `succeeded`、34／34 `ok`；附件 `source-checklist.md` 35 個來源每格有證據，`check-source-checklist.ts` exit 0；mutation 5 個全擋（刪一格、多一個不在 catalog 的來源、少一個 catalog 來源、停用來源的 VM 欄改掉、行號超出檔尾） | 12e–12f 未開始 | PR #76、#78、#79、本 PR |
+| 12 收尾 | 進行中（12a–12d、12e-1 完成；12e-2 未開始） | 12d：本機 `pnpm check` 綠（58 檔 668 過、1 跳過）、`pnpm build` 綠；各來源 fixture 預期只變 1 例（cryptojobslist 第 83 例 `1 Jan 0001 00:30:00 +0100`：Python 把四位數年 0001 當兩位數年加 2000，標準讀法是西元 1 年，換成 UTC 落在第 0 年、超出合約範圍，改成 null）；mutation 6 個全擋（無時區當 UTC、RFC 2822 拿掉偏移、ISO 拿掉偏移、`-0000` 當已知、兩位數年一律 20xx、拿掉日期檢查）；`rg -n "legacy-time|parseDate|fromIsoFormat|parsedate|parseLegacyIsoTime" web/src` 無命中。12c：`rg -n "Vercel|D1|workflow|Python|platform/py" docs/design.md docs/implementation-plan.md` 10 行命中都是退役紀錄、舊計畫指向或決定編號（D1 備份、D18、D22）；兩份文件提到的 `web/`、`deploy/`、`browser/`、`docs/` 路徑與相對連結逐一 `test -e` 全存在。12b：搜尋 `Superseded` 或「被取代」（`rg -n` 於 `docs/adr`）命中舊 ADR 的狀態列與段首說明；新 ADR 的 D0–D5、D4a 各有被否決的選項與理由；決定表 D4、D4a 改成只留結論與指向。12a：11-20 每日執行 `runs` id 7 `succeeded`、34／34 `ok`；附件 `source-checklist.md` 35 個來源每格有證據，`check-source-checklist.ts` exit 0；mutation 5 個全擋（刪一格、多一個不在 catalog 的來源、少一個 catalog 來源、停用來源的 VM 欄改掉、行號超出檔尾） | 12e-2、12f 未開始 | PR #76、#78、#79、本 PR |
