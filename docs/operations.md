@@ -36,7 +36,7 @@
 SQL 在 `web/drizzle-pg/`，由 `migrate-pg`（`web/scripts/migrate-pg.ts`）套用；套過的記在 `drizzle.__drizzle_migrations`，重跑是 no-op。
 
 - 切換前：新庫只有影子資料，可以整個重建，migration 可以就地重新產生（步驟 10 前壓成一個起始 migration；操作見 `deploy/README.md`）。
-- **切換完成起：每個 migration 都要讓前一版映像能在新結構上繼續跑。** 先加後刪：新增欄位要可為 null 或有預設值；改名或改型別拆成「加新欄、程式改用新欄」與「下一次部署再刪舊欄」兩次；刪欄、刪表、加 NOT NULL 只在已經沒有任何上線版本讀寫它之後的那次部署做。
+- **切換完成起：每個 migration 都要讓前一版映像能在新結構上繼續跑。** 先加後刪：新增欄位要可為 null 或有預設值；改名或改型別拆成「加新欄、程式改用新欄」與「下一次部署再刪舊欄」兩次；刪欄、刪表、加 NOT NULL 只在已經沒有任何上線版本讀寫它之後的那次部署做。`deploy/check-migrations.mjs`（在 `pnpm check`）擋下 `0000` 之後的 migration 裡的刪表、刪欄、改名、改型別、`SET NOT NULL`、沒有預設值的 NOT NULL 新欄，以及新增或收緊的約束（`ADD CONSTRAINT`、`CREATE UNIQUE INDEX`）；刻意的刪除在檔內寫一行 `-- contract: <理由與從哪次部署起沒有版本用它>`。
 
 ### 沒有備份（計畫 D1）
 

@@ -37,6 +37,8 @@ if [[ "$1" == inspect ]]; then
 fi
 shift 5 # compose --env-file F -f Y
 [[ "$1" == run ]] && cat >/dev/null
+[[ "$1 \${2:-} \${3:-} \${4:-}" == "run --rm -T migrate" && -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1
+[[ "$1 \${2:-} \${3:-} \${4:-}" == "--profile jobs config --services" ]] && { [[ -z "\${FAKE_OLD_COMPOSE:-}" ]] && echo migrate; echo daily; exit 0; }
 [[ "$1 \${2:-} \${3:-} \${4:-}" == "run --rm -T daily" && -n "\${FAKE_MIGRATE_FAIL:-}" ]] && exit 1
 case "$1 \${2:-} \${3:-}" in
   "up -d web") [[ "$img" == \${FAKE_UP_FAIL:-none} ]] && exit 1 ;;
@@ -84,8 +86,16 @@ test("healthy deploy switches APP_IMAGE and migrates with the new image", () => 
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.env, /^APP_IMAGE=side-income-web:new5678$/m);
   assert.match(r.env, /^POSTGRES_PASSWORD=x$/m);
-  assert.match(r.calls, /APP_IMAGE=side-income-web:new5678 compose .* run --rm -T daily pnpm exec tsx scripts\/migrate-pg\.ts/);
+  assert.match(r.calls, /APP_IMAGE=side-income-web:new5678 compose .* run --rm -T migrate(\n|$)/m);
   assert.equal(r.head, "new5678full");
+});
+
+test("a target commit without the migrate service migrates through daily, as it did then (rollback to an older sha)", () => {
+  const r = run({ FAKE_OLD_COMPOSE: "1" });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.calls, /APP_IMAGE=side-income-web:new5678 compose .* run --rm -T daily pnpm exec tsx scripts\/migrate-pg\.ts/);
+  assert.doesNotMatch(r.calls, / run --rm -T migrate/);
+  assert.match(r.env, /^APP_IMAGE=side-income-web:new5678$/m);
 });
 
 test("the migration cannot swallow the rest of a script read from stdin (2026-11-15: web was never switched)", () => {

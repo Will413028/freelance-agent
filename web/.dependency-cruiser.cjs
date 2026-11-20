@@ -13,6 +13,20 @@ module.exports = {
       from: { path: "^src/modules/([^/]+)/" },
       to: { path: "^src/modules/[^/]+/", pathNot: ["^src/modules/$1/", "^src/modules/[^/]+/public\\.ts$"] },
     },
+    {
+      name: "no-unresolvable",
+      comment: "An import that resolves to nothing, e.g. a path of the retired system (plan D27 replaces step 11's check-deleted.sh).",
+      severity: "error",
+      from: {},
+      to: { couldNotResolve: true },
+    },
+    {
+      name: "no-retired-platform",
+      comment: "Vercel, Vercel Workflow, Cloudflare and drizzle's SQLite/D1 drivers were retired in plan steps 10 and 11 (plan D27).",
+      severity: "error",
+      from: {},
+      to: { path: "(^|/)node_modules/(workflow|@workflow|@vercel|@cloudflare)/|(^|/)node_modules/drizzle-orm/(d1|sqlite-core|sqlite-proxy|libsql|better-sqlite3)/" },
+    },
   ],
   options: { exclude: { path: "\\.test\\.ts$" }, parser: "swc", tsConfig: { fileName: "tsconfig.json" }, doNotFollow: { path: "node_modules" } },
 };

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { runs, runSources } from "@/db/pg/schema";
+import { listings, runs, runSources } from "@/db/pg/schema";
 import { intakeListings, listingBy } from "@/modules/listings/public";
 import { SourceError, type SourceSettings } from "@/modules/sources/public";
 import { FetchError } from "@/platform/fetch";
@@ -18,7 +18,7 @@ beforeEach(async () => db.execute(sql`truncate runs, listings cascade`));
 
 const NOW = new Date("2026-11-16T06:00:00Z"); // 14:00 Asia/Taipei
 const src = (name: string, order: number, disabled: string | null = null) => ({ name, order, disabled }) as SourceSettings;
-const ok = (source: string): SourceRun => ({ source, seen: 2, stored: 2, jobs: 1, jobIds: [], requests: 1, intake: { inserted: 2, updated: 0, unchanged: 0, versioned: 0 }, externalIds: [], truncated: false, rejected: 0, examined: 2 });
+const ok = (source: string): SourceRun => ({ source, seen: 2, stored: 2, requests: 1, intake: { inserted: 2, updated: 0, unchanged: 0, versioned: 0 }, externalIds: [], truncated: false, rejected: 0, examined: 2 });
 
 /** Deps whose collect answers from `script`: per source, a list of outcomes, one per call (an Error throws). */
 function deps(sources: SourceSettings[], script: Record<string, (SourceRun | Error)[]>, now = NOW) {
@@ -141,6 +141,36 @@ describe("runDaily", () => {
     expect(await listingBy(db, "a", "1")).toBeNull();
     expect(await listingBy(db, "b", "2")).not.toBeNull();
     const [run] = await db.select().from(runs);
+    const counts = run!.counts as Record<string, unknown>;
+    expect(counts.pruned).toBe(1);
+    expect(typeof counts.listMs).toBe("number");
+  });
+
+  it("re-evaluates rows of an older rule version before it times the list page (plan D26)", async () => {
+    const job = { external_id: "1", title: "Backend API contractor", description: "Build an LLM automation backend", url: "https://example.com/jobs/1", kind: "contract" };
+    await intakeListings(db, "a", [job], "page", NOW);
+    await db.update(listings).set({ hardExcluded: true, evaluatedWith: 0 });
+    await runDaily(db, deps([src("a", 10)], {}).d);
+    expect((await listingBy(db, "a", "1"))?.hardExcluded).toBe(false);
+    const [run] = await db.select().from(runs);
+    expect((run!.counts as Record<string, unknown>).reevaluated).toBe(1);
+  });
+
+  it("still prunes and times the list page when re-evaluation fails", async () => {
+    const old = new Date(NOW.getTime() - 40 * 86_400_000);
+    await intakeListings(db, "a", [{ external_id: "1", title: "Backend API contractor", url: "https://example.com/jobs/1", kind: "contract" }], "page", old);
+    await db.update(listings).set({ evaluatedWith: 0 });
+    // Only the re-evaluation's UPDATE fails; reads and deletes go on.
+    await db.execute(sql`create function refuse() returns trigger language plpgsql as $$ begin raise exception 'refused'; end $$`);
+    await db.execute(sql`create trigger refuse before update of evaluated_with on listings for each row execute function refuse()`);
+    try {
+      await runDaily(db, deps([src("a", 10)], {}).d);
+    } finally {
+      await db.execute(sql`drop trigger refuse on listings`);
+      await db.execute(sql`drop function refuse()`);
+    }
+    const [run] = await db.select().from(runs);
+    expect([run!.status, run!.reason?.startsWith("reevaluate_failed: ")]).toEqual(["failed", true]);
     const counts = run!.counts as Record<string, unknown>;
     expect(counts.pruned).toBe(1);
     expect(typeof counts.listMs).toBe("number");

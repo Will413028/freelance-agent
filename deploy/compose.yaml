@@ -57,6 +57,13 @@ services:
     networks: [default, browser]
     command: ["pnpm", "exec", "tsx", "scripts/daily.ts"]
 
+  # Migrations (deploy.sh runs it with the new image before switching): the database URL only, no Resend
+  # key and no browser network (design review 12e O3; deploy/check-compose.mjs keeps the key on daily alone).
+  migrate:
+    <<: *app
+    profiles: [jobs]
+    command: ["pnpm", "exec", "tsx", "scripts/migrate-pg.ts"]
+
   # The browser tier (plan step 8d): renders a page for the sources whose maxTier is "browser". No
   # published port. It sits on its own network shared only with daily, never with db or web: it loads
   # untrusted pages (code review, step 8d). Built by deploy.sh with the app image's tag plus "-browser",

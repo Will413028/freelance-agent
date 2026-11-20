@@ -226,15 +226,15 @@ describe("arbeitnow into intake (collectSource)", () => {
   const pages = (...data: unknown[]) => site({ [ENDPOINT]: [200, JSON.stringify(pageOf(data, 1, null, data.length))] });
   const full = () => job({ slug: "b", url: "https://www.arbeitnow.com/jobs/companies/acme/b", job_types: ["Full Time"] });
 
-  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
+  it("writes every listing read, marked by the source's rule (plan D9)", async () => {
     const run = await collectSource(db, settings, NOW, pages(job(), full()));
-    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["ai-agent-123", "b"]]);
+    expect([run.seen, run.externalIds]).toEqual([2, ["ai-agent-123", "b"]]);
     expect([(await listingBy(db, "arbeitnow", "ai-agent-123"))?.sourceKept, (await listingBy(db, "arbeitnow", "b"))?.sourceKept]).toEqual([true, false]);
   });
 
   it("screening marks a listing that matches no work category hard-excluded (old score > 0)", async () => {
     const other = job({ slug: "g", url: "https://www.arbeitnow.com/jobs/companies/acme/g", title: "Part time warehouse helper", description: "<p>Pack boxes.</p>", tags: [] });
-    expect((await collectSource(db, settings, NOW, pages(job(), other))).jobs).toBe(1);
+    await collectSource(db, settings, NOW, pages(job(), other));
     expect((await listingBy(db, "arbeitnow", "g"))?.hardExcluded).toBe(true);
   });
 

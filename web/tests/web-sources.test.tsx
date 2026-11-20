@@ -21,7 +21,7 @@ const run = async (localDate: string, status: "running" | "succeeded" | "failed"
 describe("sources page", () => {
   it("shows the latest run, each catalog source's latest row across runs, and sources not run yet", async () => {
     const earlier = await run("2026-11-15", "succeeded", { finishedAt: new Date("2026-11-15T06:05:00Z") });
-    await db.insert(runSources).values({ runId: earlier, source: "jobicy", status: "ok", counts: { seen: 9, stored: 9, inserted: 3, jobs: 2 }, finishedAt: new Date("2026-11-15T06:01:00Z") });
+    await db.insert(runSources).values({ runId: earlier, source: "jobicy", status: "ok", counts: { seen: 9, stored: 9, inserted: 3 }, finishedAt: new Date("2026-11-15T06:01:00Z") });
     const latest = await run("2026-11-16", "failed", { reason: "one_or_more_sources_failed", counts: { pruned: 4, listMs: 80 }, finishedAt: new Date("2026-11-16T06:05:00Z") });
     await db.insert(runSources).values({ runId: latest, source: "remotive", status: "failed", reason: "http_status", error: "FetchError: 503", counts: { attempts: 3 } });
     await db.insert(runSources).values({ runId: latest, source: "arbeitnow", status: "ok", counts: { seen: 4210, rejected: 2, truncated: true, attempts: 2 } });
@@ -34,7 +34,7 @@ describe("sources page", () => {
     expect(html).toContain("部分來源或處理失敗");
     expect(html).toContain("原因：one_or_more_sources_failed");
     expect(html).toContain("保留期限刪除 4 筆");
-    expect(html).toContain("讀取 9 筆 · 寫入 9 筆 · 新增 3 筆 · 初篩 2 筆");
+    expect(html).toContain("讀取 9 筆 · 寫入 9 筆 · 新增 3 筆");
     expect(html).toContain("嘗試 3 次 · 錯誤種類 http_status");
     expect(html).toContain("讀取 4210 筆 · 拒收 2 筆 · 本次讀取未完整 · 嘗試 2 次");
     expect(html).toContain("尚未執行");

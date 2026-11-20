@@ -53,6 +53,8 @@ const content = () => ({
   hardExcluded: boolean("hard_excluded").notNull(),
   confirmedBase: smallint("confirmed_base").notNull(),
   fixedTwdMax: doublePrecision("fixed_twd_max"),
+  /** The FACTS_VERSION the evaluation columns were computed with (plan D26); 0: before versions existed. */
+  evaluatedWith: smallint("evaluated_with").notNull().default(0),
 });
 
 const kindCheck = (name: string, kind: unknown) => check(name, oneOf(kind, KINDS));
@@ -187,7 +189,7 @@ export const runs = pgTable("runs", {
 export const runSources = pgTable("run_sources", {
   runId: integer("run_id").notNull().references(() => runs.id, { onDelete: "cascade" }),
   source: text("source").notNull(),
-  status: text("status", { enum: ["ok", "waiting", "failed"] }).notNull(),
+  status: text("status", { enum: ["ok", "failed"] }).notNull(),
   reason: text("reason"),
   error: text("error"),
   tier: text("tier", { enum: ["plain", "browser_like", "browser"] }).notNull().default("plain"),
@@ -196,6 +198,6 @@ export const runSources = pgTable("run_sources", {
   finishedAt: at("finished_at"),
 }, (t) => [
   primaryKey({ columns: [t.runId, t.source] }),
-  check("run_sources_status", sql`${t.status} in ('ok', 'waiting', 'failed')`),
+  check("run_sources_status", sql`${t.status} in ('ok', 'failed')`),
   check("run_sources_tier", sql`${t.tier} in ('plain', 'browser_like', 'browser')`),
 ]);

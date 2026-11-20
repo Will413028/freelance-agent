@@ -1,7 +1,7 @@
 import { and, eq, getTableColumns, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { listings, listingVersions } from "@/db/pg/schema";
-import { factsOf, type Listing } from "@/modules/evaluation/public";
+import { FACTS_VERSION, factsOf, type Listing } from "@/modules/evaluation/public";
 import { deadlineColumns, deadlineOfColumns, listingOf, parseListingInput, type ListingInput } from "./contract";
 import { fingerprint } from "./id";
 
@@ -57,6 +57,7 @@ export function contentColumns(input: ListingInput) {
     compensationEvidence: input.compensation_evidence,
     ...deadlineColumns(input.deadline),
     ...factsOf(l),
+    evaluatedWith: FACTS_VERSION,
   };
 }
 

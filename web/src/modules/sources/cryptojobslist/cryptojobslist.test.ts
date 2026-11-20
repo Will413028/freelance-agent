@@ -155,9 +155,9 @@ describe("cryptojobslist into intake (collectSource)", () => {
   const settings = { ...CRYPTOJOBSLIST_SETTINGS, order: 0 };
   const body = () => feed(item(), item({ link: "https://cryptojobslist.com/jobs/ft", description: tagged("full-time", "remote") }));
 
-  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
+  it("writes every listing read, marked by the source's rule (plan D9)", async () => {
     const run = await collectSource(db, settings, new Date(), fakeFetcher({ [FEED]: body() }));
-    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["https://cryptojobslist.com/jobs/backend-1", "https://cryptojobslist.com/jobs/ft"]]);
+    expect([run.seen, run.externalIds]).toEqual([2, ["https://cryptojobslist.com/jobs/backend-1", "https://cryptojobslist.com/jobs/ft"]]);
     expect([(await listingBy(db, "cryptojobslist", "https://cryptojobslist.com/jobs/backend-1"))?.sourceKept, (await listingBy(db, "cryptojobslist", "https://cryptojobslist.com/jobs/ft"))?.sourceKept]).toEqual([true, false]);
   });
 

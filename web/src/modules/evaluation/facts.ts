@@ -47,6 +47,16 @@ export const validBudget = (l: Pick<Listing, "budgetMin" | "budgetMax">) =>
 export const fixedTwdMax = (l: Listing): number | null =>
   l.kind === "fixed" && l.currency === "TWD" && validBudget(l) ? l.budgetMax : null;
 
+/**
+ * The version of the rules factsOf applies (plan D26). Stored rows carry the version they were evaluated
+ * with; the daily run re-evaluates rows of any other version. Bump it with any change to what factsOf
+ * returns for the same listing (categories, keywords, exclusions, deadline rule); facts.test.ts pins the
+ * version to a digest of factsOf over the evaluate fixtures and fails until both are updated together. The
+ * digest only sees what those fixtures exercise: a keyword or exclusion no fixture hits changes nothing there,
+ * so a rule change also adds a fixture case that it changes (or bumps the version by hand).
+ */
+export const FACTS_VERSION = 1;
+
 export function factsOf(l: Listing): Facts {
   const { category, categoryScore } = categorize(l);
   const hardExcluded = l.listingClosed === true

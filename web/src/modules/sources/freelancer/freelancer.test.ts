@@ -168,16 +168,16 @@ describe("freelancer intake", () => {
   beforeEach(async () => db.execute(sql`truncate listings cascade`));
   const settings = { ...FREELANCER_SETTINGS, order: 0 };
 
-  it("writes every listing read, marked by the source's rule, and counts as jobs what the rule and screening keep (plan D9)", async () => {
+  it("writes every listing read, marked by the source's rule (plan D9)", async () => {
     const { fetcher } = serving({ "AI agent": [project(), project({ id: 43, title: "SEO for AI agency" })] });
     const run = await collectSource(db, settings, NOW, fetcher);
-    expect([run.seen, run.jobs, run.externalIds]).toEqual([2, 1, ["42", "43"]]);
+    expect([run.seen, run.externalIds]).toEqual([2, ["42", "43"]]);
     expect([(await listingBy(db, "freelancer", "42"))?.sourceKept, (await listingBy(db, "freelancer", "43"))?.sourceKept]).toEqual([true, false]);
   });
 
   it("screening marks a project that matches no work category hard-excluded (old score > 0)", async () => {
     const { fetcher } = serving({ "AI agent": [project(), project({ id: 46, title: "Telegram bot for my club", description: "Small job." })] });
-    expect((await collectSource(db, settings, NOW, fetcher)).jobs).toBe(1);
+    await collectSource(db, settings, NOW, fetcher);
     expect((await listingBy(db, "freelancer", "46"))?.hardExcluded).toBe(true);
   });
 

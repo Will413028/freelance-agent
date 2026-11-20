@@ -43,3 +43,16 @@ describe("evaluation facts", () => {
     expect(factsOf(l()).publishedAt).toBeNull();
   });
 });
+
+describe("FACTS_VERSION (plan D26)", () => {
+  it("is pinned to what factsOf returns over the evaluate fixtures: a rule change must bump the version", async () => {
+    const { createHash } = await import("node:crypto");
+    const { default: fixtures } = await import("./evaluate.fixtures.json");
+    const { FACTS_VERSION } = await import("./facts");
+    const { legacyListingInputSchema } = await import("@/modules/listings/public");
+    const facts = fixtures.cases.map((c) => factsOf(listingOf(legacyListingInputSchema.parse(c.input))));
+    const digest = createHash("sha256").update(JSON.stringify(facts)).digest("hex");
+    // On a deliberate rule change: bump FACTS_VERSION in facts.ts and put the new digest here, in the same commit.
+    expect({ version: FACTS_VERSION, digest }).toEqual({ version: 1, digest: "cf78286b9b2dbfa443f5e379990bd3876d039e8958362eca09108e27ce296385" });
+  });
+});

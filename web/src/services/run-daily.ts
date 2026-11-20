@@ -1,5 +1,5 @@
 import type { PgDb } from "@/db/pg/client";
-import { pruneListings, RETENTION_DAYS } from "@/modules/listings/public";
+import { pruneListings, reevaluateStale, RETENTION_DAYS } from "@/modules/listings/public";
 import { finishRun, openRun, recordSource, sourcesReadSince, taipeiDate, type RunCounts } from "@/modules/runs/public";
 import { pruneMailMessages, SOURCES, SourceError, type SourceSettings } from "@/modules/sources/public";
 import { FetchError } from "@/platform/fetch";
@@ -39,7 +39,7 @@ const errorCode = (e: unknown) => (e instanceof FetchError && e.status !== null 
 const taipeiHour = (d: Date) => Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Taipei", hour: "2-digit", hourCycle: "h23" }).format(d));
 
 const countsOf = (r: SourceRun, attempts: number): RunCounts => ({
-  seen: r.seen, examined: r.examined, rejected: r.rejected, truncated: r.truncated, stored: r.stored, jobs: r.jobs,
+  seen: r.seen, examined: r.examined, rejected: r.rejected, truncated: r.truncated, stored: r.stored,
   requests: r.requests, attempts, ...r.intake, ...(r.reread === undefined ? {} : { reread: r.reread, rereadRejected: r.rereadRejected ?? 0 }),
 });
 
@@ -80,8 +80,15 @@ async function runOpened(db: PgDb, deps: DailyDeps, localDate: string, runId: nu
       }
     }
   }
-  const counts: RunCounts = { pruned: null, mailPruned: null, listMs: null };
+  const counts: RunCounts = { reevaluated: null, unparsable: null, pruned: null, mailPruned: null, listMs: null };
   let reason: string | null = allOk ? null : "one_or_more_sources_failed";
+  // Rows evaluated under older rules (plan D26), before the list page is timed; its own step, so a failure
+  // here still lets retention and the timing run (code review 12e-2).
+  try {
+    Object.assign(counts, await reevaluateStale(db));
+  } catch (e) {
+    reason = `reevaluate_failed: ${errorCode(e)}`;
+  }
   try {
     const now = deps.now();
     // One window for both: the sources read within it, and the listings unseen for longer.
