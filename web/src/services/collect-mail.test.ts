@@ -201,14 +201,14 @@ describe("rejected mail", () => {
     const limits = { maxPages: 20, maxMessages: 1, maxRetries: 3 };
     const first = inbox([{ n: 6 }, ...mails]);
     await collectMail(db, s, NOW, { fetcher: first.fetcher, env: ENV, limits });
-    expect([first.bodies(), (await rejectedGroups(db))[0]]).toEqual([4, { source: "jobbank104", reason: "104_incomplete_digest", open: 0, retry: 2 }]);
+    expect([first.bodies(), (await rejectedGroups(db))[0]]).toEqual([4, { source: "jobbank104", reason: "104_incomplete_digest", open: 0, retry: 2, oldest: NOW }]);
     await collectMail(db, s, NOW, { fetcher: inbox([{ n: 6 }, ...mails]).fetcher, env: ENV, limits });
     expect(await rejectedGroups(db)).toEqual([]);
   });
 
   it("dismissed messages leave the open count and are never re-read; a normal record never overwrites one", async () => {
     await collectMail(db, s, NOW, { fetcher: inbox([{ n: 2, body: "<p>x</p>" }, { n: 1 }]).fetcher, env: ENV });
-    expect(await rejectedGroups(db)).toEqual([{ source: "jobbank104", reason: "104_incomplete_digest", open: 1, retry: 0 }]);
+    expect(await rejectedGroups(db)).toEqual([{ source: "jobbank104", reason: "104_incomplete_digest", open: 1, retry: 0, oldest: NOW }]);
     expect(await markRejected(db, "jobbank104", "104_incomplete_digest", "dismissed")).toBe(1);
     expect(await markRejected(db, "jobbank104", "104_incomplete_digest", "dismissed")).toBe(0);
     expect(await markRejected(db, "jobbank104", "104_incomplete_digest", "retry")).toBe(0);

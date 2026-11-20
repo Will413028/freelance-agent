@@ -164,7 +164,7 @@ export type SourcesView = {
   lastRun: { localDate: string; status: string; reason: string | null; startedAt: string; finishedAt: string | null; pruned: number | null; listMs: number | null; listSlow: boolean } | null;
   sources: SourceRow[];
   /** Rejected mail by source and reason (the dead-letter view): open, and waiting for a re-read. */
-  rejectedMail: { source: string; name: string; reason: string; open: number; retry: number; canRetry: boolean }[];
+  rejectedMail: { source: string; name: string; reason: string; open: number; retry: number; canRetry: boolean; oldestDays: number }[];
 };
 
 /** Source health and the latest daily run of the new system (plan step 6): reads runs and run_sources. */
@@ -186,7 +186,7 @@ export async function sourcesPage(db: PgDb, now: Date): Promise<SourcesView> {
         latest: r ? { localDate: r.localDate, status: r.status, reason: r.reason, counts: r.counts as Record<string, Plain>, finishedAt: r.finishedAt?.toISOString() ?? null } : null,
       };
     }),
-    rejectedMail: rejected.map((g) => ({ ...g, name: sourceLabel(g.source), canRetry: !(FINAL_REASONS as readonly string[]).includes(g.reason) })),
+    rejectedMail: rejected.map(({ oldest, ...g }) => ({ ...g, name: sourceLabel(g.source), canRetry: !(FINAL_REASONS as readonly string[]).includes(g.reason), oldestDays: Math.floor((now.getTime() - oldest.getTime()) / 86_400_000) })),
   };
 }
 

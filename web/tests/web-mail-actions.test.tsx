@@ -52,6 +52,17 @@ describe("rejected mail actions", () => {
     expect(html.match(/action="\/sources\/retry"/g)).toHaveLength(2); // not for message_gone
   });
 
+  it("shows each group's oldest rejected message age, so a stuck group is visible before Resend drops it", async () => {
+    await db.insert(mailMessages).values({ source: "jobbank104", recipient: "box@example.resend.app", messageId: "m6", status: "rejected", reason: "104_incomplete_digest", disposition: "retry", checkedAt: new Date("2026-11-10T01:00:00Z") });
+    const view = await sourcesPage(db, new Date("2026-11-20T03:00:00Z"));
+    const group = view.rejectedMail.find((g) => g.reason === "104_incomplete_digest");
+    expect(group?.oldestDays).toBe(10);
+    expect(view.rejectedMail.find((g) => g.reason === "tasker_body")?.oldestDays).toBe(3);
+    const html = renderToStaticMarkup(<SourcesTable data={view} />);
+    expect(html).toContain("<th>最舊</th>");
+    expect(html).toContain("<td>10 天</td>");
+  });
+
   it("refuses an unknown or non-mail source and an unknown reason with 400, changing nothing", async () => {
     for (const f of [fields("104_incomplete_digest", "jobicy"), fields("104_incomplete_digest", "nope"), fields("not_a_reason"), fields("104_incomplete_digest", "tasker")]) {
       expect((await handleMailDisposition(form("/sources/retry", f), "retry", deps())).status).toBe(400);
