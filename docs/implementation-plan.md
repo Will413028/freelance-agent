@@ -14,7 +14,6 @@
 
 計畫步驟 12（收尾）還開著的子步驟，以計畫的進度表為準：
 
-- [ ] 12d：把照 Python 語意移植的時間解析（`web/src/modules/listings/legacy-time.ts`、`web/src/modules/sources/shared/time.ts`）換成標準解析。
 - [ ] 12e：確認長期檢查都在 CI，並對整個重構的 diff 做設計審查。
 - [ ] 12f：延後項搬回主清單、需要 Will 做的事列清單、計畫標成完成。
 

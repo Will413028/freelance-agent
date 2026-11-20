@@ -1,10 +1,10 @@
-import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { boardUrl, employmentTypes, jobPostings, kindOf, pageHtml, PAGE_BYTES, PAGE_TIMEOUT_MS, readDetails, USER_AGENT } from "../shared/job-pages";
 import { codePoints, truthy } from "../shared/json";
 import { setAside } from "../shared/set-aside";
 import { pyStrip, visibleLines } from "../shared/text";
-import { pubDateInstant } from "../shared/time";
+import { parseIsoTime, pubDateInstant } from "../shared/time";
 import { childText, children, parseXmlText } from "../shared/xml-feed";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
@@ -95,7 +95,7 @@ function fieldText(value: unknown, what: string): string {
 function deadlineOf(value: unknown): ListingInput["deadline"] {
   if (!truthy(value)) return null;
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
-  const t = parseLegacyIsoTime(value.replaceAll("Z", "+00:00"));
+  const t = parseIsoTime(value);
   if (t === null) return { kind: "invalid", text: value };
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return { kind: "date", date: value };
   if (t.kind === "aware") {

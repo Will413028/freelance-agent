@@ -27,7 +27,6 @@ web/src/modules/**/*.fixtures.json
 web/src/modules/evaluation/evaluate.ts
 web/src/modules/evaluation/evaluate.test.ts
 web/src/modules/evaluation/rank.test.ts
-web/src/modules/listings/legacy-time.ts
 web/src/modules/sources/freelancer/index.ts
 web/src/modules/sources/arbeitnow/arbeitnow.test.ts
 web/src/modules/sources/community-jobs/community-jobs.test.ts

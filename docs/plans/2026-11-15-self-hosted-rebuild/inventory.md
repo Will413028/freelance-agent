@@ -81,7 +81,7 @@
 | 模擬 Python 的型別與函式 | `web/src/platform/py/`（2,082 行） | 刪除：步驟 4、5、7 逐來源換掉，步驟 11 刪目錄 |
 | HTTP 讀取（urllib 語意） | `web/src/platform/http.ts`、`web/src/platform/http.test.ts` | 取代：步驟 4 的分層讀取介面 `web/src/platform/fetch/` |
 | 頁面錯誤型別（繼承 `PyError`） | `web/src/platform/errors.ts` | 改寫：步驟 11 改成原生錯誤類別，檔案保留 |
-| golden 測試資料與讀取 | `web/tests/fixtures/golden.json`（33 MB）、`web/tests/helpers/golden.ts` | 刪除：步驟 4、5、7 把各來源的輸入搬成各自的 fixture；最後一份（parsedate 70 例）在步驟 11 搬成 `web/src/modules/sources/shared/parsedate.fixtures.json` |
+| golden 測試資料與讀取 | `web/tests/fixtures/golden.json`（33 MB）、`web/tests/helpers/golden.ts` | 刪除：步驟 4、5、7 把各來源的輸入搬成各自的 fixture；最後一份（parsedate 70 例）在步驟 11 搬成 `web/src/modules/sources/shared/parsedate.fixtures.json`，步驟 12d 刪除（換成 `time.fixtures.json`） |
 | 舊程式的測試與輔助 | `web/tests/helpers/db.ts`、`web/tests/helpers/intake.ts`、`web/tests/helpers/jobs.ts`、`web/tests/helpers/reference.ts`、`web/tests/helpers/resend.ts`、`web/tests/d1-paths.test.ts`、`web/tests/d1-real.test.ts`、`web/tests/d1-real-product.test.ts`、`web/tests/schema.test.ts`、`web/tests/write-units.test.ts`、`web/tests/storage-triggers.test.ts`、`web/tests/daily.test.ts`、`web/tests/scenarios.test.ts`、`web/tests/scale.test.ts`、`web/tests/projection.test.ts`、`web/tests/ranking-rounding.test.ts`、`web/tests/batch1-sources.test.ts`、`web/tests/batch3-sources.test.ts`、`web/tests/batch4-sources.test.ts`、`web/tests/cryptojobslist.test.ts`、`web/tests/free-jobs.test.ts`、`web/tests/public-feeds.test.ts`、`web/tests/mail-sources.test.ts` | 刪除：只測舊程式；D23 廢掉「舊測試只能跟取代它的新測試同 PR 刪」，舊行為以 `git show ce1254d:<路徑>` 查 |
 | 歷史提案外殼（每筆職缺的 proposal、approved_hash、review_status） | `web/src/modules/legacy/` | 刪除：功能不要了；步驟 3 的新形狀沒有這些欄位 |
 | 一人群組、去重 key、新穎度 | `web/src/modules/discovery/rules.ts`（`asGroup`、`identityKeys`、`novelty`）；消費端 `web/src/services/pages.ts`、`web/src/services/discovery.ts` | 改寫：步驟 3 讓頁面直接讀職缺列，不再包成群組；去重 key 與新穎度不搬（舊計畫 D18 量到合併 0 筆、D22 取消摘要）。舊檔：`web/src/services/discovery.ts` |
@@ -91,7 +91,7 @@
 | 每日一次的 claim | `web/src/modules/notifications/` | 改寫：步驟 6（唯一鍵加交易；`web/src/modules/runs/`）。舊檔：`web/src/modules/notifications/` |
 | 網頁寫入守門（同站來源、格式、大小） | `web/src/app/_lib/guard.ts` | 改寫：步驟 3 原樣搬，測試照留（檔案保留） |
 | 舊來源 connector、來源目錄、信件同步與 Resend Receiving client（只送 GET） | `web/src/modules/collection/` | 改寫：步驟 4、5、7 逐來源搬到 `web/src/modules/sources/`，來源顯示名稱在步驟 11 搬成 `web/src/modules/sources/catalog.ts` 每筆的 `label`；還沒搬的來源（5b、5c、7、8）照 `connector-checklist.md` 從 `git show ce1254d:<路徑>` 改寫，限制不變。舊檔：`web/src/modules/collection/` |
-| Python 時間解析語意（`fromisoformat`、`parsedate_to_datetime` 的邊角形式） | `web/src/modules/listings/legacy-time.ts`、`web/src/modules/sources/shared/time.ts`、`web/src/modules/sources/shared/parsedate.fixtures.json` | 改寫：步驟 12 換成標準解析器、fixture 只留各來源實際送出的格式；golden 已刪（步驟 11），「與 Python 一致」不再有比對對象，留著只為延續性（步驟 11 design-review 發現）。觸發：步驟 12 收尾，或任一來源因邊角形式解析錯誤時先做 |
+| Python 時間解析語意（`fromisoformat`、`parsedate_to_datetime` 的邊角形式） | `web/src/modules/listings/legacy-time.ts`、`web/src/modules/sources/shared/time.ts`、`web/src/modules/sources/shared/parsedate.fixtures.json` | 改寫：步驟 12d 完成，`legacy-time.ts` 與兩份 Python fixture 刪除；`sources/shared/time.ts` 只讀 ISO 8601 擴充格式（RFC 3339 加空格分隔、可省秒、±HHMM）與 RFC 5322 date-time；`time.fixtures.json` 列各來源 fixture 實際出現的格式與出處；7 個 connector 改用 `parseIsoTime`、拿掉 `Z→+00:00` 替換；fixture 裡沒出現的非標準 RFC 2822 寫法（完整月份名、星期後無逗號、單位數小時等）刻意不收，讀成未知（code-review 2026-11-20 記錄） |
 | Vercel Workflow 的建置外掛與相依套件 | `web/next.config.ts` 的 `withWorkflow`；`web/package.json` 的 `workflow`、`@vercel/functions`、`test:d1` | 改寫：步驟 11 拿掉（檔案保留） |
 
 ## 環境變數與外部資源
