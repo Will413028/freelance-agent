@@ -1,10 +1,10 @@
-import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { eligibleFromCodes, flightValue, lastById, lookup, optionalText, requiredText } from "../shared/embedded";
 import { pageHtml, pageRequest } from "../shared/job-pages";
 import { isObject } from "../shared/json";
 import { setAside } from "../shared/set-aside";
-import { awareInstant } from "../shared/time";
+import { parseIsoTime, awareInstant } from "../shared/time";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Remote.com Jobs (plan step 8b, D3; a new source, no old reader): the first page of the public
@@ -73,10 +73,10 @@ function payEvidence(value: unknown): string | null {
 function deadlineOf(value: unknown): ListingInput["deadline"] {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return parseLegacyIsoTime(value) ? { kind: "date", date: value } : { kind: "invalid", text: value };
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return parseIsoTime(value) ? { kind: "date", date: value } : { kind: "invalid", text: value };
   const at = awareInstant(value);
   if (at !== null) return { kind: "instant", at };
-  return parseLegacyIsoTime(value)?.kind === "naive" ? { kind: "no_timezone", text: value } : { kind: "invalid", text: value };
+  return parseIsoTime(value)?.kind === "naive" ? { kind: "no_timezone", text: value } : { kind: "invalid", text: value };
 }
 
 /** One job in the contract; SourceError (set aside) when its identity is missing. */

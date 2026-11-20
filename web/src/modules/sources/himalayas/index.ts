@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseIsoTime } from "../shared/time";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
@@ -40,7 +41,7 @@ export function boardInstant(value: unknown): string | null {
     return rfc3339(new Date(Math.floor(Math.round(seconds * 1e6) / 1000)));
   }
   if (typeof value !== "string") return null;
-  const t = parseLegacyIsoTime(value.replaceAll("Z", "+00:00"));
+  const t = parseIsoTime(value);
   return t?.kind === "aware" ? rfc3339(t.instant) : null;
 }
 
@@ -52,7 +53,7 @@ function deadlineOf(value: unknown): ListingInput["deadline"] {
     return at === null ? { kind: "invalid", text: String(value) } : { kind: "instant", at };
   }
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
-  const t = parseLegacyIsoTime(value.replaceAll("Z", "+00:00"));
+  const t = parseIsoTime(value);
   if (t === null) return { kind: "invalid", text: value };
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return { kind: "date", date: value };
   if (t.kind === "aware") {

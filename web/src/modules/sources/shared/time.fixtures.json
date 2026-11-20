@@ -1,0 +1,25 @@
+{
+  "about": "The time formats the sources' own fixtures carry (plan step 12d; survey: rg over each connector's fixtures, digits masked). Each case names the sources it was seen in. iso: parseIsoTime's result; rfc2822: rfc2822Instant's. null is unknown.",
+  "iso": [
+    { "input": "2026-09-26", "seen": ["dynamitejobs", "justremote", "remotecom", "nodesk", "jobbank518", "himalayas", "free-jobs"], "expect": { "kind": "date", "year": 2026, "month": 9, "day": 26 } },
+    { "input": "2026-09-18T12:00:00Z", "seen": ["community-jobs", "dynamitejobs", "justremote", "remotecom", "public-feeds", "nodesk", "cryptojobslist", "remoteco", "jobbank518", "himalayas", "free-jobs"], "expect": { "kind": "aware", "instant": "2026-09-18T12:00:00.000Z" } },
+    { "input": "2026-09-18T12:00:00.123Z", "seen": ["community-jobs", "dynamitejobs", "justremote", "public-feeds", "nodesk", "cryptojobslist", "himalayas", "free-jobs", "web3career", "remoteco", "remotecom", "jobbank518"], "expect": { "kind": "aware", "instant": "2026-09-18T12:00:00.123Z" } },
+    { "input": "2026-09-18T12:00:00.5Z", "seen": ["free-jobs"], "expect": { "kind": "aware", "instant": "2026-09-18T12:00:00.500Z" } },
+    { "input": "2026-09-18T12:00:00+05:30", "seen": ["dynamitejobs", "justremote", "public-feeds", "community-jobs", "jobbank518", "himalayas", "free-jobs"], "expect": { "kind": "aware", "instant": "2026-09-18T06:30:00.000Z" } },
+    { "input": "2026-09-18T12:00:00-07:00", "seen": ["public-feeds", "nodesk"], "expect": { "kind": "aware", "instant": "2026-09-18T19:00:00.000Z" } },
+    { "input": "2026-09-18T12:00:00.123456+08:00", "seen": ["public-feeds"], "expect": { "kind": "aware", "instant": "2026-09-18T04:00:00.123Z" } },
+    { "input": "2026-09-18T12:00:00.1+08:00", "seen": ["cryptojobslist"], "expect": { "kind": "aware", "instant": "2026-09-18T04:00:00.100Z" } },
+    { "input": "2026-09-18 12:00:00+08:00", "seen": ["web3career"], "expect": { "kind": "aware", "instant": "2026-09-18T04:00:00.000Z" } },
+    { "input": "2026-09-18 12:00:00-0800", "seen": ["free-jobs"], "expect": { "kind": "aware", "instant": "2026-09-18T20:00:00.000Z" } },
+    { "input": "2026-09-18T12:00:00", "seen": ["dynamitejobs", "justremote", "community-jobs", "remotecom", "public-feeds", "nodesk", "cryptojobslist", "himalayas", "free-jobs"], "expect": { "kind": "naive", "utcIfAssumed": "2026-09-18T12:00:00.000Z" } },
+    { "input": "2026-09-18 12:00:00", "seen": ["web3career", "free-jobs"], "expect": { "kind": "naive", "utcIfAssumed": "2026-09-18T12:00:00.000Z" } },
+    { "input": "2026-09-18T12:00", "seen": ["jobbank518"], "expect": { "kind": "naive", "utcIfAssumed": "2026-09-18T12:00:00.000Z" } },
+    { "input": "２０２６-０９-２６", "seen": ["jobbank518"], "expect": null }
+  ],
+  "rfc2822": [
+    { "input": "Fri, 18 Sep 2026 07:50:03 GMT", "seen": ["public-feeds", "nodesk", "cryptojobslist", "jobbank518"], "expect": "2026-09-18T07:50:03.000Z" },
+    { "input": "Sat, 24 Oct 2026 07:50:03 +0800", "seen": ["justremote", "cryptojobslist", "jobbank518"], "expect": "2026-10-23T23:50:03.000Z" },
+    { "input": "Sat, 24 Oct 2026 07:50:03 -0500", "seen": ["cryptojobslist"], "expect": "2026-10-24T12:50:03.000Z" },
+    { "input": "Fri, 18 Sep 2026 07:50:03", "seen": ["public-feeds"], "expect": null }
+  ]
+}

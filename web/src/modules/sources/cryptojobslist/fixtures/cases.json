@@ -2419,7 +2419,7 @@
      "complete": false,
      "listing_closed": null,
      "compensation_evidence": null,
-     "published_at": "2000-12-31T23:30:00.000Z",
+     "published_at": null,
      "deadline": null,
      "extra": {
       "employment_tags": [

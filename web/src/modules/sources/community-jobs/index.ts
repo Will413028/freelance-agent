@@ -1,4 +1,5 @@
-import { parseLegacyIsoTime, parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseIsoTime } from "../shared/time";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
@@ -171,7 +172,7 @@ export function parseV2ex(raw: Uint8Array, now: Date): Collected {
     const id = v2exTopicId(links[0]);
     if (id === null) throw new SourceError("v2ex: invalid canonical link");
     // The age rule reads the publication time, so an entry without a time zone is set aside.
-    const published = parseLegacyIsoTime((childText(e, ATOM + "published") || "").replaceAll("Z", "+00:00"));
+    const published = parseIsoTime(childText(e, ATOM + "published") || "");
     if (published?.kind !== "aware") throw new SourceError("v2ex: entry without a publication time with zone");
     if (published.instant.getTime() < cutoff) return null;
     const body = htmlText(childText(e, ATOM + "content") || "");

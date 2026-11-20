@@ -1,10 +1,10 @@
 import { load } from "cheerio";
-import { parseListingInput, parseLegacyIsoTime, type ListingInput } from "@/modules/listings/public";
+import { parseListingInput, type ListingInput } from "@/modules/listings/public";
 import type { Fetcher, FetchRequest } from "@/platform/fetch";
 import { codePoints, isObject, truthy } from "../shared/json";
 import { boardUrl, employmentTypes, jobPostings, kindOf, pageHtml, PAGE_BYTES, PAGE_TIMEOUT_MS, readDetails, USER_AGENT } from "../shared/job-pages";
 import { pyStrip, visibleLines } from "../shared/text";
-import { pubDateInstant } from "../shared/time";
+import { parseIsoTime, pubDateInstant } from "../shared/time";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 // Dynamite Jobs (plan step 5c; old collection/dynamitejobs.py and web/src/modules/collection/sources/
@@ -90,7 +90,7 @@ const rfc3339 = (d: Date) => (Number.isFinite(d.getTime()) && d.getUTCFullYear()
 function deadlineOf(value: unknown): ListingInput["deadline"] {
   if (!truthy(value)) return null;
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
-  const t = parseLegacyIsoTime(value.replaceAll("Z", "+00:00"));
+  const t = parseIsoTime(value);
   if (t === null) {
     const at = pubDateInstant(value);
     return at === null ? { kind: "invalid", text: value } : { kind: "instant", at };
