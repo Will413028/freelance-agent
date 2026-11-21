@@ -153,7 +153,7 @@
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
 | 1 Spike: source fields | 完成 | `sources.md` covers all 7 sources, every field marked with its command (2026-11-21; VM browser read authorized by Will, container and temp dir removed) | Kaggle absolute deadline and eligibility: detail page rendered 1 of 3 (`LayoutMissing`), left unknown | |
-| 2 Generalize the model | 程式完成待驗收 | 2026-11-21: `pnpm check` exit 0 (vitest 680 passed, 1 skipped; check-migrations ok, no `-- contract:` line); `pnpm build` exit 0; job evaluate/recommendation fixtures and the facts digest unchanged; mutations in copies: discriminator default, type filter on the listing, stub registry, reevaluate type filter, fingerprint with type, all killed | CI (PR not opened yet); deploy A (needs Will's authorization) | |
+| 2 Generalize the model | 程式完成待驗收 | 2026-11-21: `pnpm check` exit 0 (vitest 680 passed, 1 skipped; check-migrations ok, no `-- contract:` line); `pnpm build` exit 0; job evaluate/recommendation fixtures and the facts digest unchanged; mutations in copies: discriminator default, type filter on the listing, stub registry, reevaluate type filter, fingerprint with type, all killed; CI green on PR #87 (web incl. Postgres re-run, image, secrets) | deploy A (needs Will's authorization); step 3 waits for it | PR #87 |
 | 3 Type constraints | 未開始 | | | |
 | 4 Settings per type | 跳過（D6 B） | | | |
 | 5 Contest type with Devpost | 未開始 | | | |
