@@ -4,8 +4,8 @@ import { listingFeedback, listings } from "@/db/pg/schema";
 
 // Retention (plan step 5a2-3). Intake stores every listing read (plan D9), so the table grows by what the
 // sources publish; a listing no read has shown for RETENTION_DAYS is deleted. The clock is last_seen_at, not
-// gone_at: few sources' reads are complete (arbeitnow stops at its page cap; devpost's is, opportunity types
-// plan step 5), and one complete read can
+// gone_at: few sources' reads are complete (arbeitnow stops at its page cap; the contest sources' reads
+// are: devpost, mlcontests, zindi; see `completeRead` in the source catalog), and one complete read can
 // miss a listing that shifted between pages, so only a long run of absences counts. A listing with any
 // feedback row stays: the person's saved and skipped lists never lose an entry. Versions and feedback
 // events cascade with the listing. The operation derives everything from the table, so a rerun or an

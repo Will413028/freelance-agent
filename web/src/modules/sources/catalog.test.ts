@@ -27,11 +27,11 @@ describe("source catalog", () => {
   });
 
   it("marks complete reads only for sources whose one read pages through the whole board (plan D9)", () => {
-    expect(SOURCES.filter((s) => s.completeRead).map((s) => s.name)).toEqual(["arbeitnow", "devpost"]);
+    expect(SOURCES.filter((s) => s.completeRead).map((s) => s.name)).toEqual(["arbeitnow", "devpost", "mlcontests", "zindi"]);
   });
 
   it("gives every source one opportunity type: jobs, and the contest sources (opportunity types plan D1)", () => {
-    expect(SOURCES.filter((s) => s.opportunityType !== "job").map((s) => [s.name, s.opportunityType])).toEqual([["devpost", "contest"]]);
+    expect(SOURCES.filter((s) => s.opportunityType !== "job").map((s) => [s.name, s.opportunityType])).toEqual([["devpost", "contest"], ["mlcontests", "contest"], ["zindi", "contest"]]);
   });
 
   it("gives every source a page label, and falls back to the name", () => {
@@ -49,7 +49,7 @@ describe("source catalog", () => {
       taiwanjobs: "台灣就業通", arbeitnow: "Arbeitnow", getonboard: "Get on Board", cryptojobslist: "CryptoJobsList",
       nodesk: "NoDesk", justremote: "JustRemote", dynamitejobs: "Dynamite Jobs", jobbank518: "518 熊班", chickpt: "小雞上工",
       arc: "Arc", web3career: "Web3.career", wellfound: "Wellfound", remotecom: "Remote.com Jobs", ycjobs: "YC Jobs",
-      remoteco: "Remote.co", idealist: "Idealist", braintrust: "Braintrust", devpost: "Devpost",
+      remoteco: "Remote.co", idealist: "Idealist", braintrust: "Braintrust", devpost: "Devpost", mlcontests: "MLContests", zindi: "Zindi",
     });
     expect(sourceLabel("hackernews")).toBe("Hacker News");
     expect(sourceLabel("constructor")).toBe("constructor");
