@@ -19,6 +19,7 @@ export type ReevaluateCounts = { reevaluated: number; unparsable: number };
 const evaluated = (raw: unknown, type: OpportunityType) => {
   try {
     const input = parseListingInput(raw);
+    // A raw of another type than its column is counted as unparsable too: no rule of this type applies to it.
     if (input.opportunity_type !== type) return null;
     const { facts, version } = evaluatorFor(type);
     return { ...facts(listingOf(input)), evaluatedWith: version };

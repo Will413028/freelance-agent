@@ -65,7 +65,7 @@ deploy/         compose、Dockerfile、systemd 單元、deploy.sh
 
 - `listings`：一筆職缺一列。身分是 `(source, external_id)`，唯一；`id` 是資料庫產生的代理主鍵（D10）。另存 `source_kept`（來源自己的規則留不留）、`hard_excluded` 等評估用欄位，以及 `first_seen_at`、`updated_at`、`last_seen_at`、`gone_at`。
 - `listing_versions`：信件職缺內容互相矛盾時的其他版本。
-- 機會類型（[機會類型計畫](plans/2026-11-20-opportunity-types.md) D1）：`listings`、`listing_versions` 都有 `opportunity_type`（預設 `job`）。一個來源只產一種類型（catalog 的 `opportunityType`）。映像只讀、排序、重新評估自己認得的類型（`OPPORTUNITY_TYPES`），回滾後不碰新版寫入的其他類型。目前只有 `job`。
+- 機會類型（[機會類型計畫](plans/2026-11-20-opportunity-types.md) D1）：`listings`、`listing_versions` 都有 `opportunity_type`（預設 `job`）。一個來源只產一種類型（catalog 的 `opportunityType`）。清單與重新評估只處理映像認得的類型（`OPPORTUNITY_TYPES`），回滾後不碰新版寫入的其他類型；詳情頁 `/jobs/<id>` 目前不分類型（步驟 5 處理）。目前只有 `job`。
 - `listing_feedback`、`listing_feedback_events`：收藏／略過狀態與其事件紀錄。
 - `settings`：唯一一列的篩選設定。
 - `mail_messages`、`mail_cursors`：每封看過的信的處理結果、每個信箱的掃描位置。
