@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { boardUrl, pageHtml, PAGE_BYTES, PAGE_TIMEOUT_MS, readDetails, USER_AGENT } from "../shared/job-pages";
 import { codePoints } from "../shared/json";
@@ -43,8 +43,8 @@ type Board = {
   demand: RegExp;
   closedTitle: RegExp;
   closedBody: RegExp;
-  kind: (title: string, body: string) => ListingInput["kind"];
-  kept: (l: ListingInput) => boolean;
+  kind: (title: string, body: string) => JobInput["kind"];
+  kept: (l: JobInput) => boolean;
   /** `/bbs/<board>/M.<seconds>.A.<hex>.html`: groups 1 the id, 2 the seconds. */
   article: RegExp;
   index: RegExp;
@@ -70,7 +70,7 @@ const OPTIONAL_EMPLOYMENT = re(String.raw`全職\s*(?:亦可|也可)|兼職\s*(?
 const BODY_EMPLOYMENT = re(String.raw`(?:職務性質|工作性質|合作型態)[：:]\s*全職|(?:這是|本職缺為|招聘|徵求|招募|徵聘)\s*(?:一位|一名)?\s*全職|\bfull[ -]?time\s+(?:role|position|job|employment)\b`);
 
 /** Old employment_kind: explicit evidence within one clause; a negated or optional full-time clause says nothing. */
-export function employmentKind(title: string, body: string): ListingInput["kind"] {
+export function employmentKind(title: string, body: string): JobInput["kind"] {
   for (const [text, isTitle] of [[title, true], [body, false]] as const) {
     for (const raw of text.split(/[\n。；;，,]/u)) {
       const clause = raw.replace(NEGATED_FULL_TIME, "");
@@ -139,7 +139,7 @@ export function parseIndex(b: Board, raw: Uint8Array, now: Date): { entries: Ent
 }
 
 /** One post page in the contract; throws SourceError without the article or with a body out of bounds. */
-export function parseArticle(b: Board, raw: Uint8Array, entry: Entry): ListingInput {
+export function parseArticle(b: Board, raw: Uint8Array, entry: Entry): JobInput {
   if (postUrl(b, entry.url) !== entry.url) throw new SourceError(`${b.name}: invalid post URL`);
   const $ = load(pageHtml(b.name, raw), { scriptingEnabled: false });
   const main = $("#main-content");
@@ -150,7 +150,7 @@ export function parseArticle(b: Board, raw: Uint8Array, entry: Entry): ListingIn
   main.find(".f2").filter((_, el) => $(el).text().trimStart().startsWith("※")).remove();
   const body = visibleLines(main.html() ?? "");
   if (codePoints(body) < 5 || codePoints(body) > 100_000) throw new SourceError(`${b.name}: invalid body`);
-  return parseListingInput({
+  return parseJobInput({
     external_id: entry.external_id, title: entry.title, description: body, url: entry.url, canonical_url: entry.url,
     kind: b.kind(entry.title, body), complete: true, listing_closed: entry.closedTitle || b.closedBody.test(body),
     published_at: entry.published_at, extra: { language: "zh-TW" },
@@ -159,7 +159,7 @@ export function parseArticle(b: Board, raw: Uint8Array, entry: Entry): ListingIn
 
 const page = (fetcher: Fetcher, url: string) => fetcher.get({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
 
-export async function pttConnector(b: Board, fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function pttConnector(b: Board, fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const byId = new Map<string, Entry>();
   let path: string | null = `/bbs/${b.board}/index.html`;
   const visited = new Set<string>();

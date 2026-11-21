@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { readMessage, type MailMessage } from "../message";
 import { MailRejection } from "../reasons";
 import { isAlertSubject, jobOf, LINKEDIN_SETTINGS, parseLinkedin, SENDER } from ".";
@@ -14,7 +14,7 @@ import { isAlertSubject, jobOf, LINKEDIN_SETTINGS, parseLinkedin, SENDER } from 
 type Case = { name: string; message: Omit<MailMessage, "id" | "receivedAt">; expect: { listings: unknown[] } | { reason: string } };
 const cases: Case[] = JSON.parse(readFileSync(path.join(import.meta.dirname, "fixtures/cases.json"), "utf8"));
 
-type Outcome = { listings: ListingInput[]; reason?: undefined } | { reason: string; listings?: undefined };
+type Outcome = { listings: JobInput[]; reason?: undefined } | { reason: string; listings?: undefined };
 const outcome = (m: Omit<MailMessage, "id" | "receivedAt">): Outcome => {
   try {
     return { listings: parseLinkedin({ ...m, sender: m.sender.toLowerCase(), id: "x", receivedAt: "2026-09-26T03:00:00.000Z" }) };

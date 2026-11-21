@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
@@ -83,13 +83,13 @@ function employmentTypes(raw: unknown): string[] | null {
   return [...new Set((raw as string[]).map((t) => pyStrip(t).toLowerCase().replaceAll("-", " ")))].sort();
 }
 
-function kindOf(types: string[]): ListingInput["kind"] {
+function kindOf(types: string[]): JobInput["kind"] {
   if (types.some((t) => t.includes("fulltime") || t.includes("full time"))) return "full_time";
   return ["part time", "parttime", "freelance", "contract"].some((t) => types.includes(t)) ? "contract" : null;
 }
 
 /** One API entry in the contract; throws SourceError when its identity or a field the source's rule reads is missing (`setAside` sets that one listing aside). */
-export function normalize(entry: unknown): ListingInput {
+export function normalize(entry: unknown): JobInput {
   if (!isObject(entry)) throw new SourceError("arbeitnow: a listing is not an object");
   const slug = entry.slug;
   if (typeof slug !== "string" || !/^[A-Za-z0-9_-]{1,200}$/.test(slug)) throw new SourceError("arbeitnow: invalid slug");
@@ -103,7 +103,7 @@ export function normalize(entry: unknown): ListingInput {
   const title = visibleText(entry.title, "title"), description = descriptionText(entry.description);
   if (codePoints(title) > 500 || codePoints(description) > 100_000) throw new SourceError("arbeitnow: listing too long");
   const location = typeof entry.location === "string" ? entry.location : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: slug, title, description, url: link, canonical_url: link,
     location: location || null, kind: kindOf(types), complete: false,
     published_at: new Date(stamp * 1000).toISOString(),
@@ -111,7 +111,7 @@ export function normalize(entry: unknown): ListingInput {
   });
 }
 
-export type Page = { listings: ListingInput[]; rejected: number; examined: number; count: number; next: string | null; meta: Record<string, unknown> };
+export type Page = { listings: JobInput[]; rejected: number; examined: number; count: number; next: string | null; meta: Record<string, unknown> };
 
 /** One API page (`page` counts from 1): its listings and the pinned URL of the next page, or null. */
 export function parsePage(body: Uint8Array, page: number): Page {
@@ -162,8 +162,8 @@ export function pageShapeOk(perPage: unknown, count: number): boolean {
  * last read); `truncated` when a next page remained (old: partial, what
  * was read still written).
  */
-export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: ListingInput[]; truncated: boolean; rejected: number; examined: number }> {
-  const byId = new Map<string, ListingInput>();
+export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: JobInput[]; truncated: boolean; rejected: number; examined: number }> {
+  const byId = new Map<string, JobInput>();
   let url: string | null = ENDPOINT, page = 1, seen = 0, rejected = 0, examined = 0;
   while (url && page <= MAX_PAGES) {
     const r = await fetcher.get({
@@ -189,12 +189,12 @@ export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: 
  * The source's own rule (old arbeitnow.ts:196-201): remote contract listings published in the last 90 days, none in the future.
  * The old `score > 0` is the shared screen's: evaluate excludes category score 0 ("不在目前接案專長範圍").
  */
-export function keep(l: ListingInput, now: Date): boolean {
+export function keep(l: JobInput, now: Date): boolean {
   const at = Date.parse(l.published_at!);
   return l.extra.remote_evidence === true && l.kind === "contract" && now.getTime() - FRESH_MS <= at && at <= now.getTime();
 }
 
-export async function arbeitnowConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function arbeitnowConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const { seen, listings, truncated, rejected, examined } = await scan(fetcher);
   return { seen, listings, sourceKept: (l) => keep(l, now), truncated, rejected, examined };
 }

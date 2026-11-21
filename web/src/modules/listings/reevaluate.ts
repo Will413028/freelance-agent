@@ -2,7 +2,8 @@ import { and, eq, ne } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { listings, listingVersions, OPPORTUNITY_TYPES, type OpportunityType } from "@/db/pg/schema";
 import { evaluatorFor } from "@/modules/evaluation/public";
-import { listingOf, parseListingInput } from "./contract";
+import { parseListingInput } from "./contract";
+import { evaluatedColumns } from "./intake";
 
 // Plan D26: the evaluation columns are computed at intake and only recomputed when the content changes, so
 // a rule change would leave every stored row on the old rules. Each row carries the FACTS_VERSION it was
@@ -21,16 +22,16 @@ const evaluated = (raw: unknown, type: OpportunityType) => {
     const input = parseListingInput(raw);
     // A raw of another type than its column is counted as unparsable too: no rule of this type applies to it.
     if (input.opportunity_type !== type) return null;
-    const { facts, version } = evaluatorFor(type);
-    return { ...facts(listingOf(input)), evaluatedWith: version };
+    return evaluatedColumns(input);
   } catch {
     return null;
   }
 };
 
-export async function reevaluateStale(db: PgDb): Promise<ReevaluateCounts> {
+/** `types`: the types this image knows; a test passes fewer to stand for an older image after a rollback. */
+export async function reevaluateStale(db: PgDb, types: readonly OpportunityType[] = OPPORTUNITY_TYPES): Promise<ReevaluateCounts> {
   const counts: ReevaluateCounts = { reevaluated: 0, unparsable: 0 };
-  for (const type of OPPORTUNITY_TYPES) await reevaluateType(db, type, counts);
+  for (const type of types) await reevaluateType(db, type, counts);
   return counts;
 }
 

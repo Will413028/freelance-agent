@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { inertiaPage, lastById, lookup, optionalText, requiredText } from "../shared/embedded";
 import { pageHtml, pageRequest } from "../shared/job-pages";
@@ -37,10 +37,10 @@ export function parseIndex(raw: Uint8Array): unknown[] {
   return props.jobPostings;
 }
 
-const KIND: Record<string, ListingInput["kind"]> = { "full-time": "full_time", contract: "contract", "part-time": "contract" };
+const KIND: Record<string, JobInput["kind"]> = { "full-time": "full_time", contract: "contract", "part-time": "contract" };
 
 /** One job in the contract; SourceError (set aside) when its identity is missing. */
-export function normalizeJob(job: unknown): ListingInput {
+export function normalizeJob(job: unknown): JobInput {
   if (!isObject(job)) throw new SourceError("ycjobs: job is not an object");
   if (typeof job.id !== "number" || !Number.isSafeInteger(job.id) || job.id <= 0) throw new SourceError("ycjobs: job id required");
   const path = typeof job.url === "string" ? job.url.trim() : "";
@@ -48,7 +48,7 @@ export function normalizeJob(job: unknown): ListingInput {
   const title = requiredText("ycjobs", job.title, "title");
   const url = ORIGIN + path;
   const type = typeof job.type === "string" ? job.type.trim().toLowerCase() : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: String(job.id), title, company: optionalText(job.companyName), url, canonical_url: url,
     location: optionalText(job.location), kind: lookup(KIND, type),
     compensation_evidence: optionalText(job.salaryRange), complete: false,
@@ -59,7 +59,7 @@ export function normalizeJob(job: unknown): ListingInput {
   });
 }
 
-export async function ycJobsConnector(fetcher: Fetcher): Promise<Collected> {
+export async function ycJobsConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const jobs = parseIndex((await fetcher.get(pageRequest(INDEX))).body);
   const read = setAside(jobs, normalizeJob);
   return { seen: jobs.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

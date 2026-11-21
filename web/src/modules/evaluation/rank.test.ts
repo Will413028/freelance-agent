@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { intakeListings, listingBy, listingOf, parseListingInput } from "@/modules/listings/public";
+import { intakeListings, listingBy, listingOf, parseJobInput } from "@/modules/listings/public";
 import { freshPg } from "../../../tests/helpers/pg";
 import { recommend, rankFactsOf } from "./evaluate";
 import { DEFAULT_SETTINGS, rankedPage, readRankables, readSettings } from "./list";
@@ -16,7 +16,7 @@ const job = (externalId: string, extra: Record<string, unknown> = {}) => ({
   url: `https://example.com/jobs/${externalId}`, kind: "contract", taiwan_eligible: true, timezone_compatible: true, weekly_hours: 10,
   complete: true, published_at: "2026-11-14T12:00:00Z", ...extra,
 });
-const typed = (extra: Record<string, unknown> = {}) => listingOf(parseListingInput(job("1", extra)));
+const typed = (extra: Record<string, unknown> = {}) => listingOf(parseJobInput(job("1", extra)));
 const date = (d: string) => ({ deadline: { kind: "date", date: d } });
 const facts = (fingerprint: string, extra: Record<string, unknown> = {}): RankFacts => rankFactsOf(fingerprint, typed(extra));
 
@@ -67,12 +67,12 @@ describe("rank", () => {
   it("orders candidates first, then the higher score, then the newer first_seen_at, then the higher id", () => {
     const at = (iso: string) => new Date(iso);
     const items = [
-      { id: 1, firstSeenAt: at("2026-11-01T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
-      { id: 2, firstSeenAt: at("2026-11-03T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
-      { id: 9, firstSeenAt: at("2026-11-02T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
-      { id: 10, firstSeenAt: at("2026-11-02T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "" },
-      { id: 3, firstSeenAt: at("2026-11-04T00:00:00Z"), candidate: false, scoreTenths: 900, basis: "" },
-      { id: 4, firstSeenAt: at("2026-10-01T00:00:00Z"), candidate: true, scoreTenths: 700, basis: "" },
+      { id: 1, firstSeenAt: at("2026-11-01T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "", deadlineAt: null },
+      { id: 2, firstSeenAt: at("2026-11-03T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "", deadlineAt: null },
+      { id: 9, firstSeenAt: at("2026-11-02T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "", deadlineAt: null },
+      { id: 10, firstSeenAt: at("2026-11-02T00:00:00Z"), candidate: true, scoreTenths: 500, basis: "", deadlineAt: null },
+      { id: 3, firstSeenAt: at("2026-11-04T00:00:00Z"), candidate: false, scoreTenths: 900, basis: "", deadlineAt: null },
+      { id: 4, firstSeenAt: at("2026-10-01T00:00:00Z"), candidate: true, scoreTenths: 700, basis: "", deadlineAt: null },
     ];
     // Same score: newest first (2), then same first_seen_at by numeric id, higher first (10 before 9), then oldest (1).
     expect([...items].sort(byRank).map((i) => i.id)).toEqual([4, 2, 10, 9, 1, 3]);

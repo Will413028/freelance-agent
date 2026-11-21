@@ -1,4 +1,4 @@
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { loadMailHtml, type AnyNode } from "../html";
 import { jobKind, wordsIgnoreCase } from "../kind";
 import { mailListing, type MailMessage } from "../message";
@@ -86,7 +86,7 @@ function readCards(html: string) {
 }
 
 /** The listings of one digest, or a MailRejection naming the check that failed. */
-export function parse104(message: MailMessage): ListingInput[] {
+export function parse104(message: MailMessage): JobInput[] {
   const subject = SUBJECT.exec(message.subject);
   if (message.sender !== SENDER || !message.isHtml || !subject) reject("104_unsupported");
   const { cards, open, stopped } = readCards(message.body);

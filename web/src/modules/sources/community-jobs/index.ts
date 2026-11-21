@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import { parseIsoTime } from "../shared/time";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
@@ -63,7 +63,7 @@ const CONTRACT = re(String.raw`\b(part[ -]?time|contract(?:or|ing)?|freelance|fr
 const RESTRICTED = re(String.raw`\b(?:USA?|UK|EU|Europe|Canada|Australia)\s+only\b|REMOTE\s*\((?:EU|US|USA|UK|Europe)\)|\b(?:Poland|Romania|Romanian)(?: or (?:Poland|Romania|Romanian))? residents only`);
 
 /** One HN comment as a lead, or null when the source's rules skip it; throws SourceError when it is not a comment object or lacks its identity (`setAside` sets that one listing aside). */
-export function hnListing(p: unknown, parent: Json): ListingInput | null {
+export function hnListing(p: unknown, parent: Json): JobInput | null {
   if (!isObject<Json>(p)) throw new SourceError("hackernews: a comment is not an object");
   if (truthy(p.deleted) || truthy(p.dead)) return null;
   if (p.type !== "comment" || (p.parent ?? null) !== parent) return null;
@@ -73,7 +73,7 @@ export function hnListing(p: unknown, parent: Json): ListingInput | null {
   if (SEEKING.test(text) || NO_CONTRACT.test(text) || !CONTRACT.test(text)) return null;
   if (typeof p.id !== "number" || !Number.isSafeInteger(p.id)) throw new SourceError("hackernews: invalid comment id");
   const url = `https://news.ycombinator.com/item?id=${p.id}`;
-  return parseListingInput({
+  return parseJobInput({
     external_id: String(p.id), title: checked("hackernews", head(text, 160), text), description: text, url, canonical_url: url,
     kind: "contract", taiwan_eligible: RESTRICTED.test(text) ? false : null, complete: false,
     // HN times are Unix seconds; one that is not a whole number in range is unknown (plan D8).
@@ -106,7 +106,7 @@ function hiringThread(t: Json, cutoffMs: number): t is Record<string, Json> {
   return t.time * 1000 >= cutoffMs;
 }
 
-export async function hackernewsConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function hackernewsConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const user = await getJson(fetcher, "user/whoishiring");
   if (!isObject<Json>(user) || !Array.isArray(user.submitted)) throw new SourceError("hackernews: user without submissions");
   const threads: Json[] = [];
@@ -114,7 +114,7 @@ export async function hackernewsConnector(fetcher: Fetcher, now: Date): Promise<
   const cutoff = now.getTime() - 62 * DAY_MS;
   const selected = threads.filter((t) => hiringThread(t, cutoff)).slice(0, 2);
   if (!selected.length) throw new SourceError("hackernews: no recent hiring thread");
-  const all: ListingInput[] = [];
+  const all: JobInput[] = [];
   let rejected = 0, examined = 0;
   for (const thread of selected) {
     const kids = "kids" in thread ? thread.kids : [];
@@ -151,7 +151,7 @@ export function v2exTopicId(href: string): string | null {
 }
 
 /** The feed's leads the source's rule keeps: titles asking for help, published in the last 90 days. */
-export function parseV2ex(raw: Uint8Array, now: Date): Collected {
+export function parseV2ex(raw: Uint8Array, now: Date): Collected<JobInput> {
   if (raw.length > LIMIT) throw new SourceError("v2ex: oversize feed");
   const upper = asciiUpper(raw);
   if (upper.includes("<!DOCTYPE") || upper.includes("<!ENTITY")) throw new SourceError("v2ex: XML declarations forbidden");
@@ -166,7 +166,7 @@ export function parseV2ex(raw: Uint8Array, now: Date): Collected {
   if (entries.length > 100) throw new SourceError("v2ex: over 100 entries");
   const cutoff = now.getTime() - 90 * DAY_MS;
   // One entry without its identity is set aside (Will 2026-11-15); the old run refused the source.
-  const picked = setAside(entries, (e): ListingInput | null => {
+  const picked = setAside(entries, (e): JobInput | null => {
     const title = childText(e, ATOM + "title") || "";
     if (SKIP.test(title) || !WANTED.test(title)) return null;
     const links = children(e, ATOM + "link").filter((x) => x.attrs.get("rel") === "alternate").map((x) => x.attrs.get("href"));
@@ -179,16 +179,16 @@ export function parseV2ex(raw: Uint8Array, now: Date): Collected {
     if (published.instant.getTime() < cutoff) return null;
     const body = htmlText(childText(e, ATOM + "content") || "");
     const url = `https://www.v2ex.com/t/${id}`;
-    return parseListingInput({
+    return parseJobInput({
       external_id: id, title: checked("v2ex", title, body || title), description: body || title, url, canonical_url: url,
       kind: "contract", complete: false, published_at: rfc3339(published.instant), extra: { body_available: Boolean(body) },
     });
   });
-  const all = picked.listings.filter((l): l is ListingInput => l !== null);
+  const all = picked.listings.filter((l): l is JobInput => l !== null);
   return { seen: all.length, listings: [...new Map(all.map((l) => [l.external_id, l])).values()], sourceKept: keepAll, rejected: picked.rejected, examined: picked.examined };
 }
 
-export async function v2exConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function v2exConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const r = await fetcher.get({ url: "https://www.v2ex.com/feed/outsourcing.xml", maxBytes: LIMIT, timeoutMs: 8_000, headers: HEADERS });
   return parseV2ex(r.body, now);
 }

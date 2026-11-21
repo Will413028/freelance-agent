@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { listingOf, parseListingInput } from "@/modules/listings/public";
+import { listingOf, parseJobInput } from "@/modules/listings/public";
 import { factsOf } from "./facts";
 import { taipeiDayAfter } from "./time";
 
 // Plan steps 3a, 3b2: the evaluation facts stored with each listing (step-3-design.md core choice 1),
 // over the typed listing.
 
-const l = (extra: Record<string, unknown> = {}) => listingOf(parseListingInput({
+const l = (extra: Record<string, unknown> = {}) => listingOf(parseJobInput({
   external_id: "1", title: "Backend API contractor", description: "Build an LLM automation backend", kind: "contract", ...extra,
 }));
 

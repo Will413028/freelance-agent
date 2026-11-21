@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
@@ -87,7 +87,7 @@ function feedText(value: string | null): string | null {
 }
 
 /** One RSS item in the contract; throws SourceError when its identity is missing (`setAside` sets that one listing aside). */
-export function normalizeItem(item: XmlElement): ListingInput {
+export function normalizeItem(item: XmlElement): JobInput {
   const link = childText(item, "link");
   const id = canonicalJobUrl(link);
   if (id === null) throw new SourceError("cryptojobslist: invalid job URL");
@@ -103,7 +103,7 @@ export function normalizeItem(item: XmlElement): ListingInput {
   const kind = tagList.includes("full-time") ? "full_time" : tagList.some((t) => t === "part-time" || t === "freelance") ? "contract" : null;
   const location = (childText(item, MEDIA + "location") ?? "").trim() || null;
   const publication = childText(item, "pubDate");
-  return parseListingInput({
+  return parseJobInput({
     // The shown URLs are the job's canonical URL too, as the old connector stored them (fixture cases 34, 41).
     external_id: id, title, description, url: id, canonical_url: id, location, kind,
     taiwan_eligible: REGIONAL.test(location ?? "") ? false : null, complete: false,
@@ -113,7 +113,7 @@ export function normalizeItem(item: XmlElement): ListingInput {
 }
 
 /** Every item of the feed in the contract (an id listed twice keeps its last entry) and the item count. */
-export function parseItems(body: Uint8Array): Omit<Collected, "sourceKept"> {
+export function parseItems(body: Uint8Array): Omit<Collected<JobInput>, "sourceKept"> {
   if (!body.length || body.length > LIMIT) throw new SourceError("cryptojobslist: empty or oversize feed");
   if (/<![ \t\n\r\f\v]*(?:DOCTYPE|ENTITY)\b/i.test(Buffer.from(body).toString("latin1"))) throw new SourceError("cryptojobslist: XML declarations forbidden");
   let root: XmlElement;
@@ -133,12 +133,12 @@ export function parseItems(body: Uint8Array): Omit<Collected, "sourceKept"> {
 }
 
 /** The feed's items, marked by the source's rule: remote, part-time or freelance. */
-export function parseFeed(body: Uint8Array): Collected {
+export function parseFeed(body: Uint8Array): Collected<JobInput> {
   const all = parseItems(body);
   return { seen: all.seen, listings: all.listings, sourceKept: (l) => l.extra.remote_evidence === true && l.kind === "contract", rejected: all.rejected, examined: all.examined };
 }
 
-export async function cryptojobslistConnector(fetcher: Fetcher): Promise<Collected> {
+export async function cryptojobslistConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const r = await fetcher.get({
     url: FEED, maxBytes: LIMIT, timeoutMs: 25_000,
     headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/rss+xml" },

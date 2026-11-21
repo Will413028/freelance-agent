@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import { FetchError, type Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
@@ -45,7 +45,7 @@ function jobUrl(value: unknown, id: string): string {
 export type Modalities = Map<string, unknown>;
 
 /** One listing in the contract; throws SourceError when its identity, modality or publication time is missing (`setAside` sets that one listing aside). */
-export function normalize(item: unknown, modalities: Modalities): ListingInput {
+export function normalize(item: unknown, modalities: Modalities): JobInput {
   if (!isObject(item)) throw new SourceError("getonboard: a listing is not an object");
   const id = item.id, attrs = item.attributes;
   if (typeof id !== "string" || !/^[a-z0-9_-]{1,250}$/.test(id) || !isObject(attrs)) throw new SourceError("getonboard: invalid job identity");
@@ -63,7 +63,7 @@ export function normalize(item: unknown, modalities: Modalities): ListingInput {
   if (modality === null) throw new SourceError("getonboard: unknown modality");
   const kind = modality === "full_time" ? "full_time" : modality === "part_time" || modality === "freelance" ? "contract" : null;
   const countries = Array.isArray(attrs.countries) && attrs.countries.every((c) => typeof c === "string") ? (attrs.countries as string[]) : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: id, title, description, url, canonical_url: url, kind,
     location: countries?.join(", ") || null,
     taiwan_eligible: REGIONAL.test(title) ? false : null, complete: false, published_at: published,
@@ -99,7 +99,7 @@ export function parseModalities(body: Uint8Array): Modalities {
   return modalities;
 }
 
-export type Read = { seen: number; listings: ListingInput[]; pages: number; truncated: boolean; rejected: number; examined: number };
+export type Read = { seen: number; listings: JobInput[]; pages: number; truncated: boolean; rejected: number; examined: number };
 
 /** The taxonomy and every search page: each listing once by id (the last entry wins). */
 export async function readAll(fetcher: Fetcher, clock: () => number = () => performance.now()): Promise<Read> {
@@ -115,7 +115,7 @@ export async function readAll(fetcher: Fetcher, clock: () => number = () => perf
     return r.body;
   };
   const modalities = parseModalities(await get("modalities", { per_page: "120", page: "1" }));
-  const byId = new Map<string, ListingInput>();
+  const byId = new Map<string, JobInput>();
   let seen = 0, rejected = 0, examined = 0, page = 1, totalPages = 1;
   for (; page <= MAX_PAGES; page++) {
     const { data, meta } = envelope(await get("search/jobs", { remote: "true", per_page: "120", page: String(page) }));
@@ -135,7 +135,7 @@ export async function readAll(fetcher: Fetcher, clock: () => number = () => perf
 }
 
 /** The source's own rule: remote, part-time or freelance, a tech category, published in the 90 days up to now. */
-export function keeps(l: ListingInput, now: Date): boolean {
+export function keeps(l: JobInput, now: Date): boolean {
   const at = Date.parse(l.published_at!), category = l.extra.category_evidence;
   // The category is read last, as the old rule short-circuited (getonboard.ts:129-132): a listing the
   // other conditions drop never refuses the batch for its category. Unlike the old `exists ||`, a stored
@@ -146,7 +146,7 @@ export function keeps(l: ListingInput, now: Date): boolean {
   return typeof category === "string" && TECH.has(category);
 }
 
-export async function getonboardConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function getonboardConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const read = await readAll(fetcher);
   // The rule runs here, once per listing: a category it cannot read refuses the batch before anything is written.
   const kept = new Set(read.listings.filter((l) => keeps(l, now)).map((l) => l.external_id));

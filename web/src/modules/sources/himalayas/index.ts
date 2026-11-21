@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import { parseIsoTime } from "../shared/time";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
@@ -46,7 +46,7 @@ export function boardInstant(value: unknown): string | null {
 }
 
 /** expiryDate in the contract's deadline shapes. */
-function deadlineOf(value: unknown): ListingInput["deadline"] {
+function deadlineOf(value: unknown): JobInput["deadline"] {
   if (value === undefined || value === null) return null;
   if (typeof value === "number") {
     const at = boardInstant(value);
@@ -102,13 +102,13 @@ function jobUrl(value: unknown): string {
   return link;
 }
 
-function kindOf(employment: string): ListingInput["kind"] {
+function kindOf(employment: string): JobInput["kind"] {
   if (employment === "Contractor" || employment === "Part Time") return "contract";
   return employment === "Full Time" ? "full_time" : null;
 }
 
 /** One listing in the contract; throws SourceError when its identity or employment type is missing (`setAside` sets that one listing aside). */
-export function normalize(item: unknown): ListingInput {
+export function normalize(item: unknown): JobInput {
   if (!isObject(item)) throw new SourceError("himalayas: a listing is not an object");
   const { title, description: body, guid } = item;
   if (typeof title !== "string" || codePoints(title) < 1 || codePoints(title) > 500) throw new SourceError("himalayas: invalid title");
@@ -120,7 +120,7 @@ export function normalize(item: unknown): ListingInput {
   const employment = item.employmentType;
   if (typeof employment !== "string") throw new SourceError("himalayas: employment type required");
   const locations = item.locationRestrictions ?? null, offsets = item.timezoneRestrictions ?? null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: guid, title, description, url, canonical_url: url, kind: kindOf(employment),
     taiwan_eligible: taiwanEligible(locations), timezone_compatible: timezoneCompatible(offsets), complete: false,
     published_at: boardInstant(item.pubDate), deadline: deadlineOf(item.expiryDate),
@@ -148,8 +148,8 @@ export function parsePage(body: Uint8Array): unknown[] {
  * aside), in the contract. Every entry of every page is checked, so `rejected` and `examined` count at
  * the page-entry level: a listing on several searches counts once per search in both.
  */
-export async function readAll(fetcher: Fetcher): Promise<{ listings: ListingInput[]; rejected: number; examined: number }> {
-  const jobs = new Map<string, ListingInput | null>();
+export async function readAll(fetcher: Fetcher): Promise<{ listings: JobInput[]; rejected: number; examined: number }> {
+  const jobs = new Map<string, JobInput | null>();
   let rejected = 0, examined = 0;
   for (const q of QUERIES) {
     for (const employment of EMPLOYMENT) {
@@ -168,10 +168,10 @@ export async function readAll(fetcher: Fetcher): Promise<{ listings: ListingInpu
       examined += page.examined;
     }
   }
-  return { listings: [...jobs.values()].filter((l): l is ListingInput => l !== null), rejected, examined };
+  return { listings: [...jobs.values()].filter((l): l is JobInput => l !== null), rejected, examined };
 }
 
-export async function himalayasConnector(fetcher: Fetcher): Promise<Collected> {
+export async function himalayasConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const { listings: all, rejected, examined } = await readAll(fetcher);
   // seen: the distinct listings read (old himalayas.ts `seen: all.length`).
   return { seen: all.length, listings: all, sourceKept: (l) => l.kind === "contract", rejected, examined };

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { setAside } from "../shared/set-aside";
@@ -41,13 +41,13 @@ function employmentTypes(source: FreeJobSource, raw: unknown): string[] | null {
   return [...new Set((list as string[]).map((t) => t.toLowerCase().replaceAll("-", "_").replaceAll(" ", "_")))].sort();
 }
 
-function kindOf(types: string[]): ListingInput["kind"] {
+function kindOf(types: string[]): JobInput["kind"] {
   if (types.includes("full_time")) return "full_time";
   return ["contract", "part_time", "freelance"].some((t) => types.includes(t)) ? "contract" : null;
 }
 
 /** One listing of the feed in the contract; throws SourceError when its identity is missing (`setAside` sets that one listing aside). */
-export function normalize(source: FreeJobSource, item: unknown): ListingInput {
+export function normalize(source: FreeJobSource, item: unknown): JobInput {
   if (item === null || typeof item !== "object" || Array.isArray(item)) throw new SourceError(`${source}: a listing is not an object`);
   const p = item as Record<string, unknown>, f = FIELDS[source];
   if (typeof p.id !== "number" || !Number.isSafeInteger(p.id) || p.id <= 0) throw new SourceError(`${source}: invalid id`);
@@ -71,7 +71,7 @@ export function normalize(source: FreeJobSource, item: unknown): ListingInput {
   if (types === null) throw new SourceError(`${source}: invalid employment type`);
   const geo = typeof p[f.geo] === "string" ? (p[f.geo] as string) : null;
   const published = p[f.published];
-  return parseListingInput({
+  return parseJobInput({
     external_id: String(p.id), title, description, url: link, canonical_url: link,
     location: geo || null, kind: kindOf(types),
     taiwan_eligible: geo !== null && EXCLUDED_GEO.has(geo.trim().toLowerCase()) ? false : null,
@@ -83,7 +83,7 @@ export function normalize(source: FreeJobSource, item: unknown): ListingInput {
 }
 
 /** The feed's listings in the contract and the ones the source's rule keeps (contract, part-time, freelance). */
-export function parseFeed(source: FreeJobSource, body: Uint8Array): Collected {
+export function parseFeed(source: FreeJobSource, body: Uint8Array): Collected<JobInput> {
   let data: unknown;
   try {
     data = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(body));
@@ -100,7 +100,7 @@ export function parseFeed(source: FreeJobSource, body: Uint8Array): Collected {
 }
 
 export function freeJobsConnector(source: FreeJobSource) {
-  return async (fetcher: Fetcher): Promise<Collected> => {
+  return async (fetcher: Fetcher): Promise<Collected<JobInput>> => {
     const r = await fetcher.get({
       url: ENDPOINTS[source], maxBytes: 8_000_000, timeoutMs: 25_000,
       headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/json" },

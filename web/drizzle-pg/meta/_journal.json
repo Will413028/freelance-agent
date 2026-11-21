@@ -29,6 +29,13 @@
       "when": 1795256206414,
       "tag": "0003_opportunity_type_check",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795261658693,
+      "tag": "0004_contest_columns",
+      "breakpoints": true
     }
   ]
 }

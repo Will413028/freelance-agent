@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher, FetchRequest } from "@/platform/fetch";
 import { codePoints, isObject, truthy } from "../shared/json";
 import { boardUrl, employmentTypes, jobPostings, kindOf, pageHtml, PAGE_BYTES, PAGE_TIMEOUT_MS, readDetails, USER_AGENT } from "../shared/job-pages";
@@ -88,7 +88,7 @@ function locationNames(value: unknown): string[] | null {
 const rfc3339 = (d: Date) => (Number.isFinite(d.getTime()) && d.getUTCFullYear() >= 1 && d.getUTCFullYear() <= 9999 ? d.toISOString() : null);
 
 /** validThrough in the contract's deadline shapes; empty or absent is no deadline. */
-function deadlineOf(value: unknown): ListingInput["deadline"] {
+function deadlineOf(value: unknown): JobInput["deadline"] {
   if (!truthy(value)) return null;
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
   const t = parseIsoTime(value);
@@ -103,7 +103,7 @@ function deadlineOf(value: unknown): ListingInput["deadline"] {
 }
 
 /** One job page in the contract; throws SourceError (set aside) when its identity is missing, AccessChallenge on a challenge. */
-export function normalizeArticle(raw: Uint8Array, pageUrl: string): ListingInput {
+export function normalizeArticle(raw: Uint8Array, pageUrl: string): JobInput {
   const url = jobUrl(pageUrl);
   if (url === null) throw new SourceError("dynamitejobs: not a job URL");
   const jobs = jobPostings("dynamitejobs", pageHtml("dynamitejobs", raw));
@@ -119,7 +119,7 @@ export function normalizeArticle(raw: Uint8Array, pageUrl: string): ListingInput
   const names = locationNames(data.applicantLocationRequirements);
   // Remote is not worldwide: only a listed requirement naming none of Taiwan or a broad region says no.
   const taiwanEligible = names !== null && names.length > 0 && !names.some((n) => BROAD.has(n.toLowerCase())) ? false : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: new URL(url).pathname, title, description, url, canonical_url: url,
     location: names?.length ? names.join("; ") : null, kind: kindOf(types), taiwan_eligible: taiwanEligible, complete: false,
     published_at: published, deadline: deadlineOf(data.validThrough),
@@ -128,7 +128,7 @@ export function normalizeArticle(raw: Uint8Array, pageUrl: string): ListingInput
 }
 
 /** The source's rule: a remote contract job published in the last 90 days, not in the future (old sync's intake filter). */
-export function kept(l: ListingInput, now: Date): boolean {
+export function kept(l: JobInput, now: Date): boolean {
   if (l.kind !== "contract" || l.extra.remote_evidence !== true || l.published_at === null) return false;
   const at = Date.parse(l.published_at);
   return now.getTime() - FRESH_DAYS * DAY_MS <= at && at <= now.getTime();
@@ -136,7 +136,7 @@ export function kept(l: ListingInput, now: Date): boolean {
 
 const request = (url: string): FetchRequest => ({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
 
-export async function dynamiteJobsConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function dynamiteJobsConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const { urls, rejected: badLinks } = parseIndex((await fetcher.get(request(INDEX))).body);
   const details = await readDetails(urls, async (url) => normalizeArticle((await fetcher.get(request(url))).body, url));
   return {

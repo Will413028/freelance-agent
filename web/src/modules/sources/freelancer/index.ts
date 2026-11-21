@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
@@ -41,7 +41,7 @@ function updatedAt(v: unknown): string | null {
 }
 
 /** One project in the contract; throws SourceError when its identity or status is missing or not active and public (`setAside` sets that one listing aside). */
-export function normalize(item: unknown): ListingInput {
+export function normalize(item: unknown): JobInput {
   if (!isRecord(item)) throw new SourceError("freelancer: a project is not an object");
   const p = item;
   if (typeof p.id !== "number" || !Number.isSafeInteger(p.id) || p.id <= 0) throw new SourceError("freelancer: invalid id");
@@ -61,7 +61,7 @@ export function normalize(item: unknown): ListingInput {
   const unreadable = budget === null || [budget.minimum, budget.maximum].some((v) => v !== undefined && v !== null && amount(v) === null);
   if (unreadable || (low !== null && high !== null && low > high)) low = high = null;
   const type = p.type === "fixed" || p.type === "hourly" ? p.type : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: String(p.id), title, description, url, canonical_url: url,
     kind: type, currency,
     budget_min: low, budget_max: high, complete: false,
@@ -88,7 +88,7 @@ function page(body: Uint8Array, limit: number): { projects: unknown[]; total: nu
   return { projects, total };
 }
 
-const timeOf = (l: ListingInput) => (l.extra.time_updated as string | null) ?? null;
+const timeOf = (l: JobInput) => (l.extra.time_updated as string | null) ?? null;
 
 /**
  * One query's active projects, page by page (old search): the offset advances by the requested page
@@ -96,8 +96,8 @@ const timeOf = (l: ListingInput) => (l.extra.time_updated as string | null) ?? n
  * page that brings no new project. A project listed twice keeps its latest update; two different
  * versions with the same update time refuse the batch.
  */
-export async function searchQuery(fetcher: Fetcher, query: string, limit = PAGE_LIMIT, maxPages = MAX_PAGES): Promise<{ listings: ListingInput[]; limited: boolean; rejected: number; examined: number }> {
-  const jobs = new Map<string, ListingInput>();
+export async function searchQuery(fetcher: Fetcher, query: string, limit = PAGE_LIMIT, maxPages = MAX_PAGES): Promise<{ listings: JobInput[]; limited: boolean; rejected: number; examined: number }> {
+  const jobs = new Map<string, JobInput>();
   // Old `limited` (freelancer.ts:126-131): true unless the offset reached the reported total with as many distinct projects.
   let limited = true, rejected = 0, examined = 0;
   for (let n = 0, offset = 0; n < maxPages; n++) {
@@ -137,10 +137,10 @@ export const outOfScope = (title: string) => OUT_OF_SCOPE.test(asPythonCase(titl
 export const titleKept = (title: string) => titleSignal(title) && !outOfScope(title);
 
 /** The source's own rule (old freelancer.ts:162-164): title signals and not out of scope. The old `score > 0` is the shared screen's: evaluate excludes category score 0. */
-export const kept = (l: ListingInput) => titleKept(l.title);
+export const kept = (l: JobInput) => titleKept(l.title);
 
-export async function freelancerConnector(fetcher: Fetcher): Promise<Collected> {
-  const jobs = new Map<string, ListingInput>();
+export async function freelancerConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
+  const jobs = new Map<string, JobInput>();
   let truncated = false, rejected = 0, examined = 0;
   for (const query of QUERIES) {
     const result = await searchQuery(fetcher, query);

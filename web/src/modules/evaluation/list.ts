@@ -3,7 +3,7 @@ import { union } from "drizzle-orm/pg-core";
 import type { PgDb } from "@/db/pg/client";
 import { CATEGORIES, listingFeedback, listings, listingVersions, settings, type OpportunityType } from "@/db/pg/schema";
 import { evaluatorFor } from "./registry";
-import { byRank, type Rankable, type RankFacts, type Ranked, type Settings } from "./rank";
+import { type Rankable, type RankFacts, type Ranked, type Settings } from "./rank";
 
 // The listing page's ranked read (step-3-design.md core choice 1): SQL reads the stored facts of
 // every listing and version, TS ranks them. Measured in 3b on PGlite (tests/rank-scale.test.ts):
@@ -68,10 +68,10 @@ const inView = (view: View, r: Rankable, ranked: Ranked) =>
 /** One page of a view of one type in rank order, and how many listings the view holds. */
 export async function rankedPage(db: PgDb, type: OpportunityType, s: Settings, now: Date, view: View, page: number): Promise<{ total: number; items: Ranked[] }> {
   if (!Number.isSafeInteger(page) || page < 0) throw new RangeError(`page must be a whole number from 0, not ${page}`);
-  const { rank } = evaluatorFor(type);
+  const { rank, order } = evaluatorFor(type);
   const all = (await readRankables(db, type)).flatMap((r) => {
     const ranked = rank(r, s, now);
     return inView(view, r, ranked) ? [ranked] : [];
-  }).sort(byRank);
+  }).sort(order);
   return { total: all.length, items: all.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE) };
 }

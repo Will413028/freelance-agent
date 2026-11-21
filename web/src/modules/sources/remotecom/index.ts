@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { eligibleFromCodes, flightValue, lastById, lookup, optionalText, requiredText } from "../shared/embedded";
 import { pageHtml, pageRequest } from "../shared/job-pages";
@@ -41,7 +41,7 @@ export function parseIndex(raw: Uint8Array): unknown[] {
   return data.jobs;
 }
 
-const KIND: Record<string, ListingInput["kind"]> = { full_time: "full_time", contractor: "contract", part_time: "contract" };
+const KIND: Record<string, JobInput["kind"]> = { full_time: "full_time", contractor: "contract", part_time: "contract" };
 
 /**
  * The place names of a `location` hiring requirement, and the countries' alpha-2 codes when every place
@@ -71,7 +71,7 @@ function payEvidence(value: unknown): string | null {
 }
 
 /** The deadline in the contract's shapes; absent is none. */
-function deadlineOf(value: unknown): ListingInput["deadline"] {
+function deadlineOf(value: unknown): JobInput["deadline"] {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return parseIsoTime(value) ? { kind: "date", date: value } : { kind: "invalid", text: value };
@@ -81,7 +81,7 @@ function deadlineOf(value: unknown): ListingInput["deadline"] {
 }
 
 /** One job in the contract; SourceError (set aside) when its identity is missing. */
-export function normalizeJob(job: unknown): ListingInput {
+export function normalizeJob(job: unknown): JobInput {
   if (!isObject(job)) throw new SourceError("remotecom: job is not an object");
   const company = isObject(job.companyProfile) ? job.companyProfile : {};
   const companySlug = typeof company.slug === "string" ? company.slug.trim() : "";
@@ -93,7 +93,7 @@ export function normalizeJob(job: unknown): ListingInput {
   const places = hiringPlaces(job.hiringLocation);
   const workplace = isObject(job.workplaceLocation) && typeof job.workplaceLocation.type === "string" ? job.workplaceLocation.type : null;
   const hiring = isObject(job.hiringLocation) && typeof job.hiringLocation.type === "string" ? job.hiringLocation.type : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: path, title, company: optionalText(company.name), url, canonical_url: url,
     location: places?.names.length ? places.names.join(", ") : hiring === "global" ? "Global (as listed)" : null,
     kind: lookup(KIND, job.employmentType),
@@ -105,7 +105,7 @@ export function normalizeJob(job: unknown): ListingInput {
   });
 }
 
-export async function remoteComConnector(fetcher: Fetcher): Promise<Collected> {
+export async function remoteComConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const jobs = parseIndex((await fetcher.get(pageRequest(INDEX))).body);
   const read = setAside(jobs, normalizeJob);
   return { seen: jobs.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

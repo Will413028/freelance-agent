@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { htmlText } from "../shared/html";
 import { boardUrl, employmentTypes, kindOf, pageHtml, PAGE_BYTES, PAGE_TIMEOUT_MS, readDetails, USER_AGENT } from "../shared/job-pages";
@@ -93,7 +93,7 @@ function calendarDate(value: unknown): string | null {
 }
 
 /** validThrough in the contract: absent (falsy) is null; a date or an instant with its zone is used; anything else is given but unusable (D8). */
-export function deadlineOf(value: unknown): ListingInput["deadline"] {
+export function deadlineOf(value: unknown): JobInput["deadline"] {
   if (!truthy(value)) return null;
   const text = typeof value === "string" ? value : JSON.stringify(value);
   const date = calendarDate(value);
@@ -113,7 +113,7 @@ const UPDATED = /更新日期\s*[:：]\s*([0-9]{4}-[0-9]{2}-[0-9]{2})/;
 const CATEGORY = /職務類別\s*(.*?)\s*職缺條件/s;
 
 /** One detail page in the contract; `pageUrl` is the link the index gave. Throws SourceError when the listing's identity is missing. */
-export function parseArticle(raw: Uint8Array, pageUrl: string): ListingInput {
+export function parseArticle(raw: Uint8Array, pageUrl: string): JobInput {
   const url = jobUrl(pageUrl);
   if (url === null) throw new SourceError(`${NAME}: invalid job URL`);
   const html = pageHtml(NAME, raw);
@@ -127,7 +127,7 @@ export function parseArticle(raw: Uint8Array, pageUrl: string): ListingInput {
   const types = [...new Set(employmentTypes(NAME, data.employmentType, true))].sort();
   const { published_at, posted_date } = postedOf(data.datePosted);
   const category = CATEGORY.exec(body)?.[1] || null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: idOf(url), title, description: body, url, canonical_url: url, kind: kindOf(types), complete: false,
     published_at, deadline: deadlineOf(data.validThrough),
     extra: {
@@ -138,7 +138,7 @@ export function parseArticle(raw: Uint8Array, pageUrl: string): ListingInput {
 }
 
 /** The source's rule: a contract-kind job in one of the four software categories (old intake filter). */
-export function kept(l: ListingInput): boolean {
+export function kept(l: JobInput): boolean {
   const category = l.extra.category;
   if (category !== null && typeof category !== "string") throw new SourceError(`${NAME}: stored category is not text`);
   return l.kind === "contract" && category !== null && CATEGORIES.some((c) => category.includes(c));
@@ -146,7 +146,7 @@ export function kept(l: ListingInput): boolean {
 
 const page = (fetcher: Fetcher, url: string) => fetcher.get({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
 
-export async function jobbank518Connector(fetcher: Fetcher, _now: Date): Promise<Collected> {
+export async function jobbank518Connector(fetcher: Fetcher, _now: Date): Promise<Collected<JobInput>> {
   const urls = parseIndex((await page(fetcher, INDEX)).body);
   // Read scope kept as the old one: every job on the first index page, at most 200.
   const { listings, rejected, examined, truncated } = await readDetails(urls, async (url) => parseArticle((await page(fetcher, url)).body, url));

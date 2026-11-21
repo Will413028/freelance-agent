@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { setAside } from "../shared/set-aside";
 import { SourceError, type Collected, type PageSourceSettings } from "../types";
@@ -78,7 +78,7 @@ function split(raw: string) {
 const PATHS = new Set(["/internet/jobwanted/jobdetail.aspx", "/internet/index/jobdetail.aspx"]);
 
 /** One row in the contract; throws SourceError when its identity or update date is missing or wrong (`setAside` sets that one listing aside). */
-export function normalize(fields: Map<string, string>, now: Date): ListingInput {
+export function normalize(fields: Map<string, string>, now: Date): JobInput {
   const field = (k: string) => fields.get(k) ?? "";
   const title = field("OCCU_DESC"), body = field("JOB_DETAIL");
   if (codePoints(title) < 1 || codePoints(title) > 500 || codePoints(body) > 100_000) throw new SourceError("taiwanjobs: missing requirement");
@@ -98,7 +98,7 @@ export function normalize(fields: Map<string, string>, now: Date): ListingInput 
   // its absence is a format change (checklist section 2). An empty WK_TYPE is read: the kind is unknown.
   if (!fields.has("WK_TYPE")) throw new SourceError("taiwanjobs: employment type missing");
   const stop = field("STOP_DATE"), typeText = field("WK_TYPE");
-  return parseListingInput({
+  return parseJobInput({
     external_id: `${q.get("EMPLOYER_ID")}:${q.get("HIRE_ID")}`, title, description: body || null, url, canonical_url: url,
     location: field("CITYNAME") || null,
     kind: typeText.includes("全職") ? "full_time" : CONTRACT.test(typeText) ? "contract" : null,
@@ -123,7 +123,7 @@ function declares(text: string): boolean {
 }
 
 /** Every row of the response in the contract, how many rows it held and how many were set aside; throws SourceError on a batch-level refusal. */
-export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings: ListingInput[]; rejected: number; examined: number } {
+export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings: JobInput[]; rejected: number; examined: number } {
   if (raw.length > MAX_BYTES) throw new SourceError("taiwanjobs: response limit");
   let text: string;
   try {
@@ -170,10 +170,10 @@ export function parseBatch(raw: Uint8Array, now: Date): { seen: number; listings
 }
 
 /** The source's own rules: contract rows updated in the last 90 days (old sync, taiwanjobs.ts:174). */
-export const kept = (l: ListingInput, now: Date) =>
+export const kept = (l: JobInput, now: Date) =>
   l.kind === "contract" && Date.parse(l.extra.source_updated_at as string) >= now.getTime() - FRESH_DAYS * DAY_MS;
 
-export async function taiwanjobsConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function taiwanjobsConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const r = await fetcher.get({
     url: ENDPOINT, maxBytes: MAX_BYTES, timeoutMs: 45_000,
     headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/xml" },

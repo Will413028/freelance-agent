@@ -18,13 +18,14 @@ export const FEEDBACK_STATES = ["neutral", "interested", "skipped"] as const;
  * The opportunity types this image knows (opportunity types plan D1). A row of a type not listed here was
  * written by a newer image; this one never reads, ranks or re-evaluates it.
  */
-export const OPPORTUNITY_TYPES = ["job"] as const;
+export const OPPORTUNITY_TYPES = ["job", "contest"] as const;
 export type OpportunityType = (typeof OPPORTUNITY_TYPES)[number];
 /**
  * The types the database admits (the opportunity_type CHECK): the known ones plus those admitted ahead of
- * the image that writes them, so the constraint lands one deploy before its writer (plan step 3).
+ * the image that writes them, so the constraint lands one deploy before its writer (plan step 3). None is
+ * ahead now: `contest` was, until the image of plan step 5 wrote it.
  */
-export const ADMITTED_OPPORTUNITY_TYPES = [...OPPORTUNITY_TYPES, "contest"] as const;
+export const ADMITTED_OPPORTUNITY_TYPES = [...OPPORTUNITY_TYPES] as const;
 export const CATEGORIES = ["AI agent", "AI 整合／自動化", "後端／API", "全端 MVP"] as const;
 
 /** `col in ('a', 'b')` for a CHECK; the values are this file's literals, never input. */
@@ -61,6 +62,17 @@ const content = () => ({
   deadlineKind: text("deadline_kind", { enum: DEADLINE_KINDS }),
   deadlineText: text("deadline_text"),
   deadlineAt: at("deadline_at"),
+  /**
+   * Contest-only (opportunity types plan D5), null on every other type. A contest's deadline_* is its
+   * submission deadline and budget_* its prize amount; these hold what a job has no column for.
+   */
+  registrationDeadline: date("registration_deadline"),
+  /** The prize as the source words it, also when no amount could be read from it. */
+  prizeText: text("prize_text"),
+  online: boolean("online"),
+  inviteOnly: boolean("invite_only"),
+  /** A hackathon is a contest with this flag, not a type of its own (plan D5). */
+  hackathon: boolean("hackathon"),
   category: text("category").notNull(),
   categoryScore: smallint("category_score").notNull(),
   hardExcluded: boolean("hard_excluded").notNull(),

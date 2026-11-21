@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { lastById, nextData, optionalText, requiredText, stringList } from "../shared/embedded";
 import { pageHtml, pageRequest } from "../shared/job-pages";
@@ -45,7 +45,7 @@ export function parseIndex(raw: Uint8Array): { cache: Cache; jobs: unknown[] } {
 }
 
 /** One listing in the contract; SourceError (set aside) when its identity is missing. */
-export function normalizeJob(cache: Cache, job: unknown): ListingInput {
+export function normalizeJob(cache: Cache, job: unknown): JobInput {
   if (!isObject(job)) throw new SourceError("wellfound: listing is not an object");
   const id = typeof job.id === "string" || typeof job.id === "number" ? String(job.id).trim() : "";
   if (!ID.test(id)) throw new SourceError("wellfound: listing id required");
@@ -58,7 +58,7 @@ export function normalizeJob(cache: Cache, job: unknown): ListingInput {
   const places = stringList(job.locationNames);
   const remotePlaces = stringList(job.acceptedRemoteLocationNames);
   const remote = typeof job.remote === "boolean" ? job.remote : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: id, title, company, url, canonical_url: url,
     location: [...(places ?? []), ...(remote ? (remotePlaces ?? []).map((p) => `Remote: ${p}`) : [])].join("; ") || null,
     compensation_evidence: optionalText(job.compensation),
@@ -68,7 +68,7 @@ export function normalizeJob(cache: Cache, job: unknown): ListingInput {
   });
 }
 
-export async function wellfoundConnector(fetcher: Fetcher): Promise<Collected> {
+export async function wellfoundConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const { cache, jobs } = parseIndex((await fetcher.get(pageRequest(INDEX))).body);
   const read = setAside(jobs, (job) => normalizeJob(cache, job));
   return { seen: jobs.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

@@ -71,7 +71,8 @@ describe("reevaluateStale", () => {
     const unknown = { opportunityType: "contest", evaluatedWith: 0, raw: { opportunity_type: "contest", external_id: "m" } };
     await db.update(listings).set(unknown);
     await db.update(listingVersions).set(unknown);
-    expect(await reevaluateStale(db)).toEqual({ reevaluated: 0, unparsable: 0 });
+    // An image whose OPPORTUNITY_TYPES is ["job"]: the one before contests (contest.test.ts has the listing case).
+    expect(await reevaluateStale(db, ["job"])).toEqual({ reevaluated: 0, unparsable: 0 });
     expect((await listingBy(db, "linkedin", "m"))?.evaluatedWith).toBe(0);
     expect((await db.select().from(listingVersions)).every((v) => v.evaluatedWith === 0)).toBe(true);
   });

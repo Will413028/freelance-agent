@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { boardUrl, employmentTypes, jobPostings, kindOf, pageHtml, PAGE_BYTES, PAGE_TIMEOUT_MS, readDetails, USER_AGENT } from "../shared/job-pages";
 import { codePoints, truthy } from "../shared/json";
@@ -93,7 +93,7 @@ function fieldText(value: unknown, what: string): string {
 }
 
 /** validThrough in the contract's deadline shapes (old deadline kept the raw text; empty means none). */
-function deadlineOf(value: unknown): ListingInput["deadline"] {
+function deadlineOf(value: unknown): JobInput["deadline"] {
   if (!truthy(value)) return null;
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
   const t = parseIsoTime(value);
@@ -107,7 +107,7 @@ function deadlineOf(value: unknown): ListingInput["deadline"] {
 }
 
 /** One job page in the contract, for the feed item it was read for; throws SourceError when it is set aside. */
-export function parseArticle(raw: Uint8Array, entry: Pick<Entry, "url" | "published_at">): ListingInput {
+export function parseArticle(raw: Uint8Array, entry: Pick<Entry, "url" | "published_at">): JobInput {
   const url = jobUrl(entry.url);
   if (url === null) throw new SourceError("nodesk: invalid job URL");
   const jobs = jobPostings("nodesk", pageHtml("nodesk", raw));
@@ -116,7 +116,7 @@ export function parseArticle(raw: Uint8Array, entry: Pick<Entry, "url" | "publis
   const title = fieldText(data.title, "title"), body = fieldText(data.description, "description");
   if (codePoints(title) > 500 || codePoints(body) > 100_000) throw new SourceError("nodesk: oversize listing");
   const types = [...new Set(employmentTypes("nodesk", data.employmentType, false).map((t) => t.toUpperCase()))].sort();
-  return parseListingInput({
+  return parseJobInput({
     external_id: url, title, description: body, url, canonical_url: url, kind: kindOf(types), complete: false,
     published_at: entry.published_at, deadline: deadlineOf(data.validThrough),
     extra: {
@@ -127,7 +127,7 @@ export function parseArticle(raw: Uint8Array, entry: Pick<Entry, "url" | "publis
 }
 
 /** The source's rule: a remote contract job (old sync: remote_evidence and kind contract). */
-export const kept = (l: ListingInput): boolean => l.kind === "contract" && l.extra.remote_evidence === true;
+export const kept = (l: JobInput): boolean => l.kind === "contract" && l.extra.remote_evidence === true;
 
 /** Published in the last 90 days and not in the future: the old read scope for job pages (it bounds the requests, so it stays). */
 const recent = (e: Entry, now: Date) => {
@@ -137,7 +137,7 @@ const recent = (e: Entry, now: Date) => {
 
 const page = (fetcher: Fetcher, url: string) => fetcher.get({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
 
-export async function nodeskConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function nodeskConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const feed = parseFeed((await page(fetcher, FEED)).body);
   const details = await readDetails(feed.entries.filter((e) => recent(e, now)), async (e) => parseArticle((await page(fetcher, e.url)).body, e));
   // The threshold counts what could become a listing (checklist §2), as the other page sources do: items set

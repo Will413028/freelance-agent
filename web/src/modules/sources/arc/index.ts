@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { eligibleFromCodes, lastById, lookup, nextData, optionalText, requiredText, stringList } from "../shared/embedded";
 import { pageHtml, pageRequest } from "../shared/job-pages";
@@ -44,7 +44,7 @@ export function parseIndex(raw: Uint8Array): Listed[] {
   return jobs;
 }
 
-const KIND: Record<string, ListingInput["kind"]> = { contract: "contract", permanent: "full_time" };
+const KIND: Record<string, JobInput["kind"]> = { contract: "contract", permanent: "full_time" };
 
 function pay(job: Record<string, unknown>): string | null {
   const range = (lo: unknown, hi: unknown, unit: string) => {
@@ -55,7 +55,7 @@ function pay(job: Record<string, unknown>): string | null {
 }
 
 /** One job in the contract; SourceError (set aside) when its identity is missing. */
-export function normalizeJob({ job, external }: Listed): ListingInput {
+export function normalizeJob({ job, external }: Listed): JobInput {
   if (!isObject(job)) throw new SourceError("arc: job is not an object");
   const key = typeof job.randomKey === "string" ? job.randomKey.trim() : "";
   if (!KEY.test(key)) throw new SourceError("arc: job key required");
@@ -67,7 +67,7 @@ export function normalizeJob({ job, external }: Listed): ListingInput {
   const company = isObject(job.company) ? optionalText(job.company.name) : null;
   const evidence = pay(job);
   const categories = Array.isArray(job.categories) ? job.categories.flatMap((c) => (isObject(c) && typeof c.name === "string" ? [c.name] : [])) : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: key, title, company, url, canonical_url: url,
     location: countries?.length ? countries.join(", ") : null,
     kind: lookup(KIND, job.jobType), compensation_evidence: evidence,
@@ -77,7 +77,7 @@ export function normalizeJob({ job, external }: Listed): ListingInput {
   });
 }
 
-export async function arcConnector(fetcher: Fetcher): Promise<Collected> {
+export async function arcConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const jobs = parseIndex((await fetcher.get(pageRequest(INDEX))).body);
   const read = setAside(jobs, normalizeJob);
   return { seen: jobs.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

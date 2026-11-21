@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { fingerprint, intakeListings, listingBy, listingOf, listingOfRow, parseListingInput, versionCount } from "@/modules/listings/public";
+import { fingerprint, intakeListings, listingBy, listingOf, listingOfRow, parseJobInput, parseListingInput, versionCount } from "@/modules/listings/public";
 import { freshPg } from "../../../tests/helpers/pg";
 
 // Plan steps 3a, 3b2: the listing data model and intake core on Postgres (PGlite here, a real server in CI).
@@ -126,7 +126,7 @@ describe("intake", () => {
     await intakeListings(db, "jobicy", deadlines.map((deadline, i) => job(String(i), { deadline, published_at: "2026-11-01T00:00:00Z" })), "page");
     for (const [i, deadline] of deadlines.entries()) {
       const row = (await listingBy(db, "jobicy", String(i)))!;
-      expect(listingOfRow(row)).toEqual(listingOf(parseListingInput(job(String(i), { deadline, published_at: "2026-11-01T00:00:00Z" }))));
+      expect(listingOfRow(row)).toEqual(listingOf(parseJobInput(job(String(i), { deadline, published_at: "2026-11-01T00:00:00Z" }))));
     }
     expect(await listingBy(db, "jobicy", "0")).toMatchObject({ deadlineKind: "date", deadlineText: "2026-12-01", deadlineAt: new Date("2026-12-01T16:00:00Z") });
     expect(await listingBy(db, "jobicy", "3")).toMatchObject({ deadlineKind: "invalid", deadlineText: "soon", deadlineAt: null });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseListingInput } from "@/modules/listings/public";
+import { parseJobInput } from "@/modules/listings/public";
 import { SourceError } from "../types";
 import { setAside } from "./set-aside";
 
@@ -12,7 +12,7 @@ describe("setAside", () => {
     expect(setAside([1, 2], (n) => (n === 1 ? null : n))).toEqual({ listings: [null, 2], rejected: 0, examined: 2 });
   });
   it("sets aside a listing the listing contract refuses (ZodError)", () => {
-    const r = setAside([{ external_id: "" }, 7], (v) => (typeof v === "number" ? v : parseListingInput(v)));
+    const r = setAside([{ external_id: "" }, 7], (v) => (typeof v === "number" ? v : parseJobInput(v)));
     expect(r).toEqual({ listings: [7], rejected: 1, examined: 2 });
   });
   it("lets any other error through", () => {
