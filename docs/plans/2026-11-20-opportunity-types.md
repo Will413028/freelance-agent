@@ -4,7 +4,7 @@
 
 **上層：** 暫代（主清單在 repo 外，見本機個人脈絡檔）。
 
-**附件：** `docs/plans/2026-11-20-opportunity-types/`（step 1 writes `sources.md`; no raw page content goes into this public repo). Snapshot commit: `d1edd2c`.
+**附件：** `docs/plans/2026-11-20-opportunity-types/`（step 1 writes `sources.md`: field inventory only, no page content）. Snapshot commit: `d1edd2c`.
 
 ## 全域約束與完成定義（暫代主計畫）
 
@@ -23,7 +23,7 @@
 - Will approved the model direction (single table + discriminator + per-type evaluator, D1) on 2026-11-20 in conversation.（已確認）
 - Source availability measured 2026-11-20 (plain tier from the development machine, browser tier on the VM through the existing `browser` service, Will authorized): readable at plain tier: Devpost JSON API, MLH, ETHGlobal, HackQuest, Taikai, dev.events RSS, MLContests, DrivenData, AIcrowd, CodaLab, Superteam Earn JSON API, airdrops.io RSS, CoinMarketCap Airdrop; readable only at browser tier: 獎金獵人 (bhuntr), Kaggle; unclear: Tianchi, Zindi, Signate (new URL unknown); blocked: AIdea, clist.by, DappRadar, CryptoRank, DoraHacks, AllHackathons, Gitcoin. "Readable" means status 200 with contest keywords present: inferred, not parsed.（field level 未確認; step 1 confirms）
 - Kaggle's official API needs an account token: excluded by the no-login rule; its public page is readable at browser tier.（已確認，2026-11-20）
-- Where step 1 keeps raw pages: the location the local context file names for this plan (the previous plan's spike-raw location was deleted at its step 10).（未確認: Will names it; blocks step 1's raw storage only）
+- Raw pages are not kept: step 1 fetches into a temporary directory outside the repo, records the field inventory in `sources.md` with the command that produced each entry, and deletes the pages; any page can be fetched again. Connector fixtures are synthetic cases shaped on the observed fields (the repo's existing convention, e.g. `modules/sources/himalayas/fixtures/cases.json` uses example companies), never captured pages; live format drift is caught by the daily run's per-source status.（Will 2026-11-21 asked for the industry practice; 已確認 by the existing fixtures）
 - Toolchain: existing stack (TypeScript, Next.js, Drizzle, Postgres, zod contract, PGlite tests).（預設（可推翻））
 
 **驗收基線：** `pnpm check` at `d1edd2c` on the development machine, 2026-11-20: vitest 677 passed, 1 skipped; deploy, browser and hook suites pass; exit 0. No known failures. CI on `dev` at `d1edd2c` green (PR #84 merged).
@@ -47,18 +47,18 @@
 
 - 做：discriminator and per-type constraints on `listings` and `listing_versions`; `ListingInput` as a union on `opportunity_type`; catalog entries declare their type; evaluator and facts version per type; list query, ranking, pages and routes per type; contest type with its fields; first contest sources; bounty type (Superteam Earn); airdrop type subject to D4; settings per type subject to D6.
 - 不做：merging duplicates across sources (D18); automatic registration or submission to contests; anything that touches a wallet; mail (D22); Kaggle API (needs a token); renaming `budget_*` (an amount range means the same for prizes; a rename costs two deploys for no behaviour).
-- 延後：Tianchi, Zindi, Signate (trigger: a later measurement shows parseable data at an allowed tier); blocked sources (trigger: the block lifts at an allowed tier); Class Table Inheritance (trigger: more than 5 types, or more than about 10 type-specific columns for one type).
+- 延後：airdrop type (D4; trigger: Will asks again, with a source that reviews listings); Tianchi, Zindi, Signate (trigger: a later measurement shows parseable data at an allowed tier); blocked sources (trigger: the block lifts at an allowed tier); Class Table Inheritance (trigger: more than 5 types, or more than about 10 type-specific columns for one type).
 
 ## 步驟
 
-- [ ] **1. Spike: opportunity source fields**（被擋於：the raw-storage premise, for keeping raw pages）
+- [ ] **1. Spike: opportunity source fields**（被擋於：無）
   - 範圍：for Devpost, 獎金獵人, Kaggle, MLContests, Superteam Earn, airdrops.io and CoinMarketCap Airdrop, read one listing page at the source's lowest working tier and record per source: id field, title, organiser, URL, deadline fields (registration vs submission, format, time zone), prize or reward format (amount, currency, non-cash), eligibility fields (region, age, student, invite-only), online/offline, open/ended state, pagination, total count, robots.txt and terms on automated reading; whether MLContests lists Kaggle competitions with a Kaggle id (D7).
-  - Files: new `docs/plans/2026-11-20-opportunity-types/sources.md` (field names, presence and counts only).
+  - Files: new `docs/plans/2026-11-20-opportunity-types/sources.md` (field names, presence and counts only). Pages are read into a temporary directory outside the repo and deleted at the end of the step.
   - 消費端：無（no product code）。
   - 不能動：production; the VM except a browser-tier read through the existing `browser` service, removed afterwards.
   - 驗收：`sources.md` has every listed field for every source, each marked present/absent/unknown with the command that produced it.
   - 停止條件：a source's terms forbid automated reading → mark it excluded and report.
-  - 需要人做的事：authorization for browser-tier reads on the VM (Kaggle, 獎金獵人); the raw-storage location.
+  - 需要人做的事：authorization for browser-tier reads on the VM (Kaggle, 獎金獵人).
 
 - [ ] **2. Generalize the model, jobs only (expand; no behaviour change)**（被擋於：無）
   - 範圍：
@@ -119,14 +119,14 @@
   - B：core table plus one detail table per type (Class Table Inheritance)——right when types add many columns.
   - C：separate tables per type——duplicates intake and feedback.
   - 結論：A; move to B when the deferred trigger fires. ADR：written at step 8.
-- **D2 How contests are ranked**（狀態：未決；擋住步驟：5）
+- **D2 How contests are ranked**（狀態：已決 2026-11-21，Will：A；擋住步驟：無）
   - A：sort by submission deadline ascending, unknown deadlines last, no score.（建議: no category fit to compute yet; adding a score later is reversible）
   - B：a score (prize size, deadline, themes vs Will's skills).
-- **D3 Invite-only contests**（狀態：未決；擋住步驟：5）
+- **D3 Invite-only contests**（狀態：已決 2026-11-21，Will：C, show them (store `invite_only` when the source gives it)；擋住步驟：無）
   - A：store and mark hard-excluded (hidden by default, kept for the record).（建議）
   - B：the source's own rule drops them (`source_kept = false`).
   - C：show them.
-- **D4 Airdrops**（狀態：未決；擋住步驟：7）
+- **D4 Airdrops**（狀態：已決 2026-11-21，Will：A, deferred; step 7 does bounties only；擋住步驟：無）
   - A：defer airdrops; step 7 does bounties only.（建議: high scam rate; even links can carry phishing）
   - B：CoinMarketCap Airdrop only, link to its own page.
 - **D5 Contest fields**（狀態：未決；擋住步驟：5；需要的事實：步驟 1）
@@ -142,7 +142,7 @@
 - **D8 Bounty type**（狀態：未決；擋住步驟：7；需要的事實：步驟 1 (Superteam Earn fields)）
   - Fields (reward amount and token, deadline, compensation type), ranking (deadline vs reward), its own tab or shared with contests. Recommendation after step 1.
 
-拍板順序：D2, D3, D4 now; D6 follows D2; D5, D7, D8 after step 1.
+拍板順序：D6 now (D2 = A points to B); D5, D7, D8 after step 1.
 
 ## 進度
 
