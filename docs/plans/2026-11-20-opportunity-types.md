@@ -78,9 +78,9 @@
   - 完成後的狀態：deploy A must be live before step 3's constraint migration.
 
 - [ ] **3. Type constraints**（被擋於：步驟 2 deployed）
-  - 範圍：migration (new `web/drizzle-pg/0003_*.sql`) adds `check (opportunity_type in ('job', 'contest'))` on both tables (contest admitted ahead: the previous image writes only `job`, and step 2's cross-type list test inserts `contest` rows), with `-- contract:` naming deploy A (since then every image writes the column or its default). Schema `typeCheck` helper in `db/pg/schema.ts` (modified) builds the value list from `OPPORTUNITY_TYPES` and the per-type column rules from one table in code, so later steps change data, not SQL by hand.
+  - 範圍：migration (new `web/drizzle-pg/0003_*.sql`) adds `check (opportunity_type in ('job', 'contest'))` on both tables (contest admitted ahead: the previous image writes only `job`, and step 2's cross-type list test inserts `contest` rows), with `-- contract:` naming deploy A (since then every image writes the column or its default). Schema `typeCheck` helper in `db/pg/schema.ts` (modified) builds the value list from `ADMITTED_OPPORTUNITY_TYPES` (`OPPORTUNITY_TYPES` plus the types admitted ahead of their writer; kept apart because `OPPORTUNITY_TYPES` drives reevaluate and the registry, which have no contest entry yet), so later steps change data, not SQL by hand. Per-type column rules arrive with the first type that has one (step 5, deploy E).
   - 消費端：`rg -n "kindCheck|deadlineChecks|check\(" web/src/db/pg/schema.ts`.
-  - 驗收：`pnpm db:check`; a test inserting `opportunity_type = 'contest'` is refused by Postgres. Mutation: drop the CHECK from the schema → that test fails.
+  - 驗收：`pnpm db:check`; a test: `contest` is accepted and another type (`bounty`) is refused by Postgres on both tables. Mutation: drop the CHECK from the schema → that test fails.
   - 需要人做的事：deploy authorization (deploy B).
 
 - [ ] **4. Settings per type**（被擋於：D6）
@@ -154,6 +154,7 @@
 |---|---|---|---|---|
 | 1 Spike: source fields | 完成 | `sources.md` covers all 7 sources, every field marked with its command (2026-11-21; VM browser read authorized by Will, container and temp dir removed) | Kaggle absolute deadline and eligibility: detail page rendered 1 of 3 (`LayoutMissing`), left unknown | |
 | 2 Generalize the model | 完成 | 2026-11-21: `pnpm check` exit 0 (vitest 680 passed, 1 skipped; check-migrations ok, no `-- contract:` line); `pnpm build` exit 0; job evaluate/recommendation fixtures and the facts digest unchanged; mutations in copies: discriminator default, type filter on the listing, stub registry, reevaluate type filter, fingerprint with type, all killed; CI green on PR #87 (web incl. Postgres re-run, image, secrets) ; deploy A 2026-11-21 (Will authorized): VM runs `16e36c9`, migration 0002 applied, 15,530 listings all `job`, 0 non-job versions, `listings_shown` on `(opportunity_type, id)`, web 200 | first natural daily run on `16e36c9` (2026-11-22 09:00): confirm `unparsable = 0` | PR #87 |
+| 3 Type constraints | 程式完成待驗收 | 2026-11-21: constraint test passes (17/17 in `listings.test.ts`); check-migrations ok with the `-- contract:` line; mutation in a copy: drop the CHECK from the schema and migration → the test fails (killed) | full `pnpm check`/`pnpm build`, CI, `/code-review`: this session, see PR; deploy B: waits for the 2026-11-22 09:00 `unparsable = 0` check and Will's authorization | |
 | 3 Type constraints | 未開始 | | | |
 | 4 Settings per type | 跳過（D6 B） | | | |
 | 5 Contest type with Devpost | 未開始 | | | |

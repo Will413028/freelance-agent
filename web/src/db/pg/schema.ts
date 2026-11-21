@@ -20,6 +20,11 @@ export const FEEDBACK_STATES = ["neutral", "interested", "skipped"] as const;
  */
 export const OPPORTUNITY_TYPES = ["job"] as const;
 export type OpportunityType = (typeof OPPORTUNITY_TYPES)[number];
+/**
+ * The types the database admits (the opportunity_type CHECK): the known ones plus those admitted ahead of
+ * the image that writes them, so the constraint lands one deploy before its writer (plan step 3).
+ */
+export const ADMITTED_OPPORTUNITY_TYPES = [...OPPORTUNITY_TYPES, "contest"] as const;
 export const CATEGORIES = ["AI agent", "AI 整合／自動化", "後端／API", "全端 MVP"] as const;
 
 /** `col in ('a', 'b')` for a CHECK; the values are this file's literals, never input. */
@@ -65,6 +70,7 @@ const content = () => ({
   evaluatedWith: smallint("evaluated_with").notNull().default(0),
 });
 
+const typeCheck = (prefix: string, type: unknown) => check(`${prefix}_opportunity_type`, oneOf(type, ADMITTED_OPPORTUNITY_TYPES));
 const kindCheck = (name: string, kind: unknown) => check(name, oneOf(kind, KINDS));
 /** deadline_at exists exactly for a usable deadline, and deadline_text exactly for a given one. */
 const deadlineChecks = (prefix: string, t: { deadlineKind: unknown; deadlineText: unknown; deadlineAt: unknown }) => [
@@ -101,6 +107,7 @@ export const listings = pgTable("listings", {
    * scan because that filter is a UNION of ids (plan step 5a2-3 measured the OR form scanning the table instead).
    */
   index("listings_shown").on(t.opportunityType, t.id).where(sql`${t.sourceKept} and not ${t.hardExcluded}`),
+  typeCheck("listings", t.opportunityType),
   kindCheck("listings_kind", t.kind),
   ...deadlineChecks("listings", t),
   check("listings_confirmed_base", sql`${t.confirmedBase} between 0 and 3`),
@@ -113,6 +120,7 @@ export const listingVersions = pgTable("listing_versions", {
   observedAt: at("observed_at").notNull().defaultNow(),
 }, (t) => [
   primaryKey({ columns: [t.listingId, t.fingerprint] }),
+  typeCheck("listing_versions", t.opportunityType),
   kindCheck("listing_versions_kind", t.kind),
   ...deadlineChecks("listing_versions", t),
   check("listing_versions_confirmed_base", sql`${t.confirmedBase} between 0 and 3`),

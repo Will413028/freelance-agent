@@ -1,0 +1,3 @@
+-- contract: opportunity_type admits only job and contest; since deploy A (16e36c9) every image writes the column or its 'job' default, and no image writes another value.
+ALTER TABLE "listing_versions" ADD CONSTRAINT "listing_versions_opportunity_type" CHECK ("listing_versions"."opportunity_type" in ('job', 'contest'));--> statement-breakpoint
+ALTER TABLE "listings" ADD CONSTRAINT "listings_opportunity_type" CHECK ("listings"."opportunity_type" in ('job', 'contest'));
