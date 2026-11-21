@@ -14,7 +14,7 @@
 
 自建重構計畫已完成（2026-11-20）。12d、12e 的程式還沒部署到 VM，部署要 Will 授權。
 
-進行中：[機會類型計畫](plans/2026-11-20-opportunity-types.md)（競賽、任務獎金）。步驟 2（資料模型加 `opportunity_type`，只有 job，行為不變）程式完成，待部署（deploy A，要 Will 授權）；部署後才能做步驟 3 的類型約束。
+進行中：[機會類型計畫](plans/2026-11-20-opportunity-types.md)（競賽、任務獎金）。步驟 2（資料模型加 `opportunity_type`，只有 job，行為不變）已部署（deploy A，VM 跑 `16e36c9`）。步驟 3（`opportunity_type` 只收 `job`、`contest` 的 CHECK，migration 0003）程式完成，待 deploy B（要 Will 授權，且先確認 deploy A 後第一次每日執行 `unparsable = 0`）。
 
 ## 延後、有觸發條件才做的項目
 

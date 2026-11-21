@@ -172,3 +172,16 @@ describe("schema constraints", () => {
     await expect(db.execute(sql`insert into listing_feedback (listing_id, state, revision) values (${id}, 'applied', 1)`)).rejects.toThrow();
   });
 });
+
+describe("opportunity_type constraint (opportunity types plan step 3)", () => {
+  it("admits job and contest on both tables and refuses any other type", async () => {
+    await intakeListings(db, "jobicy", [job("1")], "page");
+    await intakeListings(db, "tasker", [job("2")], "mail");
+    await intakeListings(db, "tasker", [job("2", { title: "Changed" })], "mail");
+    expect(await versionCount(db, (await listingBy(db, "tasker", "2"))!.id)).toBe(2);
+    await db.execute(sql`update listings set opportunity_type = 'contest'`);
+    await db.execute(sql`update listing_versions set opportunity_type = 'contest'`);
+    await expect(db.execute(sql`update listings set opportunity_type = 'bounty'`)).rejects.toThrow(/opportunity_type/);
+    await expect(db.execute(sql`update listing_versions set opportunity_type = 'bounty'`)).rejects.toThrow(/opportunity_type/);
+  });
+});
