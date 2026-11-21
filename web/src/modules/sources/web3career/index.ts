@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { lastById, optionalText, requiredText } from "../shared/embedded";
 import { jobPostings, pageHtml, pageRequest } from "../shared/job-pages";
@@ -87,13 +87,13 @@ export function parseIndex(raw: Uint8Array): { rows: Row[]; descriptions: Map<st
 }
 
 /** One row in the contract; SourceError (set aside) when its identity is missing. */
-export function normalizeRow(row: Row, descriptions: Map<string, string | null>): ListingInput {
+export function normalizeRow(row: Row, descriptions: Map<string, string | null>): JobInput {
   if (!ID.test(row.id)) throw new SourceError("web3career: job id required");
   if (!new RegExp(`^/[a-z0-9][a-z0-9-]*/${row.id}$`).test(row.href)) throw new SourceError("web3career: job link required");
   const title = requiredText("web3career", row.title, "title");
   const company = optionalText(row.company);
   const url = ORIGIN + row.href;
-  return parseListingInput({
+  return parseJobInput({
     external_id: row.id, title, company, url, canonical_url: url,
     description: company === null ? null : descriptions.get(key(title, company)) ?? null,
     location: row.places.length ? row.places.join(", ") : null, complete: false,
@@ -102,7 +102,7 @@ export function normalizeRow(row: Row, descriptions: Map<string, string | null>)
   });
 }
 
-export async function web3CareerConnector(fetcher: Fetcher): Promise<Collected> {
+export async function web3CareerConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const { rows, descriptions } = parseIndex((await fetcher.get(pageRequest(INDEX))).body);
   const read = setAside(rows, (row) => normalizeRow(row, descriptions));
   return { seen: rows.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

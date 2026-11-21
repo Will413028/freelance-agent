@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { codePoints } from "../shared/json";
 import { boardUrl, PAGE_BYTES, PAGE_TIMEOUT_MS, pageHtml, readDetails, USER_AGENT } from "../shared/job-pages";
@@ -134,7 +134,7 @@ function amount(text: string): number | null {
 }
 
 /** One task page in the contract; throws SourceError (set aside) when its identity is missing or wrong. */
-export function parseArticle(pageUrl: string, raw: Uint8Array): ListingInput {
+export function parseArticle(pageUrl: string, raw: Uint8Array): JobInput {
   const url = taskUrl(pageUrl);
   if (url === null) throw new SourceError(`${NAME}: invalid task URL`);
   const page = parsePage(pageHtml(NAME, raw));
@@ -148,7 +148,7 @@ export function parseArticle(pageUrl: string, raw: Uint8Array): ListingInput {
   let low = money ? amount(money[1]) : null, high = money ? amount(money[2] ?? money[1]) : null;
   if (low === null || high === null || high < low) low = high = null;
   const kind = low !== null ? "fixed" : salary.startsWith("時薪$") ? "hourly" : null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: ARTICLE.exec(new URL(url).pathname)![1], title, description: body, url, canonical_url: url,
     location: page.value("location") || null, kind, currency: low !== null ? "TWD" : null, budget_min: low, budget_max: high,
     compensation_evidence: salary || null, complete: false,
@@ -160,7 +160,7 @@ export function parseArticle(pageUrl: string, raw: Uint8Array): ListingInput {
 const get = (fetcher: Fetcher, url: string) =>
   fetcher.get({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT, Accept: "text/html" } });
 
-export async function chickptConnector(fetcher: Fetcher, _now: Date): Promise<Collected> {
+export async function chickptConnector(fetcher: Fetcher, _now: Date): Promise<Collected<JobInput>> {
   const index = parseIndex((await get(fetcher, INDEX)).body);
   const details = await readDetails(index.urls, async (url) => parseArticle(url, (await get(fetcher, url)).body));
   return {

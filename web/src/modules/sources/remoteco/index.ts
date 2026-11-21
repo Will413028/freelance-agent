@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { lastById, nextData, optionalText, requiredText, stringList } from "../shared/embedded";
 import { pageHtml, pageRequest } from "../shared/job-pages";
@@ -49,7 +49,7 @@ const names = (value: unknown): string[] | null =>
   Array.isArray(value) ? value.flatMap((c) => (isObject(c) && typeof c.name === "string" && c.name.trim() ? [c.name.trim()] : [])) : null;
 
 /** One job in the contract; SourceError (set aside) when its identity is missing. */
-export function normalizeJob(job: unknown): ListingInput {
+export function normalizeJob(job: unknown): JobInput {
   if (!isObject(job)) throw new SourceError("remoteco: job is not an object");
   const id = typeof job.id === "string" ? job.id.trim().toLowerCase() : "";
   if (!ID.test(id)) throw new SourceError("remoteco: job id required");
@@ -60,7 +60,7 @@ export function normalizeJob(job: unknown): ListingInput {
   const places = stringList(job.allowedCandidateLocation);
   const types = stringList(job.jobTypes), schedules = stringList(job.jobSchedules);
   const fullTime = types?.length === 1 && types[0] === "Employee" && schedules?.includes("Full-Time") && !schedules.includes("Part-Time");
-  return parseListingInput({
+  return parseJobInput({
     external_id: id, title, url, canonical_url: url,
     company: isObject(job.company) ? optionalText(job.company.name) : null,
     description: optionalText(job.description) ?? optionalText(job.jobSummary),
@@ -75,7 +75,7 @@ export function normalizeJob(job: unknown): ListingInput {
   });
 }
 
-export async function remoteCoConnector(fetcher: Fetcher): Promise<Collected> {
+export async function remoteCoConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const jobs = parseIndex((await fetcher.get(pageRequest(INDEX))).body);
   const read = setAside(jobs, normalizeJob);
   return { seen: jobs.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

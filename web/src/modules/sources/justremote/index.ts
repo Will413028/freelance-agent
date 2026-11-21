@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { codePoints, isObject, truthy } from "../shared/json";
 import { boardUrl, employmentTypes, jobPostings, kindOf, PAGE_BYTES, PAGE_TIMEOUT_MS, pageHtml, readDetails, USER_AGENT } from "../shared/job-pages";
@@ -122,7 +122,7 @@ const rfc3339 = (d: Date) => {
 };
 
 /** validThrough in the contract's deadline shapes; absent or empty (old falsy) is none, unreadable is `invalid` (plan D8). */
-function deadlineOf(value: unknown): ListingInput["deadline"] {
+function deadlineOf(value: unknown): JobInput["deadline"] {
   if (!truthy(value)) return null;
   if (typeof value !== "string") return { kind: "invalid", text: JSON.stringify(value) };
   const t = parseIsoTime(value);
@@ -136,7 +136,7 @@ function deadlineOf(value: unknown): ListingInput["deadline"] {
 }
 
 /** A detail page with its index entry, in the contract (old parse_article); throws SourceError when the listing must be set aside. */
-export function parseArticle(raw: Uint8Array, entry: Entry): ListingInput {
+export function parseArticle(raw: Uint8Array, entry: Entry): JobInput {
   const jobs = jobPostings("justremote", pageHtml("justremote", raw));
   if (jobs.length !== 1) throw new SourceError("justremote: expected one JobPosting");
   const data = jobs[0];
@@ -153,7 +153,7 @@ export function parseArticle(raw: Uint8Array, entry: Entry): ListingInput {
   const loc = entry.locations;
   // Restrictions that name none of the broad regions or Taiwan exclude Taiwan; none, or unreadable ones, say nothing.
   const excluded = loc !== null && loc.length > 0 && !loc.some((x) => BROAD.has(x.toLowerCase()));
-  return parseListingInput({
+  return parseJobInput({
     external_id: entry.id, title, description: body, url: entry.url, canonical_url: entry.url,
     location: loc?.join(", ") || null, kind, taiwan_eligible: excluded ? false : null,
     listing_closed: !entry.active, complete: false, published_at: published, deadline: deadlineOf(data.validThrough),
@@ -165,7 +165,7 @@ export function parseArticle(raw: Uint8Array, entry: Entry): ListingInput {
 }
 
 /** The source's rule (old sync): active, remote, contract, technical, published in the last 90 days and not in the future. */
-export function kept(l: ListingInput, now: Date): boolean {
+export function kept(l: JobInput, now: Date): boolean {
   if (l.kind !== "contract" || l.listing_closed !== false || l.extra.remote !== true || !TECH.has(l.extra.category as string) || l.published_at === null) return false;
   const at = Date.parse(l.published_at);
   return now.getTime() - FRESH_DAYS * DAY_MS <= at && at <= now.getTime();
@@ -173,7 +173,7 @@ export function kept(l: ListingInput, now: Date): boolean {
 
 const get = (fetcher: Fetcher, url: string) => fetcher.get({ url, maxBytes: PAGE_BYTES, timeoutMs: PAGE_TIMEOUT_MS, headers: { "User-Agent": USER_AGENT } });
 
-export async function justRemoteConnector(fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function justRemoteConnector(fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const index = parseIndex((await get(fetcher, INDEX)).body);
   // Read scope kept from the old reader: contract or technical entries only (it bounds the requests).
   const selected = index.entries.filter((e) => e.jobType === "contract" || TECH.has(e.category));

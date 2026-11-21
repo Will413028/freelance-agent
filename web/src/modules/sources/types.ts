@@ -1,21 +1,24 @@
 import type { OpportunityType } from "@/db/pg/schema";
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput, ListingInput } from "@/modules/listings/public";
 import type { FetchErrorKind, Fetcher, FetchPolicy } from "@/platform/fetch";
 
 /**
  * What one run of a connector read: how many listings the source showed, every listing read that passed
  * the per-listing contract, and the source's own rule as a mark on each (plan D9: intake stores all, the
- * listing query picks).
+ * listing query picks). `L` is the listing type of the source's opportunity type: a job connector is a
+ * `Connector<JobInput>`, so its rule reads job fields.
  */
-export type Collected = {
+export type Collected<L extends ListingInput = ListingInput> = {
   seen: number;
-  listings: ListingInput[];
+  listings: L[];
   /**
    * The source's own rule for one listing (stored as listings.source_kept). Required, so a connector cannot
    * leave its rule out by omission; a source with no rule of its own passes every listing. May throw
-   * `SourceError` when a field the rule reads changed format (a failed source, checklist §2).
+   * `SourceError` when a field the rule reads changed format (a failed source, checklist §2). Declared as a
+   * method so a connector of one type fits the catalog's `Connector` (TypeScript compares method parameters
+   * both ways); services/collect only ever passes a rule the listings of its own read.
    */
-  sourceKept: (l: ListingInput) => boolean;
+  sourceKept(l: L): boolean;
   /** The read stopped at the source's read cap before the source's end (old `partial`): what was read is written, the run records it. */
   truncated?: boolean;
   /**
@@ -38,7 +41,7 @@ export type Collected = {
   examined?: number;
 };
 
-export type Connector = (fetcher: Fetcher, now: Date) => Promise<Collected>;
+export type Connector<L extends ListingInput = ListingInput> = (fetcher: Fetcher, now: Date) => Promise<Collected<L>>;
 
 /**
  * One notification as a mail parser reads it, after readMessage (mail/message.ts): parsers rely on its
@@ -78,7 +81,7 @@ export type MailSourceSettings = BaseSettings & {
   sender: string;
   subjectGate: (subject: string) => boolean;
   /** The listings of one message; throws MailRejection naming the check that failed. */
-  parse: (message: MailMessage) => ListingInput[];
+  parse: (message: MailMessage) => JobInput[];
   /** Read only the text part (a parser of plain-text notifications). */
   preferText: boolean;
   completeRead: false;

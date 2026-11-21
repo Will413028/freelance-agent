@@ -26,11 +26,11 @@ Command: `curl -sL "https://devpost.com/api/hackathons?status[]=open&page=1"`; p
 | title | present | `title` |
 | organiser | present | `organization_name` |
 | URL | present | `url` (per-hackathon subdomain) |
-| deadline | present, text only | `submission_period_dates` (e.g. `Mon DD - Mon DD, YYYY`, no time or time zone), `time_left_to_submission` (relative text). No registration deadline field. No ISO date in the list. |
-| prize | present, HTML string | `prize_amount` (`$<span data-currency-value>N</span>`, USD shown), `prizes_counts` `{cash, other}` |
+| deadline | present, text only | `submission_period_dates` (e.g. `Mon DD - Mon DD, YYYY`, no time or time zone; of the 27 read in step 5a: 15 `Mon DD - Mon DD, YYYY`, 7 `Mon DD - DD, YYYY`, 5 `Mon DD, YYYY - Mon DD, YYYY`), `time_left_to_submission` (relative text). No registration deadline field. No ISO date in the list. |
+| prize | present, HTML string | `prize_amount` (`$<span data-currency-value>N</span>`, USD shown; prefixes of the 27 read in step 5a: `$` 24, `€` 2, `$CAD ` 1), `prizes_counts` `{cash, other}` |
 | eligibility: region / age / student | absent | not in the list response |
 | eligibility: invite-only | present | `invite_only` (bool), `eligibility_requirement_invite_only_description` |
-| online/offline | present | `displayed_location.location` (all 9 on page 1 were `Online`) |
+| online/offline | present | `displayed_location.location` (all 9 on page 1 were `Online`); `displayed_location.icon`: `globe` on 22 and `map-marker-alt` on 5 of the 27 read on pages 1, 2 and 7 (step 5a, same command) |
 | open/ended | present | `open_state`, `winners_announced` |
 | pagination | present | `page=N`, 9 per page (`meta.per_page`) |
 | total count | present | `meta.total_count` = 62 open |

@@ -65,7 +65,7 @@ deploy/         compose、Dockerfile、systemd 單元、deploy.sh
 
 - `listings`：一筆職缺一列。身分是 `(source, external_id)`，唯一；`id` 是資料庫產生的代理主鍵（D10）。另存 `source_kept`（來源自己的規則留不留）、`hard_excluded` 等評估用欄位，以及 `first_seen_at`、`updated_at`、`last_seen_at`、`gone_at`。
 - `listing_versions`：信件職缺內容互相矛盾時的其他版本。
-- 機會類型（[機會類型計畫](plans/2026-11-20-opportunity-types.md) D1）：`listings`、`listing_versions` 都有 `opportunity_type`（預設 `job`）。一個來源只產一種類型（catalog 的 `opportunityType`）。清單與重新評估只處理映像認得的類型（`OPPORTUNITY_TYPES`），回滾後不碰新版寫入的其他類型；詳情頁 `/jobs/<id>` 目前不分類型（步驟 5 處理）。目前只有 `job`。資料庫用 CHECK 只收 `ADMITTED_OPPORTUNITY_TYPES`（認得的類型加上預先放行的 `contest`），約束比寫入它的映像早一次部署上線（步驟 3）。
+- 機會類型（[機會類型計畫](plans/2026-11-20-opportunity-types.md) D1）：`listings`、`listing_versions` 都有 `opportunity_type`（預設 `job`）。一個來源只產一種類型（catalog 的 `opportunityType`）。清單與重新評估只處理映像認得的類型（`OPPORTUNITY_TYPES`），回滾後不碰新版寫入的其他類型；詳情頁 `/jobs/<id>` 與回饋寫入依該筆的類型處理，映像不認得的類型回 404。目前有 `job` 與 `contest`（競賽，步驟 5）。資料庫用 CHECK 只收 `ADMITTED_OPPORTUNITY_TYPES`（認得的類型加上預先放行的類型，目前沒有預先放行的），約束比寫入它的映像早一次部署上線（步驟 3）。契約 `ListingInput` 是依 `opportunity_type` 分的聯集，job 來源用 `JobInput`、競賽來源用 `ContestInput`；收案時一筆的類型和它來源的類型不同就拒收整批。競賽專用欄位（D5）：`registration_deadline`、`prize_text`、`online`、`invite_only`、`hackathon`，其他類型的列留空；競賽的 `deadline_*` 是投稿截止，`budget_*` 與 `currency` 是獎金金額。
 - `listing_feedback`、`listing_feedback_events`：收藏／略過狀態與其事件紀錄。
 - `settings`：唯一一列的篩選設定。
 - `mail_messages`、`mail_cursors`：每封看過的信的處理結果、每個信箱的掃描位置。
@@ -126,6 +126,7 @@ deploy/         compose、Dockerfile、systemd 單元、deploy.sh
 - 每種機會類型一個評估器（`registry.ts` 的 `evaluatorFor`：收案事實、事實版本、排序）；`FACTS_VERSION` 按類型記，一種類型的規則改了只重算那種類型的列。清單一次只列一種類型。
 - 清單在讀取時依當下的設定排序（存的是事實，不存評估結果）：候選（沒被排除、沒被略過）在前，再依推薦分；同分新的在前。分頁的文字與排序共用同一個判斷（`rank.ts`），不會不一致。
 - 檢視：候選、已收藏、已略過、全部。收藏或略過過的職缺，內容變了也留在它的檢視裡。
+- 競賽（`contest.ts`，機會類型計畫 D2、D3）：不評分、不分類、不讀設定。來源沒標示結束、還在來源的清單上、投稿截止沒過、沒被略過的是候選（競賽來源只列開放中的，結束的會從清單消失；完整讀取後不再出現的列有 `gone_at`，沒有可用截止日的競賽靠它判斷結束）；清單依投稿截止由近到遠，沒有可用截止日的排最後。只限受邀的競賽照樣顯示並標示。只有日期的截止日以台灣時間當天結束計算，和主辦單位實際的截止時刻可能差幾小時，早晚都有可能（主辦在台灣以東的時區，或截止時刻早於 UTC 16:00 時，會比實際晚），頁面有提示。獎金、截止日、地點、資格沒提供就是未知：沒有獎金欄不等於獎金 0，線上不代表不限地區。
 
 ## 不跨來源合併（D18）
 
@@ -142,6 +143,7 @@ deploy/         compose、Dockerfile、systemd 單元、deploy.sh
 - 頁面全部在伺服器渲染，只輸出白名單欄位（`web/src/services/pages.ts`）。
 - 職缺網址是不可信資料：只有不帶帳密的 `https:` 連結才會變成可點的連結。
 - 寫入是一般的 HTML 表單。每個寫入請求先過 `web/src/app/_lib/guard.ts`：Origin 要和站台相同、Content-Type 要是 urlencoded 表單、body 有大小上限。寫入成功回 303 帶固定的通知代碼，頁面把代碼對到文字，不顯示網址裡的任意文字。
+- 清單頁 `/` 用 `?type=` 選機會類型（沒給就是職缺）；競賽有自己的分頁 `/?type=contest`，詳情與收藏／略過共用 `/jobs/<id>`。
 - `/healthz` 只檢查 Postgres 有回應，給 compose 的健康檢查用。
 - 職缺與信件內容永遠只是資料，不是給工具執行的指令。
 

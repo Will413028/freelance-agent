@@ -1,8 +1,8 @@
 import { and, eq, getTableColumns, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { listings, listingVersions } from "@/db/pg/schema";
+import { listings, listingVersions, type OpportunityType } from "@/db/pg/schema";
 import { evaluatorFor, type Listing } from "@/modules/evaluation/public";
-import { deadlineColumns, deadlineOfColumns, listingOf, parseListingInput, type ListingInput } from "./contract";
+import { contestOf, deadlineColumns, deadlineOfColumns, listingOf, parseListingInput, type ListingInput } from "./contract";
 import { fingerprint } from "./id";
 
 // Listing intake (step-3-design.md core choices 2–4, plan D8): every listing is parsed into the
@@ -33,10 +33,26 @@ export function storable(value: unknown): unknown {
   return clean(JSON.parse(JSON.stringify(value)));
 }
 
-/** The stored columns of one content: shown fields, the contract as raw JSON, and the evaluation facts. */
+/** The evaluation columns of one content, by its type's rules, with the version they were computed with. */
+export function evaluatedColumns(input: ListingInput) {
+  switch (input.opportunity_type) {
+    case "job": {
+      const { facts, version } = evaluatorFor("job");
+      return { ...facts(listingOf(input)), evaluatedWith: version };
+    }
+    case "contest": {
+      const { facts, version } = evaluatorFor("contest");
+      return { ...facts(contestOf(input)), evaluatedWith: version };
+    }
+  }
+}
+
+/**
+ * The stored columns of one content: shown fields, the contract as raw JSON, and the evaluation facts. A
+ * column another type owns is null.
+ */
 export function contentColumns(input: ListingInput) {
-  const l = listingOf(input);
-  const evaluator = evaluatorFor(input.opportunity_type);
+  const job = input.opportunity_type === "job" ? input : null, contest = input.opportunity_type === "contest" ? input : null;
   return {
     opportunityType: input.opportunity_type,
     fingerprint: fingerprint(input),
@@ -47,19 +63,23 @@ export function contentColumns(input: ListingInput) {
     url: input.url,
     canonicalUrl: input.canonical_url,
     location: input.location,
-    kind: input.kind,
+    kind: job?.kind ?? null,
     currency: input.currency,
     budgetMin: input.budget_min,
     budgetMax: input.budget_max,
-    weeklyHours: input.weekly_hours,
-    taiwanEligible: input.taiwan_eligible,
-    timezoneCompatible: input.timezone_compatible,
-    complete: input.complete,
+    weeklyHours: job?.weekly_hours ?? null,
+    taiwanEligible: job?.taiwan_eligible ?? null,
+    timezoneCompatible: job?.timezone_compatible ?? null,
+    complete: job?.complete ?? null,
     listingClosed: input.listing_closed,
-    compensationEvidence: input.compensation_evidence,
+    compensationEvidence: job?.compensation_evidence ?? null,
+    registrationDeadline: contest?.registration_deadline ?? null,
+    prizeText: contest?.prize_text ?? null,
+    online: contest?.online ?? null,
+    inviteOnly: contest?.invite_only ?? null,
+    hackathon: contest?.hackathon ?? null,
     ...deadlineColumns(input.deadline),
-    ...evaluator.facts(l),
-    evaluatedWith: evaluator.version,
+    ...evaluatedColumns(input),
   };
 }
 
@@ -79,12 +99,14 @@ export function listingOfRow(r: ContentRow): Listing {
 }
 
 /**
- * How a batch was read. `sourceKept`: the source's own rule per listing (plan D9), stored as
+ * How a batch was read. `opportunityType`: the type of the source (its catalog entry; a job source when
+ * left out): a listing of another type refuses the batch, because a source has one type (the fingerprint
+ * leaves the type out, id.ts). `sourceKept`: the source's own rule per listing (plan D9), stored as
  * listings.source_kept; absent, every listing passes (mail has no source rule). `complete`: the batch is
  * a complete read of the source (catalog flag, read not truncated, run not failed): every stored
  * listing of the source it does not show gets gone_at.
  */
-export type IntakeOptions = { sourceKept?: (externalId: string) => boolean; complete?: boolean };
+export type IntakeOptions = { opportunityType?: OpportunityType; sourceKept?: (externalId: string) => boolean; complete?: boolean };
 
 /**
  * Writes one source's listings in one transaction and says what happened to each. A listing outside
@@ -94,8 +116,10 @@ export type IntakeOptions = { sourceKept?: (externalId: string) => boolean; comp
  */
 export async function intakeListings(db: PgDb, source: string, given: readonly unknown[], mode: IntakeMode, observedAt = new Date(), options: IntakeOptions = {}): Promise<IntakeCounts> {
   if (!source) throw new Error("source must be non-empty");
+  const type = options.opportunityType ?? "job";
   const items = given.map((value) => {
     const input = parseListingInput(storable(value));
+    if (input.opportunity_type !== type) throw new Error(`${source} is a ${type} source and read a ${input.opportunity_type} listing`);
     return { externalId: input.external_id, columns: contentColumns(input), sourceKept: options.sourceKept?.(input.external_id) ?? true };
   });
   const externalIds = items.map((i) => i.externalId);

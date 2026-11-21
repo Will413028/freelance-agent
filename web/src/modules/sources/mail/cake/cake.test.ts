@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { deflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import type { MailMessage } from "../message";
 import { MailRejection } from "../reasons";
 import { isJobSubject, jobPage, parseCake, SENDER } from ".";
@@ -18,7 +18,7 @@ const fixture = <T,>(name: string): T => JSON.parse(readFileSync(path.join(impor
 const cases = fixture<Case[]>("cases.json");
 const links = fixture<{ name: string; href: string; expect: [string, string] | null }[]>("links.json");
 
-type Outcome = { listings: ListingInput[]; reason?: undefined } | { reason: string; listings?: undefined };
+type Outcome = { listings: JobInput[]; reason?: undefined } | { reason: string; listings?: undefined };
 const outcome = (m: Omit<MailMessage, "id" | "receivedAt">): Outcome => {
   try {
     return { listings: parseCake({ ...m, sender: m.sender.toLowerCase(), id: "x", receivedAt: "2026-09-26T03:00:00.000Z" }) };

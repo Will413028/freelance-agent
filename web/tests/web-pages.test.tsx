@@ -7,7 +7,7 @@ import { readSettings } from "@/modules/evaluation/public";
 import { intakeListings, listingBy } from "@/modules/listings/public";
 import { setFeedback } from "@/modules/review/public";
 import { NotFound } from "@/platform/errors";
-import { jobDetail, listJobs, listQuery, PAGE_SIZE, settingsPage, writeFeedback } from "@/services/pages";
+import { listingDetail, listJobs, listQuery, PAGE_SIZE, settingsPage, writeFeedback } from "@/services/pages";
 import { handleFeedback, handleSettings, type WriteDeps } from "@/app/_lib/writes";
 import { JobDetail, JobList, SettingsForm } from "@/app/_lib/views";
 import { freshPg } from "./helpers/pg";
@@ -23,6 +23,12 @@ const job = (externalId: string, changes: Record<string, unknown> = {}) => ({
 });
 
 let db: PgDb, close: () => Promise<void>;
+/** A job's detail view; the loader answers by type (opportunity types plan step 5). */
+const jobDetail = async (d: PgDb, at: Date, text: string) => {
+  const detail = await listingDetail(d, at, text);
+  if (detail.type !== "job") throw new Error(`${text} is a ${detail.type}`);
+  return detail.job;
+};
 /** A listing's surrogate id as a URL carries it. */
 const key = async (externalId: string, source = SOURCE) => String((await listingBy(db, source, externalId))!.id);
 beforeAll(async () => ({ db, close } = await freshPg()));
@@ -83,9 +89,9 @@ describe("list and detail", () => {
   });
 
   it("reads the query: unknown views and bad pages fall back to the first page of the candidates", () => {
-    expect(listQuery({ view: "saved", page: "2" })).toEqual({ view: "saved", page: 2 });
-    expect(listQuery({ view: "evil", page: "0" })).toEqual({ view: "candidates", page: 1 });
-    expect(listQuery({ view: ["saved"], page: "1e3" })).toEqual({ view: "candidates", page: 1 });
+    expect(listQuery({ view: "saved", page: "2" })).toEqual({ type: "job", view: "saved", page: 2 });
+    expect(listQuery({ view: "evil", page: "0" })).toEqual({ type: "job", view: "candidates", page: 1 });
+    expect(listQuery({ view: ["saved"], page: "1e3" })).toEqual({ type: "job", view: "candidates", page: 1 });
   });
 
   it("shows one listing with its token, and a missing one is NotFound", async () => {

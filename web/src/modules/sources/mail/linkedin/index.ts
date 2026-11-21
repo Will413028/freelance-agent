@@ -1,4 +1,4 @@
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { jobKind, wordsIgnoreCase } from "../kind";
 import { mailListing, type MailMessage } from "../message";
 import { reject } from "../reasons";
@@ -55,7 +55,7 @@ const manageAlerts = (value: string) => {
 };
 
 /** The listings of one alert ([] for a turned-off-alert notice), or a MailRejection naming the check that failed. */
-export function parseLinkedin(message: MailMessage): ListingInput[] {
+export function parseLinkedin(message: MailMessage): JobInput[] {
   if (message.sender !== SENDER) reject("linkedin_unsupported");
   if (isAdministrativeNotice(message.subject)) return [];
   if (message.isHtml) reject("linkedin_unsupported");
@@ -68,7 +68,7 @@ export function parseLinkedin(message: MailMessage): ListingInput[] {
     if (!manageAlerts(lines[start].slice("Manage alerts: ".length))) reject("linkedin_manage_link");
     start++;
   }
-  const jobs = new Map<string, ListingInput>();
+  const jobs = new Map<string, JobInput>();
   let card: string[] = [];
   for (const line of lines.slice(start)) {
     if (line.startsWith("See all jobs on LinkedIn:")) break;

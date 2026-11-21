@@ -4,6 +4,7 @@ import { BRAINTRUST_SETTINGS } from "./braintrust";
 import { HACKERNEWS_SETTINGS, V2EX_SETTINGS } from "./community-jobs";
 import { CHICKPT_SETTINGS } from "./chickpt";
 import { CRYPTOJOBSLIST_SETTINGS } from "./cryptojobslist";
+import { DEVPOST_SETTINGS } from "./devpost";
 import { DYNAMITEJOBS_SETTINGS } from "./dynamitejobs";
 import { freeJobsConnector } from "./free-jobs";
 import { FREELANCER_SETTINGS } from "./freelancer";
@@ -80,6 +81,8 @@ export const SOURCES: readonly SourceSettings[] = [
   // Plan step 8d-3: the browser-tier (tier 3) sources that passed from the VM in 8d-2, one render each.
   { ...IDEALIST_SETTINGS, order: 320 },
   { ...BRAINTRUST_SETTINGS, order: 330 },
+  // Opportunity types plan step 5: the first contest source (every entry above is a job source).
+  { ...DEVPOST_SETTINGS, order: 340 },
 ];
 
 export function sourceSettings(name: string): SourceSettings {

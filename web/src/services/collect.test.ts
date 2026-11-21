@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { listingBy, parseListingInput } from "@/modules/listings/public";
+import { listingBy, parseJobInput, type JobInput } from "@/modules/listings/public";
 import { SOURCES, SourceError, type Collected, type SourceSettings } from "@/modules/sources/public";
 import type { Fetcher } from "@/platform/fetch";
 import { collectSource } from "./collect";
@@ -61,15 +61,15 @@ describe("collectSource with a scripted connector", () => {
       kind, taiwan_eligible: null, complete: false, published_at: null, extra: {} });
   const all = () => true;
   const contractOnly = (l: { kind: string | null }) => l.kind === "contract";
-  const source = (got: () => Omit<Collected, "sourceKept"> & Partial<Pick<Collected, "sourceKept">>, completeRead = false): SourceSettings =>
+  const source = (got: () => Omit<Collected<JobInput>, "sourceKept"> & Partial<Pick<Collected<JobInput>, "sourceKept">>, completeRead = false): SourceSettings =>
     ({ name: "remotive", opportunityType: "job", label: "Remotive", order: 0, connector: async () => ({ sourceKept: all, ...got() }), maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead, disabled: null });
   const none: Fetcher = { requests: 0, get: async () => { throw new Error("no request"); } };
 
   it("stores what the rule drops as not kept and follows a stored listing whose content changes either way", async () => {
-    await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none);
+    await collectSource(db, source(() => ({ seen: 1, listings: [parseJobInput(listing("a", "contract"))] })), NOW, none);
     const run = await collectSource(db, source(() => ({
       seen: 3, sourceKept: contractOnly,
-      listings: [parseListingInput(listing("c", "contract")), parseListingInput(listing("d", "contract", "Accountant")), parseListingInput(listing("a", "full_time")), parseListingInput(listing("b", "full_time"))],
+      listings: [parseJobInput(listing("c", "contract")), parseJobInput(listing("d", "contract", "Accountant")), parseJobInput(listing("a", "full_time")), parseJobInput(listing("b", "full_time"))],
     })), NOW, none);
     expect([run.stored, run.externalIds, run.intake]).toEqual([4, ["c", "d", "a", "b"], { inserted: 3, updated: 1, unchanged: 0, versioned: 0 }]);
     const rows = await Promise.all(["a", "b", "c", "d"].map((id) => listingBy(db, "remotive", id)));
@@ -78,13 +78,13 @@ describe("collectSource with a scripted connector", () => {
 
   it("a rule that refuses (SourceError) fails the run with nothing written", async () => {
     const refuse = () => { throw new SourceError("remotive: category is not text"); };
-    await expect(collectSource(db, source(() => ({ seen: 1, sourceKept: refuse, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none)).rejects.toThrow(/category/);
+    await expect(collectSource(db, source(() => ({ seen: 1, sourceKept: refuse, listings: [parseJobInput(listing("a", "contract"))] })), NOW, none)).rejects.toThrow(/category/);
     expect(await listingBy(db, "remotive", "a")).toBeNull();
   });
 
   it("marks gone only after a complete, untruncated read of a source the catalog marks complete", async () => {
     const t1 = new Date(NOW.getTime() + 86_400_000);
-    const read = (ids: string[], truncated = false) => () => ({ seen: ids.length, truncated, listings: ids.map((id) => parseListingInput(listing(id, "contract"))) });
+    const read = (ids: string[], truncated = false) => () => ({ seen: ids.length, truncated, listings: ids.map((id) => parseJobInput(listing(id, "contract"))) });
     await collectSource(db, source(read(["a", "b"]), true), NOW, none);
     await collectSource(db, source(read(["a"], true), true), t1, none);
     await collectSource(db, source(read(["a"])), t1, none);
@@ -103,19 +103,19 @@ describe("collectSource with a scripted connector", () => {
 
   it("refuses a run whose rejected listings are more than half of the entries examined, writing nothing, whatever seen says", async () => {
     // seen is large (each source's own reporting meaning); the threshold reads examined only.
-    const got = () => ({ seen: 100, examined: 3, listings: [parseListingInput(listing("a", "contract"))], rejected: 2 });
+    const got = () => ({ seen: 100, examined: 3, listings: [parseJobInput(listing("a", "contract"))], rejected: 2 });
     await expect(collectSource(db, source(got), NOW, none)).rejects.toThrow(/remotive: 2 of 3 listings refused/);
     expect(await listingBy(db, "remotive", "a")).toBeNull();
   });
 
   it("writes the kept listings when exactly half of the entries examined were rejected, whatever seen says", async () => {
-    const run = await collectSource(db, source(() => ({ seen: 1, examined: 2, listings: [parseListingInput(listing("a", "contract"))], rejected: 1 })), NOW, none);
+    const run = await collectSource(db, source(() => ({ seen: 1, examined: 2, listings: [parseJobInput(listing("a", "contract"))], rejected: 1 })), NOW, none);
     expect([run.externalIds, run.rejected, run.examined]).toEqual([["a"], 1, 2]);
-    expect((await collectSource(db, source(() => ({ seen: 1, listings: [parseListingInput(listing("a", "contract"))] })), NOW, none)).rejected).toBe(0);
+    expect((await collectSource(db, source(() => ({ seen: 1, listings: [parseJobInput(listing("a", "contract"))] })), NOW, none)).rejected).toBe(0);
   });
 
   it("treats rejected without examined as a connector bug, not a payload refusal", async () => {
-    const got = () => ({ seen: 10, listings: [parseListingInput(listing("a", "contract"))], rejected: 1 });
+    const got = () => ({ seen: 10, listings: [parseJobInput(listing("a", "contract"))], rejected: 1 });
     const e = await collectSource(db, source(got), NOW, none).catch((x: unknown) => x);
     expect([e instanceof SourceError, (e as Error).message]).toEqual([false, "remotive: rejected reported without examined"]);
   });

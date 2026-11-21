@@ -1,4 +1,4 @@
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { replay, squash } from "../html";
 import { jobKind, wordsIgnoreCase } from "../kind";
 import { mailListing, type MailMessage } from "../message";
@@ -91,7 +91,7 @@ function cardsOf(html: string): Card[] {
 }
 
 /** The listings of one alert, or a MailRejection naming the check that failed. */
-export function parseGlassdoor(message: MailMessage): ListingInput[] {
+export function parseGlassdoor(message: MailMessage): JobInput[] {
   if (message.sender !== SENDER || !message.isHtml || !isJobSubject(message.subject)) reject("glassdoor_unsupported");
   return cardsOf(message.body).map((card) => {
     return mailListing({

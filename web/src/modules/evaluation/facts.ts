@@ -56,7 +56,7 @@ export const fixedTwdMax = (l: Listing): number | null =>
  * so a rule change also adds a fixture case that it changes (or bumps the version by hand). One version per
  * opportunity type (opportunity types plan D1): a type's rule change re-evaluates only its own rows.
  */
-export const FACTS_VERSION: Readonly<Record<OpportunityType, number>> = Object.freeze({ job: 1 });
+export const FACTS_VERSION: Readonly<Record<OpportunityType, number>> = Object.freeze({ job: 1, contest: 1 });
 
 export function factsOf(l: Listing): Facts {
   const { category, categoryScore } = categorize(l);

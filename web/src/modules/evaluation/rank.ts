@@ -14,7 +14,8 @@ export type FeedbackState = (typeof FEEDBACK_STATES)[number];
 export type RankFacts = Pick<Facts, "category" | "categoryScore" | "hardExcluded" | "confirmedBase" | "fixedTwdMax" | "publishedAt" | "deadlineAt">
   & { fingerprint: string; weeklyHours: number | null };
 
-export type Rankable = { id: number; firstSeenAt: Date; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
+/** `goneAt`: when a complete read of the source no longer showed the listing (listings.gone_at); null while it is shown. */
+export type Rankable = { id: number; firstSeenAt: Date; goneAt: Date | null; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
 
 const DAY_MS = 86_400_000;
 export const RECENT_MS = 2 * DAY_MS;
@@ -47,7 +48,8 @@ export function freshTenths(publishedAt: Date | null, now: Date): 0 | 60 | 100 {
 export const optionTenths = (f: RankFacts, s: Settings, now: Date) =>
   f.categoryScore * 7 + 25 * (f.confirmedBase + (hoursOk(f, s) ? 1 : 0)) + freshTenths(f.publishedAt, now);
 
-export type Ranked = { id: number; firstSeenAt: Date; candidate: boolean; scoreTenths: number; basis: string };
+/** `deadlineAt`: the deadline of the content the rank rests on (a type ordered by deadline sorts on it). */
+export type Ranked = { id: number; firstSeenAt: Date; candidate: boolean; scoreTenths: number; basis: string; deadlineAt: Date | null };
 
 /**
  * The best still-possible content (the listing or one of its differing versions) gives the score; when
@@ -68,6 +70,7 @@ export function rank(r: Rankable, s: Settings, now: Date): Ranked {
     candidate: possible.length > 0 && r.feedback !== "skipped",
     scoreTenths: Math.min(1000, bestTenths + (r.feedback === "interested" ? 100 : 0)),
     basis: best.fingerprint,
+    deadlineAt: best.deadlineAt,
   };
 }
 

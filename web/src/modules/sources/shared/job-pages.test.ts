@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { parseListingInput } from "@/modules/listings/public";
+import { parseJobInput } from "@/modules/listings/public";
 import { FetchError } from "@/platform/fetch";
 import { SourceError } from "../types";
 import { AccessChallenge, boardUrl, employmentTypes, jobPostings, kindOf, pageHtml, PAGE_BYTES, readDetails } from "./job-pages";
 
 const bytes = (s: string) => new TextEncoder().encode(s);
-const listing = (id: string) => parseListingInput({ external_id: id, title: "t", description: "d", url: `https://x.example/${id}`, canonical_url: `https://x.example/${id}`, complete: false });
+const listing = (id: string) => parseJobInput({ external_id: id, title: "t", description: "d", url: `https://x.example/${id}`, canonical_url: `https://x.example/${id}`, complete: false });
 
 describe("page sources' shared helpers (plan step 5c)", () => {
   it("refuses an empty, oversize or non-UTF-8 page, and fails the source on an access challenge", () => {

@@ -85,7 +85,7 @@ export async function collectMail(db: PgDb, s: MailSourceSettings, now: Date, op
       if (again) rereadRejected++; else rejected++;
       return;
     }
-    const got = await intakeListings(db, s.name, listings, "mail", now);
+    const got = await intakeListings(db, s.name, listings, "mail", now, { opportunityType: s.opportunityType });
     for (const k of Object.keys(intake) as (keyof IntakeCounts)[]) intake[k] += got[k];
     for (const l of listings) written.set(l.external_id, l);
     await recordMessage(db, s.name, inbox, id, { status: "processed", reason: got.versioned ? "content_changed" : null }, now);

@@ -1,5 +1,5 @@
 import { load, type CheerioAPI } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { lastById, lookup, optionalText, requiredText } from "../shared/embedded";
 import { boardUrl, pageHtml, renderRequest } from "../shared/job-pages";
@@ -46,11 +46,11 @@ export function parseIndex(raw: Uint8Array): Card[] {
   return cards;
 }
 
-const KIND: Record<string, ListingInput["kind"]> = { "Full Time": "full_time", "Part Time": "contract", "Contract/Freelance": "contract", Temporary: "contract" };
+const KIND: Record<string, JobInput["kind"]> = { "Full Time": "full_time", "Part Time": "contract", "Contract/Freelance": "contract", Temporary: "contract" };
 const PAY = /\d[\d,.]*\s*\/\s*(?:hour|day|week|month|year)$/;
 
 /** One card in the contract; SourceError (set aside) when its identity is missing. */
-export function normalizeCard(card: Card): ListingInput {
+export function normalizeCard(card: Card): JobInput {
   const url = card.find("a[href]").toArray().map((a) => boardUrl(ORIGIN, HOST, ARTICLE, card.find(a).attr("href"))).find((u) => u !== null) ?? null;
   if (!url) throw new SourceError("idealist: job link required");
   const id = /\/([0-9a-f]{32})-/.exec(url)![1];
@@ -59,7 +59,7 @@ export function normalizeCard(card: Card): ListingInput {
   const texts = tags.map((t) => t.text().trim());
   const place = tags.find((t) => t.find('[aria-label^="location"]').length);
   const type = texts.find((t) => Object.hasOwn(KIND, t)) ?? null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: id, title, company: optionalText(card.find("h4").first().text()), url, canonical_url: url,
     location: place ? optionalText(place.text()) : null, kind: lookup(KIND, type),
     compensation_evidence: texts.find((t) => PAY.test(t)) ?? null, complete: false,
@@ -67,7 +67,7 @@ export function normalizeCard(card: Card): ListingInput {
   });
 }
 
-export async function idealistConnector(fetcher: Fetcher): Promise<Collected> {
+export async function idealistConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const cards = parseIndex((await fetcher.get(renderRequest(INDEX, WAIT_FOR))).body);
   const read = setAside(cards, normalizeCard);
   return { seen: cards.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

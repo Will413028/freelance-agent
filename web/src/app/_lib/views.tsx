@@ -1,5 +1,5 @@
 import type { View } from "@/modules/evaluation/public";
-import type { JobFields, JobView, ListView, Plain, SettingsView, SourcesView, StaleRun } from "@/services/pages";
+import type { ContestFields, ContestListView, ContestView, JobFields, JobView, ListView, Plain, SettingsView, SourcesView, StaleRun } from "@/services/pages";
 import { LIST_BUDGET_MS, STALE_RUN_HOURS } from "@/services/pages";
 import { NOTICES, type Notice } from "./writes";
 
@@ -45,13 +45,13 @@ const statusLabel = (job: JobView) =>
   job.conflict ? "通知內容有差異" : job.status === "excluded" ? "條件不符" : job.status === "needs_info" ? "條件待確認" : "條件吻合";
 const kindLabel = (job: JobFields) => KINDS[text(job, "kind") ?? ""] ?? "合作型態待確認";
 
-export function Shell({ active, children }: { active: "jobs" | "settings" | "sources"; children: React.ReactNode }) {
+export function Shell({ active, children }: { active: "jobs" | "contests" | "settings" | "sources"; children: React.ReactNode }) {
   const link = (href: string, key: typeof active, label: string) => <a href={href} className={active === key ? "nav-active" : ""}>{label}</a>;
   return <div className="shell">
     <aside className="sidebar">
       <a className="brand" href="/"><span className="brand-mark">f<span>・</span></span><span>兼職雷達<small>FREELANCE AGENT</small></span></a>
       <p className="nav-label">我的機會</p>
-      <nav aria-label="主選單">{link("/", "jobs", "職缺清單")}{link("/settings", "settings", "篩選設定")}{link("/sources", "sources", "來源狀態")}</nav>
+      <nav aria-label="主選單">{link("/", "jobs", "職缺清單")}{link("/?type=contest", "contests", "競賽清單")}{link("/settings", "settings", "篩選設定")}{link("/sources", "sources", "來源狀態")}</nav>
     </aside>
     <main>{children}</main>
   </div>;
@@ -98,7 +98,72 @@ export function JobList({ data }: { data: ListView }) {
   </>;
 }
 
-function FeedbackButton({ job, value, label, primary, back }: { job: JobView; value: string; label: string; primary: boolean; back: string }) {
+const contestHref = (view: View, page: number) => `/?type=contest&view=${view}${page > 1 ? `&page=${page}` : ""}`;
+const CONTEST_STATES: Record<ContestView["state"], string> = { open: "徵件中", expired: "已過截止日", closed: "來源已結束或下架" };
+
+/** The prize: the source's own wording, else the amount it gave, else unknown (never 0). */
+function prize(c: ContestFields) {
+  if (c.prize_text) return c.prize_text;
+  return c.currency && typeof c.prize_max === "number" ? `${c.currency} ${c.prize_max.toLocaleString()}` : "獎金待確認";
+}
+
+const submissionDeadline = (c: ContestFields) => (c.deadline === null ? "截止日待確認" : c.deadlineUsable ? `截止 ${c.deadline}` : `截止日待確認（來源寫：${c.deadline}）`);
+/** Online is where it is held, never who may enter. */
+const place = (c: ContestFields) => (c.online === true ? "線上" : c.location ?? (c.online === false ? "實體（地點未提供）" : "地點待確認"));
+
+export function ContestList({ data }: { data: ContestListView }) {
+  return <>
+    <section className="intro"><div><p className="eyebrow">CONTESTS</p><h1>競賽與黑客松，依截止日排列。</h1>
+      <p>最快截止的在前，截止日未確認的在後；不評分。獎金、資格未提供時標示待確認。</p></div></section>
+    <div className="filters" role="group" aria-label="競賽狀態">{VIEW_LABELS.map(([value, label]) =>
+      <a key={value} href={contestHref(value, 1)} aria-current={data.view === value ? "page" : undefined} className={data.view === value ? "selected" : undefined}>{label}</a>)}</div>
+    <section className="inbox" aria-label="競賽清單">
+      <div className="section-heading"><h2>競賽清單</h2><span>第 {data.page} 頁</span></div>
+      {!data.contests.length && <p className="empty">目前沒有符合這個檢視的競賽。</p>}
+      {data.contests.map((c) => <a className="job-card" key={c.id} href={`/jobs/${encodeURIComponent(c.id)}`}>
+        <div className="card-top"><span className="platform">{c.sourceName}</span><span className={"badge " + (c.state === "open" ? "qualified" : "excluded")}>{CONTEST_STATES[c.state]}</span></div>
+        <h3>{c.contest.title}</h3>
+        <p>{c.contest.organiser ?? "主辦單位未提供"} · {place(c.contest)}{c.contest.hackathon === true ? " · 黑客松" : ""}</p>
+        <div className="card-bottom"><span>{prize(c.contest)}</span><span>{submissionDeadline(c.contest)}</span></div>
+        <div className="card-meta"><span>{c.contest.invite_only === true ? "僅限受邀" : ""}</span>
+          <span>{c.feedback === "interested" ? "★ 已收藏" : c.skipped ? "已略過" : c.candidate === false ? "非候選" : ""}</span></div>
+      </a>)}
+      <nav className="pager" aria-label="分頁">
+        {data.page > 1 && <a className="outline-button" href={contestHref(data.view, data.page - 1)}>上一頁</a>}
+        {data.hasNext && <a className="outline-button" href={contestHref(data.view, data.page + 1)}>下一頁</a>}
+      </nav>
+    </section>
+  </>;
+}
+
+const known = (v: boolean | null, yes: string, no: string) => (v === true ? yes : v === false ? no : "待確認");
+
+export function ContestDetail({ contest: c }: { contest: ContestView }) {
+  const back = `/jobs/${encodeURIComponent(c.id)}`;
+  const url = safeUrl(c.contest.url);
+  return <section className="detail" aria-label="競賽詳情">
+    <p className="eyebrow">CONTEST</p><h2>{c.contest.title}</h2>
+    <p>{c.contest.organiser ?? "主辦單位未提供"} · {CONTEST_STATES[c.state]}</p>
+    <div className="actions discovery-actions">
+      <FeedbackButton job={c} value={c.feedback === "interested" ? "unsave" : "interested"} label={c.feedback === "interested" ? "取消收藏" : "收藏競賽"} primary back={back} />
+      <FeedbackButton job={c} value={c.skipped ? "restore" : "skipped"} label={c.skipped ? "恢復待看" : "略過"} primary={false} back={back} />
+    </div>
+    <dl className="job-facts">
+      <div><dt>獎金</dt><dd>{prize(c.contest)}</dd></div>
+      <div><dt>投稿截止</dt><dd>{submissionDeadline(c.contest)}</dd></div>
+      <div><dt>報名截止</dt><dd>{c.contest.registration_deadline ?? "待確認"}</dd></div>
+      <div><dt>地點</dt><dd>{place(c.contest)}</dd></div>
+      <div><dt>參加方式</dt><dd>{known(c.contest.invite_only, "僅限受邀", "公開報名")}</dd></div>
+      <div><dt>黑客松</dt><dd>{known(c.contest.hackathon, "是", "否")}</dd></div>
+    </dl>
+    <p className="hint">只有日期的截止日以台灣時間當天結束計算，和主辦單位實際的截止時刻可能差幾小時（早或晚）；地區、年齡與身分資格來源未提供，請到原始頁面確認。</p>
+    <h3>原始頁面</h3>
+    <ul className="source-links"><li>{url ? <a href={url} target="_blank" rel="noreferrer">{c.sourceName} ↗</a> : c.sourceName}</li></ul>
+    <p><a className="outline-button" href="/?type=contest">回到清單</a></p>
+  </section>;
+}
+
+function FeedbackButton({ job, value, label, primary, back }: { job: { id: number; token: string }; value: string; label: string; primary: boolean; back: string }) {
   return <form method="post" action={`/jobs/${encodeURIComponent(job.id)}/feedback`}>
     <input type="hidden" name="token" value={job.token} />
     <input type="hidden" name="value" value={value} />

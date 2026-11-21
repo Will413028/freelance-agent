@@ -1,5 +1,5 @@
 import { ZodError } from "zod";
-import { parseListingInput, rfc3339Instant, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, rfc3339Instant, type JobInput } from "@/modules/listings/public";
 import { reject } from "./reasons";
 import { senderAddress } from "./receiving";
 
@@ -32,9 +32,9 @@ export function readMessage(raw: Record<string, unknown>, id: string, sender: st
 }
 
 /** A listing a parser read, through the listing contract; a refusal rejects the message as contract_refused. */
-export function mailListing(input: unknown): ListingInput {
+export function mailListing(input: unknown): JobInput {
   try {
-    return parseListingInput(input);
+    return parseJobInput(input);
   } catch (e) {
     if (!(e instanceof ZodError)) throw e;
     return reject("contract_refused");

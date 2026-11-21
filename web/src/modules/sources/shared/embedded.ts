@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { isObject } from "./json";
 import { pyStrip } from "./text";
 import { SourceError } from "../types";
@@ -113,7 +113,7 @@ export const optionalText = (value: unknown): string | null => (typeof value ===
  * free-text places (a city, "Asia-Pacific") are never read as an exclusion, since a false here hides
  * the listing (evaluation's hard exclusion), and remote is not worldwide (AGENTS.md).
  */
-export function eligibleFromCodes(codes: readonly string[] | null): ListingInput["taiwan_eligible"] {
+export function eligibleFromCodes(codes: readonly string[] | null): JobInput["taiwan_eligible"] {
   if (codes === null || !codes.length || !codes.every((c) => /^[A-Za-z]{2}$/.test(c))) return null;
   return codes.some((c) => c.toUpperCase() === "TW") ? null : false;
 }
@@ -129,8 +129,8 @@ export function stringList(value: unknown): string[] | null {
 }
 
 /** The listings of one read with duplicate ids collapsed to the last one (checklist §2). */
-export function lastById(listings: readonly ListingInput[]): ListingInput[] {
-  const byId = new Map<string, ListingInput>();
+export function lastById(listings: readonly JobInput[]): JobInput[] {
+  const byId = new Map<string, JobInput>();
   for (const l of listings) byId.set(l.external_id, l);
   return [...byId.values()];
 }

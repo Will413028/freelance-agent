@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { ZodError } from "zod";
 import { FetchError, type FetchRequest } from "@/platform/fetch";
 import { isObject } from "./json";
@@ -69,7 +69,7 @@ export function jobPostings(name: string, html: string): Record<string, unknown>
 }
 
 /** The kind every page source derives from schema.org employmentType. */
-export const kindOf = (types: readonly string[]): ListingInput["kind"] =>
+export const kindOf = (types: readonly string[]): JobInput["kind"] =>
   types.includes("FULL_TIME") ? "full_time" : types.some((t) => t === "PART_TIME" || t === "CONTRACTOR" || t === "TEMPORARY") ? "contract" : null;
 
 /** employmentType as the sources accept it: text becomes [text]; otherwise a list of text (non-empty when `nonEmpty`). */
@@ -99,8 +99,8 @@ export function boardUrl(origin: string, host: string, article: RegExp, value: u
  * fails the whole source (old rejectsDetail). Reaching the source's request cap stops the read and marks
  * it truncated; what was read is kept.
  */
-export async function readDetails<T>(items: readonly T[], read: (item: T) => Promise<ListingInput>): Promise<{ listings: ListingInput[]; rejected: number; examined: number; truncated: boolean }> {
-  const listings: ListingInput[] = [];
+export async function readDetails<T>(items: readonly T[], read: (item: T) => Promise<JobInput>): Promise<{ listings: JobInput[]; rejected: number; examined: number; truncated: boolean }> {
+  const listings: JobInput[] = [];
   let rejected = 0, examined = 0;
   for (const item of items) {
     try {

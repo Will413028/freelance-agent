@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { listingOf, parseListingInput } from "@/modules/listings/public";
+import { listingOf, parseJobInput } from "@/modules/listings/public";
 import { factsOf } from "./facts";
 import { taipeiDayAfter } from "./time";
 
 // Plan steps 3a, 3b2: the evaluation facts stored with each listing (step-3-design.md core choice 1),
 // over the typed listing.
 
-const l = (extra: Record<string, unknown> = {}) => listingOf(parseListingInput({
+const l = (extra: Record<string, unknown> = {}) => listingOf(parseJobInput({
   external_id: "1", title: "Backend API contractor", description: "Build an LLM automation backend", kind: "contract", ...extra,
 }));
 
@@ -58,5 +58,23 @@ describe("FACTS_VERSION (plan D26)", () => {
     expect(job.version).toBe(FACTS_VERSION.job);
     // On a deliberate rule change: bump FACTS_VERSION.job in facts.ts and put the new digest here, in the same commit.
     expect({ version: FACTS_VERSION.job, digest }).toEqual({ version: 1, digest: "cf78286b9b2dbfa443f5e379990bd3876d039e8958362eca09108e27ce296385" });
+  });
+
+  it("pins the contest rules the same way, over the cases its facts tell apart", async () => {
+    const { createHash } = await import("node:crypto");
+    const { FACTS_VERSION } = await import("./facts");
+    const { evaluatorFor } = await import("./registry");
+    const contest = evaluatorFor("contest");
+    const at = new Date("2026-11-01T00:00:00Z");
+    const cases = [
+      { listingClosed: null, publishedAt: null, deadline: null },
+      { listingClosed: false, publishedAt: at, deadline: { kind: "date" as const, date: "2026-12-15" } },
+      { listingClosed: true, publishedAt: null, deadline: { kind: "instant" as const, at } },
+      { listingClosed: null, publishedAt: null, deadline: { kind: "invalid" as const, text: "soon" } },
+      { listingClosed: null, publishedAt: null, deadline: { kind: "no_timezone" as const, text: "2026-12-01 10:00" } },
+    ];
+    const digest = createHash("sha256").update(JSON.stringify(cases.map((c) => contest.facts(c)))).digest("hex");
+    // On a deliberate rule change: bump FACTS_VERSION.contest in facts.ts and put the new digest here, in the same commit.
+    expect({ version: FACTS_VERSION.contest, digest }).toEqual({ version: 1, digest: "f3af394044d656ba894cac0c22a4aac8b6e0a9a372164bb216224585989501e7" });
   });
 });

@@ -1,5 +1,5 @@
 import { escapeRegExp } from "@/platform/text";
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { collapseSpaces } from "../../shared/text";
 import { loadMailHtml, type AnyNode } from "../html";
 import { mailListing, type MailMessage } from "../message";
@@ -75,7 +75,7 @@ function textParts(body: string): { links: string[]; text: string } {
 const textPartsOf = (body: string) => textParts(body.replace(/\r\n?/gu, "\n"));
 
 /** The one listing of a case notification, or a MailRejection naming the check that failed. */
-export function parseTasker(message: MailMessage): ListingInput[] {
+export function parseTasker(message: MailMessage): JobInput[] {
   if (message.sender !== SENDER) reject("tasker_unsupported");
   const { links, text } = message.isHtml ? htmlParts(message.body) : textPartsOf(message.body);
   const pages = new Set(links.map(casePage).filter((u): u is string => u !== null));

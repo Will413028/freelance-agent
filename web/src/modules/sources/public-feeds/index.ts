@@ -1,4 +1,4 @@
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { codePoints, isObject, truthy } from "../shared/json";
 import { setAside } from "../shared/set-aside";
@@ -115,7 +115,7 @@ function tagsOf(feed: Feed, raw: unknown): string[] | null {
 }
 
 /** One entry of a feed (a JSON object, or an RSS item read into the same shape) in the contract; throws SourceError when its identity is missing. */
-export function normalize(name: FeedName, entry: unknown): ListingInput {
+export function normalize(name: FeedName, entry: unknown): JobInput {
   const feed = FEEDS[name];
   if (!isObject(entry)) throw new SourceError(`${name}: a listing is not an object`);
   const title = feedText(name, entry[feed.titleField], "title");
@@ -148,7 +148,7 @@ export function normalize(name: FeedName, entry: unknown): ListingInput {
   const closed = entry.closed === true || (typeof status === "string" && ["closed", "expired", "filled"].includes(status)) || CLOSED.test(title + "\n" + body);
   const location = typeof entry.location === "string" ? entry.location || null : null;
   const salary = (k: string) => (truthy(entry[k]) ? entry[k] : null);
-  return parseListingInput({
+  return parseJobInput({
     external_id: id, title, description: body, url: shown, canonical_url: shown, location, kind, listing_closed: closed, complete: false,
     published_at: published,
     extra: {
@@ -212,24 +212,24 @@ export function entries(name: FeedName, raw: Uint8Array): { entries: unknown[]; 
 }
 
 /** Every entry read in the contract (an id listed twice keeps its last entry), without the source's rule. */
-export function parseItems(name: FeedName, raw: Uint8Array): Omit<Collected, "sourceKept"> {
+export function parseItems(name: FeedName, raw: Uint8Array): Omit<Collected<JobInput>, "sourceKept"> {
   const { entries: list, truncated } = entries(name, raw);
   const { listings, rejected, examined } = setAside(list, (e) => normalize(name, e));
   return { seen: list.length, listings: [...new Map(listings.map((l) => [l.external_id, l])).values()], truncated, rejected, examined };
 }
 
 /** The source's rule: a contract or part-time job published in the last 90 days, not in the future. */
-export function kept(l: ListingInput, now: Date): boolean {
+export function kept(l: JobInput, now: Date): boolean {
   if (l.kind !== "contract" || l.published_at === null) return false; // published_at is never null from normalize
   const at = Date.parse(l.published_at);
   return now.getTime() - FRESH_DAYS * DAY_MS <= at && at <= now.getTime();
 }
 
-export function parseFeed(name: FeedName, raw: Uint8Array, now: Date): Collected {
+export function parseFeed(name: FeedName, raw: Uint8Array, now: Date): Collected<JobInput> {
   return { ...parseItems(name, raw), sourceKept: (l) => kept(l, now) };
 }
 
-export async function publicFeedConnector(name: FeedName, fetcher: Fetcher, now: Date): Promise<Collected> {
+export async function publicFeedConnector(name: FeedName, fetcher: Fetcher, now: Date): Promise<Collected<JobInput>> {
   const r = await fetcher.get({
     url: FEEDS[name].endpoint, maxBytes: MAX_BYTES, timeoutMs: 25_000,
     headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: FEEDS[name].format === "json" ? "application/json" : "application/rss+xml, application/xml" },

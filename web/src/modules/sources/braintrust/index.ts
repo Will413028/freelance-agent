@@ -1,5 +1,5 @@
 import { load, type CheerioAPI } from "cheerio";
-import { parseListingInput, type ListingInput } from "@/modules/listings/public";
+import { parseJobInput, type JobInput } from "@/modules/listings/public";
 import type { Fetcher } from "@/platform/fetch";
 import { lastById, lookup, optionalText, requiredText } from "../shared/embedded";
 import { pageHtml, renderRequest } from "../shared/job-pages";
@@ -72,18 +72,18 @@ export function parseIndex(raw: Uint8Array): Job[] {
   return jobs;
 }
 
-const KIND: Record<string, ListingInput["kind"]> = { Freelance: "contract", Contract: "contract", "Part-time": "contract", "Full-time": "full_time", Employee: "full_time" };
+const KIND: Record<string, JobInput["kind"]> = { Freelance: "contract", Contract: "contract", "Part-time": "contract", "Full-time": "full_time", Employee: "full_time" };
 const PAY = /[$€£] ?\d/;
 
 /** One job in the contract; SourceError (set aside) when its title is missing. */
-export function normalizeJob({ id, card, $ }: Job): ListingInput {
+export function normalizeJob({ id, card, $ }: Job): JobInput {
   // The first of the job's own links with text other than the "View job" button: a cover image link may come first.
   const link = card.find("a[href]").filter((_, a) => jobId($(a).attr("href")) === id && !/^\s*(?:view job\s*)?$/i.test($(a).text())).first();
   const title = requiredText("braintrust", link.text(), "title");
   const url = `${ORIGIN}/jobs/${id}`;
   const texts = card.find("div,span").toArray().map((e) => $(e).text().trim());
   const pay = card.find("p").toArray().map((p) => $(p).text().trim()).find((t) => PAY.test(t)) ?? null;
-  return parseListingInput({
+  return parseJobInput({
     external_id: id, title, company: optionalText(card.find('a[href^="/employers/"] [title]').first().attr("title")), url, canonical_url: url,
     location: null, kind: lookup(KIND, texts.find((t) => Object.hasOwn(KIND, t)) ?? null),
     compensation_evidence: pay, complete: false,
@@ -91,7 +91,7 @@ export function normalizeJob({ id, card, $ }: Job): ListingInput {
   });
 }
 
-export async function braintrustConnector(fetcher: Fetcher): Promise<Collected> {
+export async function braintrustConnector(fetcher: Fetcher): Promise<Collected<JobInput>> {
   const jobs = parseIndex((await fetcher.get(renderRequest(INDEX, WAIT_FOR))).body);
   const read = setAside(jobs, normalizeJob);
   return { seen: jobs.length, listings: lastById(read.listings), sourceKept: () => true, rejected: read.rejected, examined: read.examined };

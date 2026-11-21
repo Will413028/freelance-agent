@@ -3,7 +3,7 @@ import { SourceError } from "../types";
 
 /**
  * Normalize each listing on its own: a `SourceError` raised for ONE listing, or the listing contract
- * refusing it (`parseListingInput`'s `ZodError`), sets it aside and counts it (Will 2026-11-15, step 5a
+ * refusing it (`parseJobInput`'s `ZodError`), sets it aside and counts it (Will 2026-11-15, step 5a
  * VM run); any other error still propagates. `examined` is every item the normalizer ran on, kept or
  * not. The caller adds `rejected` and `examined` to its `Collected` (summed over every call, so both are
  * counted at the same level), and services/collect fails the run when more than half were rejected.

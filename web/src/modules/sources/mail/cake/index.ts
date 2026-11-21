@@ -1,5 +1,5 @@
 import { inflateSync } from "node:zlib";
-import type { ListingInput } from "@/modules/listings/public";
+import type { JobInput } from "@/modules/listings/public";
 import { loadMailHtml, type AnyNode } from "../html";
 import { jobKind, wordsIgnoreCase } from "../kind";
 import { mailListing, type MailMessage } from "../message";
@@ -86,7 +86,7 @@ function detailLinks(html: string): string[] {
 }
 
 /** The one listing of a job notification, or a MailRejection naming the check that failed. */
-export function parseCake(message: MailMessage): ListingInput[] {
+export function parseCake(message: MailMessage): JobInput[] {
   if (message.sender !== SENDER || !message.isHtml) reject("cake_unsupported");
   const subject = SUBJECT.exec(message.subject);
   if (!subject) reject("cake_subject");
