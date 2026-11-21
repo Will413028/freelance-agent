@@ -5,6 +5,8 @@ import { HACKERNEWS_SETTINGS, V2EX_SETTINGS } from "./community-jobs";
 import { CHICKPT_SETTINGS } from "./chickpt";
 import { CRYPTOJOBSLIST_SETTINGS } from "./cryptojobslist";
 import { DEVPOST_SETTINGS } from "./devpost";
+import { MLCONTESTS_SETTINGS } from "./mlcontests";
+import { ZINDI_SETTINGS } from "./zindi";
 import { DYNAMITEJOBS_SETTINGS } from "./dynamitejobs";
 import { freeJobsConnector } from "./free-jobs";
 import { FREELANCER_SETTINGS } from "./freelancer";
@@ -83,6 +85,9 @@ export const SOURCES: readonly SourceSettings[] = [
   { ...BRAINTRUST_SETTINGS, order: 330 },
   // Opportunity types plan step 5: the first contest source (every entry above is a job source).
   { ...DEVPOST_SETTINGS, order: 340 },
+  // Opportunity types plan step 6a: MLContests (an aggregator) and Zindi (D13: a direct source too).
+  { ...MLCONTESTS_SETTINGS, order: 350 },
+  { ...ZINDI_SETTINGS, order: 360 },
 ];
 
 export function sourceSettings(name: string): SourceSettings {

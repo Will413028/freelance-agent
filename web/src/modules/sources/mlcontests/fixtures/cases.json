@@ -1,0 +1,488 @@
+{
+ "normalize": [
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "opportunity_type": "contest",
+    "external_id": "https://www.kaggle.com/competitions/example-forecasting",
+    "title": "Example Forecasting Challenge",
+    "company": "Kaggle",
+    "description": null,
+    "url": "https://www.kaggle.com/competitions/example-forecasting",
+    "canonical_url": "https://www.kaggle.com/competitions/example-forecasting",
+    "location": null,
+    "currency": "USD",
+    "budget_min": null,
+    "budget_max": 50000,
+    "prize_text": "$50,000",
+    "online": null,
+    "invite_only": null,
+    "hackathon": null,
+    "listing_closed": null,
+    "published_at": null,
+    "deadline": {
+     "kind": "date",
+     "date": "2026-12-15"
+    },
+    "registration_deadline": "2026-12-08",
+    "extra": {
+     "sponsor": "Example Lab",
+     "additional_prizes": null,
+     "tags": [
+      "forecasting",
+      "timeseries"
+     ]
+    }
+   },
+   "why": "a competition as the page gives it; ref stripped"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?utm_source=mlcontest&utm_medium=referral&utm_campaign=compupdates",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "external_id",
+    "value": "https://www.kaggle.com/competitions/example-forecasting"
+   },
+   "why": "utm parameters stripped: the same id"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "external_id",
+    "value": "https://www.kaggle.com/competitions/example-forecasting"
+   },
+   "why": "no parameters: the same id"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://example.org/challenge/?ref=mlc#rules",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "external_id",
+    "value": "https://example.org/challenge/"
+   },
+   "why": "fragment and ref dropped"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.codabench.org/competitions/123/?tab=1&ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "external_id",
+    "value": "https://www.codabench.org/competitions/123/?tab=1"
+   },
+   "why": "other parameters kept"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "http://example.org/",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "not https"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "no url"
+  },
+  {
+   "payload": {
+    "name": "",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "no title"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "11 May 2026 Apr 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "an unreadable deadline is set aside"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "30 Feb 2027",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "a day the month lacks"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "5 Jan 2027",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "date",
+     "date": "2027-01-05"
+    }
+   },
+   "why": "one-digit day"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": null,
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": null
+   },
+   "why": "no prize is unknown, never 0"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": null,
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "prize_text",
+    "value": null
+   },
+   "why": "no prize text"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$1,000,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": 1000000
+   },
+   "why": "millions"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "€10,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "currency",
+    "value": null
+   },
+   "why": "another form leaves the amount unknown"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": "Kaggle",
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": null,
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "registration_deadline",
+    "value": null
+   },
+   "why": "no registration deadline"
+  },
+  {
+   "payload": {
+    "name": "Example Forecasting Challenge",
+    "url": "https://www.kaggle.com/competitions/example-forecasting?ref=mlcontests",
+    "platform": null,
+    "sponsor": "Example Lab",
+    "deadline": "15 Dec 2026",
+    "registration-deadline": "8 Dec 2026",
+    "launched": "1 Sep 2026",
+    "added": "2 Sep 2026",
+    "prize": "$50,000",
+    "additional-prizes": null,
+    "additional-urls": [],
+    "tags": [
+     "forecasting",
+     "timeseries"
+    ],
+    "note": null,
+    "conference": null,
+    "conference-year": null
+   },
+   "expect": {
+    "field": "company",
+    "value": null
+   },
+   "why": "no platform"
+  }
+ ]
+}

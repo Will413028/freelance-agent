@@ -1,0 +1,554 @@
+{
+ "normalize": [
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "opportunity_type": "contest",
+    "external_id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "company": "Example Org",
+    "description": null,
+    "url": "https://zindi.world/competitions/example-crop-yield-challenge",
+    "canonical_url": "https://zindi.world/competitions/example-crop-yield-challenge",
+    "location": null,
+    "currency": "USD",
+    "budget_min": null,
+    "budget_max": 40000,
+    "prize_text": "$40 000 USD",
+    "online": null,
+    "invite_only": false,
+    "hackathon": false,
+    "listing_closed": false,
+    "published_at": null,
+    "deadline": {
+     "kind": "instant",
+     "at": "2026-12-13T04:59:00.000Z"
+    },
+    "registration_deadline": null,
+    "extra": {
+     "reward_type": "prize",
+     "entries_close_at": null,
+     "beginner_friendly": true
+    }
+   },
+   "why": "an open competition as the list gives it"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "€9 000 EUR",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": 9000
+   },
+   "why": "euro amount, space thousands"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "R25 000 ZAR",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "currency",
+    "value": "ZAR"
+   },
+   "why": "rand, code last"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "5 000 CHF",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "currency",
+    "value": "CHF"
+   },
+   "why": "no symbol"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "3000 Points",
+    "reward_type": "points",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": null
+   },
+   "why": "points are not a prize amount"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "3000 Points",
+    "reward_type": "points",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "prize_text",
+    "value": "3000 Points"
+   },
+   "why": "points text kept"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$12 000 USD + AWS credits",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": null
+   },
+   "why": "other wording leaves the amount unknown"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "To be awarded",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "currency",
+    "value": null
+   },
+   "why": "no amount"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "prize_text",
+    "value": null
+   },
+   "why": "no reward is unknown, never 0"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "deadline",
+    "value": null
+   },
+   "why": "no end time is an unknown deadline"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "invalid",
+     "text": "2026-12-13T04:59:00"
+    }
+   },
+   "why": "an end time without offset is unusable"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": "2026-12-06T23:59:00.000Z",
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "extra",
+    "value": {
+     "reward_type": "prize",
+     "entries_close_at": "2026-12-06T23:59:00.000Z",
+     "beginner_friendly": true
+    }
+   },
+   "why": "entries close: the instant is kept in extra, not as a date"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": true,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "invite_only",
+    "value": true
+   },
+   "why": "secret code is invite-only"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": true,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "invite_only",
+    "value": true
+   },
+   "why": "restricted access is invite-only"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "invite_only",
+    "value": null
+   },
+   "why": "a missing flag leaves invite-only unknown"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "hackathon",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "hackathon",
+    "value": true
+   },
+   "why": "kind hackathon"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "hackathon",
+    "value": null
+   },
+   "why": "no kind is unknown"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": null,
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "company",
+    "value": null
+   },
+   "why": "no organiser"
+  },
+  {
+   "payload": {
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "no id"
+  },
+  {
+   "payload": {
+    "id": "../x",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "an id that is not a slug"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": " ",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "empty title"
+  },
+  {
+   "payload": {
+    "id": "GeoAI-Crop-Challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "reward": "$40 000 USD",
+    "reward_type": "prize",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "external_id",
+    "value": "GeoAI-Crop-Challenge"
+   },
+   "why": "an id with capitals is kept as given (real ids have them)"
+  },
+  {
+   "payload": {
+    "id": "example-crop-yield-challenge",
+    "title": "Example Crop Yield Challenge",
+    "organization": "Example Org",
+    "end_time": "2026-12-13T04:59:00.000Z",
+    "entries_close_at": null,
+    "start_time": "2026-10-01T00:00:00.000Z",
+    "kind": "competition",
+    "open": true,
+    "secret_code_required": false,
+    "is_access_restricted": false,
+    "is_beginner_friendly": true,
+    "participations_count": 120
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": null
+   },
+   "why": "no reward: the amount is unknown, never 0"
+  }
+ ]
+}

@@ -221,3 +221,10 @@ Why: the 2026-11-20 measurement found 8 sources readable that no step, 不做 or
 
 Not measured, named only (from searches and the MLContests platform list): Solafune, ThinkOnward, EvalAI, Grand Challenge, Synapse, Topcoder, HackerEarth, Numerai; bounty platforms Algora, Opire, MergeFund; security bounties Immunefi, HackerOne.
 
+
+## Re-measured 2026-11-22 for step 6a: MLContests, Zindi
+
+Same commands as above, development machine, plain tier, the project's User-Agent; counts and shapes only, pages deleted afterwards.
+
+- MLContests: 413 entries, one `data-competitions` attribute; 15 with `deadline` on or after 2026-11-22. 8 URLs appear twice, all on past entries. The query differs between entries (`?ref=mlcontests` 300, `?utm_source=…` 41, `?ref=mlc` 17, none 25), so the connector drops `ref` and `utm_*` before using the URL as the id. One deadline is not a single day (`11 May 2026 Apr 2026`, a past entry): it is set aside on every read and counted in `rejected`.
+- Zindi: `?active=true` returns the first 10 (all open), but with `per_page` it returns closed ones too, and `active=true&page=1` returns 10 closed: the parameter does not filter, the list is ordered open first. `meta.open_count` 10, `total_count` 527. The connector pages with `per_page=50` until the first closed competition and checks the open count. `reward` over 100 competitions: `$N NNN USD`, `€N NNN EUR`, `N NNN CHF`, `RN NNN ZAR`, points, and free text (`To be awarded`, `$N NNN USD + AWS credits`, `N,NNN,NNN XOF to be shared`). Every id matches `[A-Za-z0-9-]+` (some have capitals). `https://zindi.africa/competitions/<id>` answers 301 to `https://zindi.world/competitions/<id>`, which answers 200: the connector links to `zindi.world`.
