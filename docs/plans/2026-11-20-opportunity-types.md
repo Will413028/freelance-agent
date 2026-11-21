@@ -47,7 +47,7 @@
 
 - 做：discriminator and per-type constraints on `listings` and `listing_versions`; `ListingInput` as a union on `opportunity_type`; catalog entries declare their type; evaluator and facts version per type; list query, ranking, pages and routes per type; contest type with its fields; first contest sources; bounty type (Superteam Earn); airdrop type subject to D4; settings per type subject to D6.
 - 不做：merging duplicates across sources (D18); automatic registration or submission to contests; anything that touches a wallet; mail (D22); Kaggle API (needs a token); renaming `budget_*` (an amount range means the same for prizes; a rename costs two deploys for no behaviour).
-- 延後：airdrop type (D4; trigger: Will asks again, with a source that reviews listings); Tianchi, Zindi, Signate (trigger: a later measurement shows parseable data at an allowed tier); blocked sources (trigger: the block lifts at an allowed tier); Class Table Inheritance (trigger: more than 5 types, or more than about 10 type-specific columns for one type).
+- 延後：settings per type (D6; trigger: a type needs a threshold setting); airdrop type (D4; trigger: Will asks again, with a source that reviews listings); Tianchi, Zindi, Signate (trigger: a later measurement shows parseable data at an allowed tier); blocked sources (trigger: the block lifts at an allowed tier); Class Table Inheritance (trigger: more than 5 types, or more than about 10 type-specific columns for one type).
 
 ## 步驟
 
@@ -132,7 +132,7 @@
 - **D5 Contest fields**（狀態：未決；擋住步驟：5；需要的事實：步驟 1）
   - `deadline_*` holds the submission deadline (recommended; the deadline a contestant must meet).
   - Candidate contest-only columns: registration deadline, `prize_text`, `online`, `invite_only`; whether hackathon is a separate type value or a contest flag. Recommendation after step 1.
-- **D6 Settings per type**（狀態：未決；擋住步驟：4；需要的事實：D2）
+- **D6 Settings per type**（狀態：已決 2026-11-21，Will：B, step 4 skipped until a type needs settings；擋住步驟：無）
   - A：new table keyed by type (revision per type), job row seeded from the singleton.（建議 if D2 = B）
   - B：contests have no settings yet; step 4 is skipped until a type needs settings.（建議 if D2 = A）
 - **D7 Kaggle directly, MLContests, or both**（狀態：未決；擋住步驟：6；需要的事實：步驟 1）
@@ -142,7 +142,7 @@
 - **D8 Bounty type**（狀態：未決；擋住步驟：7；需要的事實：步驟 1 (Superteam Earn fields)）
   - Fields (reward amount and token, deadline, compensation type), ranking (deadline vs reward), its own tab or shared with contests. Recommendation after step 1.
 
-拍板順序：D6 now (D2 = A points to B); D5, D7, D8 after step 1.
+拍板順序：D5, D7, D8 after step 1.
 
 ## 進度
 
@@ -153,7 +153,7 @@
 | 1 Spike: source fields | 未開始 | | | |
 | 2 Generalize the model | 未開始 | | | |
 | 3 Type constraints | 未開始 | | | |
-| 4 Settings per type | 未開始 | | | |
+| 4 Settings per type | 跳過（D6 B） | | | |
 | 5 Contest type with Devpost | 未開始 | | | |
 | 6 Remaining contest sources | 未開始 | | | |
 | 7 Bounty and airdrop types | 未開始 | | | |
