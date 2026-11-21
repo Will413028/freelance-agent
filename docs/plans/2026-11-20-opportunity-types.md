@@ -60,7 +60,7 @@
   - 停止條件：a source's terms forbid automated reading → mark it excluded and report.
   - 需要人做的事：authorization for browser-tier reads on the VM (Kaggle, 獎金獵人).
 
-- [ ] **2. Generalize the model, jobs only (expand; no behaviour change)**（被擋於：無）
+- [x] **2. Generalize the model, jobs only (expand; no behaviour change)**（被擋於：無）
   - 範圍：
     - Migration (new `web/drizzle-pg/0002_*.sql`): add `opportunity_type text not null default 'job'` to `listings` and `listing_versions`; replace the `listings_shown` partial index with one on `(opportunity_type, id)` under the same predicate (plain `CREATE INDEX`, allowed by check-migrations).
     - Contract (`modules/listings/contract.ts`, modified): `ListingInput` becomes a zod discriminated union on `opportunity_type` (snake case like every contract field) with a single `job` variant carrying today's fields; a raw without the discriminator parses as `job` through the job variant's `.default("job")`, which zod 4's union applies to a missing discriminator (a separate preprocess was measured redundant and dropped), so every row stored before this step stays parseable. `fingerprint` (`modules/listings/id.ts`) leaves `opportunity_type` out: a source has one type, and stored fingerprints stay valid. Connector fixtures' expected contract outputs gain `opportunity_type: "job"` (re-baseline, no connector change).
@@ -100,8 +100,8 @@
   - 停止條件：step 1 shows Devpost has no stable id.
   - 需要人做的事：deploy authorization for deploys D and E.
 
-- [ ] **6. Remaining contest sources**（被擋於：D7；步驟 5）
-  - 範圍：獎金獵人 (browser tier), Kaggle (browser tier) and/or MLContests (per D7): new `modules/sources/<name>/` each with fixture and test; `catalog.ts` (modified) entries per step 1's tier. No migration.
+- [ ] **6. Remaining contest sources**（被擋於：步驟 5）
+  - 範圍：獎金獵人 (browser tier), Kaggle (browser tier) and MLContests (D7 = A: both, Kaggle competitions appear from both sources, not merged per D18): new `modules/sources/<name>/` each with fixture and test; `catalog.ts` (modified) entries per step 1's tier. No migration.
   - 驗收：per-connector fixture tests. Mutation per connector: change the id rule → fixture test fails. After deploy: two manual runs (second adds no rows), three natural daily runs `ok`.
   - 需要人做的事：deploy authorization.
 
@@ -135,7 +135,7 @@
 - **D6 Settings per type**（狀態：已決 2026-11-21，Will：B, step 4 skipped until a type needs settings；擋住步驟：無）
   - A：new table keyed by type (revision per type), job row seeded from the singleton.（建議 if D2 = B）
   - B：contests have no settings yet; step 4 is skipped until a type needs settings.（建議 if D2 = A）
-- **D7 Kaggle directly, MLContests, or both**（狀態：未決；擋住步驟：6；需要的事實：步驟 1）
+- **D7 Kaggle directly, MLContests, or both**（狀態：已決 2026-11-21，Will：A, both, accepting duplicates (D18)；擋住步驟：無）
   - A：both, accepting duplicates (D18).
   - B：MLContests only, if it covers Kaggle with enough fields.
   - C：Kaggle only.
@@ -144,7 +144,7 @@
 
 - **D9 Sources whose terms forbid automated reading**（狀態：已決 2026-11-21，Will：keep Devpost despite its terms (robots.txt allows `*`, public JSON API, one read a day); step 1's stop condition no longer excludes it；擋住步驟：無）
 
-拍板順序：D7 open (facts in `sources.md`); D5, D8 decided 2026-11-21.
+拍板順序：all decided (D7 on 2026-11-21).
 
 ## 進度
 
@@ -153,7 +153,7 @@
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
 | 1 Spike: source fields | 完成 | `sources.md` covers all 7 sources, every field marked with its command (2026-11-21; VM browser read authorized by Will, container and temp dir removed) | Kaggle absolute deadline and eligibility: detail page rendered 1 of 3 (`LayoutMissing`), left unknown | |
-| 2 Generalize the model | 程式完成待驗收 | 2026-11-21: `pnpm check` exit 0 (vitest 680 passed, 1 skipped; check-migrations ok, no `-- contract:` line); `pnpm build` exit 0; job evaluate/recommendation fixtures and the facts digest unchanged; mutations in copies: discriminator default, type filter on the listing, stub registry, reevaluate type filter, fingerprint with type, all killed; CI green on PR #87 (web incl. Postgres re-run, image, secrets) | deploy A (needs Will's authorization); step 3 waits for it | PR #87 |
+| 2 Generalize the model | 完成 | 2026-11-21: `pnpm check` exit 0 (vitest 680 passed, 1 skipped; check-migrations ok, no `-- contract:` line); `pnpm build` exit 0; job evaluate/recommendation fixtures and the facts digest unchanged; mutations in copies: discriminator default, type filter on the listing, stub registry, reevaluate type filter, fingerprint with type, all killed; CI green on PR #87 (web incl. Postgres re-run, image, secrets) ; deploy A 2026-11-21 (Will authorized): VM runs `16e36c9`, migration 0002 applied, 15,530 listings all `job`, 0 non-job versions, `listings_shown` on `(opportunity_type, id)`, web 200 | first natural daily run on `16e36c9` (2026-11-22 09:00): confirm `unparsable = 0` | PR #87 |
 | 3 Type constraints | 未開始 | | | |
 | 4 Settings per type | 跳過（D6 B） | | | |
 | 5 Contest type with Devpost | 未開始 | | | |
