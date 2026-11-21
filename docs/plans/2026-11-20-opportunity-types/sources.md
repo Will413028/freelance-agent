@@ -131,3 +131,66 @@ Commands: render `https://bhuntr.com/tw/competitions` and one detail `https://bh
 | total count | unknown | |
 | robots.txt | allows `*` | disallows archives, `/*/user/`, `/*/portal/`, reset pages only |
 | terms | no prohibiting clause found | `/tw/terms` served 7.5 KB of text, no `爬蟲|自動化|scrap|crawl|robot` match (may be partial) |
+
+## Added 2026-11-22 (D13): Zindi, DrivenData, CrunchDAO
+
+Measured 2026-11-22 from the development machine, plain tier, `curl -sL` with the project's own User-Agent (`side-income/0.1 personal-job-discovery`). Field names, value shapes and counts only; pages deleted afterwards.
+
+MLContests coverage, same command as above: of 413 entries, 15 have `deadline` ≥ 2026-11-22: Kaggle 8, Codabench 4, CrunchDAO 1, Zindi 1, Synapse 1. All-time by platform: Kaggle 119, Zindi 68, Independent 44, Codabench 36, DrivenData 13, Hugging Face 13, ThinkOnward 13, CrunchDAO 11.
+
+### Zindi
+
+Command: `curl -sL "https://api.zindi.africa/v1/competitions?active=true"` (10 rows, all `open: true`); without `active`, `?page=0&per_page=20` returns 20 of all.
+
+| Field | Mark | Notes |
+|---|---|---|
+| id | present | `id` (a slug of lowercase words joined by `-`) |
+| title | present | `title` |
+| organiser | partial | `organization` (null in 7 of the 10 open) |
+| URL | derived | from `id` (no URL field; the path is unknown until the connector step reads one page) |
+| deadline | present | `end_time` (ISO 8601 with milliseconds and `Z`, all 20); `entries_close_at` (same format, null in 18 of 20): the registration deadline; `start_time` |
+| prize | present, text | `reward` (`$N NNN USD` 14, `€N NNN EUR` 3, `R25 000 ZAR` 1, `… CHF` 1, `… Points` 1 of 20: thousands separated by a space, the currency code last); `reward_type` (`prize` 19, `points` 1) |
+| eligibility: invite-only | present | `secret_code_required` (true in 1 of 20), `is_access_restricted` (true in 2 of 20) |
+| eligibility: region / age / student | absent | not in the list |
+| online/offline | absent | online by nature (inferred) |
+| open/ended | present | `open` (bool); `meta`: `total_count` 527, `open_count` 10, `closed_count` 517 |
+| hackathon | present | `kind` (`competition` 19, `hackathon` 1) |
+| pagination | present | `page`, `per_page`; the open list fits one request (10) |
+| robots.txt | absent | 404 |
+| terms | no prohibiting clause found | `/terms` served 33.7 KB, no `scrap|crawl|robot|spider|automated` match (may be an app shell) |
+
+### DrivenData
+
+Command: `curl -sL https://www.drivendata.org/competitions/` (304 KB HTML, no embedded JSON).
+
+| Field | Mark | Notes |
+|---|---|---|
+| id | present | `href="/competitions/<N>/<slug>/"` (53 distinct on the page, open and completed together) |
+| title | present | card heading |
+| organiser | unknown | a logo image on the card, no text |
+| URL | present | the href |
+| deadline | absent from the list | one date in the whole page; the detail page is not measured yet (step 6b measures it first) |
+| prize | present, text | `$N,NNN` (53 amounts on the page) |
+| eligibility | unknown | detail page |
+| open/ended | unknown | the cards carry `data-category_*` attributes only; the words `Open` 4 and `Completed` 1 appear, their link to a card is not measured |
+| pagination | none seen | one page holds all 53 |
+| robots.txt | allows `*` | disallows `/accounts/`, `/competitions/search/`, leaderboard partials |
+| terms | unknown | `/terms/` returns 404 |
+
+### CrunchDAO
+
+Command: `curl -sL https://api.hub.crunchdao.com/v2/competitions` (JSON: `content`, `pageNumber`, `pageSize` 20, `totalElements` 25, `totalPages` 2).
+
+| Field | Mark | Notes |
+|---|---|---|
+| id | present | `id` (integer), `name` (slug) |
+| title | present | `displayName`, `fullName`, `shortDescription` |
+| organiser | present | `hostedByName` |
+| URL | present | `url` (`hub.crunchdao.com` on 15, another `*.crunchdao.com` host on 3, null on 1 of 20) |
+| deadline | present, no zone | `end` (`YYYY-MM-DDTHH:MM:SS` without an offset on 14, with milliseconds on 1, null on 5 of 20); `continuous` true on 9 of 20 |
+| prize | present | `prizePoolUsd` (number; 0 on 2 of 20), `prizePoolText`, `prizePoolShortText` (some are per month) |
+| eligibility | absent | not in the list |
+| open/ended | present | `status` (`CLOSED` 15, `OPEN` 2, `LATE_SUBMISSIONS` 1, `SCORING` 1, `PENDING` 1); `visibility` (`PUBLIC` 17, `HIDDEN` 3) |
+| pagination | present | 2 pages of 20 |
+| robots.txt | allows `/` | disallows login, account, dashboard and admin paths (`hub.crunchdao.com`) |
+| terms | unknown | `www.crunchdao.com/terms` returns 404 |
