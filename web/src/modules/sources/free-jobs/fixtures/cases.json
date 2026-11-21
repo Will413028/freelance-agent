@@ -11,6 +11,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -54,6 +55,7 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "2",
    "title": "Python API",
    "company": null,
@@ -114,6 +116,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -153,6 +156,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -192,6 +196,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -231,6 +236,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -270,6 +276,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -309,6 +316,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -363,6 +371,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -402,6 +411,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -441,6 +451,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -480,6 +491,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -519,6 +531,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -558,6 +571,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -597,6 +611,7 @@
    "candidate_required_location": "USA"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -636,6 +651,7 @@
    "candidate_required_location": " usa "
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -675,6 +691,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -714,6 +731,7 @@
    "candidate_required_location": null
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -753,6 +771,7 @@
    "candidate_required_location": 0
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -792,6 +811,7 @@
    "candidate_required_location": ""
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -831,6 +851,7 @@
    "candidate_required_location": []
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -886,6 +907,7 @@
    "candidate_required_location": "Europe"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -925,6 +947,7 @@
    "candidate_required_location": "United Kingdom"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -964,6 +987,7 @@
    "candidate_required_location": "Taiwan"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1003,6 +1027,7 @@
    "candidate_required_location": "Canada　"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1042,6 +1067,7 @@
    "candidate_required_location": false
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1096,6 +1122,7 @@
    "publication_date": "2026-09-18T12:00:00"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1165,6 +1192,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1324,6 +1352,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1378,6 +1407,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1417,6 +1447,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1456,6 +1487,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1510,6 +1542,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1714,6 +1747,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
    "company": null,
@@ -1768,6 +1802,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "後端 API 😀",
    "company": null,
@@ -1807,6 +1842,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
    "company": null,
@@ -1876,6 +1912,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1930,6 +1967,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -1999,6 +2037,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -2038,6 +2077,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -2077,6 +2117,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -2148,6 +2189,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -2203,6 +2245,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -2242,6 +2285,7 @@
    "candidate_required_location": "Worldwide"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "1",
    "title": "Backend API engineer",
    "company": null,
@@ -2302,6 +2346,7 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "2",
    "title": "Python API",
    "company": null,
@@ -2380,6 +2425,7 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "2",
    "title": "Python API",
    "company": null,
@@ -2439,6 +2485,7 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "2",
    "title": "Python API",
    "company": null,
@@ -2479,6 +2526,7 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "2",
    "title": "Python API",
    "company": null,
@@ -2539,6 +2587,7 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "2",
    "title": "Python API",
    "company": null,
@@ -2582,6 +2631,7 @@
    "salaryPeriod": "yearly"
   },
   "expect": {
+   "opportunity_type": "job",
    "external_id": "2",
    "title": "Python API",
    "company": null,

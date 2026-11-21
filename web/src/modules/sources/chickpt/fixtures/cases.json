@@ -263,6 +263,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -293,6 +294,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>æèª$500</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -323,6 +325,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$3,000 ~ $5,000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -353,6 +356,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$3,000ï½5,000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -383,6 +387,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000/æ¬¡</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -413,6 +418,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000å</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -488,6 +494,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>æèª$200</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -518,6 +525,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>é¢è­°</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -548,6 +556,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2></h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -578,6 +587,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$ï¼ï¼ï¼ï¼</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -609,6 +619,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000 ~</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -639,6 +650,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$1,000~$2,000/æ¬¡</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -697,6 +709,7 @@
    "input": "<meta property=\"og:url\" content=\"/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -748,6 +761,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"job-address\">å°åå¸ <style>.x{}</style>ä¿¡ç¾©å</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -778,6 +792,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>a<script>bad()</script>b<br/>c</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -818,6 +833,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><p class=\"job_salary_address-block\">å¦è¨</p><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -848,6 +864,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li><section class=\"job-content\">nested</section></li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -878,6 +895,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"JOB-ADDRESS\">x</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,
@@ -908,6 +926,7 @@
    "input": "<meta property=\"og:url\" content=\"https://www.chickpt.com.tw/job-Ab1234567890\"><h1 id=\"job-h1-title\">AI agent éç¼</h1><div class=\"job_salary_address-block\"><h2>å®æ¬¡$5000</h2><h2>å¨å®¶å¼è·</h2></div><section class=\"job-content\"><p>ä»»åå§å®¹</p><ul><li>Build an AI agent API</li></ul></section><section class=\"job-work_time\">å·¥ä½æ¥æï¼2026/09/20~2026/10/20</section><section class=\"x\tjob-address\">å°ä¸­</section><section class=\"similar\"><p>ç¡èª FULL_TIME unrelated advertisement</p></section>",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234567890",
      "title": "AI agent 開發",
      "company": null,

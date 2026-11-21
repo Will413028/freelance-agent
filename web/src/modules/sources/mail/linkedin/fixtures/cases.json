@@ -10,6 +10,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -48,6 +49,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -86,6 +88,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -208,6 +211,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -258,6 +262,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -296,6 +301,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -382,6 +388,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -444,6 +451,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -530,6 +538,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Full-stack developer (Part-time, Equity only)",
      "company": "Example Co",
@@ -555,6 +564,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "456",
      "title": "Full-time Backend Engineer",
      "company": "Other Co",
@@ -593,6 +603,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Backend API Engineer",
      "company": "Example Co",
@@ -691,6 +702,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Backend API Engineer",
      "company": "Example Co",
@@ -765,6 +777,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Backend API Engineer",
      "company": "Example Co",
@@ -803,6 +816,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -841,6 +855,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -879,6 +894,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -917,6 +933,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -955,6 +972,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -993,6 +1011,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -1031,6 +1050,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "FULL-TIME Engineer",
      "company": "Example Co",
@@ -1069,6 +1089,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Full time Engineer",
      "company": "Example Co",
@@ -1107,6 +1128,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Fulltime Engineer",
      "company": "Example Co",
@@ -1145,6 +1167,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Part time dev",
      "company": "Example Co",
@@ -1183,6 +1206,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Contractor",
      "company": "Example Co",
@@ -1221,6 +1245,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Contract dev",
      "company": "Example Co",
@@ -1259,6 +1284,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Engineer",
      "company": "Example Co",
@@ -1297,6 +1323,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Engineer",
      "company": "Example Co",
@@ -1335,6 +1362,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Unpaid intern",
      "company": "Example Co",
@@ -1373,6 +1401,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Equity  only",
      "company": "Example Co",
@@ -1411,6 +1440,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "EQUITY ONLY role",
      "company": "Example Co",
@@ -1449,6 +1479,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "ﬀull-time",
      "company": "Example Co",
@@ -1487,6 +1518,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "freelancer",
      "company": "Example Co",
@@ -1525,6 +1557,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "full-time_x",
      "company": "Example Co",
@@ -1563,6 +1596,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Engineer",
      "company": "Example Co",
@@ -1601,6 +1635,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Engineer",
      "company": "Example Co",
@@ -1687,6 +1722,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1",
      "title": "L0",
      "company": "L1",
@@ -1725,6 +1761,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Backend API Engineer",
      "company": "Example Co",
@@ -1750,6 +1787,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "124",
      "title": "Backend API Engineer",
      "company": "Example Co",
@@ -1788,6 +1826,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "123",
      "title": "Backend API Engineer",
      "company": "Example Co",
@@ -1813,6 +1852,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "124",
      "title": "---------",
      "company": "Backend API Engineer",
@@ -1911,6 +1951,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -1949,6 +1990,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -1987,6 +2029,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Freelance Backend API Engineer (Remote)",
      "company": "Example Co",
@@ -2025,6 +2068,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1234",
      "title": "Contract Backend Engineer (Remote)",
      "company": "Example Co",
@@ -2050,6 +2094,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "5678",
      "title": "Part-time API Developer",
      "company": "Other Co",

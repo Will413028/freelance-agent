@@ -39,6 +39,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -521,6 +522,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -674,6 +676,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "x & y",
     "company": null,
@@ -737,6 +740,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Backend LATAM",
     "company": null,
@@ -800,6 +804,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "latam",
     "company": null,
@@ -863,6 +868,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "US-only role",
     "company": null,
@@ -926,6 +932,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "EU only",
     "company": null,
@@ -989,6 +996,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Latin America",
     "company": null,
@@ -1082,6 +1090,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Latin Americá",
     "company": null,
@@ -1145,6 +1154,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "ſome US only",
     "company": null,
@@ -1208,6 +1218,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Remote (US Only)",
     "company": null,
@@ -1331,6 +1342,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -1425,6 +1437,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -1489,6 +1502,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -1584,6 +1598,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -1682,6 +1697,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2017,6 +2033,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2080,6 +2097,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2143,6 +2161,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2319,6 +2338,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2382,6 +2402,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2445,6 +2466,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2538,6 +2560,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2747,6 +2770,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2809,6 +2833,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2902,6 +2927,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -2965,6 +2991,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -3028,6 +3055,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -3093,6 +3121,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -3158,6 +3187,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -3221,6 +3251,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,
@@ -3284,6 +3315,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "後端 😀 工程師",
     "company": null,
@@ -3354,6 +3386,7 @@
     }
    },
    "expect": {
+    "opportunity_type": "job",
     "external_id": "acme-ai-agent",
     "title": "Part time AI agent backend engineer",
     "company": null,

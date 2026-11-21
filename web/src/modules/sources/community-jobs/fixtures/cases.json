@@ -11,6 +11,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | Part-time contract | Remote Build an AI agent API.",
     "company": null,
@@ -46,6 +47,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | Part-time contract | Remote Build an AI agent API.",
     "company": null,
@@ -156,6 +158,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | Part-time contract | Remote Build an AI agent API.",
     "company": null,
@@ -218,6 +221,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | Part-time contract | Remote Build an AI agent API.",
     "company": null,
@@ -252,6 +256,7 @@
    },
    "parent": null,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | Part-time contract | Remote Build an AI agent API.",
     "company": null,
@@ -459,6 +464,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "We are hiring part-time",
     "company": null,
@@ -494,6 +500,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "part time",
     "company": null,
@@ -529,6 +536,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "parttime",
     "company": null,
@@ -564,6 +572,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Part Time",
     "company": null,
@@ -599,6 +608,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "PART-TIME",
     "company": null,
@@ -634,6 +644,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "contracting",
     "company": null,
@@ -669,6 +680,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Contractor",
     "company": null,
@@ -732,6 +744,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "fractional CTO",
     "company": null,
@@ -1047,6 +1060,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Part-tİme",
     "company": null,
@@ -1082,6 +1096,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "contractıng",
     "company": null,
@@ -1243,6 +1258,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "café part-time",
     "company": null,
@@ -1936,6 +1952,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "😀 part-time 😀",
     "company": null,
@@ -2139,6 +2156,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "x Location: y Willing to relocate: freelance",
     "company": null,
@@ -2188,6 +2206,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | contract | 😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
     "company": null,
@@ -2251,6 +2270,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | Part-time | USA only",
     "company": null,
@@ -2286,6 +2306,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | contract | REMOTE (EU)",
     "company": null,
@@ -2321,6 +2342,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | freelance | Romania or Poland residents only",
     "company": null,
@@ -2356,6 +2378,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "Acme | freelance | <b> & café",
     "company": null,
@@ -2391,6 +2414,7 @@
    },
    "parent": 900,
    "expect": {
+    "opportunity_type": "job",
     "external_id": "1001",
     "title": "contract",
     "company": null,
@@ -2500,6 +2524,7 @@
     "seen": 2,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "11",
       "title": "Acme | Part-time contract | Remote. Build an AI agent API.",
       "company": null,
@@ -2524,6 +2549,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "21",
       "title": "Freelance React dev wanted",
       "company": null,
@@ -2583,6 +2609,7 @@
     "seen": 2,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "11",
       "title": "Acme | Part-time contract | Remote. Build an AI agent API.",
       "company": null,
@@ -2607,6 +2634,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "21",
       "title": "Acme | Part-time contract | Remote. Build an AI agent API.",
       "company": null,
@@ -3475,6 +3503,7 @@
     "seen": 100,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "100",
       "title": "Contract role 100",
       "company": null,
@@ -3499,6 +3528,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "101",
       "title": "Contract role 101",
       "company": null,
@@ -3523,6 +3553,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "102",
       "title": "Contract role 102",
       "company": null,
@@ -3547,6 +3578,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "103",
       "title": "Contract role 103",
       "company": null,
@@ -3571,6 +3603,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "104",
       "title": "Contract role 104",
       "company": null,
@@ -3595,6 +3628,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "105",
       "title": "Contract role 105",
       "company": null,
@@ -3619,6 +3653,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "106",
       "title": "Contract role 106",
       "company": null,
@@ -3643,6 +3678,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "107",
       "title": "Contract role 107",
       "company": null,
@@ -3667,6 +3703,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "108",
       "title": "Contract role 108",
       "company": null,
@@ -3691,6 +3728,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "109",
       "title": "Contract role 109",
       "company": null,
@@ -3715,6 +3753,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "110",
       "title": "Contract role 110",
       "company": null,
@@ -3739,6 +3778,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "111",
       "title": "Contract role 111",
       "company": null,
@@ -3763,6 +3803,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "112",
       "title": "Contract role 112",
       "company": null,
@@ -3787,6 +3828,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "113",
       "title": "Contract role 113",
       "company": null,
@@ -3811,6 +3853,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "114",
       "title": "Contract role 114",
       "company": null,
@@ -3835,6 +3878,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "115",
       "title": "Contract role 115",
       "company": null,
@@ -3859,6 +3903,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "116",
       "title": "Contract role 116",
       "company": null,
@@ -3883,6 +3928,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "117",
       "title": "Contract role 117",
       "company": null,
@@ -3907,6 +3953,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "118",
       "title": "Contract role 118",
       "company": null,
@@ -3931,6 +3978,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "119",
       "title": "Contract role 119",
       "company": null,
@@ -3955,6 +4003,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "120",
       "title": "Contract role 120",
       "company": null,
@@ -3979,6 +4028,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "121",
       "title": "Contract role 121",
       "company": null,
@@ -4003,6 +4053,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "122",
       "title": "Contract role 122",
       "company": null,
@@ -4027,6 +4078,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "123",
       "title": "Contract role 123",
       "company": null,
@@ -4051,6 +4103,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "124",
       "title": "Contract role 124",
       "company": null,
@@ -4075,6 +4128,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "125",
       "title": "Contract role 125",
       "company": null,
@@ -4099,6 +4153,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "126",
       "title": "Contract role 126",
       "company": null,
@@ -4123,6 +4178,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "127",
       "title": "Contract role 127",
       "company": null,
@@ -4147,6 +4203,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "128",
       "title": "Contract role 128",
       "company": null,
@@ -4171,6 +4228,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "129",
       "title": "Contract role 129",
       "company": null,
@@ -4195,6 +4253,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "130",
       "title": "Contract role 130",
       "company": null,
@@ -4219,6 +4278,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "131",
       "title": "Contract role 131",
       "company": null,
@@ -4243,6 +4303,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "132",
       "title": "Contract role 132",
       "company": null,
@@ -4267,6 +4328,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "133",
       "title": "Contract role 133",
       "company": null,
@@ -4291,6 +4353,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "134",
       "title": "Contract role 134",
       "company": null,
@@ -4315,6 +4378,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "135",
       "title": "Contract role 135",
       "company": null,
@@ -4339,6 +4403,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "136",
       "title": "Contract role 136",
       "company": null,
@@ -4363,6 +4428,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "137",
       "title": "Contract role 137",
       "company": null,
@@ -4387,6 +4453,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "138",
       "title": "Contract role 138",
       "company": null,
@@ -4411,6 +4478,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "139",
       "title": "Contract role 139",
       "company": null,
@@ -4435,6 +4503,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "140",
       "title": "Contract role 140",
       "company": null,
@@ -4459,6 +4528,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "141",
       "title": "Contract role 141",
       "company": null,
@@ -4483,6 +4553,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "142",
       "title": "Contract role 142",
       "company": null,
@@ -4507,6 +4578,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "143",
       "title": "Contract role 143",
       "company": null,
@@ -4531,6 +4603,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "144",
       "title": "Contract role 144",
       "company": null,
@@ -4555,6 +4628,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "145",
       "title": "Contract role 145",
       "company": null,
@@ -4579,6 +4653,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "146",
       "title": "Contract role 146",
       "company": null,
@@ -4603,6 +4678,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "147",
       "title": "Contract role 147",
       "company": null,
@@ -4627,6 +4703,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "148",
       "title": "Contract role 148",
       "company": null,
@@ -4651,6 +4728,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "149",
       "title": "Contract role 149",
       "company": null,
@@ -4675,6 +4753,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "150",
       "title": "Contract role 150",
       "company": null,
@@ -4699,6 +4778,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "151",
       "title": "Contract role 151",
       "company": null,
@@ -4723,6 +4803,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "152",
       "title": "Contract role 152",
       "company": null,
@@ -4747,6 +4828,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "153",
       "title": "Contract role 153",
       "company": null,
@@ -4771,6 +4853,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "154",
       "title": "Contract role 154",
       "company": null,
@@ -4795,6 +4878,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "155",
       "title": "Contract role 155",
       "company": null,
@@ -4819,6 +4903,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "156",
       "title": "Contract role 156",
       "company": null,
@@ -4843,6 +4928,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "157",
       "title": "Contract role 157",
       "company": null,
@@ -4867,6 +4953,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "158",
       "title": "Contract role 158",
       "company": null,
@@ -4891,6 +4978,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "159",
       "title": "Contract role 159",
       "company": null,
@@ -4915,6 +5003,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "160",
       "title": "Contract role 160",
       "company": null,
@@ -4939,6 +5028,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "161",
       "title": "Contract role 161",
       "company": null,
@@ -4963,6 +5053,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "162",
       "title": "Contract role 162",
       "company": null,
@@ -4987,6 +5078,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "163",
       "title": "Contract role 163",
       "company": null,
@@ -5011,6 +5103,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "164",
       "title": "Contract role 164",
       "company": null,
@@ -5035,6 +5128,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "165",
       "title": "Contract role 165",
       "company": null,
@@ -5059,6 +5153,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "166",
       "title": "Contract role 166",
       "company": null,
@@ -5083,6 +5178,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "167",
       "title": "Contract role 167",
       "company": null,
@@ -5107,6 +5203,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "168",
       "title": "Contract role 168",
       "company": null,
@@ -5131,6 +5228,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "169",
       "title": "Contract role 169",
       "company": null,
@@ -5155,6 +5253,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "170",
       "title": "Contract role 170",
       "company": null,
@@ -5179,6 +5278,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "171",
       "title": "Contract role 171",
       "company": null,
@@ -5203,6 +5303,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "172",
       "title": "Contract role 172",
       "company": null,
@@ -5227,6 +5328,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "173",
       "title": "Contract role 173",
       "company": null,
@@ -5251,6 +5353,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "174",
       "title": "Contract role 174",
       "company": null,
@@ -5275,6 +5378,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "175",
       "title": "Contract role 175",
       "company": null,
@@ -5299,6 +5403,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "176",
       "title": "Contract role 176",
       "company": null,
@@ -5323,6 +5428,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "177",
       "title": "Contract role 177",
       "company": null,
@@ -5347,6 +5453,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "178",
       "title": "Contract role 178",
       "company": null,
@@ -5371,6 +5478,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "179",
       "title": "Contract role 179",
       "company": null,
@@ -5395,6 +5503,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "180",
       "title": "Contract role 180",
       "company": null,
@@ -5419,6 +5528,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "181",
       "title": "Contract role 181",
       "company": null,
@@ -5443,6 +5553,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "182",
       "title": "Contract role 182",
       "company": null,
@@ -5467,6 +5578,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "183",
       "title": "Contract role 183",
       "company": null,
@@ -5491,6 +5603,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "184",
       "title": "Contract role 184",
       "company": null,
@@ -5515,6 +5628,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "185",
       "title": "Contract role 185",
       "company": null,
@@ -5539,6 +5653,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "186",
       "title": "Contract role 186",
       "company": null,
@@ -5563,6 +5678,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "187",
       "title": "Contract role 187",
       "company": null,
@@ -5587,6 +5703,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "188",
       "title": "Contract role 188",
       "company": null,
@@ -5611,6 +5728,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "189",
       "title": "Contract role 189",
       "company": null,
@@ -5635,6 +5753,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "190",
       "title": "Contract role 190",
       "company": null,
@@ -5659,6 +5778,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "191",
       "title": "Contract role 191",
       "company": null,
@@ -5683,6 +5803,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "192",
       "title": "Contract role 192",
       "company": null,
@@ -5707,6 +5828,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "193",
       "title": "Contract role 193",
       "company": null,
@@ -5731,6 +5853,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "194",
       "title": "Contract role 194",
       "company": null,
@@ -5755,6 +5878,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "195",
       "title": "Contract role 195",
       "company": null,
@@ -5779,6 +5903,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "196",
       "title": "Contract role 196",
       "company": null,
@@ -5803,6 +5928,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "197",
       "title": "Contract role 197",
       "company": null,
@@ -5827,6 +5953,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "198",
       "title": "Contract role 198",
       "company": null,
@@ -5851,6 +5978,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "199",
       "title": "Contract role 199",
       "company": null,
@@ -6040,6 +6168,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6083,6 +6212,7 @@
     "seen": 2,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6107,6 +6237,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "2",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6168,6 +6299,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "找一個 Python 開發",
       "company": null,
@@ -6211,6 +6343,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "有小项目",
       "company": null,
@@ -6263,6 +6396,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 & 外包",
       "company": null,
@@ -6297,6 +6431,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       "company": null,
@@ -6371,6 +6506,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "9",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6455,6 +6591,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "1",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6489,6 +6626,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "1",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6533,6 +6671,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "1",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6567,6 +6706,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "1",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6650,6 +6790,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6693,6 +6834,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6737,6 +6879,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6781,6 +6924,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6815,6 +6959,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6849,6 +6994,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6883,6 +7029,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6917,6 +7064,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -6961,6 +7109,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "5",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7005,6 +7154,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "5",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7039,6 +7189,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "7",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7073,6 +7224,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "8",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7156,6 +7308,7 @@
     "seen": 100,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "0",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7180,6 +7333,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "1",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7204,6 +7358,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "2",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7228,6 +7383,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "3",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7252,6 +7408,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "4",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7276,6 +7433,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "5",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7300,6 +7458,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "6",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7324,6 +7483,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "7",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7348,6 +7508,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "8",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7372,6 +7533,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "9",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7396,6 +7558,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "10",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7420,6 +7583,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "11",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7444,6 +7608,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "12",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7468,6 +7633,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "13",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7492,6 +7658,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "14",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7516,6 +7683,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "15",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7540,6 +7708,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "16",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7564,6 +7733,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "17",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7588,6 +7758,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "18",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7612,6 +7783,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "19",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7636,6 +7808,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "20",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7660,6 +7833,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "21",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7684,6 +7858,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "22",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7708,6 +7883,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "23",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7732,6 +7908,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "24",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7756,6 +7933,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "25",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7780,6 +7958,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "26",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7804,6 +7983,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "27",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7828,6 +8008,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "28",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7852,6 +8033,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "29",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7876,6 +8058,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "30",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7900,6 +8083,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "31",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7924,6 +8108,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "32",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7948,6 +8133,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "33",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7972,6 +8158,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "34",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -7996,6 +8183,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "35",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8020,6 +8208,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "36",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8044,6 +8233,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "37",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8068,6 +8258,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "38",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8092,6 +8283,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "39",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8116,6 +8308,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "40",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8140,6 +8333,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "41",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8164,6 +8358,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "42",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8188,6 +8383,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "43",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8212,6 +8408,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "44",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8236,6 +8433,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "45",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8260,6 +8458,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "46",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8284,6 +8483,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "47",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8308,6 +8508,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "48",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8332,6 +8533,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "49",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8356,6 +8558,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "50",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8380,6 +8583,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "51",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8404,6 +8608,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "52",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8428,6 +8633,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "53",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8452,6 +8658,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "54",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8476,6 +8683,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "55",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8500,6 +8708,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "56",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8524,6 +8733,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "57",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8548,6 +8758,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "58",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8572,6 +8783,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "59",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8596,6 +8808,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "60",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8620,6 +8833,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "61",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8644,6 +8858,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "62",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8668,6 +8883,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "63",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8692,6 +8908,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "64",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8716,6 +8933,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "65",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8740,6 +8958,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "66",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8764,6 +8983,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "67",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8788,6 +9008,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "68",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8812,6 +9033,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "69",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8836,6 +9058,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "70",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8860,6 +9083,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "71",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8884,6 +9108,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "72",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8908,6 +9133,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "73",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8932,6 +9158,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "74",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8956,6 +9183,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "75",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -8980,6 +9208,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "76",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9004,6 +9233,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "77",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9028,6 +9258,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "78",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9052,6 +9283,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "79",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9076,6 +9308,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "80",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9100,6 +9333,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "81",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9124,6 +9358,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "82",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9148,6 +9383,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "83",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9172,6 +9408,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "84",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9196,6 +9433,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "85",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9220,6 +9458,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "86",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9244,6 +9483,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "87",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9268,6 +9508,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "88",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9292,6 +9533,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "89",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9316,6 +9558,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "90",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9340,6 +9583,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "91",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9364,6 +9608,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "92",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9388,6 +9633,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "93",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9412,6 +9658,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "94",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9436,6 +9683,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "95",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9460,6 +9708,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "96",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9484,6 +9733,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "97",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9508,6 +9758,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "98",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9532,6 +9783,7 @@
       }
      },
      {
+      "opportunity_type": "job",
       "external_id": "99",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9587,6 +9839,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9630,6 +9883,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "123456",
       "title": "招聘 Python 工程师",
       "company": null,
@@ -9664,6 +9918,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "1",
       "title": "招聘",
       "company": null,
@@ -9698,6 +9953,7 @@
     "seen": 1,
     "listings": [
      {
+      "opportunity_type": "job",
       "external_id": "3",
       "title": "招聘",
       "company": null,

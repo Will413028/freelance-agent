@@ -169,6 +169,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -246,6 +247,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -296,6 +298,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -347,6 +350,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -397,6 +401,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -447,6 +452,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -497,6 +503,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -547,6 +554,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -596,6 +604,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -646,6 +655,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -696,6 +706,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -746,6 +757,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -796,6 +808,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -846,6 +859,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -896,6 +910,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -945,6 +960,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -995,6 +1011,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1045,6 +1062,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1095,6 +1113,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1145,6 +1164,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1195,6 +1215,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1245,6 +1266,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1295,6 +1317,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1345,6 +1368,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1395,6 +1419,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1448,6 +1473,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1498,6 +1524,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1548,6 +1575,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1598,6 +1626,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1651,6 +1680,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1704,6 +1734,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
@@ -1756,6 +1787,7 @@
    "pageUrl": "https://www.518.com.tw/job-Ab1234.html",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "Ab1234",
      "title": "兼職 AI agent API 工程師",
      "company": null,
