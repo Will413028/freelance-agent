@@ -194,3 +194,30 @@ Command: `curl -sL https://api.hub.crunchdao.com/v2/competitions` (JSON: `conten
 | pagination | present | 2 pages of 20 |
 | robots.txt | allows `/` | disallows login, account, dashboard and admin paths (`hub.crunchdao.com`) |
 | terms | unknown | `www.crunchdao.com/terms` returns 404 |
+
+## Added 2026-11-22: candidates never given a disposition, and new candidates (D14)
+
+Why: the 2026-11-20 measurement found 8 sources readable that no step, 不做 or 延後 line ever named, and it counted MLContests' all-time entries per platform, not the open ones. This pass gives every candidate a row. Measured 2026-11-22 from the development machine: one plain request per list page with the project's own User-Agent, plus `robots.txt`; only status, structure markers and counts were printed, and the pages were deleted. "Listings in the HTML" means links or embedded data were found in the response; no field was parsed, so every row still needs a field measurement before a connector.
+
+| Candidate | Kind | Plain request | What the response holds | robots.txt for `*` | Terms |
+|---|---|---|---|---|---|
+| Unstop | hackathons, competitions (India-centred) | 200, public JSON (`/api/public/opportunity/search-result?opportunity=hackathons`) | 7,031 total, 15 a page; `id`, `title`, `end_date` (ISO with offset), `prizes`, `region`, `regnRequirements`, `status`, `organisation`, `public_url` | disallows `/api/*` | not read |
+| AIcrowd | ML competitions | 200 | 18 distinct challenge links; `Prize` 27, `Completed` 19; no date in the list | no rule for `*` | not read |
+| Hugging Face competitions | ML competitions | 200 | 9 distinct links; `Ongoing` 3, `Finished` 3, `Prize` 6 | allows `/` | not read |
+| CodaLab | ML competitions (research) | 200, 1.5 MB | 1,255 competition links, open and past together | 404 | not read |
+| Codabench | ML competitions (research) | 200, a JavaScript shell (7 KB) | nothing at plain tier; the guessed API path answers the same shell | 404 | not read |
+| MLH | student hackathons | 200 | events in the HTML (`startDate` 24, `In-Person` 48); link pattern not identified | disallows account, auth and admin paths | not read |
+| ETHGlobal | Web3 hackathons | 200, 1.9 MB | 94 distinct event links, past and future together | 404 | not read |
+| HackQuest | Web3 hackathons | 200 | 4 hackathon links | disallows `/api/` and account paths | not read |
+| Taikai | hackathons | 200 | Next.js page whose data is not in the page props (loaded afterwards) | disallows `/auth` | not read |
+| Devfolio | hackathons | 200 | 29 distinct hackathon subdomain links | no restriction | not read |
+| dev.events | developer events (conferences more than contests) | 200, RSS | 100 items | allows `/` | not read |
+| lablab.ai | AI hackathons | redirects to `starfieldlabs.ai` | no hackathon list found at the redirected page | allows `/` | not read |
+| AI CUP (`aicup.tw`) | Taiwan AI competitions | 200 | a site-builder page, 3 competition links, dates 23 | allows `/` | not read |
+| T-Brain | Taiwan AI competitions | redirects to another Trend Micro site; `/Competitions` 404 | not found | n/a | n/a |
+| Meet.jobs | jobs (Taiwan, international) | home 200 (5 KB); the guessed list paths 404 | not found: the list URL is unknown | 404 | not read |
+| 104 外包網 | freelance cases (Taiwan) | the two hostnames tried do not resolve | not found: current URL unknown, or the service closed | n/a | n/a |
+| 518 外包網 | freelance cases (Taiwan) | `case.518.com.tw` redirects to `tasker.com.tw` | it is 出任務 (Tasker), already a source | n/a | n/a |
+
+Not measured, named only (from searches and the MLContests platform list): Solafune, ThinkOnward, EvalAI, Grand Challenge, Synapse, Topcoder, HackerEarth, Numerai; bounty platforms Algora, Opire, MergeFund; security bounties Immunefi, HackerOne.
+

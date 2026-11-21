@@ -153,11 +153,14 @@
   - B：keep the neutral values `其他`/0/0 (a count by category cannot tell a job rated 其他 from a row that is not a job).
 - **D13 Direct sources for Zindi, DrivenData and CrunchDAO**（狀態：已決 2026-11-22，Will：add all three to step 6；擋住步驟：無）
   - Measured 2026-11-22: of the 413 entries MLContests lists, 15 have a deadline from today on (Kaggle 8, Codabench 4, CrunchDAO 1, Zindi 1, Synapse 1, DrivenData 0), while Zindi's own list has 10 open and CrunchDAO's 2: the aggregator alone misses most of them. Codabench stays covered through MLContests only (not measured directly; trigger: Will asks, or a Codabench competition he finds is missing).
+- **D14 Which further candidates become sources**（狀態：未決，交 Will 2026-11-22；擋住步驟：無 (steps 6a to 6c and 7 go ahead without it)）
+  - Every candidate has a row in `sources.md` ("Added 2026-11-22 … (D14)"). Each needs one of: 做 (a field measurement, then a sub-step of step 6 or 7), 不做 (reason), 延後 (trigger).
+  - 建議 做: Unstop (public JSON with deadline, prize and region; filter needed, 7,031 entries), AIcrowd, Hugging Face competitions, Devfolio. 建議 延後: Codabench (browser tier only; stays covered through MLContests), CodaLab (1,255 mostly past research competitions), Taikai and MLH (data not in a plain response or pattern unknown), AI CUP (three links on a site-builder page; Taiwan competitions are expected through 獎金獵人, step 6c), the named-only platforms, each with trigger "Will finds a competition there that no source showed". 建議 不做: ETHGlobal and HackQuest (Web3, mostly in person), dev.events (conferences), lablab.ai (redirects, no list found), T-Brain (not found), 518 外包網 (it is 出任務). Unknown, needs the right URL from Will: Meet.jobs, 104 外包網.
 - **D11 A Devpost prize shown as `$0`**（狀態：已決 2026-11-21，Will：as recommended, stored as amount 0 with the text kept；擋住步驟：無）
   - The source states 0; a hackathon with only non-cash prizes then sorts last by amount if contests are ever sorted by prize.
 - **D12 Date-only contest deadlines**（狀態：已決 2026-11-21，Will：keep the existing rule (rebuild plan D7): the end of that day in Asia/Taipei, with the page's note that the organiser's deadline can be hours earlier or later；擋住步驟：無）
 
-拍板順序：all decided (D10 to D12 on 2026-11-21, D13 on 2026-11-22).
+拍板順序：D14 is open (handed to Will 2026-11-22; it blocks no step); the rest are decided (D10 to D12 on 2026-11-21, D13 on 2026-11-22).
 
 ## 進度
 

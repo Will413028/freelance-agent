@@ -176,3 +176,21 @@
 ## 2026-09-26 接入限制複查
 
 Remote.com公開合約正文可讀，但Contract／Anywhere樣本正文實為全職及CET±3；未證實Email職缺通知。Contra公開摘要可讀，點案要求帳號、全Job feed需Pro，官方MCP未證明支援求職feed。Upwork RSS已停用且Job Digest有徽章條件；Fiverr Briefs依賣家服務／配對；PRO360免費配對Email已確認，報價仍付費。證據與下一步統一見`docs/platform-connectivity.md`20:26節，不新增第二份執行清單。
+
+## 2026-11-22 補充：尚未研究的平台（只記錄存在）
+
+Will 2026-11-22 要求：要開帳號或要審核入網的接案平台即使不接，也要記下來讓他知道有這個平台。以下各列**只記名稱與類型，費用、台灣資格、案量都沒有研究**，不計入上面的 61 項，也不代表可以做成每日來源。要研究哪一個由 Will 指定。
+
+| 平台 | 類型 | 和既有清單的對應 | 狀態 |
+|---|---|---|---|
+| [PeoplePerHour](https://www.peopleperhour.com/) | 要開帳號的接案市場 | 同 Upwork、Fiverr、Contra 一類 | 未研究 |
+| [Workana](https://www.workana.com/) | 要開帳號的接案市場 | 同上 | 未研究 |
+| [goLance](https://golance.com/) | 要開帳號的接案市場 | 同上 | 未研究 |
+| [Mercor](https://mercor.com/) | 要審核入網的人才平台 | 同 Toptal、Turing、A.Team 一類 | 未研究 |
+| [Lemon.io](https://lemon.io/) | 要審核入網的人才平台 | 同上 | 未研究 |
+| Meet.jobs | 職缺板（台灣、國際職缺） | 無 | 首頁可讀，職缺列表的網址沒找到（2026-11-22） |
+| 104 外包網 | 台灣發包案件 | 和已接的 104 人力銀行不同站 | 試的兩個網址都連不上（2026-11-22），現行網址或是否停站未確認 |
+| 518 外包網 | 台灣發包案件 | 就是出任務（Tasker）：`case.518.com.tw` 轉址到 `tasker.com.tw`（2026-11-22 實測） | 已涵蓋，不用另接 |
+
+競賽、黑客松與任務獎金的候選平台不在這份清單，記在[機會類型計畫的來源量測](plans/2026-11-20-opportunity-types/sources.md)。
+
