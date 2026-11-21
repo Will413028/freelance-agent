@@ -52,14 +52,11 @@ const jobInputSchema = z.object({
 }).strict();
 
 /**
- * Every raw stored before opportunity types (and every connector that leaves the type out) has no
- * `opportunity_type`: it is a job. Filled before the union picks a variant, so those raws stay parseable.
+ * The contract, one variant per opportunity type (opportunity types plan D1). Every raw stored before
+ * opportunity types has no `opportunity_type`; the union applies the job variant's default to a missing
+ * discriminator, so those raws parse as jobs (reevaluate.test.ts checks it). Only one variant may default.
  */
-const withType = (v: unknown) =>
-  v !== null && typeof v === "object" && !Array.isArray(v) && !("opportunity_type" in v) ? { ...v, opportunity_type: "job" } : v;
-
-/** The contract, one variant per opportunity type (opportunity types plan D1). */
-export const listingInputSchema = z.preprocess(withType, z.discriminatedUnion("opportunity_type", [jobInputSchema]));
+export const listingInputSchema = z.discriminatedUnion("opportunity_type", [jobInputSchema]);
 
 /** A listing as a connector gives it, after parsing: every field present, unknown as null. */
 export type ListingInput = z.output<typeof jobInputSchema>;
