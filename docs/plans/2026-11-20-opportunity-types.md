@@ -51,7 +51,7 @@
 
 ## 步驟
 
-- [ ] **1. Spike: opportunity source fields**（被擋於：無）
+- [x] **1. Spike: opportunity source fields**（被擋於：無）
   - 範圍：for Devpost, 獎金獵人, Kaggle, MLContests, Superteam Earn, airdrops.io and CoinMarketCap Airdrop, read one listing page at the source's lowest working tier and record per source: id field, title, organiser, URL, deadline fields (registration vs submission, format, time zone), prize or reward format (amount, currency, non-cash), eligibility fields (region, age, student, invite-only), online/offline, open/ended state, pagination, total count, robots.txt and terms on automated reading; whether MLContests lists Kaggle competitions with a Kaggle id (D7).
   - Files: new `docs/plans/2026-11-20-opportunity-types/sources.md` (field names, presence and counts only). Pages are read into a temporary directory outside the repo and deleted at the end of the step.
   - 消費端：無（no product code）。
@@ -129,7 +129,7 @@
 - **D4 Airdrops**（狀態：已決 2026-11-21，Will：A, deferred; step 7 does bounties only；擋住步驟：無）
   - A：defer airdrops; step 7 does bounties only.（建議: high scam rate; even links can carry phishing）
   - B：CoinMarketCap Airdrop only, link to its own page.
-- **D5 Contest fields**（狀態：未決；擋住步驟：5；需要的事實：步驟 1）
+- **D5 Contest fields**（狀態：已決 2026-11-21，Will：as recommended——`deadline_*` = submission deadline; contest columns: registration deadline, `prize_text`, `online`, `invite_only`; hackathon is a contest flag, not a type value；擋住步驟：無）
   - `deadline_*` holds the submission deadline (recommended; the deadline a contestant must meet).
   - Candidate contest-only columns: registration deadline, `prize_text`, `online`, `invite_only`; whether hackathon is a separate type value or a contest flag. Recommendation after step 1.
 - **D6 Settings per type**（狀態：已決 2026-11-21，Will：B, step 4 skipped until a type needs settings；擋住步驟：無）
@@ -139,10 +139,12 @@
   - A：both, accepting duplicates (D18).
   - B：MLContests only, if it covers Kaggle with enough fields.
   - C：Kaggle only.
-- **D8 Bounty type**（狀態：未決；擋住步驟：7；需要的事實：步驟 1 (Superteam Earn fields)）
+- **D8 Bounty type**（狀態：已決 2026-11-21，Will：as recommended——reward stored as amount plus token, sorted by deadline ascending like contests, shares the contests tab；擋住步驟：無）
   - Fields (reward amount and token, deadline, compensation type), ranking (deadline vs reward), its own tab or shared with contests. Recommendation after step 1.
 
-拍板順序：D5, D7, D8 after step 1.
+- **D9 Sources whose terms forbid automated reading**（狀態：已決 2026-11-21，Will：keep Devpost despite its terms (robots.txt allows `*`, public JSON API, one read a day); step 1's stop condition no longer excludes it；擋住步驟：無）
+
+拍板順序：D7 open (facts in `sources.md`); D5, D8 decided 2026-11-21.
 
 ## 進度
 
@@ -150,7 +152,7 @@
 
 | 步驟 | 狀態 | 已跑的驗收 | 未跑的驗收與原因 | commit |
 |---|---|---|---|---|
-| 1 Spike: source fields | 未開始 | | | |
+| 1 Spike: source fields | 完成 | `sources.md` covers all 7 sources, every field marked with its command (2026-11-21; VM browser read authorized by Will, container and temp dir removed) | Kaggle absolute deadline and eligibility: detail page rendered 1 of 3 (`LayoutMissing`), left unknown | |
 | 2 Generalize the model | 未開始 | | | |
 | 3 Type constraints | 未開始 | | | |
 | 4 Settings per type | 跳過（D6 B） | | | |
