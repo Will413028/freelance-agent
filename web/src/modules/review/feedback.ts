@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
-import { listingFeedback, listingFeedbackEvents, listings } from "@/db/pg/schema";
+import { listingFeedback, listingFeedbackEvents, listings, OPPORTUNITY_TYPES } from "@/db/pg/schema";
 import type { FeedbackState } from "@/modules/evaluation/public";
 import { Conflict, NotFound } from "@/platform/errors";
 
@@ -13,12 +13,15 @@ export const STALE_FEEDBACK = "職缺或收藏狀態已更新，請重新載入"
 /** The token a page renders for a listing: its feedback revision, 0 before the first write. */
 export const feedbackToken = (revision: number) => String(revision);
 
-/** Writes `state` when `token` is the listing's current revision; returns the new revision. */
+/**
+ * Writes `state` when `token` is the listing's current revision; returns the new revision. A listing of a
+ * type this image does not know is not found, as on its page (services/pages listingDetail).
+ */
 export async function setFeedback(db: PgDb, id: number, token: string, state: FeedbackState, now = new Date()): Promise<number> {
   const expected = /^(0|[1-9][0-9]{0,8})$/.test(token) ? Number(token) : null;
   return db.transaction(async (tx) => {
     // Locking the listing row serializes writes to one listing, also the first one (no feedback row yet).
-    const [listing] = await tx.select({ id: listings.id }).from(listings).where(eq(listings.id, id)).for("update");
+    const [listing] = await tx.select({ id: listings.id }).from(listings).where(and(eq(listings.id, id), inArray(listings.opportunityType, [...OPPORTUNITY_TYPES]))).for("update");
     if (!listing) throw new NotFound(String(id));
     const [current] = await tx.select({ revision: listingFeedback.revision }).from(listingFeedback).where(eq(listingFeedback.listingId, id));
     if (expected === null || expected !== (current?.revision ?? 0)) throw new Conflict(STALE_FEEDBACK);

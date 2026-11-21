@@ -1,24 +1,27 @@
 import { notFound } from "next/navigation";
 import { getPgDb } from "@/db/pg/client";
 import { NotFound } from "@/platform/errors";
-import { jobDetail } from "@/services/pages";
+import { listingDetail } from "@/services/pages";
 import { withPageLog } from "../../_lib/page-log";
-import { JobDetail, NoticeLine, Shell } from "../../_lib/views";
+import { ContestDetail, JobDetail, NoticeLine, Shell } from "../../_lib/views";
 
 export const dynamic = "force-dynamic";
 
-/** One listing (plan step 3c): its content, evaluation, mail versions and feedback. */
+/**
+ * One listing of any type (plan step 3c; opportunity types plan step 5: the route is keyed by listing id, so
+ * a contest is shown here too): its content, evaluation, mail versions and feedback.
+ */
 export default async function Page({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [{ id }, search] = await Promise.all([params, searchParams]);
-  let job;
+  let detail;
   try {
-    job = await withPageLog("/jobs/[id]", () => jobDetail(getPgDb(), new Date(), id));
+    detail = await withPageLog("/jobs/[id]", () => listingDetail(getPgDb(), new Date(), id));
   } catch (e) {
     if (e instanceof NotFound) notFound();
     throw e;
   }
-  return <Shell active="jobs">
+  return <Shell active={detail.type === "job" ? "jobs" : "contests"}>
     <NoticeLine notice={typeof search.notice === "string" ? search.notice : undefined} />
-    <JobDetail job={job} />
+    {detail.type === "job" ? <JobDetail job={detail.job} /> : <ContestDetail contest={detail.contest} />}
   </Shell>;
 }
