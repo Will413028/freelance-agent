@@ -129,7 +129,7 @@
 - **D4 Airdrops**（狀態：已決 2026-11-21，Will：A, deferred; step 7 does bounties only；擋住步驟：無）
   - A：defer airdrops; step 7 does bounties only.（建議: high scam rate; even links can carry phishing）
   - B：CoinMarketCap Airdrop only, link to its own page.
-- **D5 Contest fields**（狀態：未決；擋住步驟：5；需要的事實：步驟 1）
+- **D5 Contest fields**（狀態：已決 2026-11-21，Will：as recommended——`deadline_*` = submission deadline; contest columns: registration deadline, `prize_text`, `online`, `invite_only`; hackathon is a contest flag, not a type value；擋住步驟：無）
   - `deadline_*` holds the submission deadline (recommended; the deadline a contestant must meet).
   - Candidate contest-only columns: registration deadline, `prize_text`, `online`, `invite_only`; whether hackathon is a separate type value or a contest flag. Recommendation after step 1.
 - **D6 Settings per type**（狀態：已決 2026-11-21，Will：B, step 4 skipped until a type needs settings；擋住步驟：無）
@@ -139,12 +139,12 @@
   - A：both, accepting duplicates (D18).
   - B：MLContests only, if it covers Kaggle with enough fields.
   - C：Kaggle only.
-- **D8 Bounty type**（狀態：未決；擋住步驟：7；需要的事實：步驟 1 (Superteam Earn fields)）
+- **D8 Bounty type**（狀態：已決 2026-11-21，Will：as recommended——reward stored as amount plus token, sorted by deadline ascending like contests, shares the contests tab；擋住步驟：無）
   - Fields (reward amount and token, deadline, compensation type), ranking (deadline vs reward), its own tab or shared with contests. Recommendation after step 1.
 
 - **D9 Sources whose terms forbid automated reading**（狀態：已決 2026-11-21，Will：keep Devpost despite its terms (robots.txt allows `*`, public JSON API, one read a day); step 1's stop condition no longer excludes it；擋住步驟：無）
 
-拍板順序：D5, D7, D8 after step 1 (facts in `sources.md`).
+拍板順序：D7 open (facts in `sources.md`); D5, D8 decided 2026-11-21.
 
 ## 進度
 
