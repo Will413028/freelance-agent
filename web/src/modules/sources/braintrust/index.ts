@@ -34,6 +34,7 @@ const EMPLOYER = /^\/employers\/[0-9]+\/?$/;
 export const WAIT_FOR = 'a[target="_blank"][href^="/jobs/"]';
 
 export const BRAINTRUST_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "braintrust", label: "Braintrust", connector: (fetcher) => braintrustConnector(fetcher),
   maxTier: "browser", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

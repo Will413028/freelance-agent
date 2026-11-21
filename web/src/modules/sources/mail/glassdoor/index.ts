@@ -104,6 +104,7 @@ export function parseGlassdoor(message: MailMessage): ListingInput[] {
 }
 
 export const GLASSDOOR_SETTINGS: Omit<MailSourceSettings, "order"> = {
+  opportunityType: "job",
   kind: "mail", name: "glassdoor", label: "Glassdoor", sender: SENDER, subjectGate: isJobSubject, parse: parseGlassdoor, preferText: false,
   // One page of the inbox list per request; bodies only for new alerts.
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 60, completeRead: false, disabled: null,

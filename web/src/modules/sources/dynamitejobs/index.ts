@@ -33,6 +33,7 @@ const DAY_MS = 86_400_000;
 const FRESH_DAYS = 90;
 
 export const DYNAMITEJOBS_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "dynamitejobs", label: "Dynamite Jobs", connector: (fetcher, now) => dynamiteJobsConnector(fetcher, now),
   // Old pause was 0.6 s; the fetcher's floor is 1 s. One index page plus at most 200 job pages.
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + MAX_LINKS, completeRead: false, disabled: null,

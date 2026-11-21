@@ -23,6 +23,7 @@ const MAX_JOBS = 200;
 const PATH = /^\/companies\/[a-z0-9][a-z0-9-]*\/jobs\/[A-Za-z0-9]+(?:-[A-Za-z0-9-]*)?$/;
 
 export const YCJOBS_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "ycjobs", label: "YC Jobs", connector: (fetcher) => ycJobsConnector(fetcher),
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

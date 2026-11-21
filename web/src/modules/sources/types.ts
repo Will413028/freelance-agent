@@ -1,3 +1,4 @@
+import type { OpportunityType } from "@/db/pg/schema";
 import type { ListingInput } from "@/modules/listings/public";
 import type { FetchErrorKind, Fetcher, FetchPolicy } from "@/platform/fetch";
 
@@ -47,6 +48,8 @@ export type MailMessage = { id: string; sender: string; subject: string; body: s
 
 type BaseSettings = FetchPolicy & {
   name: string;
+  /** The opportunity type every listing of this source has (opportunity types plan D1). */
+  opportunityType: OpportunityType;
   /** What a page shows for the source. */
   label: string;
   /** Order in the daily run. */

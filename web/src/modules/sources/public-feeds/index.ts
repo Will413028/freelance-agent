@@ -54,6 +54,7 @@ export const FEEDS: Record<FeedName, Feed> = {
 
 /** Old public-feeds.ts:159-172: one GET per run per feed, without redirects. */
 const settings = (name: FeedName): Omit<PageSourceSettings, "order"> => ({
+  opportunityType: "job",
   name, label: FEEDS[name].label, connector: (fetcher, now) => publicFeedConnector(name, fetcher, now), maxTier: "plain", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 });
 export const REMOTEOK_SETTINGS = settings("remoteok");

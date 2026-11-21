@@ -27,6 +27,7 @@ const MAX_JOBS = 200;
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 
 export const REMOTECOM_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "remotecom", label: "Remote.com Jobs", connector: (fetcher) => remoteComConnector(fetcher),
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

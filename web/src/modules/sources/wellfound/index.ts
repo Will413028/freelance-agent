@@ -26,6 +26,7 @@ const ID = /^[1-9][0-9]{0,15}$/;
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 
 export const WELLFOUND_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "wellfound", label: "Wellfound", connector: (fetcher) => wellfoundConnector(fetcher),
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

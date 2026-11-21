@@ -14,6 +14,12 @@ export const KINDS = ["fixed", "hourly", "contract", "full_time"] as const;
 /** How a deadline was given (plan D8): a date, an instant, a local time without a zone, or text that is not a date. */
 export const DEADLINE_KINDS = ["date", "instant", "no_timezone", "invalid"] as const;
 export const FEEDBACK_STATES = ["neutral", "interested", "skipped"] as const;
+/**
+ * The opportunity types this image knows (opportunity types plan D1). A row of a type not listed here was
+ * written by a newer image; this one never reads, ranks or re-evaluates it.
+ */
+export const OPPORTUNITY_TYPES = ["job"] as const;
+export type OpportunityType = (typeof OPPORTUNITY_TYPES)[number];
 export const CATEGORIES = ["AI agent", "AI 整合／自動化", "後端／API", "全端 MVP"] as const;
 
 /** `col in ('a', 'b')` for a CHECK; the values are this file's literals, never input. */
@@ -25,6 +31,8 @@ const oneOf = (col: unknown, values: readonly string[]) => sql`${col} in (${sql.
  * listing_versions both carry this set.
  */
 const content = () => ({
+  /** No enum: a newer image may write a type this one does not know (see OPPORTUNITY_TYPES). */
+  opportunityType: text("opportunity_type").notNull().default("job"),
   fingerprint: text("fingerprint").notNull(),
   raw: jsonb("raw").notNull(),
   title: text("title").notNull(),
@@ -92,7 +100,7 @@ export const listings = pgTable("listings", {
    * The first branch of the listing query's filter (modules/evaluation/list.ts shownWhere), read as an index-only
    * scan because that filter is a UNION of ids (plan step 5a2-3 measured the OR form scanning the table instead).
    */
-  index("listings_shown").on(t.id).where(sql`${t.sourceKept} and not ${t.hardExcluded}`),
+  index("listings_shown").on(t.opportunityType, t.id).where(sql`${t.sourceKept} and not ${t.hardExcluded}`),
   kindCheck("listings_kind", t.kind),
   ...deadlineChecks("listings", t),
   check("listings_confirmed_base", sql`${t.confirmedBase} between 0 and 3`),

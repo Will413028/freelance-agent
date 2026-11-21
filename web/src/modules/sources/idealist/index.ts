@@ -32,6 +32,7 @@ const ARTICLE = /^\/en\/(?:nonprofit-job|government-job|job)\/[0-9a-f]{32}-[^/]*
 export const WAIT_FOR = '[data-qa-id="search-result"] a[href]';
 
 export const IDEALIST_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "idealist", label: "Idealist", connector: (fetcher) => idealistConnector(fetcher),
   maxTier: "browser", minIntervalMs: 3_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

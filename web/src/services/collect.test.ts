@@ -62,7 +62,7 @@ describe("collectSource with a scripted connector", () => {
   const all = () => true;
   const contractOnly = (l: { kind: string | null }) => l.kind === "contract";
   const source = (got: () => Omit<Collected, "sourceKept"> & Partial<Pick<Collected, "sourceKept">>, completeRead = false): SourceSettings =>
-    ({ name: "remotive", label: "Remotive", order: 0, connector: async () => ({ sourceKept: all, ...got() }), maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead, disabled: null });
+    ({ name: "remotive", opportunityType: "job", label: "Remotive", order: 0, connector: async () => ({ sourceKept: all, ...got() }), maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead, disabled: null });
   const none: Fetcher = { requests: 0, get: async () => { throw new Error("no request"); } };
 
   it("stores what the rule drops as not kept and follows a stored listing whose content changes either way", async () => {

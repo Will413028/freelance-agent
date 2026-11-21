@@ -101,6 +101,7 @@ export function parseLinkedin(message: MailMessage): ListingInput[] {
 }
 
 export const LINKEDIN_SETTINGS: Omit<MailSourceSettings, "order"> = {
+  opportunityType: "job",
   kind: "mail", name: "linkedin", label: "LinkedIn", sender: SENDER, subjectGate: isAlertSubject, parse: parseLinkedin, preferText: true,
   // One page of the inbox list per request; bodies only for new alerts.
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 60, completeRead: false, disabled: null,

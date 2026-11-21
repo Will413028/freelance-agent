@@ -49,10 +49,14 @@ describe("FACTS_VERSION (plan D26)", () => {
     const { createHash } = await import("node:crypto");
     const { default: fixtures } = await import("./evaluate.fixtures.json");
     const { FACTS_VERSION } = await import("./facts");
+    const { evaluatorFor } = await import("./registry");
     const { legacyListingInputSchema } = await import("@/modules/listings/public");
-    const facts = fixtures.cases.map((c) => factsOf(listingOf(legacyListingInputSchema.parse(c.input))));
+    // Through the registry, as intake and re-evaluation reach the job rules (opportunity types plan D1).
+    const job = evaluatorFor("job");
+    const facts = fixtures.cases.map((c) => job.facts(listingOf(legacyListingInputSchema.parse(c.input))));
     const digest = createHash("sha256").update(JSON.stringify(facts)).digest("hex");
-    // On a deliberate rule change: bump FACTS_VERSION in facts.ts and put the new digest here, in the same commit.
-    expect({ version: FACTS_VERSION, digest }).toEqual({ version: 1, digest: "cf78286b9b2dbfa443f5e379990bd3876d039e8958362eca09108e27ce296385" });
+    expect(job.version).toBe(FACTS_VERSION.job);
+    // On a deliberate rule change: bump FACTS_VERSION.job in facts.ts and put the new digest here, in the same commit.
+    expect({ version: FACTS_VERSION.job, digest }).toEqual({ version: 1, digest: "cf78286b9b2dbfa443f5e379990bd3876d039e8958362eca09108e27ce296385" });
   });
 });

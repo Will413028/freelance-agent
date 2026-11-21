@@ -99,6 +99,7 @@ export function parseTasker(message: MailMessage): ListingInput[] {
 }
 
 export const TASKER_SETTINGS: Omit<MailSourceSettings, "order"> = {
+  opportunityType: "job",
   kind: "mail", name: "tasker", label: "出任務", sender: SENDER, subjectGate: isCaseSubject, parse: parseTasker, preferText: false,
   // One page of the inbox list per request; bodies only for new notifications (a few a day).
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 60, completeRead: false, disabled: null,

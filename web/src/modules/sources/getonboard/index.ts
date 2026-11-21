@@ -155,6 +155,7 @@ export async function getonboardConnector(fetcher: Fetcher, now: Date): Promise<
 }
 
 export const GETONBOARD_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   label: "Get on Board", name: "getonboard", connector: getonboardConnector, maxTier: "plain",
   // Old: 600 ms before each search page (collection/sources/getonboard.ts:90), raised to the 1 s floor.
   minIntervalMs: 1000,

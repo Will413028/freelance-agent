@@ -179,6 +179,7 @@ export async function pttConnector(b: Board, fetcher: Fetcher, now: Date): Promi
 }
 
 const settings = (b: Board): Omit<PageSourceSettings, "order"> => ({
+  opportunityType: "job",
   name: b.name, label: b.label, connector: (fetcher, now) => pttConnector(b, fetcher, now), maxTier: "plain",
   minIntervalMs: 1_000, maxRequestsPerRun: INDEX_PAGES + MAX_ARTICLES, completeRead: false, disabled: null,
 });
