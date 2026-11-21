@@ -14,7 +14,7 @@
 
 自建重構計畫已完成（2026-11-20）。12d、12e 的程式還沒部署到 VM，部署要 Will 授權。
 
-進行中：[機會類型計畫](plans/2026-11-20-opportunity-types.md)（競賽、任務獎金）。步驟 2（資料模型加 `opportunity_type`，只有 job，行為不變）已部署（deploy A，VM 跑 `16e36c9`）。步驟 3（`opportunity_type` 只收 `job`、`contest` 的 CHECK，migration 0003）已部署（deploy B，VM 跑 `8de5a13`）。步驟 5 拆成 5a／5b／5c：5a（競賽類型的程式：契約、評估、Devpost 來源、競賽分頁，migration 0004 只加可為空的欄位）已合併（PR #89），還沒部署；下一步 5b（部署 D，要 Will 授權，之後手動連跑兩次、再看三天每日執行），再來 5c（競賽欄位的 CHECK，部署 E）。
+進行中：[機會類型計畫](plans/2026-11-20-opportunity-types.md)（競賽、任務獎金）。步驟 2（資料模型加 `opportunity_type`，只有 job，行為不變）已部署（deploy A，VM 跑 `16e36c9`）。步驟 3（`opportunity_type` 只收 `job`、`contest` 的 CHECK，migration 0003）已部署（deploy B，VM 跑 `8de5a13`）。步驟 5 拆成 5a／5b／5c：5a（競賽類型的程式：契約、評估、Devpost 來源、競賽分頁，migration 0004 只加可為空的欄位）已合併（PR #89）並部署（deploy D，2026-11-21，VM 跑 `936a26b`）；5b 的手動連跑兩次通過（第一次新增 66 筆、第二次 0 筆），還要看 2026-11-22 到 11-24 三天的每日執行 Devpost 都 `ok`；之後是 5c（競賽欄位的 CHECK，部署 E）。
 
 ## 延後、有觸發條件才做的項目
 
