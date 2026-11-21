@@ -34,6 +34,7 @@ const MAX_JOBS = 200;
 
 /** Old fetch: one index page plus at most 200 detail pages, 600 ms apart (raised to the 1 s floor). */
 export const JOBBANK518_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: NAME, label: "518 熊班", connector: (fetcher, now) => jobbank518Connector(fetcher, now), maxTier: "plain",
   minIntervalMs: 1_000, maxRequestsPerRun: 1 + MAX_JOBS, completeRead: false, disabled: null,
 };

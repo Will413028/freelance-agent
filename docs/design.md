@@ -65,6 +65,7 @@ deploy/         compose、Dockerfile、systemd 單元、deploy.sh
 
 - `listings`：一筆職缺一列。身分是 `(source, external_id)`，唯一；`id` 是資料庫產生的代理主鍵（D10）。另存 `source_kept`（來源自己的規則留不留）、`hard_excluded` 等評估用欄位，以及 `first_seen_at`、`updated_at`、`last_seen_at`、`gone_at`。
 - `listing_versions`：信件職缺內容互相矛盾時的其他版本。
+- 機會類型（[機會類型計畫](plans/2026-11-20-opportunity-types.md) D1）：`listings`、`listing_versions` 都有 `opportunity_type`（預設 `job`）。一個來源只產一種類型（catalog 的 `opportunityType`）。清單與重新評估只處理映像認得的類型（`OPPORTUNITY_TYPES`），回滾後不碰新版寫入的其他類型；詳情頁 `/jobs/<id>` 目前不分類型（步驟 5 處理）。目前只有 `job`。
 - `listing_feedback`、`listing_feedback_events`：收藏／略過狀態與其事件紀錄。
 - `settings`：唯一一列的篩選設定。
 - `mail_messages`、`mail_cursors`：每封看過的信的處理結果、每個信箱的掃描位置。
@@ -122,6 +123,7 @@ deploy/         compose、Dockerfile、systemd 單元、deploy.sh
 - 設定三項：每週工時上限（預設 30 小時，可設 1–168 或留空表示不限）、固定專案最低預算（預設 TWD 3,000）、專長分類。工時是單個職缺的上限，不是排程器。
 - 評估結果三種：`qualified`（條件吻合）、`needs_info`（有待確認項目）、`excluded`（有明確不符的理由）。理由與待確認項目都列給使用者看。
 - **未知就是未知**：工時、報酬、地區資格、時區、截止時間不明時列為待確認，不當成符合。remote 不代表全球。時薪、合約與外幣不套固定專案的 TWD 底價。
+- 每種機會類型一個評估器（`registry.ts` 的 `evaluatorFor`：收案事實、事實版本、排序）；`FACTS_VERSION` 按類型記，一種類型的規則改了只重算那種類型的列。清單一次只列一種類型。
 - 清單在讀取時依當下的設定排序（存的是事實，不存評估結果）：候選（沒被排除、沒被略過）在前，再依推薦分；同分新的在前。分頁的文字與排序共用同一個判斷（`rank.ts`），不會不一致。
 - 檢視：候選、已收藏、已略過、全部。收藏或略過過的職缺，內容變了也留在它的檢視裡。
 

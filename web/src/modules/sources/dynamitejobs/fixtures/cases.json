@@ -395,6 +395,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -440,6 +441,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -531,6 +533,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -568,6 +571,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -606,6 +610,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -643,6 +648,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "Contract AI agent engineer",
      "company": null,
@@ -680,6 +686,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -717,6 +724,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -752,6 +760,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -829,6 +838,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -894,6 +904,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -932,6 +943,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -970,6 +982,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -1007,6 +1020,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -1044,6 +1058,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -1097,6 +1112,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -1137,6 +1153,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,
@@ -1206,6 +1223,7 @@
    "url": "https://dynamitejobs.com/company/example/remote-job/ai-agent-engineer?x=1",
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "/company/example/remote-job/ai-agent-engineer",
      "title": "AI agent API engineer",
      "company": null,

@@ -10,6 +10,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -47,6 +48,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -132,6 +134,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -169,6 +172,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -206,6 +210,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -243,6 +248,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -292,6 +298,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -377,6 +384,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -414,6 +422,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -463,6 +472,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -512,6 +522,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "兼職 Backend API 工程師",
      "company": "Example",
@@ -549,6 +560,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "全職 Backend",
      "company": "Example",
@@ -586,6 +598,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "Full-time Backend",
      "company": "Example",
@@ -623,6 +636,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "接案 API",
      "company": "Example",
@@ -660,6 +674,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "freelance dev",
      "company": "Example",
@@ -697,6 +712,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "Contractor",
      "company": "Example",
@@ -734,6 +750,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "Backend",
      "company": "Example",
@@ -771,6 +788,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "example/backend-api",
      "title": "B 刊登了一筆新職缺 - C",
      "company": "A",

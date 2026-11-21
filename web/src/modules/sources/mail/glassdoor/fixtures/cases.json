@@ -10,6 +10,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -143,6 +144,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -180,6 +182,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -217,6 +220,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -278,6 +282,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -315,6 +320,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -352,6 +358,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "Full-time AI Agent Engineer",
      "company": "Example Co",
@@ -389,6 +396,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "Contract AI Engineer",
      "company": "Example Co",
@@ -426,6 +434,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -450,6 +459,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "1010273135827",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -499,6 +509,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -560,6 +571,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -609,6 +621,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -682,6 +695,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -803,6 +817,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -840,6 +855,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -877,6 +893,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",
@@ -914,6 +931,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "1010273135749",
      "title": "AI Agent Engineer",
      "company": "Example Co",

@@ -39,11 +39,11 @@ afterAll(async () => close());
 
 describe("ranked read at plan scale", () => {
   it(`reads and ranks ${LISTINGS} listings within the page budget`, async () => {
-    expect((await readRankables(db)).length).toBe(LISTINGS);
+    expect((await readRankables(db, "job")).length).toBe(LISTINGS);
     const times: number[] = [];
     for (let i = 0; i < RUNS; i++) {
       const started = performance.now();
-      await rankedPage(db, DEFAULT_SETTINGS, now, "all", 0);
+      await rankedPage(db, "job", DEFAULT_SETTINGS, now, "all", 0);
       times.push(performance.now() - started);
     }
     times.sort((a, b) => a - b);

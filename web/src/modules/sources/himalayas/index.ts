@@ -178,6 +178,7 @@ export async function himalayasConnector(fetcher: Fetcher): Promise<Collected> {
 }
 
 export const HIMALAYAS_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   label: "Himalayas", name: "himalayas", connector: himalayasConnector, maxTier: "plain",
   // Old: 600 ms between searches (collection/sources/himalayas.ts:116), raised to the 1 s floor.
   minIntervalMs: 1000,

@@ -15,6 +15,13 @@
       "when": 1795146188934,
       "tag": "0001_d26_evaluated_with",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795238171116,
+      "tag": "0002_opportunity_type",
+      "breakpoints": true
     }
   ]
 }

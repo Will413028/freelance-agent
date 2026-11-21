@@ -105,6 +105,7 @@ export function parse104(message: MailMessage): ListingInput[] {
 }
 
 export const JOBBANK104_SETTINGS: Omit<MailSourceSettings, "order"> = {
+  opportunityType: "job",
   kind: "mail", name: "jobbank104", label: "104 人力銀行", sender: SENDER, subjectGate: isDigestSubject, parse: parse104, preferText: false,
   // One page of the inbox list per request; bodies only for new digests (about one a day).
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 60, completeRead: false, disabled: null,

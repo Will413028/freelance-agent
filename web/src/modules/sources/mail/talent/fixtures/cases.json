@@ -10,6 +10,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -47,6 +48,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -84,6 +86,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -121,6 +124,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -158,6 +162,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": null,
@@ -195,6 +200,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -232,6 +238,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -305,6 +312,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -426,6 +434,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -450,6 +459,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "feedface9999",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -487,6 +497,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -524,6 +535,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Full-time Engineer",
      "company": "Example Company",
@@ -561,6 +573,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -610,6 +623,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -683,6 +697,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -720,6 +735,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "feedface1234",
      "title": "Backend API Engineer",
      "company": "Example Company",
@@ -829,6 +845,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -866,6 +883,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -890,6 +908,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "111111222222",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -927,6 +946,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -951,6 +971,7 @@
      }
     },
     {
+     "opportunity_type": "job",
      "external_id": "111111222222",
      "title": "Full-time X",
      "company": "Example",
@@ -988,6 +1009,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1025,6 +1047,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1074,6 +1097,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1123,6 +1147,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1208,6 +1233,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1257,6 +1283,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Ex&mple",
@@ -1294,6 +1321,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1331,6 +1359,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1380,6 +1409,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",
@@ -1417,6 +1447,7 @@
   "expect": {
    "listings": [
     {
+     "opportunity_type": "job",
      "external_id": "abcdef123456",
      "title": "Backend API Engineer",
      "company": "Example",

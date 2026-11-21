@@ -120,20 +120,20 @@ describe("ranked read on Postgres", () => {
     await intakeListings(db, "tasker", [job("m")], "mail", now);
     const [one, two, mail] = await Promise.all([listingBy(db, "jobicy", "1"), listingBy(db, "jobicy", "2"), listingBy(db, "tasker", "m")]);
     await db.execute(sql`insert into listing_feedback (listing_id, state, revision) values (${two!.id}, 'interested', 1), (${one!.id}, 'skipped', 1)`);
-    const rankables = await readRankables(db);
+    const rankables = await readRankables(db, "job");
     expect(rankables.find((r) => r.id === mail!.id)!.versions).toHaveLength(2);
 
-    const all = await rankedPage(db, DEFAULT_SETTINGS, now, "all", 0);
+    const all = await rankedPage(db, "job", DEFAULT_SETTINGS, now, "all", 0);
     expect(all.total).toBe(4);
     expect(all.items.map((i) => i.candidate)).toEqual([true, true, false, false]);
-    expect((await rankedPage(db, DEFAULT_SETTINGS, now, "candidates", 0)).items.map((i) => i.id).sort()).toEqual([two!.id, mail!.id].sort());
-    expect((await rankedPage(db, DEFAULT_SETTINGS, now, "saved", 0)).items.map((i) => i.id)).toEqual([two!.id]);
-    expect((await rankedPage(db, DEFAULT_SETTINGS, now, "skipped", 0)).items.map((i) => i.id)).toEqual([one!.id]);
-    expect((await rankedPage(db, DEFAULT_SETTINGS, now, "all", 1)).items).toEqual([]);
-    await expect(rankedPage(db, DEFAULT_SETTINGS, now, "all", -1)).rejects.toThrow(RangeError);
-    await expect(rankedPage(db, DEFAULT_SETTINGS, now, "all", 1.5)).rejects.toThrow(RangeError);
+    expect((await rankedPage(db, "job", DEFAULT_SETTINGS, now, "candidates", 0)).items.map((i) => i.id).sort()).toEqual([two!.id, mail!.id].sort());
+    expect((await rankedPage(db, "job", DEFAULT_SETTINGS, now, "saved", 0)).items.map((i) => i.id)).toEqual([two!.id]);
+    expect((await rankedPage(db, "job", DEFAULT_SETTINGS, now, "skipped", 0)).items.map((i) => i.id)).toEqual([one!.id]);
+    expect((await rankedPage(db, "job", DEFAULT_SETTINGS, now, "all", 1)).items).toEqual([]);
+    await expect(rankedPage(db, "job", DEFAULT_SETTINGS, now, "all", -1)).rejects.toThrow(RangeError);
+    await expect(rankedPage(db, "job", DEFAULT_SETTINGS, now, "all", 1.5)).rejects.toThrow(RangeError);
     // A settings change reranks at read: lifting the hour limit makes listing 3 a candidate, with nothing rewritten.
-    const lifted = await rankedPage(db, { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now, "candidates", 0);
+    const lifted = await rankedPage(db, "job", { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now, "candidates", 0);
     expect(lifted.total).toBe(3);
   });
 });

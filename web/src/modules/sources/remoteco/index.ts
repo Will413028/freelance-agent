@@ -29,6 +29,7 @@ const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const SLUG = /^(?!\.+$)[A-Za-z0-9._-]+$/;
 
 export const REMOTECO_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "remoteco", label: "Remote.co", connector: (fetcher) => remoteCoConnector(fetcher),
   maxTier: "browser_like", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

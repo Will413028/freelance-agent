@@ -28,6 +28,7 @@ const MAX_JOBS = 200;
 const ID = /^[1-9][0-9]{0,15}$/;
 
 export const WEB3CAREER_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "web3career", label: "Web3.career", connector: (fetcher) => web3CareerConnector(fetcher),
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

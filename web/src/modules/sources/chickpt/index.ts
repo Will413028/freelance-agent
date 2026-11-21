@@ -29,6 +29,7 @@ const CATEGORY = "電腦接案任務";
 const MONEY = /^單次\$([0-9,]+)(?:\s*[~～]\s*\$?([0-9,]+))?(?=\s|\/|$)/u;
 
 export const CHICKPT_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: NAME, label: "小雞上工", connector: (fetcher, now) => chickptConnector(fetcher, now),
   // Old pause was 600 ms between detail pages; the floor here is 1 s. One index page plus up to 200 tasks.
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + MAX_LINKS,

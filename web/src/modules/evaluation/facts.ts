@@ -1,5 +1,5 @@
 import { escapeRegExp } from "@/platform/text";
-import type { CATEGORIES as CATEGORY_NAMES } from "@/db/pg/schema";
+import type { CATEGORIES as CATEGORY_NAMES, OpportunityType } from "@/db/pg/schema";
 import { deadlineAt, type Listing } from "./listing";
 
 // The evaluation facts that depend on neither the settings nor the time, computed once when a
@@ -53,9 +53,10 @@ export const fixedTwdMax = (l: Listing): number | null =>
  * returns for the same listing (categories, keywords, exclusions, deadline rule); facts.test.ts pins the
  * version to a digest of factsOf over the evaluate fixtures and fails until both are updated together. The
  * digest only sees what those fixtures exercise: a keyword or exclusion no fixture hits changes nothing there,
- * so a rule change also adds a fixture case that it changes (or bumps the version by hand).
+ * so a rule change also adds a fixture case that it changes (or bumps the version by hand). One version per
+ * opportunity type (opportunity types plan D1): a type's rule change re-evaluates only its own rows.
  */
-export const FACTS_VERSION = 1;
+export const FACTS_VERSION: Readonly<Record<OpportunityType, number>> = Object.freeze({ job: 1 });
 
 export function factsOf(l: Listing): Facts {
   const { category, categoryScore } = categorize(l);

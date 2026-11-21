@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { KINDS } from "@/db/pg/schema";
+import { KINDS, type OpportunityType } from "@/db/pg/schema";
 import type { Deadline, Listing } from "@/modules/evaluation/public";
 
 // The listing contract between a connector and intake (plan D8: parse at the boundary, never guess
@@ -25,7 +25,9 @@ export const deadlineSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.enum(["no_timezone", "invalid"]), text: z.string() }).strict(),
 ]).nullable().default(null);
 
-export const listingInputSchema = z.object({
+/** A job (opportunity types plan D1): today's fields. A connector may leave the type out; it is then a job. */
+const jobInputSchema = z.object({
+  opportunity_type: z.literal("job").default("job"),
   external_id: text,
   title: text,
   company: optionalText,
@@ -49,17 +51,25 @@ export const listingInputSchema = z.object({
   extra: z.record(z.string(), z.unknown()).default({}),
 }).strict();
 
+/**
+ * The contract, one variant per opportunity type (opportunity types plan D1). Every raw stored before
+ * opportunity types has no `opportunity_type`; the union applies the job variant's default to a missing
+ * discriminator, so those raws parse as jobs (reevaluate.test.ts checks it). Only one variant may default.
+ */
+export const listingInputSchema = z.discriminatedUnion("opportunity_type", [jobInputSchema]);
+
 /** A listing as a connector gives it, after parsing: every field present, unknown as null. */
-export type ListingInput = z.output<typeof listingInputSchema>;
-/** What a connector may write: optional fields can be left out. */
-export type ListingInputDraft = z.input<typeof listingInputSchema>;
+export type ListingInput = z.output<typeof jobInputSchema>;
+/** What a connector may write: optional fields (the type included) can be left out. */
+export type ListingInputDraft = z.input<typeof jobInputSchema>;
+export type { OpportunityType };
 
 /**
  * The contract with an empty title allowed, for the frozen evaluate and recommendation fixtures only:
  * their inputs came from old-system jobs (some with empty titles) through legacyToInput, deleted in
  * step 5a2 (plan D10). Nothing stores through it; delete it with those fixtures.
  */
-export const legacyListingInputSchema = listingInputSchema.extend({ title: z.string() });
+export const legacyListingInputSchema = jobInputSchema.extend({ title: z.string() });
 
 /** Parses a connector's listing; throws a ZodError naming each field it refuses. */
 export const parseListingInput = (value: unknown): ListingInput => listingInputSchema.parse(value);

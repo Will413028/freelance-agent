@@ -17,7 +17,7 @@ const job = (id: string, changes: Record<string, unknown> = {}) => ({
   external_id: id, title: `AI agent backend ${id}`, description: "Build an API", url: `https://example.com/${id}`, kind: "contract", ...changes,
 });
 const shownIds = async () => {
-  const ids = new Set((await readRankables(db)).map((r) => r.id));
+  const ids = new Set((await readRankables(db, "job")).map((r) => r.id));
   const out: string[] = [];
   for (const id of ["kept", "dropped", "excluded", "dropped-saved", "mail"]) {
     const row = await listingBy(db, id === "mail" ? "tasker" : "jobicy", id);
@@ -40,7 +40,22 @@ describe("which stored listings the page considers", () => {
     await db.execute(sql`update listing_feedback set state = 'neutral' where listing_id = ${saved!.id}`);
     expect(await shownIds()).toEqual(["kept", "mail"]);
     await db.execute(sql`update listing_feedback set state = 'interested' where listing_id = ${saved!.id}`);
-    const all = await rankedPage(db, DEFAULT_SETTINGS, now, "all", 0);
+    const all = await rankedPage(db, "job", DEFAULT_SETTINGS, now, "all", 0);
     expect(all.total).toBe(3);
   });
+
+  it("only listings of the asked type, on every branch: kept, mail version and feedback (opportunity types plan D1)", async () => {
+    await intakeListings(db, "jobicy", [job("kept"), job("dropped-saved")], "page", now, { sourceKept: (id) => !id.startsWith("dropped") });
+    await intakeListings(db, "tasker", [job("mail", { kind: "full_time" })], "mail", now);
+    await intakeListings(db, "tasker", [job("mail")], "mail", now);
+    const saved = await listingBy(db, "jobicy", "dropped-saved");
+    await db.execute(sql`insert into listing_feedback (listing_id, state, revision) values (${saved!.id}, 'interested', 1)`);
+    expect(await shownIds()).toEqual(["kept", "dropped-saved", "mail"]);
+    // Written by a newer image: no contest code exists yet, so the rows are set directly.
+    await db.execute(sql`update listings set opportunity_type = 'contest'`);
+    await db.execute(sql`update listing_versions set opportunity_type = 'contest'`);
+    expect(await shownIds()).toEqual([]);
+    expect((await rankedPage(db, "job", DEFAULT_SETTINGS, now, "all", 0)).total).toBe(0);
+  });
 });
+

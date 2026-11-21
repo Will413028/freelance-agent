@@ -111,7 +111,7 @@ export function listQuery(params: { view?: string | string[]; page?: string | st
 /** One page (from 1) of a view in rank order. */
 export async function listJobs(db: PgDb, now: Date, view: View, page: number): Promise<ListView> {
   const { settings } = await readSettings(db);
-  const { total, items } = await rankedPage(db, settings, now, view, page - 1);
+  const { total, items } = await rankedPage(db, "job", settings, now, view, page - 1);
   const shown = await readShown(db, items.map((i) => i.id));
   // A listing deleted between the two reads is left out of this page.
   const jobs = items.flatMap((i) => { const s = shown.get(i.id); return s ? [jobView(s, settings, now, i.candidate)] : []; });

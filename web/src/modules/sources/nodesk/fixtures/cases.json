@@ -597,6 +597,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -639,6 +640,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -681,6 +683,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -723,6 +726,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -766,6 +770,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -809,6 +814,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -893,6 +899,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -935,6 +942,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -979,6 +987,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1023,6 +1032,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1098,6 +1108,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent",
      "company": null,
@@ -1151,6 +1162,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
      "company": null,
@@ -1226,6 +1238,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1268,6 +1281,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1313,6 +1327,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1355,6 +1370,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1401,6 +1417,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1443,6 +1460,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1489,6 +1507,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1531,6 +1550,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1573,6 +1593,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1627,6 +1648,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1669,6 +1691,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI \\ud800 agent",
      "company": null,
@@ -1711,6 +1734,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1765,6 +1789,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1840,6 +1865,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -1882,6 +1908,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "R&D",
      "company": null,
@@ -1957,6 +1984,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2011,6 +2039,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2054,6 +2083,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2097,6 +2127,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2161,6 +2192,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2203,6 +2235,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2245,6 +2278,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "x\ny z",
      "company": null,
@@ -2287,6 +2321,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2362,6 +2397,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,
@@ -2404,6 +2440,7 @@
    },
    "expect": {
     "listing": {
+     "opportunity_type": "job",
      "external_id": "https://nodesk.co/remote-jobs/acme-ai-agent/",
      "title": "AI agent developer",
      "company": null,

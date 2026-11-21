@@ -1,7 +1,7 @@
 import { and, eq, getTableColumns, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import type { PgDb } from "@/db/pg/client";
 import { listings, listingVersions } from "@/db/pg/schema";
-import { FACTS_VERSION, factsOf, type Listing } from "@/modules/evaluation/public";
+import { evaluatorFor, type Listing } from "@/modules/evaluation/public";
 import { deadlineColumns, deadlineOfColumns, listingOf, parseListingInput, type ListingInput } from "./contract";
 import { fingerprint } from "./id";
 
@@ -36,7 +36,9 @@ export function storable(value: unknown): unknown {
 /** The stored columns of one content: shown fields, the contract as raw JSON, and the evaluation facts. */
 export function contentColumns(input: ListingInput) {
   const l = listingOf(input);
+  const evaluator = evaluatorFor(input.opportunity_type);
   return {
+    opportunityType: input.opportunity_type,
     fingerprint: fingerprint(input),
     raw: input,
     title: input.title,
@@ -56,8 +58,8 @@ export function contentColumns(input: ListingInput) {
     listingClosed: input.listing_closed,
     compensationEvidence: input.compensation_evidence,
     ...deadlineColumns(input.deadline),
-    ...factsOf(l),
-    evaluatedWith: FACTS_VERSION,
+    ...evaluator.facts(l),
+    evaluatedWith: evaluator.version,
   };
 }
 

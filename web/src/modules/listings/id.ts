@@ -13,9 +13,11 @@ function canonical(value: unknown): string {
 
 /**
  * The content identity of a listing (step-3-design.md core choice 3, plan D8): sha256 of the parsed
- * contract without `extra`, so only what is shown or evaluated makes a new content.
+ * contract without `extra`, so only what is shown or evaluated makes a new content. Without
+ * `opportunity_type` too: a source has one type (its catalog entry), so the type never tells two contents
+ * of one (source, external_id) apart, and leaving it out keeps every fingerprint stored before it existed.
  */
 export function fingerprint(input: Readonly<Record<string, unknown>>): string {
-  const { extra: _, ...content } = input;
+  const { extra: _, opportunity_type: _type, ...content } = input;
   return createHash("sha256").update(canonical(content), "utf8").digest("hex");
 }

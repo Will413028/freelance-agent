@@ -38,6 +38,7 @@ const FRESH_DAYS = 90;
 
 /** Old justremote.ts: one index page, then detail pages 0.6 s apart (raised to the fetcher's 1 s floor). */
 export const JUSTREMOTE_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "justremote", label: "JustRemote", connector: (fetcher, now) => justRemoteConnector(fetcher, now),
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + MAX_DETAILS, completeRead: false, disabled: null,
 };

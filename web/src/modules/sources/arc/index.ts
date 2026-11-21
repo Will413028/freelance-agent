@@ -26,6 +26,7 @@ const KEY = /^[a-z0-9]{6,20}$/;
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 
 export const ARC_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "arc", label: "Arc", connector: (fetcher) => arcConnector(fetcher),
   maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1, completeRead: false, disabled: null,
 };

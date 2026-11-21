@@ -38,6 +38,7 @@ const FRESH_DAYS = 90;
 
 /** Old nodesk.fetch: the feed plus up to 20 job pages, one second apart. */
 export const NODESK_SETTINGS: Omit<PageSourceSettings, "order"> = {
+  opportunityType: "job",
   name: "nodesk", label: "NoDesk", connector: (fetcher, now) => nodeskConnector(fetcher, now), maxTier: "plain", minIntervalMs: 1_000, maxRequestsPerRun: 1 + MAX_ITEMS, completeRead: false, disabled: null,
 };
 
