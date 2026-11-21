@@ -29,7 +29,7 @@ describe("B1: a date-only deadline expires at the Asia/Taipei day boundary", () 
 });
 
 describe("rank", () => {
-  const base = { id: 1, firstSeenAt: new Date(0), feedback: "neutral" as const, versions: [] };
+  const base = { id: 1, firstSeenAt: new Date(0), goneAt: null, feedback: "neutral" as const, versions: [] };
 
   it("scores category × 0.7, 2.5 per confirmed condition and freshness, in tenths", () => {
     // AI agent 95 × 7 + 25 × (3 confirmed + hours within 30) + published within two days.
@@ -81,14 +81,14 @@ describe("rank", () => {
   it("matches recommend's score and basis for a listing with versions", () => {
     const contents = [{ fingerprint: "a", listing: typed({ weekly_hours: 50 }) }, { fingerprint: "b", listing: typed({ taiwan_eligible: null }) }, { fingerprint: "c", listing: typed() }];
     const r = recommend(contents[0], contents, "interested", DEFAULT_SETTINGS, now);
-    const ranked = rank({ id: 1, firstSeenAt: new Date(0), feedback: "interested", listing: rankFactsOf("a", contents[0].listing), versions: contents.map((c) => rankFactsOf(c.fingerprint, c.listing)) }, DEFAULT_SETTINGS, now);
+    const ranked = rank({ id: 1, firstSeenAt: new Date(0), goneAt: null, feedback: "interested", listing: rankFactsOf("a", contents[0].listing), versions: contents.map((c) => rankFactsOf(c.fingerprint, c.listing)) }, DEFAULT_SETTINGS, now);
     expect({ score: r.score * 10, basis: r.basis }).toEqual({ score: ranked.scoreTenths, basis: ranked.basis });
     expect(r.reasons.at(-1)).toBe("通知內容有差異；依可能符合的一份排序，需核對原文");
   });
 
   it("never reaches the 100-point cap with the current categories, so comparing before or after it picks the same content", () => {
     // AI agent 95 × 0.7 + 4 confirmed × 2.5 + recent 10 + saved 10 = 96.5 points.
-    const top = rank({ id: 1, firstSeenAt: new Date(0), feedback: "interested", listing: facts("a"), versions: [] }, { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now);
+    const top = rank({ id: 1, firstSeenAt: new Date(0), goneAt: null, feedback: "interested", listing: facts("a"), versions: [] }, { ...DEFAULT_SETTINGS, maxWeeklyHours: null }, now);
     expect(top.scoreTenths).toBe(965);
   });
 

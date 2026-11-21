@@ -14,7 +14,8 @@ export type FeedbackState = (typeof FEEDBACK_STATES)[number];
 export type RankFacts = Pick<Facts, "category" | "categoryScore" | "hardExcluded" | "confirmedBase" | "fixedTwdMax" | "publishedAt" | "deadlineAt">
   & { fingerprint: string; weeklyHours: number | null };
 
-export type Rankable = { id: number; firstSeenAt: Date; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
+/** `goneAt`: when a complete read of the source no longer showed the listing (listings.gone_at); null while it is shown. */
+export type Rankable = { id: number; firstSeenAt: Date; goneAt: Date | null; feedback: FeedbackState; listing: RankFacts; versions: readonly RankFacts[] };
 
 const DAY_MS = 86_400_000;
 export const RECENT_MS = 2 * DAY_MS;

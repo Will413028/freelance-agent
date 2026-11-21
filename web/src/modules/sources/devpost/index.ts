@@ -15,27 +15,33 @@ import { SourceError, type Collected, type PageSourceSettings } from "../types";
 
 export const ENDPOINT = "https://devpost.com/api/hackathons";
 export const pageUrl = (page: number) => `${ENDPOINT}?status[]=open&page=${page}`;
-/** The requests of one run: 30 pages of 9 is over four times the 64 open hackathons measured (2026-11-21). */
+/** The requests of one run: 30 pages of 9 is over three times the 8 pages of the 64 open hackathons measured (2026-11-21), plus the empty page that ends a read. */
 export const MAX_PAGES = 30;
 /** A resource bound per page, not the provider's page size (9). */
 const MAX_PAGE_ENTRIES = 200;
 const MAX_BYTES = 2_000_000;
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-/** The three spellings of the submission period seen: `Nov 03 - 21, 2026`, `Nov 03 - Dec 15, 2026`, `Dec 01, 2026 - Jan 15, 2027`. */
-const PERIOD = /^[A-Z][a-z]{2} \d{1,2}(?:, \d{4})? - (?:([A-Z][a-z]{2}) )?(\d{1,2}), (\d{4})$/;
+/**
+ * The three spellings of the submission period seen: `Nov 03 - 21, 2026`, `Nov 03 - Dec 15, 2026`,
+ * `Dec 01, 2026 - Jan 15, 2027`; and a single day, `Nov 21, 2026` (not seen in the 27 read, accepted as the
+ * same notation without its range).
+ */
+const PERIOD = /^[A-Z][a-z]{2} (?:\d{1,2}(?:, \d{4})? - (?:([A-Z][a-z]{2}) )?)?(\d{1,2}), (\d{4})$/;
 
 /**
  * The submission deadline: the last day of `submission_period_dates`. The list gives a day without a time
  * or a zone, so it is a date deadline, which expires at the end of that day in Asia/Taipei (rebuild plan
- * D7): up to a day before the organiser's own end of day, never after it. A period in another spelling
- * is kept as its text, unusable.
+ * D7). The organiser's own deadline can be hours earlier (a zone east of Taipei, or a time of day before
+ * 16:00 UTC) or up to a day later; the page says so. A period in another spelling is kept as its text,
+ * unusable.
  */
 export function deadlineOf(period: unknown): ContestInput["deadline"] {
   if (period === undefined || period === null) return null;
   if (typeof period !== "string") return { kind: "invalid", text: JSON.stringify(period) };
-  const m = PERIOD.exec(period);
-  const month = m ? MONTHS.indexOf(m[1] ?? period.slice(0, 3)) : -1;
+  const text = period.trim();
+  const m = PERIOD.exec(text);
+  const month = m ? MONTHS.indexOf(m[1] ?? text.slice(0, 3)) : -1;
   if (!m || month < 0) return { kind: "invalid", text: period };
   const day = Number(m[2]), year = Number(m[3]);
   const d = new Date(Date.UTC(year, month, day));
@@ -60,7 +66,9 @@ export function prizeOf(value: unknown): Pick<ContestInput, "prize_text" | "budg
   if (typeof value !== "string" || !value.trim()) return { prize_text: null, ...unknown };
   const prize_text = htmlText(value) || null;
   const m = PRIZE.exec(value.trim());
-  const currency = m ? CURRENCIES[m[1].trim()] : undefined;
+  const prefix = m ? m[1].trim() : "";
+  // An own key only: the prefix is the source's text, and `constructor` is a key of every object.
+  const currency = Object.hasOwn(CURRENCIES, prefix) ? CURRENCIES[prefix] : undefined;
   const amount = m ? Number(m[2].replaceAll(",", "")) : NaN;
   if (currency === undefined || !Number.isSafeInteger(amount)) return { prize_text, ...unknown };
   return { prize_text, budget_max: amount, currency };
@@ -94,7 +102,8 @@ export function normalize(item: unknown): ContestInput {
     invite_only: flag(item.invite_only),
     // The list is Devpost's hackathons.
     hackathon: true,
-    listing_closed: item.winners_announced === true ? true : item.open_state === "open" ? false : typeof item.open_state === "string" ? true : null,
+    // Only `open` was seen (the list is asked for open hackathons); another state is not known to mean closed.
+    listing_closed: item.winners_announced === true ? true : item.open_state === "open" ? false : null,
     deadline: deadlineOf(item.submission_period_dates),
     extra: { themes, prizes_counts: isObject(item.prizes_counts) ? item.prizes_counts : null, invite_only_description: textOr(item.eligibility_requirement_invite_only_description, 2000) },
   });
@@ -115,20 +124,25 @@ export function parsePage(body: Uint8Array): { entries: unknown[]; total: number
 }
 
 /**
- * Every page until an empty one or the page cap: each hackathon once by id, as last read (the list can
- * shift between two requests). `truncated` when fewer distinct hackathons were read than the list's own
- * total: the cap was reached, or the list shifted and one was missed, so the read is not complete and
- * nothing is marked gone.
+ * Every page until an empty one or the page cap: each hackathon once by id, as last read. The list can
+ * change between two requests (one closes and the rest shift up a page, so one is never shown), and such
+ * a read must not count as complete, or the missed hackathon would be marked gone. `truncated` unless the
+ * read reached the empty page, every page stated the same total, no hackathon was shown twice and as many
+ * were read as that total.
  */
 export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: ContestInput[]; truncated: boolean; rejected: number; examined: number }> {
   const contests = new Map<string, ContestInput>();
   const ids = new Set<unknown>();
-  let seen = 0, rejected = 0, examined = 0, total = 0;
+  const totals = new Set<number>();
+  let seen = 0, rejected = 0, examined = 0, ended = false;
   for (let page = 1; page <= MAX_PAGES; page++) {
     const r = await fetcher.get({ url: pageUrl(page), maxBytes: MAX_BYTES, timeoutMs: 25_000, headers: { "User-Agent": "side-income/0.1 personal-job-discovery", Accept: "application/json" } });
     const p = parsePage(r.body);
-    total = p.total;
-    if (!p.entries.length) break;
+    totals.add(p.total);
+    if (!p.entries.length) {
+      ended = true;
+      break;
+    }
     seen += p.entries.length;
     for (const e of p.entries) ids.add(isObject(e) ? e.id : e);
     const kept = setAside(p.entries, (e) => {
@@ -138,9 +152,9 @@ export async function scan(fetcher: Fetcher): Promise<{ seen: number; listings: 
     });
     rejected += kept.rejected;
     examined += kept.examined;
-    if (ids.size >= total) break;
   }
-  return { seen, listings: [...contests.values()], truncated: ids.size < total, rejected, examined };
+  const complete = ended && totals.size === 1 && seen === ids.size && totals.has(ids.size);
+  return { seen, listings: [...contests.values()], truncated: !complete, rejected, examined };
 }
 
 export async function devpostConnector(fetcher: Fetcher): Promise<Collected<ContestInput>> {

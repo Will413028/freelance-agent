@@ -91,6 +91,23 @@ describe("contest list (plan D2: by submission deadline, soonest first, unknown 
   });
 });
 
+describe("a contest its source no longer lists", () => {
+  it("is no candidate once a complete read does not show it, also without a usable deadline, and is one again when shown", async () => {
+    const batch = [contest("stays"), contest("leaves")];
+    await intakeListings(db, "devpost", batch, "page", NOW, CONTESTS);
+    await intakeListings(db, "devpost", [contest("stays")], "page", NOW, { ...CONTESTS, complete: true });
+    const ids = async (view: "candidates" | "all") => {
+      const { items } = await rankedPage(db, "contest", DEFAULT_SETTINGS, NOW, view, 0);
+      const rows = new Map((await db.select({ id: listings.id, externalId: listings.externalId }).from(listings)).map((r) => [r.id, r.externalId]));
+      return items.map((i) => rows.get(i.id)).sort();
+    };
+    expect(await ids("candidates")).toEqual(["stays"]);
+    expect(await ids("all")).toEqual(["leaves", "stays"]);
+    await intakeListings(db, "devpost", batch, "page", NOW, { ...CONTESTS, complete: true });
+    expect(await ids("candidates")).toEqual(["leaves", "stays"]);
+  });
+});
+
 describe("rollback from the deploy that adds contests", () => {
   it("an image that knows only jobs re-evaluates no contest row and counts none as unparsable", async () => {
     await intakeListings(db, "devpost", [contest("a", { deadline: date("2026-12-15") }), contest("b")], "page", NOW, CONTESTS);

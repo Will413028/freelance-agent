@@ -3,7 +3,9 @@ import { deadlineAt, type Deadline } from "./listing";
 import { expired, type Rankable, type Ranked, type Settings } from "./rank";
 
 // The contest rules (opportunity types plan D2, D3): no score and no category. A contest is a candidate
-// while its source has not closed it, its submission deadline has not passed and it is not skipped; an
+// while its source has not closed it and still lists it, its submission deadline has not passed and it is
+// not skipped. A contest source lists what is open, so one that ended simply leaves the list: a complete
+// read that no longer shows it (gone_at) is how its end is known when it has no usable deadline. An
 // invite-only contest is shown like any other (D3). The list is ordered by submission deadline, soonest
 // first, a contest without a usable deadline last. Contests have no settings (D6).
 
@@ -27,7 +29,7 @@ export function rankContest(r: Rankable, _settings: Settings, now: Date): Ranked
   const f = r.listing;
   return {
     id: r.id, firstSeenAt: r.firstSeenAt, scoreTenths: 0, basis: f.fingerprint, deadlineAt: f.deadlineAt,
-    candidate: !f.hardExcluded && !expired(f, now) && r.feedback !== "skipped",
+    candidate: !f.hardExcluded && r.goneAt === null && !expired(f, now) && r.feedback !== "skipped",
   };
 }
 

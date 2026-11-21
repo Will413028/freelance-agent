@@ -99,7 +99,7 @@ export function JobList({ data }: { data: ListView }) {
 }
 
 const contestHref = (view: View, page: number) => `/?type=contest&view=${view}${page > 1 ? `&page=${page}` : ""}`;
-const CONTEST_STATES: Record<ContestView["state"], string> = { open: "徵件中", expired: "已過截止日", closed: "來源已標示結束" };
+const CONTEST_STATES: Record<ContestView["state"], string> = { open: "徵件中", expired: "已過截止日", closed: "來源已結束或下架" };
 
 /** The prize: the source's own wording, else the amount it gave, else unknown (never 0). */
 function prize(c: ContestFields) {
@@ -156,7 +156,7 @@ export function ContestDetail({ contest: c }: { contest: ContestView }) {
       <div><dt>參加方式</dt><dd>{known(c.contest.invite_only, "僅限受邀", "公開報名")}</dd></div>
       <div><dt>黑客松</dt><dd>{known(c.contest.hackathon, "是", "否")}</dd></div>
     </dl>
-    <p className="hint">只有日期的截止日以台灣時間當天結束計算，可能比主辦單位的時區早；地區、年齡與身分資格來源未提供，請到原始頁面確認。</p>
+    <p className="hint">只有日期的截止日以台灣時間當天結束計算，和主辦單位實際的截止時刻可能差幾小時（早或晚）；地區、年齡與身分資格來源未提供，請到原始頁面確認。</p>
     <h3>原始頁面</h3>
     <ul className="source-links"><li>{url ? <a href={url} target="_blank" rel="noreferrer">{c.sourceName} ↗</a> : c.sourceName}</li></ul>
     <p><a className="outline-button" href="/?type=contest">回到清單</a></p>

@@ -47,7 +47,7 @@ const hackathon = (id: number, changes: Record<string, unknown> = {}) => ({
 /** The API's pages for these hackathons, 2 a page, with an empty page after the last. */
 const api = (all: unknown[], total = all.length) => {
   const pages: Record<string, string> = {};
-  for (let p = 1; (p - 1) * 2 <= all.length; p++) pages[pageUrl(p)] = JSON.stringify({ hackathons: all.slice((p - 1) * 2, p * 2), meta: { total_count: total, per_page: 2 } });
+  for (let p = 1; p <= Math.ceil(all.length / 2) + 1; p++) pages[pageUrl(p)] = JSON.stringify({ hackathons: all.slice((p - 1) * 2, p * 2), meta: { total_count: total, per_page: 2 } });
   return pages;
 };
 
@@ -63,17 +63,27 @@ describe("devpost connector over its fixture", () => {
 });
 
 describe("devpost pages", () => {
-  it("reads page after page until every open hackathon is read, each once", async () => {
+  it("reads page after page to the empty one, each hackathon once", async () => {
     const f = serving(api([1, 2, 3, 4, 5].map((id) => hackathon(id))));
     const got = await devpostConnector(f);
-    expect([f.urls, got.seen, got.listings.map((l) => l.external_id), got.truncated]).toEqual([[1, 2, 3].map(pageUrl), 5, ["1", "2", "3", "4", "5"], false]);
+    expect([f.urls, got.seen, got.listings.map((l) => l.external_id), got.truncated]).toEqual([[1, 2, 3, 4].map(pageUrl), 5, ["1", "2", "3", "4", "5"], false]);
     expect(got.listings.every(got.sourceKept)).toBe(true);
   });
 
-  it("keeps a hackathon that shifted onto a second page once, as last read, and says the read is not complete when one was missed", async () => {
-    const pages = api([hackathon(1), hackathon(2), hackathon(2, { title: "Second reading" }), hackathon(4)], 5);
-    const got = await scan(serving(pages));
+  it("keeps a hackathon that shifted onto a second page once, as last read, and the read is not complete", async () => {
+    const got = await scan(serving(api([hackathon(1), hackathon(2), hackathon(2, { title: "Second reading" }), hackathon(4)])));
     expect([got.listings.map((l) => l.title), got.truncated]).toEqual([["Example Hackathon 1", "Second reading", "Example Hackathon 4"], true]);
+  });
+
+  it("a read during which one closed and another was never shown is not complete, though the last total matches", async () => {
+    // 5 open, 2 a page: after page 1 hackathon 1 closes, so 3 shifts onto page 1 and is never shown.
+    const page = (hackathons: unknown[], total: number) => JSON.stringify({ hackathons, meta: { total_count: total, per_page: 2 } });
+    const got = await scan(serving({ [pageUrl(1)]: page([hackathon(1), hackathon(2)], 5), [pageUrl(2)]: page([hackathon(4), hackathon(5)], 4), [pageUrl(3)]: page([], 4) }));
+    expect([got.listings.map((l) => l.external_id), got.truncated]).toEqual([["1", "2", "4", "5"], true]);
+  });
+
+  it("a read with fewer hackathons than the list counts is not complete", async () => {
+    expect((await scan(serving(api([hackathon(1), hackathon(2), hackathon(4)], 4)))).truncated).toBe(true);
   });
 
   it("stops at the page cap its settings allow and marks the read truncated", async () => {

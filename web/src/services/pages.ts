@@ -103,7 +103,7 @@ export type ContestView = {
   source: string;
   sourceName: string;
   contest: ContestFields;
-  /** Open, past its submission deadline, or closed by its source. */
+  /** Open, past its submission deadline, or closed: marked so by its source, or no longer in its source's list. */
   state: "open" | "expired" | "closed";
   /** Whether the contest is a candidate; null on a detail page, which has no ranking. */
   candidate: boolean | null;
@@ -123,7 +123,7 @@ export function contestView({ row, feedback }: Shown, now: Date, candidate: bool
       prize_text: row.prizeText, currency: row.currency, prize_max: row.budgetMax,
       online: row.online, invite_only: row.inviteOnly, hackathon: row.hackathon,
     },
-    state: row.listingClosed === true ? "closed" : expired(row, now) ? "expired" : "open",
+    state: row.listingClosed === true || row.goneAt !== null ? "closed" : expired(row, now) ? "expired" : "open",
     candidate, feedback: feedback.state, skipped: feedback.state === "skipped",
   };
 }
