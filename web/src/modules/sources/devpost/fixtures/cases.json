@@ -1,0 +1,1888 @@
+{
+ "normalize": [
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "opportunity_type": "contest",
+    "external_id": "90001",
+    "title": "Example AI Agents Hackathon",
+    "company": "Example Org",
+    "description": null,
+    "url": "https://example-agents.devpost.com/",
+    "canonical_url": "https://example-agents.devpost.com/",
+    "location": "Online",
+    "currency": "USD",
+    "budget_min": null,
+    "budget_max": 10000,
+    "prize_text": "$10,000",
+    "online": true,
+    "invite_only": false,
+    "hackathon": true,
+    "listing_closed": false,
+    "published_at": null,
+    "deadline": {
+     "kind": "date",
+     "date": "2026-12-15"
+    },
+    "registration_deadline": null,
+    "extra": {
+     "themes": [
+      "Machine Learning/AI",
+      "Open Ended"
+     ],
+     "prizes_counts": {
+      "cash": 3,
+      "other": 1
+     },
+     "invite_only_description": null
+    }
+   },
+   "why": "every field the list gives"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 21 - 23, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "date",
+     "date": "2026-11-23"
+    }
+   },
+   "why": "period inside one month: the last day"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Dec 01, 2026 - Jan 15, 2027",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "date",
+     "date": "2027-01-15"
+    }
+   },
+   "why": "period across a year end: the end's own year"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 3 - Dec 5, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "date",
+     "date": "2026-12-05"
+    }
+   },
+   "why": "one-digit day"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Feb 01 - Feb 30, 2027",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "invalid",
+     "text": "Feb 01 - Feb 30, 2027"
+    }
+   },
+   "why": "a day the month does not have is not a date"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Rolling submissions",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "invalid",
+     "text": "Rolling submissions"
+    }
+   },
+   "why": "another spelling is kept as text, unusable"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Foo 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "deadline",
+    "value": {
+     "kind": "invalid",
+     "text": "Nov 03 - Foo 15, 2026"
+    }
+   },
+   "why": "an unknown month name"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "deadline",
+    "value": null
+   },
+   "why": "no period given: unknown"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": null
+   },
+   "why": "no prize field: unknown, never 0"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "prize_text",
+    "value": null
+   },
+   "why": "no prize field: no text either"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "currency",
+    "value": null
+   },
+   "why": "no prize field: no currency"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>0</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": 0
+   },
+   "why": "a stated prize of 0 is known"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$CAD <span data-currency-value>5,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "currency",
+    "value": "CAD"
+   },
+   "why": "a dollar with its code"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "€<span data-currency-value>3,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "currency",
+    "value": "EUR"
+   },
+   "why": "euro"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "₹<span data-currency-value>100,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": null
+   },
+   "why": "a currency prefix not listed: the amount stays unknown"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "₹<span data-currency-value>100,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "prize_text",
+    "value": "₹100,000"
+   },
+   "why": "and its text is kept as shown"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "Swag and credits",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "budget_max",
+    "value": null
+   },
+   "why": "prize in words"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "Swag and credits",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "prize_text",
+    "value": "Swag and credits"
+   },
+   "why": "prize in words is kept"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "map-marker-alt",
+     "location": "Taipei, Taiwan"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "online",
+    "value": false
+   },
+   "why": "a place with the map marker is in person"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "map-marker-alt",
+     "location": "Taipei, Taiwan"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "location",
+    "value": "Taipei, Taiwan"
+   },
+   "why": "the place as given"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Hybrid"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "online",
+    "value": null
+   },
+   "why": "a place with another icon: unknown"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "online",
+    "value": null
+   },
+   "why": "no location: unknown, not offline"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": true,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "invite_only",
+    "value": true
+   },
+   "why": "invite-only is kept and marked (D3)"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "invite_only",
+    "value": null
+   },
+   "why": "no flag: unknown, never false"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": true,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "listing_closed",
+    "value": true
+   },
+   "why": "winners announced"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "ended",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "listing_closed",
+    "value": true
+   },
+   "why": "another open state"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "listing_closed",
+    "value": null
+   },
+   "why": "no open state: unknown"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "company",
+    "value": null
+   },
+   "why": "no organiser"
+  },
+  {
+   "payload": {
+    "id": 7,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "external_id",
+    "value": "7"
+   },
+   "why": "the id as text"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://sub.devpost.com/?ref=x#top",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "field": "url",
+    "value": "https://sub.devpost.com/"
+   },
+   "why": "query and fragment dropped"
+  },
+  {
+   "payload": {
+    "id": "90001",
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "id as text"
+  },
+  {
+   "payload": {
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "no id"
+  },
+  {
+   "payload": {
+    "id": 0,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "id 0"
+  },
+  {
+   "payload": {
+    "id": 1.5,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "fractional id"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "  ",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "empty title"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "no title"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "http://example-agents.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "not https"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://devpost.com.example.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "another host"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "the bare domain is not a hackathon page"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "url": "https://a:b@x.devpost.com/",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "credentials in the URL"
+  },
+  {
+   "payload": {
+    "id": 90001,
+    "title": "Example AI Agents Hackathon",
+    "displayed_location": {
+     "icon": "globe",
+     "location": "Online"
+    },
+    "open_state": "open",
+    "thumbnail_url": "//example.com/t.png",
+    "analytics_identifier": "Example AI Agents Hackathon (90001)",
+    "time_left_to_submission": "24 days left",
+    "submission_period_dates": "Nov 03 - Dec 15, 2026",
+    "themes": [
+     {
+      "id": 1,
+      "name": "Machine Learning/AI"
+     },
+     {
+      "id": 2,
+      "name": "Open Ended"
+     }
+    ],
+    "prize_amount": "$<span data-currency-value>10,000</span>",
+    "prizes_counts": {
+     "cash": 3,
+     "other": 1
+    },
+    "registrations_count": 1200,
+    "featured": false,
+    "organization_name": "Example Org",
+    "winners_announced": false,
+    "submission_gallery_url": "https://example-agents.devpost.com/project-gallery",
+    "start_a_submission_url": "https://example-agents.devpost.com/challenges/start_a_submission",
+    "invite_only": false,
+    "eligibility_requirement_invite_only_description": null,
+    "managed_by_devpost_badge": false
+   },
+   "expect": {
+    "error": true
+   },
+   "why": "no URL"
+  },
+  {
+   "payload": [],
+   "expect": {
+    "error": true
+   },
+   "why": "not an object"
+  },
+  {
+   "payload": null,
+   "expect": {
+    "error": true
+   },
+   "why": "null"
+  }
+ ]
+}
